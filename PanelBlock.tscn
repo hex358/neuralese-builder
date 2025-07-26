@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://pd0al02xn31k"]
+
+[ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://block.gdshader" id="1_we4hn"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8uh7m"]
+shader = ExtResource("1_we4hn")
+shader_parameter/corner_radius = 60.0
+shader_parameter/blurred_background = true
+shader_parameter/outline_width = 0.0
+shader_parameter/outline_color = Color(1, 1, 1, 1)
+
+[node name="ColorRect" type="ColorRect"]
+material = SubResource("ShaderMaterial_8uh7m")
+offset_right = 102.0
+offset_bottom = 54.0

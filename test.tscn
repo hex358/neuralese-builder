@@ -1,0 +1,46 @@
+[gd_scene load_steps=7 format=3 uid="uid://dbgi78pifb8xh"]
+
+[ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://block.gdshader" id="1_37kl0"]
+[ext_resource type="Texture2D" uid="uid://ukxnlbmbabr" path="res://icon.svg" id="2_6uqi0"]
+[ext_resource type="Script" uid="uid://cdue5fxw0culd" path="res://block.gd" id="4_ppyta"]
+[ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://JetBrainsMono-VariableFont_wght.ttf" id="5_ykrsh"]
+[ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://camera_2d.gd" id="6_g14j6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ykrsh"]
+resource_local_to_scene = true
+shader = ExtResource("1_37kl0")
+shader_parameter/corner_radius = 14.854
+shader_parameter/blurred_background = true
+shader_parameter/outline_width = 2.048
+shader_parameter/outline_color = Color(0.88, 0.88, 0.88, 1)
+
+[node name="Node2D" type="Node2D"]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_ykrsh")
+offset_left = 216.0
+offset_top = 236.0
+offset_right = 417.0
+offset_bottom = 290.0
+color = Color(0.2, 0.2, 0.2, 0.32549)
+script = ExtResource("4_ppyta")
+
+[node name="Label" type="Label" parent="ColorRect"]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 11.0
+offset_right = 155.0
+offset_bottom = 34.0
+scale = Vector2(1.26201, 1.26201)
+theme_override_fonts/font = ExtResource("5_ykrsh")
+text = "Create layer..."
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -9
+position = Vector2(398, 252)
+scale = Vector2(5, 5)
+texture = ExtResource("2_6uqi0")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(592, 323)
+script = ExtResource("6_g14j6")
