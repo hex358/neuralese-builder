@@ -29,7 +29,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec2 size_px = vec2(1.0/dFdx(UV).x, 1.0/dFdy(UV).y);
+	vec2 size_px = vec2(1.0 / dFdx(UV).x, 1.0 / dFdy(UV).y);
 	vec2 half = size_px * 0.5;
 	vec2 p = UV * size_px - half;
 	float r = corner_radius * min(vs_scale.x, vs_scale.y);
@@ -37,24 +37,22 @@ void fragment() {
 
 	vec2 q = abs(p) - (half - vec2(r));
 	float sdf = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - r;
-	float aa = fwidth(sdf);
 
-	float mask = smoothstep(aa, -aa, sdf);
-	float ol   = smoothstep(w + aa, w - aa, abs(sdf));
+	float mask = smoothstep(1.0, -1.0, sdf);
+	float ol = smoothstep(w + 1.0, w - 1.0, abs(sdf));
 
-	
-	if (blurred_background){
 	vec4 col;
-	if (ol < 1.0-0.001){
-	vec4 bg = textureLod(screen, SCREEN_UV, 2.5);
-	col = mix(alpha_blend(bg, COLOR), outline_color, ol);}
-	else{col = outline_color;}
+	if (blurred_background) {
+		vec4 bg = textureLod(screen, SCREEN_UV, 2.5);
+		if (ol < 0.999) {
+			col = mix(alpha_blend(bg, COLOR), outline_color, ol);
+		} else {
+			col = outline_color;
+		}
+	} else {
+		col = mix(COLOR, outline_color, ol);
+	}
+
 	col.a *= mask;
 	COLOR = col;
-	}
-	else{
-	vec4 col = mix(COLOR, outline_color, ol);
-	col.a *= mask;
-	COLOR = col;
-	}
 }

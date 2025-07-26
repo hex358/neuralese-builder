@@ -11,8 +11,8 @@ resource_local_to_scene = true
 shader = ExtResource("1_37kl0")
 shader_parameter/corner_radius = 14.854
 shader_parameter/blurred_background = true
-shader_parameter/outline_width = 2.048
-shader_parameter/outline_color = Color(0.88, 0.88, 0.88, 1)
+shader_parameter/outline_width = 0.5
+shader_parameter/outline_color = Color(0.71, 0.71, 0.71, 1)
 
 [node name="Node2D" type="Node2D"]
 
