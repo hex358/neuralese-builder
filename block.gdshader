@@ -1,10 +1,14 @@
 shader_type canvas_item;
 render_mode world_vertex_coords;
 
+instance uniform vec4 tuning: source_color = vec4(1.0);
+instance uniform vec4 color_mult: source_color = vec4(1.0);
+
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
 uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
 uniform vec4 outline_color: source_color = vec4(1.0);
+uniform float blur_level: hint_range(0.0, 7.0) = 2.5;
 
 uniform sampler2D screen: hint_screen_texture, filter_linear_mipmap;
 
@@ -20,8 +24,10 @@ vec4 alpha_blend(vec4 o, vec4 n) {
 	return res;
 }
 
+varying vec4 modulate;
 void vertex() {
 	vert = VERTEX;
+	modulate = COLOR;
 	vs_scale = vec2(
 		length(CANVAS_MATRIX[0].xy),
 		length(CANVAS_MATRIX[1].xy)
@@ -43,16 +49,17 @@ void fragment() {
 
 	vec4 col;
 	if (blurred_background) {
-		vec4 bg = textureLod(screen, SCREEN_UV, 2.5);
+		vec4 bg = textureLod(screen, SCREEN_UV, blur_level);
 		if (ol < 0.999) {
-			col = mix(alpha_blend(bg, COLOR), outline_color, ol);
+			col = mix(alpha_blend(bg, tuning), outline_color, ol);
 		} else {
 			col = outline_color;
 		}
 	} else {
-		col = mix(COLOR, outline_color, ol);
+		col = mix(tuning, outline_color, ol);
 	}
 
 	col.a *= mask;
 	COLOR = col;
+	COLOR *= modulate * color_mult;
 }

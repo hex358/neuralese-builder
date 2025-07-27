@@ -1,0 +1,7 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://cxe1714v2p0a1"]
+
+[ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://JetBrainsMono-VariableFont_wght.ttf" id="1_e1x85"]
+
+[resource]
+default_font = ExtResource("1_e1x85")
+Label/fonts/font = ExtResource("1_e1x85")

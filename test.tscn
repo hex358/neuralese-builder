@@ -1,46 +1,44 @@
 [gd_scene load_steps=7 format=3 uid="uid://dbgi78pifb8xh"]
 
-[ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://block.gdshader" id="1_37kl0"]
+[ext_resource type="Shader" uid="uid://cm0uwt66sanpc" path="res://test.gdshader" id="1_ykrsh"]
 [ext_resource type="Texture2D" uid="uid://ukxnlbmbabr" path="res://icon.svg" id="2_6uqi0"]
-[ext_resource type="Script" uid="uid://cdue5fxw0culd" path="res://block.gd" id="4_ppyta"]
-[ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://JetBrainsMono-VariableFont_wght.ttf" id="5_ykrsh"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://ContextMenu.tscn" id="4_ppyta"]
+[ext_resource type="PackedScene" uid="uid://4vgdhn8g4rp3" path="res://BlockButton.tscn" id="4_ykrsh"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://camera_2d.gd" id="6_g14j6"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ykrsh"]
-resource_local_to_scene = true
-shader = ExtResource("1_37kl0")
-shader_parameter/corner_radius = 14.854
-shader_parameter/blurred_background = true
-shader_parameter/outline_width = 0.5
-shader_parameter/outline_color = Color(0.71, 0.71, 0.71, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g14j6"]
+shader = ExtResource("1_ykrsh")
 
 [node name="Node2D" type="Node2D"]
 
-[node name="ColorRect" type="ColorRect" parent="."]
-material = SubResource("ShaderMaterial_ykrsh")
-offset_left = 216.0
-offset_top = 236.0
-offset_right = 417.0
-offset_bottom = 290.0
-color = Color(0.2, 0.2, 0.2, 0.32549)
-script = ExtResource("4_ppyta")
-
-[node name="Label" type="Label" parent="ColorRect"]
-layout_mode = 0
-offset_left = 11.0
-offset_top = 11.0
-offset_right = 155.0
-offset_bottom = 34.0
-scale = Vector2(1.26201, 1.26201)
-theme_override_fonts/font = ExtResource("5_ykrsh")
-text = "Create layer..."
-
 [node name="Background" type="Sprite2D" parent="."]
 z_index = -9
+material = SubResource("ShaderMaterial_g14j6")
 position = Vector2(398, 252)
 scale = Vector2(5, 5)
 texture = ExtResource("2_6uqi0")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(592, 323)
+process_callback = 0
+position_smoothing_enabled = true
 script = ExtResource("6_g14j6")
+
+[node name="ColorRect" parent="." instance=ExtResource("4_ppyta")]
+instance_shader_parameters/color_mult = Color(0.85, 1, 0.8775, 1)
+instance_shader_parameters/tuning = Color(0.58, 0.58, 0.58, 0.113725)
+offset_right = 247.0
+color = Color(1, 1, 1, 1)
+text = "Create element..."
+hover_color = null
+press_color = null
+
+[node name="ColorRect2" parent="ColorRect" instance=ExtResource("4_ykrsh")]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 47.0
+offset_right = 198.0
+offset_bottom = 101.0
+text = "Print \"hi\""
+hover_color = null
+press_color = null
