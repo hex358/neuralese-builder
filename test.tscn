@@ -1,9 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=6 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="Shader" uid="uid://cm0uwt66sanpc" path="res://test.gdshader" id="1_ykrsh"]
 [ext_resource type="Texture2D" uid="uid://ukxnlbmbabr" path="res://icon.svg" id="2_6uqi0"]
-[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://ContextMenu.tscn" id="4_ppyta"]
-[ext_resource type="PackedScene" uid="uid://4vgdhn8g4rp3" path="res://BlockButton.tscn" id="4_ykrsh"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://BaseBComponent.tscn" id="4_ppyta"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://camera_2d.gd" id="6_g14j6"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_g14j6"]
@@ -24,21 +23,14 @@ process_callback = 0
 position_smoothing_enabled = true
 script = ExtResource("6_g14j6")
 
-[node name="ColorRect" parent="." instance=ExtResource("4_ppyta")]
-instance_shader_parameters/color_mult = Color(0.85, 1, 0.8775, 1)
-instance_shader_parameters/tuning = Color(0.58, 0.58, 0.58, 0.113725)
-offset_right = 247.0
-color = Color(1, 1, 1, 1)
-text = "Create element..."
-hover_color = null
-press_color = null
+[node name="Base" parent="." instance=ExtResource("4_ppyta")]
+text = "Hello World!"
+alignment = Vector2(0, 1)
 
-[node name="ColorRect2" parent="ColorRect" instance=ExtResource("4_ykrsh")]
-layout_mode = 0
-offset_left = 48.0
-offset_top = 47.0
-offset_right = 198.0
-offset_bottom = 101.0
-text = "Print \"hi\""
-hover_color = null
-press_color = null
+[node name="Base2" parent="." instance=ExtResource("4_ppyta")]
+offset_left = 77.0
+offset_top = 213.0
+offset_right = 277.0
+offset_bottom = 263.0
+type = 1
+alignment = Vector2(0, 0)

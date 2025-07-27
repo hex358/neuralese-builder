@@ -1,6 +1,6 @@
 @tool
-extends ColorRect
-class_name ButtonComponent
+extends Control
+class_name BlockComponent
 enum ButtonTypes {ContextMenu, BlockButton}
 enum ActivateOn {OnRelease, OnPress}
 
@@ -16,11 +16,17 @@ enum ActivateOn {OnRelease, OnPress}
 @export var text: String = "":
 	set(v):
 		text = v
-		if is_instance_valid(label):
+		if self.is_node_ready(): 
 			label.text = v
-		label_align()
+			label_align()
 
-@export_group("Style")
+@export_group("Rect")
+@export var base_size: Vector2 = size
+@export var alignment: Vector2 = Vector2(1,1):
+	set(v):
+		alignment = v
+		rect_align()
+@export var rect: ColorRect
 
 @export_group("Context Menu")
 @export var expanded_size: float = 190.0
@@ -30,8 +36,11 @@ enum ActivateOn {OnRelease, OnPress}
 @export var hover_color: Color = Color.BLUE
 @export var press_color: Color = Color.RED
 
+@export_group("Instance Uniforms")
+# per-instance shader parameters here
+
+
 @onready var default_modulate: Color = modulate
-@onready var base_size: Vector2 = size
 
 signal pressed(args: Dictionary)
 
@@ -42,18 +51,24 @@ var state = {"expanding": false,
 "hovering": false}
 
 func mouse_in_bounds() -> bool:
-	return Rect2(-area_padding,
+	var new_rect = Rect2(-area_padding,
 	-area_padding,
-	self.size.x + area_padding,
-	self.expanded_size + area_padding).has_point(get_local_mouse_position())
+	base_size.x + area_padding,
+	base_size.y + area_padding if type == ButtonTypes.BlockButton else expanded_size)
+	new_rect.position += position + base_rect_pos
+	return new_rect.has_point(get_global_mouse_position())
+
 
 func _ready():
-	size = base_size
+	rect.size = base_size
 	text = text
-	if not Engine.is_editor_hint() and type == ButtonTypes.ContextMenu: 
+	if not Engine.is_editor_hint(): 
 		for child in get_children():
-			if child != children_root: child.reparent(children_root)
-		hide()
+			if child != children_root and child != rect: 
+				child.reparent(children_root)
+		match type:
+			ButtonTypes.ContextMenu: hide()
+			ButtonTypes.BlockButton: pass
 
 func get_label_text_size(label: Label) -> Vector2:
 	var font: Font = label.get_theme_font("font")
@@ -65,8 +80,15 @@ func get_label_text_size(label: Label) -> Vector2:
 		size
 	)
 
+const EP:float = 0.0002
+
 func label_align() -> void:
-	label.position = size / 2 - get_label_text_size(label) / 2 * label.scale
+	label.position = base_size / 2 - get_label_text_size(label) / 2 * label.scale
+
+var base_rect_pos: Vector2 = Vector2()
+func rect_align() -> void:
+	rect.position = base_size / 2 * alignment - base_size / 2
+	base_rect_pos = rect.position
 
 func spring(from:, to, t: float, frequency: float = 4.5, damping: float = 5.0):
 	t = clamp(t, 0.0, 1.0)
@@ -77,7 +99,8 @@ func spring(from:, to, t: float, frequency: float = 4.5, damping: float = 5.0):
 
 func _process(delta: float):
 	if Engine.is_editor_hint(): 
-		if size != base_size: label_align(); base_size = size
+		rect.size = size
+		if rect.size != base_size: label_align(); base_size = rect.size
 		return
 	match self.type:
 		ButtonTypes.ContextMenu: _process_context_menu(delta)
@@ -86,6 +109,7 @@ func _process(delta: float):
 var prog = 0.0
 func _process_block_button(delta: float) -> void:
 	var mouse:bool = Input.is_action_pressed("ui_mouse")
+	
 	var in_bounds:bool = mouse_in_bounds()
 	if state.hovering != in_bounds: prog = 0.0
 	state.hovering = in_bounds
@@ -105,7 +129,7 @@ func _process_context_menu(delta: float) -> void:
 						  # only when mouse is just pressed and mouse is not inside menu
 			if mouse_alt: # Context menus are shown on right mouse button
 				show(); state.tween_hide = false; state.holding = true
-				self.position = get_global_mouse_position(); self.size.y = base_size.y
+				self.position = get_global_mouse_position(); rect.size.y = base_size.y
 				modulate = default_modulate
 
 			elif mouse: 
@@ -121,12 +145,12 @@ func _process_context_menu(delta: float) -> void:
 		self.scale = self.scale.lerp(Vector2(0.94, 0.94), 20.0 * delta)
 	else:
 		self.scale = self.scale.lerp(Vector2.ONE, 20.0 * delta)
-
+	
 	if state.expanding:
-		self.size.y = lerpf(self.size.y, expanded_size, 30.0 * delta)
-
+		rect.size.y = lerpf(rect.size.y, expanded_size, 30.0 * delta)
+	
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 20.0)
-		if is_equal_approx(state.tween_progress, 1.0): hide(); state.tween_hide = false
-		self.size.y = lerpf(self.size.y, base_size.y, state.tween_progress)
+		if 1.0 - state.tween_progress < EP: hide(); state.tween_hide = false
+		rect.size.y = lerpf(rect.size.y, base_size.y, state.tween_progress)
 		self.modulate = self.modulate.lerp(Color.TRANSPARENT, state.tween_progress)
