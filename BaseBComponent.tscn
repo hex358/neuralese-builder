@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://wd63efdi6bdn"]
 
-[ext_resource type="Material" uid="uid://3ermqajvihxr" path="res://base_component.tres" id="1_25r5k"]
+[ext_resource type="Material" uid="uid://br0td6lybjlh1" path="res://unroll_button.tres" id="1_25r5k"]
 [ext_resource type="Script" uid="uid://dbelub2yuo5rm" path="res://block_component.gd" id="1_xvuro"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://theme.tres" id="3_t44r3"]
 
@@ -11,22 +11,28 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_xvuro")
-label = NodePath("ColorRect/Control/Label")
-children_root = NodePath("ColorRect/Control")
+label = NodePath("ColorRect/root/Label")
+children_root = NodePath("ColorRect/root")
 base_size = Vector2(200, 50)
 rect = NodePath("ColorRect")
 expanded_size = 390.0
 
 [node name="ColorRect" type="ColorRect" parent="."]
 use_parent_material = true
+instance_shader_parameters/color_mult = Color(1, 1, 1, 1)
+instance_shader_parameters/disabled = false
+instance_shader_parameters/tuning = Color(1, 1, 1, 1)
 layout_mode = 0
 offset_right = 200.0
 offset_bottom = 50.0
 
-[node name="Control" type="Control" parent="ColorRect"]
+[node name="root" type="Control" parent="ColorRect"]
 anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
-[node name="Label" type="Label" parent="ColorRect/Control"]
+[node name="Label" type="Label" parent="ColorRect/root"]
+z_index = 1
 layout_mode = 0
 offset_left = 100.0
 offset_top = 25.0

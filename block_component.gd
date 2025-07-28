@@ -5,7 +5,6 @@ extends Control
 class_name BlockComponent
 
 enum ButtonType { CONTEXT_MENU, BLOCK_BUTTON }
-enum ActivateOn { ON_RELEASE, ON_PRESS }
 
 var _instance_uniforms = []
 
@@ -47,16 +46,17 @@ func _update_instance_uniforms() -> void:
 
 @export_group("Context Menu")
 @export var expanded_size: float = 190.0
+@export var arrangement_padding: Vector2 = Vector2(10, 5)
 
 @export_group("Button")
-@export var activate_on = ActivateOn.ON_RELEASE
-@export var hover_color: Color = Color.BLUE
-@export var press_color: Color = Color.RED
+@export var config: ButtonConfig
 
-signal pressed(args: Dictionary)
+signal pressed
+signal released
 
 @onready var default_modulate: Color = modulate
 @onready var base_modulate: Color = modulate
+@onready var base_scale: Vector2 = scale
 
 const EPSILON: float = 0.0002
 
@@ -65,25 +65,38 @@ var state = {
 	"holding": false,
 	"tween_hide": false,
 	"tween_progress": 0.0,
-	"hovering": false
+	"pressing": false
 }
 var last_mouse_pos: Vector2 = Vector2()
 
+func _enter_tree() -> void:
+	if not Engine.is_editor_hint():
+		# Identify children in containment
+		match button_type:
+			ButtonType.CONTEXT_MENU:
+				for child in get_children():
+					if child is BlockComponent:
+						_contained.append(child)
+				arrange()
+				hide()
+			ButtonType.BLOCK_BUTTON:
+				pass
+
+func arrange():
+	var y: int = base_size.y * 0.9
+	for node in _contained:
+		var xo: int = arrangement_padding.x
+		node.position = -node.rect_offset + Vector2(xo, y)
+		var b_size: int = base_size.x - 2.3*xo
+		node.base_size.x = b_size; node.size.x = b_size
+		y += node.size.y + arrangement_padding.y
+
+var _contained = []
 func _ready() -> void:
 	# Initialize shader uniforms and size
 	_update_instance_uniforms()
 	rect.size = base_size
 	text = text  # Triggers setter
-	if not Engine.is_editor_hint():
-		# Reparent children under children_root
-		for child in get_children():
-			if child != children_root and child != rect:
-				child.reparent(children_root)
-		match button_type:
-			ButtonType.CONTEXT_MENU:
-				hide()
-			ButtonType.BLOCK_BUTTON:
-				pass
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -104,7 +117,7 @@ func _is_mouse_inside() -> bool:
 	# Define interaction bounds
 	var height = base_size.y if (button_type == ButtonType.BLOCK_BUTTON) else expanded_size
 	var bounds = Rect2(-area_padding, -area_padding, base_size.x + area_padding, height + area_padding)
-	bounds.position += position + base_rect_pos
+	bounds.position += global_position + rect_offset
 	return bounds.has_point(last_mouse_pos)
 
 func get_label_text_size(lbl: Label) -> Vector2:
@@ -118,45 +131,78 @@ func _align_label() -> void:
 	var text_size = get_label_text_size(label) * label.scale
 	label.position = (base_size - text_size) / 2
 
-var base_rect_pos: Vector2 = Vector2()
+var rect_offset: Vector2 = Vector2()
 func _align_rect() -> void:
 	# Position rect based on alignment
 	rect.position = base_size * (alignment - Vector2(0.5, 0.5))
-	base_rect_pos = rect.position
+	rect_offset = rect.position
 
+var bounce_scale = Vector2.ONE
+var hover_scale:Vector2 = Vector2.ONE
 func _process_block_button(delta: float) -> void:
 	var inside = _is_mouse_inside()
-	# Hover spring animation
-	if state.tween_progress > 0 and (1.0 - state.tween_progress) > EPSILON:
-		state.tween_progress += delta
-		scale = glob.spring(Vector2(0.9, 0.9), Vector2.ONE, state.tween_progress, 3, 6)
-
-	var pressed = Input.is_action_pressed("ui_mouse")
-	if not pressed or Input.is_action_just_pressed("ui_mouse"):
+	var mouse_pressed = Input.is_action_pressed("ui_mouse")
+	if not mouse_pressed or Input.is_action_just_pressed("ui_mouse"):
 		last_mouse_pos = get_global_mouse_position()
 
 	if inside:
-		if pressed:
-			# Press down effect
-			state.hovering = true
-			scale = scale.lerp(Vector2(0.9, 0.9), delta * 30)
-			modulate = modulate.lerp(press_color, delta * 50)
-			state.tween_progress = 0.0
+		if mouse_pressed:
+			# press-down
+			hover_scale = hover_scale.lerp(base_scale*config._press_scale, delta * 30)
+			modulate = modulate.lerp(config.press_color, delta * 50)
+			# begin a bounce when the press is released:
+			if not state.pressing:
+				pressed.emit()
+				state.pressing = true
+				state.tween_progress = 0.0
 		else:
-			# Hover release effect
-			modulate = modulate.lerp(hover_color, delta * 15)
-			if state.hovering:
-				state.tween_progress += delta
-				state.hovering = false
-			else:
-				scale = scale.lerp(Vector2.ONE, delta * 30)
+			# hovering
+			modulate = modulate.lerp(config.hover_color, delta * 15)
+			# if we just let go, kick off the bounce
+			if state.pressing:
+				released.emit()
+				state.pressing = false
+				if config.animation_scale:
+					hover_scale = base_scale
+				else:
+					hover_scale = base_scale*config._press_scale
+				state.tween_progress = delta
+			hover_scale = hover_scale.lerp(base_scale*config._hover_scale, delta * 30)
 	else:
-		# Reset when outside
-		if not state.hovering:
-			scale = scale.lerp(Vector2.ONE, delta * 15)
+		# outside
+		hover_scale = hover_scale.lerp(base_scale, delta * 15)
 		modulate = modulate.lerp(base_modulate, delta * 17)
+		state.pressing = false
 
+	if state.tween_progress > 0 and config.animation_scale:
+		state.tween_progress = min(state.tween_progress + delta, config.animation_duration)
+		bounce_scale = glob.spring(
+			Vector2.ONE*config._press_scale,
+			Vector2.ONE,
+			state.tween_progress,
+			config.animation_speed, config.animation_decay, config.animation_scale)
+		# end bounce once progress completes:
+		if state.tween_progress == config.animation_duration:
+			state.tween_progress = 0.0
+	else:
+		bounce_scale = bounce_scale.lerp(Vector2.ONE, delta*10.0)
+
+	# addictive
+	scale = hover_scale * bounce_scale
+
+func _update_children_reveal() -> void:
+	var count = _contained.size()
+	if count == 0: return
+	var segment = expanded_size / count
+	for i in range(count):
+		var c = _contained[i]
+		var start = base_size.y + segment * i
+		c.visible = c.position.y < rect.size.y - 10
+
+var t = 0
 func _process_context_menu(delta: float) -> void:
+	t += 1
+	
 	var left = Input.is_action_pressed("ui_mouse")
 	var right = Input.is_action_pressed("ui_mouse_alt")
 	var just_left = Input.is_action_just_pressed("ui_mouse")
@@ -175,6 +221,7 @@ func _process_context_menu(delta: float) -> void:
 				position = get_global_mouse_position()
 				rect.size.y = base_size.y
 				modulate = default_modulate
+				_update_children_reveal()
 			else:
 				# Start hiding animation
 				state.tween_hide = true
@@ -191,6 +238,7 @@ func _process_context_menu(delta: float) -> void:
 
 	if state.expanding:
 		# Expand menu height
+		_update_children_reveal()
 		rect.size.y = lerpf(rect.size.y, expanded_size, 30.0 * delta)
 	elif state.tween_hide:
 		# Shrink and fade out
@@ -200,3 +248,5 @@ func _process_context_menu(delta: float) -> void:
 			state.tween_hide = false
 		rect.size.y = lerpf(rect.size.y, base_size.y, state.tween_progress)
 		modulate = modulate.lerp(Color.TRANSPARENT, state.tween_progress)
+		_update_children_reveal()
+		
