@@ -1,10 +1,11 @@
 [gd_scene load_steps=4 format=3 uid="uid://wd63efdi6bdn"]
 
-[ext_resource type="Material" uid="uid://3ermqajvihxr" path="res://context_window.tres" id="1_t44r3"]
+[ext_resource type="Material" uid="uid://3ermqajvihxr" path="res://base_component.tres" id="1_25r5k"]
 [ext_resource type="Script" uid="uid://dbelub2yuo5rm" path="res://block_component.gd" id="1_xvuro"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://theme.tres" id="3_t44r3"]
 
 [node name="Base" type="Control" node_paths=PackedStringArray("label", "children_root", "rect")]
+material = ExtResource("1_25r5k")
 layout_mode = 3
 anchors_preset = 0
 offset_right = 200.0
@@ -17,9 +18,7 @@ rect = NodePath("ColorRect")
 expanded_size = 390.0
 
 [node name="ColorRect" type="ColorRect" parent="."]
-material = ExtResource("1_t44r3")
-instance_shader_parameters/color_mult = Color(0.88, 1, 0.95, 1)
-instance_shader_parameters/tuning = Color(0.44, 0.44, 0.44, 0.396078)
+use_parent_material = true
 layout_mode = 0
 offset_right = 200.0
 offset_bottom = 50.0
