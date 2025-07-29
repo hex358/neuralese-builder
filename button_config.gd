@@ -1,10 +1,6 @@
 extends Resource
 class_name ButtonConfig
 
-enum ActivateOn { ON_RELEASE, ON_PRESS }
-
-@export var activate_on = ActivateOn.ON_RELEASE
-
 @export_subgroup("Hover")
 @export var hover_color: Color = Color.BLUE
 @export_range(0.5, 1.5) var _hover_scale: float = 1.03

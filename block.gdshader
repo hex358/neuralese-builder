@@ -3,7 +3,7 @@ render_mode world_vertex_coords;
 #include "std.gdshaderinc"
 
 instance uniform vec4 tuning: source_color = vec4(1.0);
-instance uniform vec4 color_mult: source_color = vec4(1.0);
+uniform vec4 color_mult: source_color = vec4(1.0);
 instance uniform bool disabled = false;
 
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
@@ -56,15 +56,15 @@ void fragment() {
 	if (blurred_background) {
 		vec4 bg = textureLod(screen, SCREEN_UV, blur_level);
 		if (ol < 0.999) {
-			col = mix(alpha_blend(bg, tuning), outline_color, ol);
+			col = mix(alpha_blend(bg, tuning)*color_mult, outline_color, ol);
 		} else {
 			col = outline_color;
 		}
 	} else {
-		col = mix(tuning, outline_color, ol);
+		col = mix(tuning*color_mult, outline_color, ol);
 	}
 
 	col.a *= mask;
 	COLOR = col;
-	COLOR *= modulate * color_mult;
+	COLOR *= modulate;
 }

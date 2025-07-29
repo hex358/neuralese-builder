@@ -19,9 +19,6 @@ expanded_size = 390.0
 
 [node name="ColorRect" type="ColorRect" parent="."]
 use_parent_material = true
-instance_shader_parameters/color_mult = Color(1, 1, 1, 1)
-instance_shader_parameters/disabled = false
-instance_shader_parameters/tuning = Color(1, 1, 1, 1)
 layout_mode = 0
 offset_right = 200.0
 offset_bottom = 50.0

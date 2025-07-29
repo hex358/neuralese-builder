@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=8 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="Shader" uid="uid://cm0uwt66sanpc" path="res://test.gdshader" id="1_ykrsh"]
 [ext_resource type="Texture2D" uid="uid://ukxnlbmbabr" path="res://icon.svg" id="2_6uqi0"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://BaseBComponent.tscn" id="4_ppyta"]
-[ext_resource type="Resource" uid="uid://dfj4adcly3raw" path="res://default_config.tres" id="5_ykrsh"]
+[ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://context_menu.tres" id="5_g14j6"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://camera_2d.gd" id="6_g14j6"]
+[ext_resource type="Resource" uid="uid://b87f7qp31583q" path="res://lite_config.tres" id="6_vbegm"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_g14j6"]
 shader = ExtResource("1_ykrsh")
@@ -25,59 +26,75 @@ position_smoothing_enabled = true
 script = ExtResource("6_g14j6")
 
 [node name="Base" parent="." instance=ExtResource("4_ppyta")]
-instance_shader_parameters/color_mult = Color(0.85, 0.85, 0.85, 1)
+material = ExtResource("5_g14j6")
 instance_shader_parameters/disabled = true
 instance_shader_parameters/tuning = Color(0.388235, 0.388235, 0.388235, 0.215686)
-offset_right = 237.0
-text = "Create element..."
-base_size = Vector2(237, 50)
-arrangement_padding = Vector2(4, 5)
+offset_right = 255.0
+size_arrangement_allowed = true
+text = "Add graph        +"
+text_alignment = Vector2(-1, 0)
+text_offset = Vector2(15, 0)
+base_size = Vector2(255, 50)
+rect_center = Vector2(1, 1)
+expanded_size = 245.0
+arrangement_padding = Vector2(8, 5)
 
 [node name="Base2" parent="Base" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/color_mult = Color(0.69, 1, 0.8605, 1)
 instance_shader_parameters/disabled = true
 instance_shader_parameters/tuning = Color(0.39, 0.39, 0.39, 0.215686)
 offset_right = 219.0
 offset_bottom = 41.0
 button_type = 1
-text = "Logic Gate"
+size_arrangement_allowed = true
+text = "Neuron"
+text_alignment = Vector2(0, 0)
+text_offset = Vector2(0, 0)
 base_size = Vector2(219, 41)
-alignment = Vector2(0, 0)
-config = ExtResource("5_ykrsh")
+rect_center = Vector2(0, 0)
+config = ExtResource("6_vbegm")
 
 [node name="Base3" parent="Base" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/color_mult = Color(0.69, 1, 0.8605, 1)
 instance_shader_parameters/disabled = true
 instance_shader_parameters/tuning = Color(0.39, 0.39, 0.39, 0.215686)
 offset_right = 219.0
 offset_bottom = 41.0
 button_type = 1
-text = "Neuron"
+size_arrangement_allowed = true
+text = "Layer"
+text_alignment = Vector2(0, 0)
+text_offset = Vector2(0, 0)
 base_size = Vector2(219, 41)
-alignment = Vector2(0, 0)
+rect_center = Vector2(0, 0)
 arrangement_padding = Vector2(5, 5)
-config = ExtResource("5_ykrsh")
+config = ExtResource("6_vbegm")
 
 [node name="Base4" parent="Base" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/color_mult = Color(0.69, 1, 0.8605, 1)
 instance_shader_parameters/disabled = true
 instance_shader_parameters/tuning = Color(0.39, 0.39, 0.39, 0.215686)
 offset_right = 219.0
 offset_bottom = 41.0
 button_type = 1
-text = "Layer"
+size_arrangement_allowed = true
+text = "Condition"
+text_alignment = Vector2(0, 0)
+text_offset = Vector2(0, 0)
 base_size = Vector2(219, 41)
-alignment = Vector2(0, 0)
-config = ExtResource("5_ykrsh")
+rect_center = Vector2(0, 0)
+config = ExtResource("6_vbegm")
 
 [node name="Base5" parent="Base" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/color_mult = Color(0.69, 1, 0.8605, 1)
 instance_shader_parameters/disabled = true
 instance_shader_parameters/tuning = Color(0.39, 0.39, 0.39, 0.215686)
 offset_right = 236.0
 offset_bottom = 41.0
 button_type = 1
-text = "Remote Connection"
+size_arrangement_allowed = true
+text = "Remote"
+text_alignment = Vector2(0, 0)
+text_offset = Vector2(0, 0)
 base_size = Vector2(236, 41)
-alignment = Vector2(0, 0)
-config = ExtResource("5_ykrsh")
+rect_center = Vector2(0, 0)
+config = ExtResource("6_vbegm")
+
+[connection signal="pressed" from="Base/Base2" to="Camera2D" method="_on_base_2_pressed"]
+[connection signal="released" from="Base/Base2" to="Camera2D" method="_on_base_2_released"]

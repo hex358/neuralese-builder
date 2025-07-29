@@ -10,6 +10,7 @@ var _instance_uniforms = []
 
 @export var button_type: ButtonType = ButtonType.CONTEXT_MENU
 @export var area_padding: float = 0.0
+@export var size_arrangement_allowed: bool = true
 @export_tool_button("Editor Refresh") var _editor_refresh = func():
 	# Refresh property list and update shader parameters
 	notify_property_list_changed()
@@ -35,12 +36,14 @@ func _update_instance_uniforms() -> void:
 		if is_node_ready():
 			label.text = value
 			_align_label()
+@export var text_alignment: Vector2 = Vector2()
+@export var text_offset: Vector2 = Vector2()
 
 @export_group("Rect")
 @export var base_size: Vector2 = size
-@export var alignment: Vector2 = Vector2(1, 1):
+@export var rect_center: Vector2 = Vector2(1, 1):
 	set(value):
-		alignment = value
+		rect_center = value
 		_align_rect()
 @export var rect: ColorRect
 
@@ -88,7 +91,9 @@ func arrange():
 		var xo: int = arrangement_padding.x
 		node.position = -node.rect_offset + Vector2(xo, y)
 		var b_size: int = base_size.x - 2.3*xo
-		node.base_size.x = b_size; node.size.x = b_size
+		if node.size_arrangement_allowed:
+			node.base_size.x = b_size; node.size.x = b_size
+			node.text = node.text
 		y += node.size.y + arrangement_padding.y
 
 var _contained = []
@@ -129,12 +134,12 @@ func get_label_text_size(lbl: Label) -> Vector2:
 func _align_label() -> void:
 	# Center label within base_size
 	var text_size = get_label_text_size(label) * label.scale
-	label.position = (base_size - text_size) / 2
+	label.position = (base_size - text_size) / 2 * (text_alignment+Vector2.ONE) + text_offset
 
 var rect_offset: Vector2 = Vector2()
 func _align_rect() -> void:
-	# Position rect based on alignment
-	rect.position = base_size * (alignment - Vector2(0.5, 0.5))
+	# Position rect based on rect_center
+	rect.position = base_size * (rect_center - Vector2(1, 1)) * 0.5
 	rect_offset = rect.position
 
 var bounce_scale = Vector2.ONE
@@ -242,7 +247,7 @@ func _process_context_menu(delta: float) -> void:
 		rect.size.y = lerpf(rect.size.y, expanded_size, 30.0 * delta)
 	elif state.tween_hide:
 		# Shrink and fade out
-		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 20)
+		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 22.0)
 		if 1.0 - state.tween_progress < EPSILON:
 			hide()
 			state.tween_hide = false
