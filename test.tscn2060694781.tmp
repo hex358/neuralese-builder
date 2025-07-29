@@ -24,11 +24,9 @@ texture = ExtResource("2_6uqi0")
 position = Vector2(592, 323)
 process_callback = 0
 position_smoothing_enabled = true
-position_smoothing_speed = 22.0
+position_smoothing_speed = 15.0
 script = ExtResource("6_g14j6")
-zoom_speed = 0.2
-drag_button = 3
-zoom_interpolation_speed = 20.0
+scroll_speed = 0.15
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 layer = 3
@@ -43,11 +41,11 @@ text = "Add graph        +"
 base_size = Vector2(255, 50)
 rect_center = Vector2(0.5, 0.5)
 expanded_size = 240.0
+expand_upwards = true
 
 [node name="neuron" parent="CanvasLayer/menu" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/disabled = true
-instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
-instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
+instance_shader_parameters/tuning = Color(0.266667, 0.4, 0.337255, 0.552941)
 offset_right = 219.0
 offset_bottom = 41.0
 button_type = 1
@@ -59,8 +57,7 @@ config = ExtResource("6_vbegm")
 
 [node name="layer" parent="CanvasLayer/menu" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/disabled = true
-instance_shader_parameters/outline_color = Color(0.66994, 0.86, 0.6364, 1)
-instance_shader_parameters/tuning = Color(0.338165, 0.47, 0.3149, 0.552941)
+instance_shader_parameters/tuning = Color(0.268, 0.4, 0.3384, 0.552941)
 offset_right = 219.0
 offset_bottom = 41.0
 button_type = 1
@@ -72,8 +69,7 @@ config = ExtResource("6_vbegm")
 
 [node name="condition" parent="CanvasLayer/menu" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/disabled = true
-instance_shader_parameters/outline_color = Color(0.7482, 0.86, 0.6364, 1)
-instance_shader_parameters/tuning = Color(0.39245, 0.47, 0.3149, 0.552941)
+instance_shader_parameters/tuning = Color(0.266667, 0.4, 0.337255, 0.552941)
 layout_mode = 0
 offset_right = 219.0
 offset_bottom = 41.0
@@ -85,8 +81,7 @@ config = ExtResource("6_vbegm")
 
 [node name="remote" parent="CanvasLayer/menu" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/disabled = true
-instance_shader_parameters/outline_color = Color(0.53482, 0.4602, 0.78, 1)
-instance_shader_parameters/tuning = Color(0.35109, 0.3149, 0.47, 0.552941)
+instance_shader_parameters/tuning = Color(0.266667, 0.4, 0.337255, 0.552941)
 offset_right = 236.0
 offset_bottom = 41.0
 button_type = 1

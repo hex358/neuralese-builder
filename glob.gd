@@ -2,8 +2,9 @@
 extends Node
 
 var base_graph = preload("res://base_graph.tscn")
-var viewport_moving: bool = false
-var viewport_just_started_moving: bool = false
+var hide_menus: bool = false
+
+func reset_menus() -> void: hide_menus = true
 
 func get_graph(flags = Graph.Flags.NONE) -> Graph:
 	var new = base_graph.instantiate()
@@ -33,6 +34,34 @@ func spring(from: Vector2, to: Vector2, t: float,
 	var amp_factor = lerp(1.0, amplitude, t)
 	var factor = 1.0 - decay * osc * amp_factor
 	return from + (to - from) * factor
+
+
+class _Timer extends RefCounted:
+	var wait_time: float; var progress: float
+	signal timeout
+	func _init(wait_time: float):
+		self.wait_time = wait_time; self.progress = 0.0
+
+var timers: Dictionary[_Timer, bool] = {}
+
+func wait(wait_time: float):
+	var timer = _Timer.new(wait_time)
+	timers[timer] = true; return timer.timeout
+
+func _after_process(delta: float) -> void:
+	hide_menus = false
+
+func _process(delta: float) -> void:
+	_after_process.call_deferred(delta)
+	
+	var to_erase = []
+	for timer in timers:
+		timer.progress += delta
+		if timer.progress > timer.wait_time: 
+			timer.timeout.emit()
+			to_erase.append(timer)
+	for i in to_erase:
+		timers.erase(i)
 
 func _ready() -> void:
 	pass

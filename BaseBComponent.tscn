@@ -6,6 +6,7 @@
 
 [node name="Base" type="Control"]
 material = ExtResource("1_25r5k")
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.439216)
 layout_mode = 3
 anchors_preset = 0

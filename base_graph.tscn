@@ -10,16 +10,15 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_p8kol")
-base_size = Vector2(200, 50)
-rect_center = Vector2(0, 0)
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = ExtResource("2_ubyv8")
-instance_shader_parameters/tuning = Color(1, 1, 1, 0.717647)
-offset_left = 100.0
-offset_top = 25.0
-offset_right = 300.0
-offset_bottom = 172.0
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.639216)
+layout_mode = 0
+offset_left = 1.0
+offset_top = -1.0
+offset_right = 308.0
+offset_bottom = 260.0
 
 [node name="root" type="Control" parent="ColorRect"]
 anchors_preset = 0
@@ -29,12 +28,13 @@ offset_bottom = 40.0
 [node name="Label" type="Label" parent="ColorRect/root"]
 z_index = 1
 layout_mode = 0
-offset_left = 100.0
-offset_top = 25.0
-offset_right = 158.0
-offset_bottom = 47.0
+offset_left = 79.0
+offset_top = 12.0
+offset_right = 195.0
+offset_bottom = 34.0
 scale = Vector2(1.285, 1.285)
 theme = ExtResource("3_t1vr5")
+text = "Hello World!"
 
 [node name="TextureRect" type="TextureRect" parent="ColorRect"]
 layout_mode = 0

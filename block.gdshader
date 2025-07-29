@@ -2,6 +2,7 @@ shader_type canvas_item;
 render_mode world_vertex_coords;
 #include "std.gdshaderinc"
 
+uniform vec4 mult_tuning: source_color = vec4(1.0);
 instance uniform vec4 tuning: source_color = vec4(1.0);
 uniform vec4 color_mult: source_color = vec4(1.0);
 instance uniform bool disabled = false;
@@ -9,7 +10,7 @@ instance uniform bool disabled = false;
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
 uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
-uniform vec4 outline_color: source_color = vec4(1.0);
+instance uniform vec4 outline_color: source_color = vec4(1.0);
 uniform float blur_level: hint_range(0.0, 7.0) = 2.5;
 //global uniform float zoom = 1.0;
 
@@ -56,12 +57,12 @@ void fragment() {
 	if (blurred_background) {
 		vec4 bg = textureLod(screen, SCREEN_UV, blur_level);
 		if (ol < 0.999) {
-			col = mix(alpha_blend(bg, tuning)*color_mult, outline_color, ol);
+			col = mix(alpha_blend(bg, tuning*mult_tuning)*color_mult, outline_color, ol);
 		} else {
 			col = outline_color;
 		}
 	} else {
-		col = mix(tuning*color_mult, outline_color, ol);
+		col = mix(tuning*mult_tuning*color_mult, outline_color, ol);
 	}
 
 	col.a *= mask;
