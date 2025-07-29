@@ -8,5 +8,9 @@ var pressed = Input.is_action_pressed
 var init_pos = position
 func _physics_process(delta: float) -> void:
 	var po = position
-	position.x += Input.get_axis("left", "right") * delta * 500
-	position.y += Input.get_axis("up", "down") * delta * 500
+	var axis_x = Input.get_axis("left", "right")
+	var axis_y = Input.get_axis("up", "down") 
+	glob.viewport_just_started_moving = (axis_x or axis_y) and not glob.viewport_moving
+	glob.viewport_moving = axis_x or axis_y
+	position.x += axis_x * delta * 500
+	position.y += axis_y * delta * 500

@@ -4,9 +4,9 @@
 
 [resource]
 shader = ExtResource("1_e7jnp")
-shader_parameter/color_mult = Color(0.63, 0.63, 0.63, 1)
+shader_parameter/color_mult = Color(1, 1, 1, 1)
 shader_parameter/corner_radius = 20.509
 shader_parameter/blurred_background = true
 shader_parameter/outline_width = 2.377
-shader_parameter/outline_color = Color(0.3366, 0.66, 0.51447, 1)
-shader_parameter/blur_level = 4.939
+shader_parameter/outline_color = Color(0.306, 0.6, 0.4677, 1)
+shader_parameter/blur_level = 3.915

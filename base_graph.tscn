@@ -1,25 +1,25 @@
-[gd_scene load_steps=4 format=3 uid="uid://wd63efdi6bdn"]
+[gd_scene load_steps=4 format=3 uid="uid://dvy7srp0sk1qm"]
 
-[ext_resource type="Material" uid="uid://br0td6lybjlh1" path="res://unroll_button.tres" id="1_25r5k"]
-[ext_resource type="Script" uid="uid://dbelub2yuo5rm" path="res://block_component.gd" id="1_xvuro"]
-[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://theme.tres" id="3_t44r3"]
+[ext_resource type="Script" uid="uid://dp2qwk0p8iuhy" path="res://base_graph.gd" id="2_p8kol"]
+[ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://graph.tres" id="2_ubyv8"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://theme.tres" id="3_t1vr5"]
 
 [node name="Base" type="Control"]
-material = ExtResource("1_25r5k")
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.439216)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
-script = ExtResource("1_xvuro")
+script = ExtResource("2_p8kol")
 base_size = Vector2(200, 50)
-expanded_size = 390.0
+rect_center = Vector2(0, 0)
 
 [node name="ColorRect" type="ColorRect" parent="."]
-use_parent_material = true
-layout_mode = 0
-offset_right = 200.0
-offset_bottom = 50.0
+material = ExtResource("2_ubyv8")
+instance_shader_parameters/tuning = Color(1, 1, 1, 0.717647)
+offset_left = 100.0
+offset_top = 25.0
+offset_right = 300.0
+offset_bottom = 172.0
 
 [node name="root" type="Control" parent="ColorRect"]
 anchors_preset = 0
@@ -34,7 +34,7 @@ offset_top = 25.0
 offset_right = 158.0
 offset_bottom = 47.0
 scale = Vector2(1.285, 1.285)
-theme = ExtResource("3_t44r3")
+theme = ExtResource("3_t1vr5")
 
 [node name="TextureRect" type="TextureRect" parent="ColorRect"]
 layout_mode = 0
