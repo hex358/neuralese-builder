@@ -4,9 +4,10 @@
 
 [resource]
 shader = ExtResource("1_pktq8")
+shader_parameter/shape = 1
 shader_parameter/mult_tuning = Color(1, 1, 1, 1)
 shader_parameter/color_mult = Color(1, 1, 1, 1)
-shader_parameter/corner_radius = 32.205
+shader_parameter/corner_radius = 49.123
 shader_parameter/blurred_background = false
 shader_parameter/outline_width = 2.377
 shader_parameter/blur_level = 1.96

@@ -37,13 +37,14 @@ func _input(event: InputEvent) -> void:
 
 		elif event.pressed:
 			var factor = zoom_speed * event.factor * zoom.x
+			var prev_zoom = target_zoom
 			match event.button_index:
 				MOUSE_BUTTON_WHEEL_DOWN:
-					target_zoom = max(0.8, zoom.x - factor)
-					glob.reset_menus()
+					target_zoom = max(0.4, zoom.x - factor)
 				MOUSE_BUTTON_WHEEL_UP:
 					target_zoom = min(2, zoom.x + factor)
-					glob.reset_menus()
+			if target_zoom != prev_zoom:
+				glob.reset_menus()
 	
 	elif event is InputEventMouseMotion and dragging:
 		if _ignore_next_motion:

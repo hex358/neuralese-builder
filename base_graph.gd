@@ -3,7 +3,6 @@
 extends Control
 class_name Graph
 
-@onready var rect = $ColorRect
 @onready var label = $ColorRect/root/Label
 
 enum Flags {NONE, NEW}
@@ -12,7 +11,6 @@ enum Flags {NONE, NEW}
 @export_tool_button("Editor Refresh") var _editor_refresh = func():
 	# Refresh property list and update shader parameters
 	notify_property_list_changed()
-
 
 
 

@@ -2,7 +2,16 @@
 extends Node
 
 var base_graph = preload("res://base_graph.tscn")
+var default_spline = preload("res://default_spline.tscn")
 var hide_menus: bool = false
+var hovered_connection: Connection = null
+var spline_connection: Connection = null
+#var splines = {}
+
+func get_spline(for_connection: Connection):
+	var new = default_spline.instantiate()
+	add_child(new); new.z_index = 9
+	return new
 
 func reset_menus() -> void: hide_menus = true
 
@@ -50,6 +59,7 @@ func wait(wait_time: float):
 
 func _after_process(delta: float) -> void:
 	hide_menus = false
+	
 
 func _process(delta: float) -> void:
 	_after_process.call_deferred(delta)

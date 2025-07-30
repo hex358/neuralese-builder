@@ -85,7 +85,7 @@ config = ExtResource("6_vbegm")
 
 [node name="remote" parent="CanvasLayer/menu" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/disabled = true
-instance_shader_parameters/outline_color = Color(0.53482, 0.4602, 0.78, 1)
+instance_shader_parameters/outline_color = Color(0.656547, 0.6068, 0.82, 1)
 instance_shader_parameters/tuning = Color(0.35109, 0.3149, 0.47, 0.552941)
 offset_right = 236.0
 offset_bottom = 41.0
