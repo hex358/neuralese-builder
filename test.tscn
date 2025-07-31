@@ -50,110 +50,110 @@ layer = 3
 
 [node name="edit_graph" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
 material = ExtResource("5_g14j6")
-instance_shader_parameters/disabled = true
-instance_shader_parameters/tuning = Color(0.388235, 0.388235, 0.388235, 0.215686)
+instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
 offset_right = 255.0
 scale = Vector2(0.7, 0.7)
 script = ExtResource("6_ehkex")
 text = "Add graph        +"
 base_size = Vector2(255, 50)
-rect_center = Vector2(0.5, 0.5)
+alignment = Vector2(0, 0)
 expanded_size = 240.0
-mouse_open = true
+expand_delay = true
+arrangement_padding = Vector2(12, 5)
 menu_type = &"add_graph"
-dynamic_size = false
 
 [node name="neuron" parent="CanvasLayer/edit_graph" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/disabled = true
 instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
 instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
-offset_right = 219.0
-offset_bottom = 41.0
+layout_mode = 0
+offset_left = -94.2857
+offset_top = -68.5714
+offset_right = 124.714
+offset_bottom = -27.5714
+pivot_offset = Vector2(109.5, 20.5)
 button_type = 1
 hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
-rect_center = Vector2(0, 0)
-mouse_open = true
-dynamic_size = false
+alignment = Vector2(0.5, 0.5)
+expand_delay = false
 config = ExtResource("6_vbegm")
 
 [node name="layer" parent="CanvasLayer/edit_graph" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/disabled = true
 instance_shader_parameters/outline_color = Color(0.66994, 0.86, 0.6364, 1)
 instance_shader_parameters/tuning = Color(0.338165, 0.47, 0.3149, 0.552941)
+layout_mode = 0
 offset_right = 219.0
 offset_bottom = 41.0
+pivot_offset = Vector2(109.5, 20.5)
 button_type = 1
 text = "Layer"
 base_size = Vector2(219, 41)
-rect_center = Vector2(0, 0)
+alignment = Vector2(0.5, 0.5)
+expand_delay = false
 arrangement_padding = Vector2(5, 5)
-mouse_open = true
-dynamic_size = false
 config = ExtResource("6_vbegm")
 
 [node name="condition" parent="CanvasLayer/edit_graph" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/disabled = true
 instance_shader_parameters/outline_color = Color(0.7482, 0.86, 0.6364, 1)
 instance_shader_parameters/tuning = Color(0.39245, 0.47, 0.3149, 0.552941)
 layout_mode = 0
 offset_right = 219.0
 offset_bottom = 41.0
+pivot_offset = Vector2(109.5, 20.5)
 button_type = 1
 text = "Condition"
 base_size = Vector2(219, 41)
-rect_center = Vector2(0, 0)
-mouse_open = true
-dynamic_size = false
+alignment = Vector2(0.5, 0.5)
+expand_delay = false
 config = ExtResource("6_vbegm")
 
 [node name="remote" parent="CanvasLayer/edit_graph" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/disabled = true
 instance_shader_parameters/outline_color = Color(0.585833, 0.475, 0.95, 1)
 instance_shader_parameters/tuning = Color(0.35109, 0.3149, 0.47, 0.552941)
+layout_mode = 0
 offset_right = 236.0
 offset_bottom = 41.0
+pivot_offset = Vector2(118, 20.5)
 button_type = 1
 text = "Remote"
 base_size = Vector2(236, 41)
-rect_center = Vector2(0, 0)
-mouse_open = true
-dynamic_size = false
+alignment = Vector2(0.5, 0.5)
+expand_delay = false
 config = ExtResource("6_vbegm")
 
 [node name="detatch" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
-material = ExtResource("5_g14j6")
-instance_shader_parameters/disabled = true
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.415686)
 offset_left = -1.0
 offset_top = 46.0
-offset_right = 176.0
+offset_right = 218.0
 offset_bottom = 96.0
 scale = Vector2(0.7, 0.7)
 script = ExtResource("8_xersf")
 text = "Detatch"
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
-base_size = Vector2(177, 50)
-rect_center = Vector2(0.5, 0.5)
-expanded_size = 190.0
-mouse_open = true
+base_size = Vector2(219, 50)
+alignment = Vector2(0, 0)
+expand_delay = false
+mouse_open = false
 menu_type = &"detatch"
 dynamic_size = true
 
 [node name="delete" parent="CanvasLayer/detatch" instance=ExtResource("4_ppyta")]
-instance_shader_parameters/disabled = true
+z_index = 2
 instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
 instance_shader_parameters/tuning = Color(0.29, 0.1914, 0.1914, 0.552941)
+layout_mode = 0
 offset_right = 236.0
 offset_bottom = 41.0
+pivot_offset = Vector2(118, 20.5)
 button_type = 1
 text = "Hello!!"
 base_size = Vector2(236, 41)
-rect_center = Vector2(0, 0)
-mouse_open = true
-dynamic_size = false
+alignment = Vector2(0.5, 0.5)
+expand_delay = false
+mouse_open = false
 config = SubResource("Resource_77dp3")
 
 [node name="ProceduralNodes" type="Node" parent="CanvasLayer/detatch" node_paths=PackedStringArray("instance")]

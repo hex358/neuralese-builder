@@ -4,7 +4,6 @@
 
 [resource]
 script = ExtResource("1_balws")
-activate_on = 0
 hover_color = Color(1.1, 1.1, 1.1, 1)
 _hover_scale = 1.03
 press_color = Color(0.9, 0.9, 0.9, 1)

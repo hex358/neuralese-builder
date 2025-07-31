@@ -8,7 +8,6 @@ uniform int shape: hint_range(0,2) = 0;
 uniform vec4 mult_tuning: source_color = vec4(1.0);
 instance uniform vec4 tuning: source_color = vec4(1.0);
 uniform vec4 color_mult: source_color = vec4(1.0);
-instance uniform bool disabled = false;
 
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
@@ -31,8 +30,6 @@ void vertex() {
 }
 
 void fragment() {
-	if (disabled) { discard; }
-	
 	// compute pixel coords
 	vec2 size_px = vec2(1.0 / dFdx(UV).x, 1.0 / dFdy(UV).y);
 	vec2 half = size_px * 0.5;

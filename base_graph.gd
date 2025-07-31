@@ -37,7 +37,12 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	
 	var inside = is_mouse_inside()
-	if inside and glob.mouse_just_pressed:
+	#if inside:
+		#glob.occupy(self)
+	#else:
+		#glob.un_occupy(self)
+	
+	if inside and glob.mouse_just_pressed and not glob.is_occupied(self):
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 	if dragging:
 		if not glob.mouse_pressed:

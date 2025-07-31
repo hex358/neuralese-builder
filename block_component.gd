@@ -1,5 +1,5 @@
 @tool
-extends Control
+extends ColorRect
 class_name BlockComponent
 
 enum ButtonType { CONTEXT_MENU, BLOCK_BUTTON, PANEL, GRAPH_CONTAINER }
@@ -19,25 +19,14 @@ func unblock_input() -> void: is_blocking = false
 
 @export_tool_button("Editor Refresh") var _editor_refresh = func():
 	notify_property_list_changed()
-	_update_instance_uniforms()
 
-func _update_instance_uniforms() -> void:
-	# Retrieve and apply per-instance shader uniforms
-	var canvas_id = get_canvas_item()
-	_instance_uniforms = RenderingServer.canvas_item_get_instance_shader_parameter_list(canvas_id)
-	if _instance_uniforms.size() > 0:
-		for uniform in _instance_uniforms:
-			var name = uniform.name
-			var value = get_instance_shader_parameter(name) if name != "disabled" else false
-			rect.set_instance_shader_parameter(name, value)
 
 @export_group("Meta")
 @export var metadata: Dictionary = {}
 @export var hint: StringName = &""
 
 @export_group("Text")
-@onready var label = $ColorRect/root/Label
-@onready var children_root = $ColorRect/root
+@onready var label = $Label
 @export var icon: String = ""
 @export var text: String = "":
 	set(value):
@@ -56,16 +45,14 @@ func _update_instance_uniforms() -> void:
 
 @export_group("Rect")
 @export var base_size: Vector2 = size
-@export var rect_center: Vector2 = Vector2(1, 1):
-	set(value):
-		rect_center = value
-		if not is_node_ready(): 
-			await ready
-		_align_rect(); _align_label()
-@onready var rect = $ColorRect
+@export var alignment: Vector2 = Vector2(0,0):
+	set(v):
+		alignment = v
+		pivot_offset = alignment * size + Vector2(0,0.5)
 
 @export_group("Context Menu")
 @export var expanded_size: float = 190.0
+@export var expand_delay: bool = false
 @export var arrangement_padding: Vector2 = Vector2(10, 5)
 @export var mouse_open: bool = true
 @export var menu_type: StringName = &""
@@ -81,7 +68,9 @@ func _update_instance_uniforms() -> void:
 @export var config: ButtonConfig
 
 signal hovered
+signal hovering
 signal pressed
+signal pressing
 signal released
 
 @onready var default_modulate: Color = modulate
@@ -104,11 +93,26 @@ var anchor_position: Vector2 = Vector2()  # For upward expansion
 func _menu_handle_hover(button: BlockComponent):
 	pass
 
+func _menu_handle_hovering(button: BlockComponent):
+	pass
+
 func _menu_handle_press(button: BlockComponent):
+	pass
+
+func _menu_handle_pressing(button: BlockComponent):
 	pass
 
 func _menu_handle_release(button: BlockComponent):
 	pass
+
+func contain(child: BlockComponent):
+	if child.button_type == ButtonType.BLOCK_BUTTON:
+		child.hovered.connect(_menu_handle_hover.bind(child))
+		child.hovering.connect(_menu_handle_hovering.bind(child))
+		child.pressed.connect(_menu_handle_press.bind(child))
+		child.pressing.connect(_menu_handle_pressing.bind(child))
+		child.released.connect(_menu_handle_release.bind(child))
+	_contained.append(child); child.is_contained = true
 
 func initialize() -> void:
 	if not Engine.is_editor_hint():
@@ -117,11 +121,7 @@ func initialize() -> void:
 				for child in get_children():
 					if not child is BlockComponent:
 						continue
-					elif child.button_type == ButtonType.BLOCK_BUTTON:
-						child.hovered.connect(_menu_handle_hover.bind(child))
-						child.pressed.connect(_menu_handle_press.bind(child))
-						child.released.connect(_menu_handle_release.bind(child))
-					_contained.append(child); child.is_contained = true
+					contain(child)
 				arrange()
 				hide()
 			ButtonType.BLOCK_BUTTON:
@@ -141,11 +141,11 @@ func dynamic_child_exit(child):
 func dynamic_child_enter(child):
 	if child is BlockComponent:
 		expanded_size += child.size.y + arrangement_padding.y
-		_contained.append(child)
+		contain(child)
 
 func resize(_size: Vector2) -> void:
-	rect.size = _size
 	base_size = _size; size = _size; text = text
+	alignment = alignment
 
 func arrange():
 	# Arrange children above or below based on expand_upwards
@@ -153,10 +153,9 @@ func arrange():
 
 	for node:BlockComponent in _contained:
 		var xo = arrangement_padding.x
-		node._align_rect()
-		node.position = -node.rect_offset + Vector2(xo, y)
+		node.position = Vector2(xo, y)
 		if node.size_arrangement_allowed:
-			var b_size = base_size.x - 2.3 * xo
+			var b_size = base_size.x - 2.2 * xo
 			node.resize(Vector2(b_size, node.size.y))
 			node.text = node.text
 		y += (node.size.y + arrangement_padding.y)
@@ -168,16 +167,17 @@ func _enter_tree() -> void:
 var _contained = []
 func _ready() -> void:
 	initialize()
-	_update_instance_uniforms()
-	rect.size = base_size
+	size = base_size
 	text = text  # Trigger setter
+
+func _sub_process(delta: float):
+	pass
 
 var mult: Vector2 = Vector2.ONE
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
-		rect.size = size
 		_align_label()
-		base_size = rect.size
+		base_size = size
 		return
 	
 	mult = scale * parent.scale
@@ -186,23 +186,19 @@ func _process(delta: float) -> void:
 			_process_context_menu(delta)
 		ButtonType.BLOCK_BUTTON:
 			_process_block_button(delta)
+	_sub_process(delta)
 
 func is_mouse_inside() -> bool:
 	var height = base_size.y if button_type == ButtonType.BLOCK_BUTTON else expanded_size
 	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
 	bounds.size *= mult
-	bounds.position -= Vector2.ONE*area_padding*mult
-	bounds.position += global_position + rect_offset*mult
+	bounds.position += global_position - Vector2.ONE*area_padding*mult
 	return bounds.has_point(last_mouse_pos)
 
 func _align_label() -> void:
 	var text_size = glob.get_label_text_size(label) * label.scale
 	label.position = (base_size - text_size) / 2 * (text_alignment + Vector2.ONE) + text_offset
 
-var rect_offset: Vector2 = Vector2()
-func _align_rect() -> void:
-	rect.position = base_size * (rect_center - Vector2(0.5, 0.5))
-	rect_offset = rect.position
 
 var bounce_scale = Vector2.ONE
 var hover_scale: Vector2 = Vector2.ONE
@@ -233,6 +229,7 @@ func _process_block_button(delta: float) -> void:
 				state.pressing = true
 				state.tween_progress = 0.0
 		else:
+			hovering.emit()
 			modulate = modulate.lerp(config.hover_color, delta * 15)
 			if state.pressing:
 				released.emit()
@@ -263,14 +260,16 @@ func _update_children_reveal() -> void:
 	if not _contained: return
 	for c in _contained:
 		if expand_upwards:
-			c.visible = c.position.y + c.rect.size.y < rect.size.y + 20
+			c.visible = c.position.y + c.size.y < size.y + 20
 		else:
-			c.visible = c.position.y + c.rect.size.y < rect.size.y + 20
+			c.visible = c.position.y + c.size.y < size.y + 20
 		if not c.visible:
 			c.modulate = Color(c.base_modulate.r, c.base_modulate.g, c.base_modulate.b, 0.0)
 
+var show_request:bool = false
 func menu_show(at_position: Vector2) -> void:
 	show()
+	show_request = true
 	scale = base_scale
 	state.tween_hide = false
 	state.holding = true
@@ -280,12 +279,12 @@ func menu_show(at_position: Vector2) -> void:
 		position = at_position - Vector2(0, base_size.y)
 	else:
 		position = at_position
-	rect.size.y = base_size.y
+	size.y = base_size.y
 	modulate = default_modulate
 	_update_children_reveal()
 
 func menu_hide() -> void:
-	if state.tween_hide: return
+	if state.tween_hide or not visible: return
 	state.tween_hide = true
 	state.tween_progress = 0.0
 	state.expanding = false
@@ -298,21 +297,21 @@ func menu_expand() -> void:
 func _is_not_menu():
 	return (not glob.is_my_menu(self) and glob.mouse_alt_pressed)
 
-var timer = null
+var timer: glob._Timer = null
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
-	# click belongs to another menu?
+	# click belongs to another menu
 	var reset_menu = _is_not_menu()
 	if not is_visible_in_tree() and reset_menu:
 		return
-
+	
 	# mouse state
 	var left_pressed = glob.mouse_pressed
 	var right_pressed = glob.mouse_alt_pressed
 	var left_click = glob.mouse_just_pressed
 	var right_click = glob.mouse_alt_just_pressed
 	
-	if not mouse_open:
+	if not mouse_open and not reset_menu:
 		right_pressed = false
 		right_click = false
 
@@ -325,13 +324,19 @@ func _process_context_menu(delta: float) -> void:
 	if glob.hide_menus and not state.holding:
 		left_pressed = false; right_pressed = false
 		left_click = false; right_click = false
+		
 		menu_hide()
 
-	if left_click or right_click or is_instance_valid(timer) or reset_menu:
+	var i_occupied: bool = false
+	if show_request or right_click or left_click or is_instance_valid(timer) or (reset_menu and right_click):
 		var inside_self_click = left_click and is_mouse_inside()
+		if inside_self_click and visible and not state.tween_hide:
+			i_occupied = true
+			glob.occupy(self)
 		if not state.holding and (not visible or not inside_self_click):
 			# small delay before opening
-			timer = glob.timer(0.075)
+			if expand_delay and (show_request or right_click):
+				timer = glob.timer(0.065)
 			
 			# clamp menu position to viewport
 			var pos = last_mouse_pos
@@ -339,22 +344,24 @@ func _process_context_menu(delta: float) -> void:
 			if not expand_upwards:
 				pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - expanded_size * mult.y)
 			
-			if right_pressed and not reset_menu:
+			if (show_request or right_pressed) and not reset_menu and not left_click:
 				menu_show(pos)
-			else:
+			elif visible:
 				menu_hide()
 	else:
 		# while holding LMB expand gradually
 		if state.holding and not state.tween_hide:
 			menu_expand()
-
+	if not i_occupied:
+		glob.un_occupy(self)
+	
 	var target_scale = Vector2(0.94, 0.94) if (state.holding or state.tween_hide) else Vector2.ONE
 	scale = scale.lerp(target_scale * base_scale, 20.0 * delta)
 
 	if state.expanding:
-		rect.size.y = lerpf(rect.size.y, expanded_size, 30.0 * delta)
+		size.y = lerpf(size.y, expanded_size, 30.0 * delta)
 		if expand_upwards:
-			position.y = anchor_position.y - rect.size.y * mult.y
+			position.y = anchor_position.y - size.y * mult.y
 		_update_children_reveal()
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
@@ -366,9 +373,11 @@ func _process_context_menu(delta: float) -> void:
 			state.tween_hide = false
 			state.holding = false
 		
-		rect.size.y = lerpf(rect.size.y, base_size.y, state.tween_progress)
+		size.y = lerpf(size.y, base_size.y, state.tween_progress)
 		if expand_upwards:
-			position.y = anchor_position.y - rect.size.y * mult.y
+			position.y = anchor_position.y - size.y * mult.y
 		
 		modulate = modulate.lerp(Color.TRANSPARENT, state.tween_progress)
 		_update_children_reveal()
+	
+	show_request = false

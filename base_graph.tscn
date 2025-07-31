@@ -8,10 +8,10 @@
 [node name="Base" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 174.0
-offset_top = 128.0
-offset_right = 374.0
-offset_bottom = 178.0
+offset_left = 1044.0
+offset_top = 768.0
+offset_right = 1244.0
+offset_bottom = 818.0
 script = ExtResource("2_p8kol")
 area_padding = -5.0
 

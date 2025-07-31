@@ -52,10 +52,13 @@ func end_spline(id: int, hide: bool = true):
 		var node = splines[id][1]
 		spline.queue_free()
 		if is_instance_valid(node):
-			node.inputs.erase(spline)
-			node.connected.erase(self)
+			forget_spline(spline, node)
 		splines.erase(id)
 	active_splines.erase(id)
+
+func forget_spline(spline: Spline, other_node: Connection):
+	other_node.inputs.erase(spline)
+	other_node.connected.erase(self)
 
 func attach_spline(id: int, target: Connection):
 	active_splines[id].update_points(get_origin(), target.get_origin())
@@ -65,7 +68,9 @@ func attach_spline(id: int, target: Connection):
 	end_spline(id, false)
 
 func detatch_spline(spline: Spline):
-	inputs[spline][1].start_spline(inputs[spline][0])
+	var other = inputs[spline][1]
+	other.start_spline(inputs[spline][0])
+	other.forget_spline(spline, self)
 
 func remove_input_spline(spline: Spline):
 	inputs[spline][1].end_spline(inputs[spline][0])
@@ -89,7 +94,7 @@ func _process(delta: float) -> void:
 	mouse_pressed = glob.mouse_pressed
 	mouse_just_pressed = glob.mouse_just_pressed
 	var inside = is_mouse_inside()
-	if inside: 
+	if inside:# and (inputs or splines): 
 		glob.set_menu_type(self, "detatch")
 	else: glob.reset_menu_type(self, "detatch")
 	#print(glob.menu_type)
@@ -101,20 +106,17 @@ func _process(delta: float) -> void:
 		glob.hovered_connection = null
 
 	if connection_type == OUTPUT and inside:
-		if 0:#glob.mouse_just_pressed:
+		if glob.mouse_just_pressed: # and not splines
 			start_spline(add_spline())
-		elif glob.mouse_alt_just_pressed:# and len(splines) > 1:
-			# TODO: implement context menu for selecting between different splines
-			glob.getref("detatch_unroll").unroll()
-			glob.menus["detatch"].show_up()
+		elif glob.mouse_alt_just_pressed: # and splines.size() > 1
+			glob.menus["detatch"].show_up(splines, self)
 
-	if connection_type == INPUT and inside and inputs:
-		if len(inputs) > 1:
-			if glob.mouse_just_pressed or glob.mouse_alt_just_pressed:
-				# TODO: implement context menu for selecting between different splines to disconnect
-				pass
-		elif glob.mouse_just_pressed:
-			detatch_spline(inputs.keys()[0])
+	if connection_type == INPUT and inside:
+		if glob.mouse_alt_just_pressed:
+			#if glob.mouse_just_pressed or glob.mouse_alt_just_pressed:
+			glob.menus["detatch"].show_up(inputs, self)
+		elif glob.mouse_just_pressed and inputs:
+			detatch_spline(inputs.keys()[-1])
 
 	var to_end = []
 	var to_attach = []
