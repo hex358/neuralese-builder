@@ -8,10 +8,53 @@ var hovered_connection: Connection = null
 var spline_connection: Connection = null
 #var splines = {}
 
-func get_spline(for_connection: Connection):
+var menus = {"detatch": null, "edit_graph": null}
+
+var refs = {}
+func ref(inst, name):
+	refs[name] = inst
+
+func getref(name):
+	if name in refs:
+		if is_instance_valid(refs[name]):
+			return refs[name]
+		else:
+			refs.erase(name)
+	return null
+
+func get_spline(for_connection: Connection) -> Spline:
 	var new = default_spline.instantiate()
 	add_child(new); new.z_index = 9
 	return new
+
+# Occupation (some node blocks input of others)
+var occupied: Control = null
+func is_occupied(node: Control) -> bool: return is_instance_valid(occupied) and occupied != node
+func occupy(node: Control):
+	if not is_instance_valid(occupied):
+		occupied = node
+func un_occupy(node: Control):
+	if is_instance_valid(occupied) and occupied == node:
+		occupied = null
+
+# Select menu type (add graph / edit graph / edit connection etc.)
+var menu_type: StringName = &""
+var _menu_type_occupator: Node = null
+func is_my_menu(node: BlockComponent) -> bool:
+	return menu_type == node.menu_type if menu_type else node.menu_type == &"add_graph"
+func set_menu_type(occ: Node, type: StringName):
+	if !is_instance_valid(_menu_type_occupator): 
+		_menu_type_occupator = occ
+		menu_type = type
+func reset_menu_type(occ: Node, type: StringName):
+	if is_instance_valid(_menu_type_occupator) and _menu_type_occupator == occ: 
+		_menu_type_occupator = null
+		menu_type = &""
+
+# Unique slot
+var id: int = 0
+func free_slot():
+	id += 1; return id
 
 func reset_menus() -> void: hide_menus = true
 
@@ -45,7 +88,7 @@ func spring(from: Vector2, to: Vector2, t: float,
 	return from + (to - from) * factor
 
 
-class _Timer extends RefCounted:
+class _Timer extends Object:
 	var wait_time: float; var progress: float
 	signal timeout
 	func _init(wait_time: float):
@@ -53,15 +96,50 @@ class _Timer extends RefCounted:
 
 var timers: Dictionary[_Timer, bool] = {}
 
+func timer(wait_time: float):
+	var timer = _Timer.new(wait_time)
+	timers[timer] = true; return timer
+
 func wait(wait_time: float):
 	var timer = _Timer.new(wait_time)
 	timers[timer] = true; return timer.timeout
 
 func _after_process(delta: float) -> void:
 	hide_menus = false
-	
 
+var mouse_pressed: bool = false
+var mouse_just_pressed: bool = false
+var mouse_released: bool = false
+var mouse_just_released: bool = false
+
+var mouse_alt_pressed: bool = false
+var mouse_alt_just_pressed: bool = false
+var mouse_alt_released: bool = false
+var mouse_alt_just_released: bool = false
+
+func input_poll():
+	if ticks <= 1: return
+	var press = Input.is_action_pressed("ui_mouse")
+	mouse_just_pressed = press and not mouse_pressed
+	mouse_pressed = press
+
+	var released = not Input.is_action_pressed("ui_mouse")
+	mouse_just_released = released and not mouse_released
+	mouse_released = released
+
+	var press_alt = Input.is_action_pressed("ui_mouse_alt")
+	mouse_alt_just_pressed = press_alt and not mouse_alt_pressed
+	mouse_alt_pressed = press_alt
+
+	var released_alt = not Input.is_action_pressed("ui_mouse_alt")
+	mouse_alt_just_released = released_alt and not mouse_alt_released
+	mouse_alt_released = released_alt
+
+var ticks: int = 0
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint(): return
+	
+	ticks += 1
 	_after_process.call_deferred(delta)
 	
 	var to_erase = []
@@ -72,6 +150,9 @@ func _process(delta: float) -> void:
 			to_erase.append(timer)
 	for i in to_erase:
 		timers.erase(i)
+		i.free.call_deferred()
+
+	input_poll()
 
 func _ready() -> void:
 	pass

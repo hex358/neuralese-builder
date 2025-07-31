@@ -67,6 +67,9 @@ func _update_instance_uniforms() -> void:
 @export_group("Context Menu")
 @export var expanded_size: float = 190.0
 @export var arrangement_padding: Vector2 = Vector2(10, 5)
+@export var mouse_controlled: bool = true
+@export var menu_type: StringName = &""
+@export var dynamic_size: bool = false
 @export var expand_upwards: bool = false:
 	set(v):
 		if v != expand_upwards:
@@ -77,6 +80,7 @@ func _update_instance_uniforms() -> void:
 @export_group("Button")
 @export var config: ButtonConfig
 
+signal hovered
 signal pressed
 signal released
 
@@ -97,6 +101,9 @@ var state = {
 var last_mouse_pos: Vector2 = Vector2()
 var anchor_position: Vector2 = Vector2()  # For upward expansion
 
+func _menu_handle_hover(button: BlockComponent):
+	pass
+
 func _menu_handle_press(button: BlockComponent):
 	pass
 
@@ -111,6 +118,7 @@ func initialize() -> void:
 					if not child is BlockComponent:
 						continue
 					elif child.button_type == ButtonType.BLOCK_BUTTON:
+						child.hovered.connect(_menu_handle_hover.bind(child))
 						child.pressed.connect(_menu_handle_press.bind(child))
 						child.released.connect(_menu_handle_release.bind(child))
 					_contained.append(child); child.is_contained = true
@@ -118,6 +126,18 @@ func initialize() -> void:
 				hide()
 			ButtonType.BLOCK_BUTTON:
 				pass
+		if dynamic_size:
+			expanded_size = 6.0 + base_size.y
+			for child in _contained:
+				expanded_size += child.size.y + arrangement_padding.y
+			child_exiting_tree.connect(dynamic_child_exit)
+			child_entered_tree.connect(dynamic_child_enter)
+
+func dynamic_child_exit(child):
+	expanded_size -= child.size.y + arrangement_padding.y
+
+func dynamic_child_enter(child):
+	expanded_size += child.size.y + arrangement_padding.y
 
 func resize(_size: Vector2) -> void:
 	rect.size = _size
@@ -137,6 +157,10 @@ func arrange():
 			node.text = node.text
 		y += (node.size.y + arrangement_padding.y)
 
+func _enter_tree() -> void:
+	if button_type == ButtonType.CONTEXT_MENU:
+		glob.menus[menu_type] = self
+
 var _contained = []
 func _ready() -> void:
 	initialize()
@@ -144,24 +168,27 @@ func _ready() -> void:
 	rect.size = base_size
 	text = text  # Trigger setter
 
+var mult: Vector2 = Vector2.ONE
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		rect.size = size
-		if rect.size != base_size:
-			_align_label()
-			base_size = rect.size
+		_align_label()
+		base_size = rect.size
 		return
-
+	
+	mult = scale * parent.scale
 	match button_type:
 		ButtonType.CONTEXT_MENU:
 			_process_context_menu(delta)
 		ButtonType.BLOCK_BUTTON:
 			_process_block_button(delta)
 
-func _is_mouse_inside() -> bool:
+func is_mouse_inside() -> bool:
 	var height = base_size.y if button_type == ButtonType.BLOCK_BUTTON else expanded_size
-	var bounds = Rect2(-area_padding, -area_padding, base_size.x + area_padding, height + area_padding)
-	bounds.position += global_position + rect_offset
+	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
+	bounds.size *= mult
+	bounds.position -= Vector2.ONE*area_padding*mult
+	bounds.position += global_position + rect_offset*mult
 	return bounds.has_point(last_mouse_pos)
 
 func _align_label() -> void:
@@ -188,9 +215,9 @@ func _process_block_button(delta: float) -> void:
 	var frozen = is_contained and parent.is_frozen
 	
 	if not frozen:
-		inside = _is_mouse_inside()
-		mouse_pressed = Input.is_action_pressed("ui_mouse") and not blocked
-	if not blocked and (not mouse_pressed or Input.is_action_just_pressed("ui_mouse")):
+		inside = is_mouse_inside()
+		mouse_pressed = glob.mouse_pressed and not blocked
+	if not blocked and (not mouse_pressed or glob.mouse_just_pressed):
 		last_mouse_pos = get_global_mouse_position()
 
 	if inside:
@@ -264,50 +291,80 @@ func menu_expand() -> void:
 	state.holding = false
 	state.expanding = true
 
+func _is_not_menu():
+	return (not glob.is_my_menu(self) and glob.mouse_alt_pressed)
+
+var timer = null
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
-	var left = Input.is_action_pressed("ui_mouse")
-	var right = Input.is_action_pressed("ui_mouse_alt")
-	var just_left = Input.is_action_just_pressed("ui_mouse")
-	var just_right = Input.is_action_just_pressed("ui_mouse_alt")
+	# click belongs to another menu?
+	var reset_menu = _is_not_menu()
+	if not is_visible_in_tree() and reset_menu:
+		return
 
-	if just_left or just_right or (not left and not right):
-		last_mouse_pos = get_global_mouse_position()
-		if just_right:
-			expand_upwards = last_mouse_pos.y > viewport_rect.size.y - 70
+	# mouse state
+	var left_pressed = glob.mouse_pressed
+	var right_pressed = glob.mouse_alt_pressed
+	var left_click = glob.mouse_just_pressed
+	var right_click = glob.mouse_alt_just_pressed
 	
-	if glob.hide_menus:
-		left = false; right = false; just_left = false; just_right = false
+	if not mouse_controlled:
+		left_pressed = false; right_pressed = false
+		left_click = false; right_click = false
+
+	if left_click or right_click or (not left_pressed and not right_pressed):
+		last_mouse_pos = get_global_mouse_position()
+		if right_click:
+			var bottom_threshold = viewport_rect.size.y - 70 * mult.y
+			expand_upwards = last_mouse_pos.y > bottom_threshold
+
+	if glob.hide_menus and not state.holding:
+		left_pressed = false; right_pressed = false
+		left_click = false; right_click = false
 		menu_hide()
 
-	if left or right:
-		if not state.holding and (not visible or not _is_mouse_inside()):
-			var pos = last_mouse_pos
-			pos.x = clamp(pos.x, 0, viewport_rect.size.x - size.x)
+	if left_click or right_click or is_instance_valid(timer) or reset_menu:
+		var inside_self_click := left_click and is_mouse_inside()
+		if not state.holding and (not visible or not inside_self_click):
+			# small delay before opening
+			timer = glob.timer(0.075)
+			
+			# clamp menu position to viewport
+			var pos := last_mouse_pos
+			pos.x = clamp(pos.x, 0.0, viewport_rect.size.x - size.x * mult.x)
 			if not expand_upwards:
-				pos.y = clamp(pos.y, 0, viewport_rect.size.y - expanded_size)
-			if right:
+				pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - expanded_size * mult.y)
+			
+			if right_pressed and not reset_menu:
 				menu_show(pos)
 			else:
 				menu_hide()
-	elif state.holding and not state.tween_hide:
-		menu_expand()
+	else:
+		# while holding LMB expand gradually
+		if state.holding and not state.tween_hide:
+			menu_expand()
 
-	var target = Vector2(0.94, 0.94) if (state.holding or state.tween_hide) else Vector2.ONE
-	scale = scale.lerp(target, 20.0 * delta)
+	var target_scale := Vector2(0.94, 0.94) if (state.holding or state.tween_hide) else Vector2.ONE
+	scale = scale.lerp(target_scale * base_scale, 20.0 * delta)
 
 	if state.expanding:
 		rect.size.y = lerpf(rect.size.y, expanded_size, 30.0 * delta)
 		if expand_upwards:
-			position.y = anchor_position.y - rect.size.y
+			position.y = anchor_position.y - rect.size.y * mult.y
 		_update_children_reveal()
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
+		
+		# hide once tween almost done
 		if state.tween_progress > 0.8:
-			hide(); scale = base_scale
-			state.tween_hide = false; state.holding = false
+			hide()
+			scale = base_scale
+			state.tween_hide = false
+			state.holding = false
+		
 		rect.size.y = lerpf(rect.size.y, base_size.y, state.tween_progress)
 		if expand_upwards:
-			position.y = anchor_position.y - rect.size.y
+			position.y = anchor_position.y - rect.size.y * mult.y
+		
 		modulate = modulate.lerp(Color.TRANSPARENT, state.tween_progress)
 		_update_children_reveal()
