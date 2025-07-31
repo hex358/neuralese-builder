@@ -59,6 +59,7 @@ text = "Add graph        +"
 base_size = Vector2(255, 50)
 rect_center = Vector2(0.5, 0.5)
 expanded_size = 240.0
+mouse_open = true
 menu_type = &"add_graph"
 dynamic_size = false
 
@@ -73,6 +74,7 @@ hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
 rect_center = Vector2(0, 0)
+mouse_open = true
 dynamic_size = false
 config = ExtResource("6_vbegm")
 
@@ -87,6 +89,7 @@ text = "Layer"
 base_size = Vector2(219, 41)
 rect_center = Vector2(0, 0)
 arrangement_padding = Vector2(5, 5)
+mouse_open = true
 dynamic_size = false
 config = ExtResource("6_vbegm")
 
@@ -101,6 +104,7 @@ button_type = 1
 text = "Condition"
 base_size = Vector2(219, 41)
 rect_center = Vector2(0, 0)
+mouse_open = true
 dynamic_size = false
 config = ExtResource("6_vbegm")
 
@@ -114,6 +118,7 @@ button_type = 1
 text = "Remote"
 base_size = Vector2(236, 41)
 rect_center = Vector2(0, 0)
+mouse_open = true
 dynamic_size = false
 config = ExtResource("6_vbegm")
 
@@ -133,20 +138,21 @@ text_offset = Vector2(15, 0)
 base_size = Vector2(177, 50)
 rect_center = Vector2(0.5, 0.5)
 expanded_size = 190.0
-mouse_controlled = false
+mouse_open = true
 menu_type = &"detatch"
 dynamic_size = true
 
 [node name="delete" parent="CanvasLayer/detatch" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/disabled = true
 instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
-instance_shader_parameters/tuning = Color(0.35109, 0.3149, 0.47, 0.552941)
+instance_shader_parameters/tuning = Color(0.29, 0.1914, 0.1914, 0.552941)
 offset_right = 236.0
 offset_bottom = 41.0
 button_type = 1
 text = "Hello!!"
 base_size = Vector2(236, 41)
 rect_center = Vector2(0, 0)
+mouse_open = true
 dynamic_size = false
 config = SubResource("Resource_77dp3")
 

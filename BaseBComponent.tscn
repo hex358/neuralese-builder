@@ -15,6 +15,7 @@ offset_bottom = 50.0
 script = ExtResource("1_xvuro")
 base_size = Vector2(200, 50)
 expanded_size = 390.0
+mouse_open = null
 dynamic_size = null
 
 [node name="ColorRect" type="ColorRect" parent="."]

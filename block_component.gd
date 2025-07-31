@@ -67,7 +67,7 @@ func _update_instance_uniforms() -> void:
 @export_group("Context Menu")
 @export var expanded_size: float = 190.0
 @export var arrangement_padding: Vector2 = Vector2(10, 5)
-@export var mouse_controlled: bool = true
+@export var mouse_open: bool = true
 @export var menu_type: StringName = &""
 @export var dynamic_size: bool = false
 @export var expand_upwards: bool = false:
@@ -134,10 +134,14 @@ func initialize() -> void:
 			child_entered_tree.connect(dynamic_child_enter)
 
 func dynamic_child_exit(child):
-	expanded_size -= child.size.y + arrangement_padding.y
+	if child is BlockComponent and child in _contained:
+		expanded_size -= child.size.y + arrangement_padding.y
+		_contained.erase(child)
 
 func dynamic_child_enter(child):
-	expanded_size += child.size.y + arrangement_padding.y
+	if child is BlockComponent:
+		expanded_size += child.size.y + arrangement_padding.y
+		_contained.append(child)
 
 func resize(_size: Vector2) -> void:
 	rect.size = _size
@@ -158,7 +162,7 @@ func arrange():
 		y += (node.size.y + arrangement_padding.y)
 
 func _enter_tree() -> void:
-	if button_type == ButtonType.CONTEXT_MENU:
+	if !Engine.is_editor_hint() and button_type == ButtonType.CONTEXT_MENU:
 		glob.menus[menu_type] = self
 
 var _contained = []
@@ -308,9 +312,9 @@ func _process_context_menu(delta: float) -> void:
 	var left_click = glob.mouse_just_pressed
 	var right_click = glob.mouse_alt_just_pressed
 	
-	if not mouse_controlled:
-		left_pressed = false; right_pressed = false
-		left_click = false; right_click = false
+	if not mouse_open:
+		right_pressed = false
+		right_click = false
 
 	if left_click or right_click or (not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
@@ -324,13 +328,13 @@ func _process_context_menu(delta: float) -> void:
 		menu_hide()
 
 	if left_click or right_click or is_instance_valid(timer) or reset_menu:
-		var inside_self_click := left_click and is_mouse_inside()
+		var inside_self_click = left_click and is_mouse_inside()
 		if not state.holding and (not visible or not inside_self_click):
 			# small delay before opening
 			timer = glob.timer(0.075)
 			
 			# clamp menu position to viewport
-			var pos := last_mouse_pos
+			var pos = last_mouse_pos
 			pos.x = clamp(pos.x, 0.0, viewport_rect.size.x - size.x * mult.x)
 			if not expand_upwards:
 				pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - expanded_size * mult.y)
@@ -344,7 +348,7 @@ func _process_context_menu(delta: float) -> void:
 		if state.holding and not state.tween_hide:
 			menu_expand()
 
-	var target_scale := Vector2(0.94, 0.94) if (state.holding or state.tween_hide) else Vector2.ONE
+	var target_scale = Vector2(0.94, 0.94) if (state.holding or state.tween_hide) else Vector2.ONE
 	scale = scale.lerp(target_scale * base_scale, 20.0 * delta)
 
 	if state.expanding:

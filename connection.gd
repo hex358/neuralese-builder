@@ -13,6 +13,7 @@ static var OUTPUT: int = 1
 var splines: Dictionary[int, Array] = {}
 var active_splines: Dictionary[int, Spline] = {}
 var inputs: Dictionary[Spline, Array] = {}
+var connected: Dictionary[Connection, bool] = {}
 
 var mouse_just_pressed: bool = false
 var mouse_pressed: bool = false
@@ -52,12 +53,14 @@ func end_spline(id: int, hide: bool = true):
 		spline.queue_free()
 		if is_instance_valid(node):
 			node.inputs.erase(spline)
+			node.connected.erase(self)
 		splines.erase(id)
 	active_splines.erase(id)
 
 func attach_spline(id: int, target: Connection):
 	active_splines[id].update_points(get_origin(), target.get_origin())
 	splines[id][1] = target
+	target.connected[self] = true
 	target.inputs[active_splines[id]] = [id, self]
 	end_spline(id, false)
 
@@ -73,8 +76,11 @@ func _ready() -> void:
 func get_origin() -> Vector2:
 	return global_position + size / 2
 
+func _is_suitable(conn: Connection) -> bool: return true # virtual
+
 func is_suitable(conn: Connection) -> bool:
-	return conn and conn != self and conn.connection_type == INPUT
+	return (conn and conn != self and conn.connection_type == INPUT
+		and not conn.connected.has(self) and _is_suitable(conn))
 
 func _process(delta: float) -> void:
 	if not is_visible_in_tree():
@@ -95,11 +101,12 @@ func _process(delta: float) -> void:
 		glob.hovered_connection = null
 
 	if connection_type == OUTPUT and inside:
-		if glob.mouse_just_pressed:
+		if 0:#glob.mouse_just_pressed:
 			start_spline(add_spline())
-		elif glob.mouse_alt_just_pressed and len(splines) > 1:
+		elif glob.mouse_alt_just_pressed:# and len(splines) > 1:
 			# TODO: implement context menu for selecting between different splines
-			pass
+			glob.getref("detatch_unroll").unroll()
+			glob.menus["detatch"].show_up()
 
 	if connection_type == INPUT and inside and inputs:
 		if len(inputs) > 1:
