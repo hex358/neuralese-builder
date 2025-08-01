@@ -13,8 +13,6 @@ offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_xvuro")
 base_size = Vector2(200, 50)
-alignment = null
-expand_delay = null
 config = ExtResource("3_drerm")
 
 [node name="Label" type="Label" parent="."]

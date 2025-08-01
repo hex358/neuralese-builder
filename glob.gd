@@ -14,6 +14,8 @@ var refs = {}
 func ref(inst, name):
 	refs[name] = inst
 
+
+
 func getref(name):
 	if name in refs:
 		if is_instance_valid(refs[name]):
@@ -149,8 +151,23 @@ func input_poll():
 	mouse_alt_released = released_alt
 
 var ticks: int = 0
+var propagation_q = {}
+func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
+	propagation_q.get_or_add(tied_to, {})[key] = value
+	#print(propagation_q)
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
+	if propagation_q:
+		#print(propagation_q)
+		var dup = propagation_q.duplicate(1)
+		propagation_q.clear()
+		for conn: Connection in dup:
+			conn.parent_graph._do_propagate(conn, dup[conn])
+		OS.delay_msec(100)
+	
+		#graph._do_propagate() 
+		
 	
 	ticks += 1
 	_after_process.call_deferred(delta)

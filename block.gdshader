@@ -34,11 +34,11 @@ void fragment() {
 	vec2 size_px = vec2(1.0 / dFdx(UV).x, 1.0 / dFdy(UV).y);
 	vec2 half = size_px * 0.5;
 	vec2 p = UV * size_px - half;
-	
+
 	// compute effective radius and outline width in px
 	float r = corner_radius * min(view_scale.x, view_scale.y) * vert_scale.x;
 	float w = outline_width * min(view_scale.x, view_scale.y) * vert_scale.y;
-	
+
 	float sdf;
 	if (false) {
 		//// right-facing isosceles triangle
@@ -62,11 +62,11 @@ void fragment() {
 		vec2 q = abs(p) - (half - vec2(r));
 		sdf = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - r;
 	}
-	
+
 	// compute mask and outline alpha
 	float mask = smoothstep(1.0, -1.0, sdf);
 	float ol = smoothstep(w + 1.0, w - 1.0, abs(sdf));
-	
+
 	// compute fill color
 	vec4 col;
 	if (blurred_background) {
@@ -79,7 +79,7 @@ void fragment() {
 	} else {
 		col = mix(tuning * mult_tuning * color_mult, outline_color, ol);
 	}
-	
+
 	col.a *= mask;
 	COLOR = col * modulate;
 }
