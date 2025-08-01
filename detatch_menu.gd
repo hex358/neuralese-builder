@@ -7,16 +7,30 @@ func show_up(iter, node):
 	#menu_hide()
 	#if is_instance_valid(timer):
 	#	await timer.timeout
-	glob.getref("detatch_unroll").unroll(iter)
+	glob.getref("detatch_unroll").unroll(iter, {"node": node})
 	if not mouse_open:
-		menu_show(get_global_mouse_position())
+		menu_show(pos_clamp(get_global_mouse_position()))
 	state.holding = false
 	
-	
 	#menu_expand()
+
+var old_hovered = {}; var _hovered = {}
 func _menu_handle_hovering(button: BlockComponent):
-	instance_from_id(button.metadata["id"]).modulate = Color.RED
+	_hovered[instance_from_id(button.metadata["id"])] = 0.0
+
+func _sub_process(delta:float):
+	if Engine.is_editor_hint(): return
+	
+	for i in old_hovered:
+		if not i in _hovered:
+			i.modulate = Color.WHITE
+	old_hovered = _hovered
+	for i in _hovered:
+		i.modulate = Color.RED
+	_hovered = {}
 
 func _menu_handle_release(button: BlockComponent):
+	var node = button.metadata["node"]
+	var inst = instance_from_id(button.metadata["id"])
 	menu_hide()
 	

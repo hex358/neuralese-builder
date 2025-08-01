@@ -48,7 +48,7 @@ func unblock_input() -> void: is_blocking = false
 @export var alignment: Vector2 = Vector2(0,0):
 	set(v):
 		alignment = v
-		pivot_offset = alignment * size + Vector2(0,0.5)
+		pivot_offset = floor(alignment * size)
 
 @export_group("Context Menu")
 @export var expanded_size: float = 190.0
@@ -297,6 +297,13 @@ func menu_expand() -> void:
 func _is_not_menu():
 	return (not glob.is_my_menu(self) and glob.mouse_alt_pressed)
 
+func pos_clamp(pos: Vector2):
+	last_mouse_pos = pos
+	pos.x = clamp(pos.x, 0.0, viewport_rect.size.x - size.x * mult.x)
+	if not expand_upwards:
+		pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - expanded_size * mult.y)
+	return pos
+
 var timer: glob._Timer = null
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
@@ -317,9 +324,6 @@ func _process_context_menu(delta: float) -> void:
 
 	if left_click or right_click or (not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
-		if right_click:
-			var bottom_threshold = viewport_rect.size.y - 70 * mult.y
-			expand_upwards = last_mouse_pos.y > bottom_threshold
 
 	if glob.hide_menus and not state.holding:
 		left_pressed = false; right_pressed = false
@@ -337,12 +341,8 @@ func _process_context_menu(delta: float) -> void:
 			# small delay before opening
 			if expand_delay and (show_request or right_click):
 				timer = glob.timer(0.065)
-			
 			# clamp menu position to viewport
-			var pos = last_mouse_pos
-			pos.x = clamp(pos.x, 0.0, viewport_rect.size.x - size.x * mult.x)
-			if not expand_upwards:
-				pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - expanded_size * mult.y)
+			var pos = pos_clamp(last_mouse_pos)
 			
 			if (show_request or right_pressed) and not reset_menu and not left_click:
 				menu_show(pos)

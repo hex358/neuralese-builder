@@ -50,7 +50,7 @@ func end_spline(id: int, hide: bool = true):
 	if hide:
 		var spline = active_splines[id]
 		var node = splines[id][1]
-		spline.queue_free()
+		spline.disappear()
 		if is_instance_valid(node):
 			forget_spline(spline, node)
 		splines.erase(id)
