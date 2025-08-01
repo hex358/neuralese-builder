@@ -13,21 +13,34 @@ func show_up(iter, node):
 	state.holding = false
 	unblock_input()
 	
+	
 	#menu_expand()
 
 var old_hovered = {}; var _hovered = {}
 func _menu_handle_hovering(button: BlockComponent):
-	_hovered[instance_from_id(button.metadata["id"])] = 0.0
+	var inst = instance_from_id(button.metadata["id"])
+	_hovered[inst] = [0.0, inst.modulate]
 
 func _sub_process(delta:float):
 	if Engine.is_editor_hint(): return
 	
-	for i in old_hovered:
-		if not i in _hovered:
-			i.modulate = Color.WHITE
-	old_hovered = _hovered
-	for i in _hovered:
-		i.modulate = Color.RED
+	var to_delete = []
+	for spline in old_hovered:
+		if not spline in _hovered:
+			if not is_instance_valid(spline):
+				to_delete.append(spline)
+				continue
+			old_hovered[spline][0] = lerpf(old_hovered[spline][0], 1.0, delta*14.0)
+			if old_hovered[spline][0] > 0.9: 
+				spline.modulate = Color.WHITE
+				to_delete.append(spline)
+				continue
+			spline.modulate = spline.modulate.lerp(Color.WHITE, delta*14.0)
+	for i in to_delete:
+		old_hovered.erase(i)
+	old_hovered.merge(_hovered)
+	for spline in _hovered:
+		spline.modulate = spline.modulate.lerp(Color.RED, delta * 14.0)
 	_hovered = {}
 
 func _menu_handle_release(button: BlockComponent):

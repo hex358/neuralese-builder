@@ -162,6 +162,7 @@ func arrange():
 
 func _enter_tree() -> void:
 	if !Engine.is_editor_hint() and button_type == ButtonType.CONTEXT_MENU:
+		assert(not glob.menus.get(menu_type), "Menu %s already regged"%menu_type)
 		glob.menus[menu_type] = self
 
 var _contained = []
@@ -336,7 +337,7 @@ func _process_context_menu(delta: float) -> void:
 		var inside_self_click = left_click and is_mouse_inside()
 		if inside_self_click and visible and not state.tween_hide:
 			i_occupied = true
-			glob.occupy(self)
+			glob.occupy(self, &"menu")
 		if not state.holding and (not visible or not inside_self_click):
 			# small delay before opening
 			if expand_delay and (show_request or right_click):
@@ -353,7 +354,7 @@ func _process_context_menu(delta: float) -> void:
 		if state.holding and not state.tween_hide:
 			menu_expand()
 	if not i_occupied:
-		glob.un_occupy(self)
+		glob.un_occupy(self, &"menu")
 	
 	var target_scale = Vector2(0.94, 0.94) if (state.holding or state.tween_hide) else Vector2.ONE
 	scale = scale.lerp(target_scale * base_scale, 20.0 * delta)

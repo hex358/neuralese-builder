@@ -8,10 +8,10 @@
 [node name="Base" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 1044.0
-offset_top = 768.0
-offset_right = 1244.0
-offset_bottom = 818.0
+offset_left = 2175.0
+offset_top = 1600.0
+offset_right = 2375.0
+offset_bottom = 1650.0
 script = ExtResource("2_p8kol")
 area_padding = -5.0
 
@@ -56,6 +56,7 @@ offset_right = 127.0
 offset_bottom = 20.0
 connection_type = 1
 area_padding = 0.0
+multiple_splines = true
 
 [node name="ColorRect3" parent="." instance=ExtResource("4_ubyv8")]
 layout_mode = 0

@@ -1,5 +1,5 @@
 @tool
-extends Node
+extends Node2D
 
 var base_graph = preload("res://base_graph.tscn")
 var default_spline = preload("res://default_spline.tscn")
@@ -8,7 +8,7 @@ var hovered_connection: Connection = null
 var spline_connection: Connection = null
 #var splines = {}
 
-var menus = {"detatch": null, "edit_graph": null}
+var menus: Dictionary[StringName, BlockComponent] = {}
 
 var refs = {}
 func ref(inst, name):
@@ -28,14 +28,20 @@ func get_spline(for_connection: Connection) -> Spline:
 	return new
 
 # Occupation (some node blocks input of others)
-var occupied: Control = null
-func is_occupied(node: Control) -> bool: return is_instance_valid(occupied) and occupied != node
-func occupy(node: Control):
+var occ_layers: Dictionary[StringName, Control] = {}
+
+func is_occupied(node: Control, layer: StringName) -> bool: 
+	var occupied = occ_layers.get(layer, null)
+	return is_instance_valid(occupied) and occupied != node
+func occupy(node: Control, layer: StringName):
+	var occupied = occ_layers.get_or_add(layer, null)
 	if not is_instance_valid(occupied):
-		occupied = node
-func un_occupy(node: Control):
+		occ_layers[layer] = node
+func un_occupy(node: Control, layer: StringName):
+	var occupied = occ_layers.get_or_add(layer, null)
+	
 	if is_instance_valid(occupied) and occupied == node:
-		occupied = null
+		occ_layers[layer] = null
 
 # Select menu type (add graph / edit graph / edit connection etc.)
 var menu_type: StringName = &""
@@ -56,7 +62,14 @@ var id: int = 0
 func free_slot():
 	id += 1; return id
 
-func reset_menus() -> void: hide_menus = true
+
+func show_menu(name: StringName, at_pos: Vector2 = Vector2()):
+	var menu = menus[name]
+	menu.size.y = menu.base_size.y
+	menu.menu_show(menu.pos_clamp(at_pos if at_pos else menu.get_global_mouse_position()))
+	menu.state.holding = false
+
+func hide_all_menus() -> void: hide_menus = true
 
 func get_graph(flags = Graph.Flags.NONE) -> Graph:
 	var new = base_graph.instantiate()

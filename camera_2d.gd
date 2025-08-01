@@ -44,7 +44,7 @@ func _input(event: InputEvent) -> void:
 				MOUSE_BUTTON_WHEEL_UP:
 					target_zoom = min(2, zoom.x + factor)
 			if target_zoom != prev_zoom:
-				glob.reset_menus()
+				glob.hide_all_menus()
 	
 	elif event is InputEventMouseMotion and dragging:
 		if _ignore_next_motion:
@@ -52,7 +52,7 @@ func _input(event: InputEvent) -> void:
 			return
 
 		position -= event.relative * drag_speed / zoom
-		glob.reset_menus()
+		glob.hide_all_menus()
 		_handle_mouse_wrap(event.position)
 
 func _process(delta: float) -> void:

@@ -5,5 +5,7 @@
 [node name="spline" type="Node2D"]
 z_index = 9
 script = ExtResource("1_lv31t")
-start = Vector2(1, 0)
-end = Vector2(-90, 90)
+end = Vector2(80, 45)
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(80, 45)

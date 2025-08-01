@@ -10,7 +10,7 @@ func _get_nodes(args, kwargs = {}) -> Array[Node]:
 	for _i in args:
 		i += 1
 		var new: BlockComponent = frozen_duplicate.duplicate()
-		new.text = "Connection #%s"%i
+		new.text = "Spline %s"%i
 		var line = _i if _i is Spline else args[_i]
 		new.metadata["id"] = line.get_instance_id()
 		output.append(new)
