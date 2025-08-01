@@ -215,7 +215,7 @@ func _process_block_button(delta: float) -> void:
 	var frozen = is_contained and parent.is_frozen
 	
 	if not frozen:
-		inside = is_mouse_inside()
+		inside = is_mouse_inside() and not blocked
 		mouse_pressed = glob.mouse_pressed and not blocked
 	if not blocked and (not mouse_pressed or glob.mouse_just_pressed):
 		last_mouse_pos = get_global_mouse_position()

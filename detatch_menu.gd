@@ -7,10 +7,11 @@ func show_up(iter, node):
 	#menu_hide()
 	#if is_instance_valid(timer):
 	#	await timer.timeout
-	glob.getref("detatch_unroll").unroll(iter, {"node": node})
+	glob.getref("detatch_unroll").unroll(iter)
 	if not mouse_open:
 		menu_show(pos_clamp(get_global_mouse_position()))
 	state.holding = false
+	unblock_input()
 	
 	#menu_expand()
 
@@ -30,7 +31,10 @@ func _sub_process(delta:float):
 	_hovered = {}
 
 func _menu_handle_release(button: BlockComponent):
-	var node = button.metadata["node"]
+	block_input()
 	var inst = instance_from_id(button.metadata["id"])
+	var node = inst.tied_to
+	node.detatch_spline(inst)
+	_hovered.clear()
 	menu_hide()
 	
