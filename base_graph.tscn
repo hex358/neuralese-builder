@@ -8,12 +8,20 @@
 [node name="Base" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 2175.0
-offset_top = 1600.0
-offset_right = 2375.0
-offset_bottom = 1650.0
+offset_right = 200.0
+offset_bottom = 50.0
 script = ExtResource("2_p8kol")
 area_padding = -5.0
+
+[node name="ColorRect4" parent="." instance=ExtResource("4_ubyv8")]
+offset_left = 86.0
+offset_top = 22.0
+offset_right = 126.0
+offset_bottom = 62.0
+hint = 1
+connection_type = 1
+area_padding = 0.0
+multiple_splines = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = ExtResource("2_ubyv8")
@@ -51,9 +59,9 @@ expand_mode = 1
 [node name="ColorRect2" parent="." instance=ExtResource("4_ubyv8")]
 layout_mode = 0
 offset_left = 87.0
-offset_top = -20.0
+offset_top = -49.0
 offset_right = 127.0
-offset_bottom = 20.0
+offset_bottom = -9.0
 connection_type = 1
 area_padding = 0.0
 multiple_splines = true
@@ -66,3 +74,4 @@ offset_right = -88.0
 offset_bottom = 25.0
 connection_type = 0
 area_padding = 0.0
+multiple_splines = true

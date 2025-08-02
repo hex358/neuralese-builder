@@ -17,6 +17,9 @@ var input_key_by_conn: Dictionary[Connection, int] = {}
 func _new_anim(): # virtual
 	pass
 
+func _animate(delta: float): # virtual
+	pass
+
 func init_flags():
 	if graph_flags & Flags.NEW:
 		_new_anim()
@@ -50,85 +53,42 @@ var attachement_position: Vector2 = Vector2()
 var exist_time: float = 0.0
 
 func _io(inputs: Dictionary) -> Variant:
-	return inputs[0] + 1
+	$ColorRect/root/Label.text = str(inputs[0][0]*2)
+	return inputs[0][0] + 1
 
-var pushed_inputs = {}
-
-# in your Graph (or wherever makes sense):
-var propagation_queue: Array = []  # each entry is a Dictionary of inputs
-
-func push_input(conn: Connection, val: Variant) -> void:
-	var key = input_key_by_conn[conn]
-	# collect inputs until node is ready
-	if not pushed_inputs.has(conn): pushed_inputs[conn] = {}
-	pushed_inputs[conn][key] = val
-
-	if pushed_inputs[conn].size() >= _inputs.size():
-		for i in pushed_inputs[conn]:
-			glob.next_frame_propagate(conn, i, pushed_inputs[conn][i])
-		#propagation_queue.append({
-			#"connection": conn,
-			#"inputs": pushed_inputs[conn]
-		#})
-		pushed_inputs.erase(conn)
-
-func q():
-	# process one propagation event per frame (or change to more)
-	#if propagation_queue:
-	#if propagation_queue:
-	#	print(propagation_queue)
-	for ev in propagation_queue:
-		#print(ev)
-		await _do_propagate(ev.connection, ev.inputs)
-	propagation_queue.clear()
-
-func _do_propagate(conn: Connection, input_vals: Dictionary) -> void:
-	#print(input_vals)
+func _do_propagate(input_vals: Dictionary, gather: bool = false) -> void:
 	var out = _io(input_vals)
 	var output_vals = {}
 
-	match out:
-		1:
+	match typeof(out):
+		TYPE_ARRAY:
 			for i in out.size():
 				output_vals[i] = out[i]
-		0:
+		TYPE_DICTIONARY:
 			for i in out.keys():
 				output_vals[i] = out[i]
 		_:
 			for i in outputs.size():
 				output_vals[i] = out
-	
-	#print(out)
-	# ENQUEUE all of this node’s outgoing events:
+
 	for out_key in output_vals.keys():
 		var next_conn = output_keys[out_key]
 		for branch_key in next_conn.outputs.keys():
 			var spline = next_conn.outputs[branch_key]
-			#print(spline)
-			if spline.modulate == Color.WHITE: spline.modulate = Color(0.99, 0.1, 0.99, 1.0)
-			spline.modulate = Color(1 / spline.modulate.r, 1 / spline.modulate.g, 1 / spline.modulate.b)
-			# schedule the actual push_input for later (in _process)
-			#print(input_key_by_conn)
+			if not spline.tied_to: continue
 			var other = spline.tied_to.parent_graph
-			#print(other.input_key_by_conn[spline.tied_to])
 			glob.next_frame_propagate(spline.tied_to, other.input_key_by_conn[spline.tied_to], output_vals[out_key])
-			#other.propagation_queue.append({
-				#"connection": spline.tied_to,
-				#"inputs": {other.input_key_by_conn[spline.tied_to]: output_vals[out_key] }
-			#})
-			
 	
-	print(out)
-
-
+	#print(out)
 
 func _process(delta: float) -> void:
+	_animate(delta)
+	
 	if Engine.is_editor_hint(): return
-	await q()
 	var inside = is_mouse_inside()
 	if inside:
 		if Input.is_action_just_pressed('ui_accept'):
-			push_input(input_keys[0], 2)
+			_do_propagate({0: [1]})
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed:

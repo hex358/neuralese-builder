@@ -127,7 +127,7 @@ func initialize() -> void:
 			ButtonType.BLOCK_BUTTON:
 				pass
 		if dynamic_size:
-			expanded_size = 6.0 + base_size.y
+			expanded_size = 3.0 + base_size.y
 			for child in _contained:
 				expanded_size += child.size.y + arrangement_padding.y
 			child_exiting_tree.connect(dynamic_child_exit)

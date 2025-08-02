@@ -58,7 +58,6 @@ scale = Vector2(0.7, 0.7)
 script = ExtResource("6_ehkex")
 text = "Add graph        +"
 base_size = Vector2(255, 50)
-alignment = Vector2(0, 0)
 expanded_size = 240.0
 expand_delay = true
 arrangement_padding = Vector2(12, 5)
@@ -78,7 +77,6 @@ hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-expand_delay = false
 config = ExtResource("6_vbegm")
 
 [node name="layer" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
@@ -92,7 +90,6 @@ button_type = 1
 text = "Layer"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-expand_delay = false
 arrangement_padding = Vector2(5, 5)
 config = ExtResource("6_vbegm")
 
@@ -107,7 +104,6 @@ button_type = 1
 text = "Condition"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-expand_delay = false
 config = ExtResource("6_vbegm")
 
 [node name="remote" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
@@ -121,7 +117,6 @@ button_type = 1
 text = "Remote"
 base_size = Vector2(236, 41)
 alignment = Vector2(0.5, 0.5)
-expand_delay = false
 config = ExtResource("6_vbegm")
 
 [node name="detatch" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
@@ -136,7 +131,6 @@ text = "Detatch   -"
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
 base_size = Vector2(169, 50)
-alignment = Vector2(0, 0)
 expand_delay = true
 mouse_open = false
 menu_type = &"detatch"
@@ -173,7 +167,6 @@ scale = Vector2(0.7, 0.7)
 script = ExtResource("11_77dp3")
 text = "Edit graph .."
 base_size = Vector2(184, 46)
-alignment = Vector2(0, 0)
 expanded_size = 240.0
 expand_delay = true
 mouse_open = false
@@ -195,5 +188,4 @@ hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-expand_delay = false
 config = ExtResource("6_vbegm")

@@ -153,7 +153,7 @@ func input_poll():
 var ticks: int = 0
 var propagation_q = {}
 func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
-	propagation_q.get_or_add(tied_to, {})[key] = value
+	propagation_q.get_or_add(tied_to, {}).get_or_add(key, []).append(value)
 	#print(propagation_q)
 
 func _process(delta: float) -> void:
@@ -163,8 +163,7 @@ func _process(delta: float) -> void:
 		var dup = propagation_q.duplicate(1)
 		propagation_q.clear()
 		for conn: Connection in dup:
-			conn.parent_graph._do_propagate(conn, dup[conn])
-		OS.delay_msec(100)
+			conn.parent_graph._do_propagate(dup[conn])
 	
 		#graph._do_propagate() 
 		
