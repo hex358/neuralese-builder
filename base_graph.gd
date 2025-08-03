@@ -58,6 +58,8 @@ func _io(inputs: Dictionary) -> Variant:
 
 func _do_propagate(input_vals: Dictionary, gather: bool = false) -> void:
 	var out = _io(input_vals)
+	if gather:
+		glob.gather(self, {})
 	var output_vals = {}
 
 	match typeof(out):
@@ -96,7 +98,10 @@ func _process(delta: float) -> void:
 	else:
 		glob.reset_menu_type(self, &"edit_graph")
 		glob.un_occupy(self, &"graph")
-	if inside and glob.mouse_just_pressed and not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph"):
+	if inside and glob.mouse_just_pressed and (
+		not glob.is_occupied(self, &"menu") and 
+		not glob.is_occupied(self, &"graph") and 
+		not glob.is_occupied(self, &"conn_active")):
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 	if dragging:
 		if not glob.mouse_pressed:

@@ -321,6 +321,9 @@ func _update_children_reveal() -> void:
 var show_request:bool = false
 func menu_show(at_position: Vector2) -> void:
 	show()
+	if glob.opened_menu:
+		glob.opened_menu.menu_hide()
+	glob.opened_menu = self
 	last_mouse_pos = at_position
 	show_request = true
 	scale = base_scale
@@ -338,6 +341,8 @@ func menu_show(at_position: Vector2) -> void:
 
 func menu_hide() -> void:
 	if state.tween_hide or not visible: return
+	if glob.opened_menu == self:
+		glob.opened_menu = null
 	state.tween_hide = true
 	state.tween_progress = 0.0
 	state.expanding = false

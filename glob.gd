@@ -124,6 +124,8 @@ func wait(wait_time: float):
 func _after_process(delta: float) -> void:
 	hide_menus = false
 
+var opened_menu = null
+
 var mouse_pressed: bool = false
 var mouse_just_pressed: bool = false
 var mouse_released: bool = false
@@ -158,16 +160,21 @@ func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
 	propagation_q.get_or_add(tied_to, {}).get_or_add(key, []).append(value)
 	#print(propagation_q)
 
+var gathered = {}
+func gather(inst, args):
+	pass
 
+func propagate_cycle():
+	if not propagation_q: return
+	var dup = propagation_q
+	propagation_q = {}
+	for conn: Connection in dup:
+		conn.parent_graph._do_propagate(dup[conn])
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
-	if propagation_q:
-		#print(propagation_q)
-		var dup = propagation_q.duplicate(1)
-		propagation_q.clear()
-		for conn: Connection in dup:
-			conn.parent_graph._do_propagate(dup[conn])
+	while propagation_q:
+		propagate_cycle()
 
 	ticks += 1
 	_after_process.call_deferred(delta)

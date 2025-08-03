@@ -20,10 +20,10 @@ var connected: Dictionary[Connection, bool] = {}
 var mouse_just_pressed: bool = false
 var mouse_pressed: bool = false
 
-func is_mouse_inside() -> bool:
+func is_mouse_inside(padding:int=area_padding) -> bool:
 	# padded hit area
-	var top_left = global_position - Vector2.ONE * area_padding * parent_graph.scale * scale
-	var padded_size = size + Vector2(area_padding, area_padding) * 2
+	var top_left = global_position - Vector2.ONE * padding * parent_graph.scale * scale
+	var padded_size = size + Vector2(padding, padding) * 2
 	return Rect2(top_left, padded_size).has_point(get_global_mouse_position())
 
 func reposition_splines():
@@ -102,9 +102,10 @@ func _process(delta: float) -> void:
 		return
 
 	mouse_pressed = glob.mouse_pressed
-	mouse_just_pressed = glob.mouse_just_pressed and not glob.is_occupied(self, &"menu")
+	mouse_just_pressed = glob.mouse_just_pressed and not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	var inside = is_mouse_inside()
-	if inside:
+	var unpadded = is_mouse_inside(0)
+	if unpadded:
 		glob.set_menu_type(self, "detatch")
 	else:
 		glob.reset_menu_type(self, "detatch")
@@ -121,25 +122,32 @@ func _process(delta: float) -> void:
 				start_spline(add_spline())
 			elif !multiple_splines and outputs:
 				outputs[0].tied_to.detatch_spline(outputs[0])
-		elif glob.mouse_alt_just_pressed:
+		elif glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(outputs, self)
 
 	if connection_type == INPUT and inside:
-		if glob.mouse_alt_just_pressed:
+		if glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(inputs, self)
 		elif mouse_just_pressed and inputs:
 			detatch_spline(inputs.keys()[-1])
 
 	var to_end = []
 	var to_attach = []
+	if active_outputs:
+		glob.occupy(self, &"conn_active")
+	else:
+		glob.un_occupy(self, &"conn_active")
+		
 	for id in active_outputs:
 		var spline = active_outputs[id]
 		# live update using the splines origin
 		spline.update_points(spline.origin.get_origin(), get_global_mouse_position())
 		if not mouse_pressed:
 			if is_suitable(glob.hovered_connection):
+				glob.occupy(glob.hovered_connection, &"conn_active")
 				to_attach.append(id)
 			else:
+				glob.un_occupy(glob.hovered_connection, &"conn_active")
 				to_end.append(id)
 
 	for id in to_end:
