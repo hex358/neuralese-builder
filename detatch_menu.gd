@@ -7,7 +7,9 @@ func show_up(iter, node):
 	#menu_hide()
 	#if is_instance_valid(timer):
 	#	await timer.timeout
+	
 	glob.getref("detatch_unroll").unroll(iter)
+	await get_tree().process_frame
 	if not mouse_open:
 		menu_show(pos_clamp(get_global_mouse_position()))
 	state.holding = false
@@ -18,11 +20,16 @@ func show_up(iter, node):
 
 var old_hovered = {}; var _hovered = {}
 func _menu_handle_hovering(button: BlockComponent):
-	var inst = instance_from_id(button.metadata["id"])
-	_hovered[inst] = [0.0, inst.modulate]
+	var _inst = button.metadata["inst"]
+	if button.metadata["all"]:
+		for inst in _inst:
+			_hovered[inst] = [0.0, inst.modulate]
+	else:
+		_hovered[_inst] = [0.0, _inst.modulate]
 
 func _sub_process(delta:float):
 	if Engine.is_editor_hint(): return
+	#print(expanded_size)
 	
 	var to_delete = []
 	for spline in old_hovered:
@@ -44,10 +51,15 @@ func _sub_process(delta:float):
 	_hovered = {}
 
 func _menu_handle_release(button: BlockComponent):
+	
 	block_input()
-	var inst = instance_from_id(button.metadata["id"])
-	var node = inst.tied_to
-	node.detatch_spline(inst)
+	var _inst = button.metadata["inst"]
+	if button.metadata["all"]:
+		var node = _inst[0].tied_to
+		for inst in _inst:
+			node.remove_input_spline(inst)
+	else:
+		_inst.tied_to.remove_input_spline(_inst)
 	_hovered.clear()
 	menu_hide()
 	

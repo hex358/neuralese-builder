@@ -52,18 +52,20 @@ layer = 3
 [node name="add_graph" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
 visible = false
 material = ExtResource("5_g14j6")
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
-offset_right = 255.0
+offset_right = 239.0
 scale = Vector2(0.7, 0.7)
 script = ExtResource("6_ehkex")
-text = "Add graph        +"
-base_size = Vector2(255, 50)
-expanded_size = 240.0
+text = "Add graph       +"
+base_size = Vector2(239, 50)
+expanded_size = 233
 expand_delay = true
-arrangement_padding = Vector2(12, 5)
 menu_type = &"add_graph"
+max_size = 0
 
 [node name="neuron" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
 instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
 layout_mode = 0
@@ -80,6 +82,7 @@ alignment = Vector2(0.5, 0.5)
 config = ExtResource("6_vbegm")
 
 [node name="layer" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.66994, 0.86, 0.6364, 1)
 instance_shader_parameters/tuning = Color(0.338165, 0.47, 0.3149, 0.552941)
 layout_mode = 0
@@ -94,6 +97,7 @@ arrangement_padding = Vector2(5, 5)
 config = ExtResource("6_vbegm")
 
 [node name="condition" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.7482, 0.86, 0.6364, 1)
 instance_shader_parameters/tuning = Color(0.39245, 0.47, 0.3149, 0.552941)
 layout_mode = 0
@@ -107,6 +111,7 @@ alignment = Vector2(0.5, 0.5)
 config = ExtResource("6_vbegm")
 
 [node name="remote" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.585833, 0.475, 0.95, 1)
 instance_shader_parameters/tuning = Color(0.35109, 0.3149, 0.47, 0.552941)
 layout_mode = 0
@@ -120,6 +125,7 @@ alignment = Vector2(0.5, 0.5)
 config = ExtResource("6_vbegm")
 
 [node name="detatch" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.415686)
 offset_left = -1.0
 offset_top = 46.0
@@ -135,9 +141,11 @@ expand_delay = true
 mouse_open = false
 menu_type = &"detatch"
 dynamic_size = true
+max_size = 210
 
 [node name="delete" parent="CanvasLayer/detatch" instance=ExtResource("4_ppyta")]
 z_index = 2
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
 instance_shader_parameters/tuning = Color(0.36, 0.1836, 0.1836, 0.639216)
 layout_mode = 0
@@ -145,6 +153,7 @@ offset_right = 236.0
 offset_bottom = 41.0
 pivot_offset = Vector2(118, 20)
 button_type = 1
+placeholder = true
 text = "Hello!!"
 base_size = Vector2(236, 41)
 alignment = Vector2(0.5, 0.5)
@@ -160,6 +169,7 @@ metadata/_custom_type_script = "uid://cppqde4187p8n"
 [node name="edit_graph" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
 visible = false
 material = ExtResource("5_g14j6")
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
 offset_right = 184.0
 offset_bottom = 46.0
@@ -167,14 +177,14 @@ scale = Vector2(0.7, 0.7)
 script = ExtResource("11_77dp3")
 text = "Edit graph .."
 base_size = Vector2(184, 46)
-expanded_size = 240.0
+expanded_size = 240
 expand_delay = true
 mouse_open = false
 menu_type = &"edit_graph"
-dynamic_size = true
 config = null
 
 [node name="neuron" parent="CanvasLayer/edit_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
 instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
 layout_mode = 0

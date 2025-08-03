@@ -1,13 +1,15 @@
 shader_type canvas_item;
-render_mode world_vertex_coords;
 #include "std.gdshaderinc"
+render_mode world_vertex_coords;
 
-// shape: 0=rect,1=triangle,2=rhombus
+// shape: 0=rect,1=triangle,2=rhombus, 3=circle
 uniform int shape: hint_range(0,2) = 0;
 
 uniform vec4 mult_tuning: source_color = vec4(1.0);
 instance uniform vec4 tuning: source_color = vec4(1.0);
+
 uniform vec4 color_mult: source_color = vec4(1.0);
+#include "res://smooth_extents.gdshaderinc"
 
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
@@ -40,23 +42,7 @@ void fragment() {
 	float w = outline_width * min(view_scale.x, view_scale.y) * vert_scale.y;
 
 	float sdf;
-	if (false) {
-		//// right-facing isosceles triangle
-		//vec2 u = vec2(p.x + half.x, p.y);
-		//float f = half.y * (1.0 - u.x / (2.0 * half.x));
-		//float d1 = abs(u.y) - f;
-		//float d2 = -u.x;
-		//float d3 = u.x - 2.0 * half.x;
-		//sdf = max(max(d1, d2), d3);
-		//vec2 origin = size_px*vec2(0.5, 0.0)+vec2(-r*2.55,0);
-		//float dist = distance(p, origin);
-		//sdf *= mix(0.0, 1.0, float(dist < r || p.x < origin.x + 0.33*r));
-	//} else if (shape == 2) {
-		//// diamond/rhombus inscribed in rect
-		//vec2 v = abs(p);
-		//float d = (v.x / half.x + v.y / half.y - 1.0);
-		//float inv_norm = (half.x * half.y) / length(vec2(half.y, half.x));
-		//sdf = d * inv_norm - r;
+	if (false) { // if shape == 1 (triangle) or 2 (rombic) or 3
 	} else {
 		// rounded rectangle
 		vec2 q = abs(p) - (half - vec2(r));
@@ -82,4 +68,6 @@ void fragment() {
 
 	col.a *= mask;
 	COLOR = col * modulate;
+	
+	COLOR.a *= alphamult(vert);
 }

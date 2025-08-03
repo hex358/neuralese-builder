@@ -36,7 +36,7 @@ func reposition_splines():
 			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin())
 
 func add_spline() -> int:
-	var slot = glob.free_slot()
+	var slot = len(outputs)
 	var spline = glob.get_spline(self)
 	spline.origin = self
 	outputs[slot] = spline
@@ -53,30 +53,32 @@ func start_spline(id: int):
 
 func end_spline(id: int, hide: bool = true):
 	if hide:
-		var spline = active_outputs[id]
+		var spline = outputs[id]
 		var node = spline.tied_to
 		spline.disappear()
 		if is_instance_valid(node):
-			forget_spline(spline, node)
+			node.forget_spline(spline, self)
 		outputs.erase(id)
 	active_outputs.erase(id)
 
-func forget_spline(spline: Spline, other_node: Connection):
-	other_node.inputs.erase(spline)
-	other_node.connected.erase(self)
+func forget_spline(spline: Spline, from_conn: Connection):
+	inputs.erase(spline)
+	connected.erase(from_conn)
 
+var last_connected: Spline = null
 func attach_spline(id: int, target: Connection):
 	var spline = active_outputs[id]
 	spline.update_points(spline.origin.get_origin(), target.get_origin())
 	spline.tied_to = target
 	target.connected[self] = true
 	target.inputs[spline] = id
+	target.last_connected = spline
 	end_spline(id, false)
 
 func detatch_spline(spline: Spline):
 	var other = spline.origin
 	other.start_spline(inputs[spline])
-	other.forget_spline(spline, self)
+	forget_spline(spline, other)
 
 func remove_input_spline(spline: Spline):
 	# call end_spline on the origin of that spline
@@ -100,7 +102,7 @@ func _process(delta: float) -> void:
 		return
 
 	mouse_pressed = glob.mouse_pressed
-	mouse_just_pressed = glob.mouse_just_pressed
+	mouse_just_pressed = glob.mouse_just_pressed and not glob.is_occupied(self, &"menu")
 	var inside = is_mouse_inside()
 	if inside:
 		glob.set_menu_type(self, "detatch")
@@ -114,22 +116,25 @@ func _process(delta: float) -> void:
 		glob.hovered_connection = null
 
 	if connection_type == OUTPUT and inside:
-		if glob.mouse_just_pressed and (multiple_splines or len(outputs) == 0):
-			start_spline(add_spline())
+		if mouse_just_pressed:
+			if multiple_splines or len(outputs) == 0:
+				start_spline(add_spline())
+			elif !multiple_splines and outputs:
+				outputs[0].tied_to.detatch_spline(outputs[0])
 		elif glob.mouse_alt_just_pressed:
 			glob.menus["detatch"].show_up(outputs, self)
 
 	if connection_type == INPUT and inside:
 		if glob.mouse_alt_just_pressed:
 			glob.menus["detatch"].show_up(inputs, self)
-		elif glob.mouse_just_pressed and inputs:
+		elif mouse_just_pressed and inputs:
 			detatch_spline(inputs.keys()[-1])
 
 	var to_end = []
 	var to_attach = []
 	for id in active_outputs:
 		var spline = active_outputs[id]
-		# live update using the spline’s origin
+		# live update using the splines origin
 		spline.update_points(spline.origin.get_origin(), get_global_mouse_position())
 		if not mouse_pressed:
 			if is_suitable(glob.hovered_connection):

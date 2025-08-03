@@ -15,7 +15,7 @@ func unblock_input() -> void: is_blocking = false
 
 @export var button_type: ButtonType = ButtonType.CONTEXT_MENU
 @export var area_padding: float = 0.0
-@export var size_arrangement_allowed: bool = true
+@export var placeholder: bool = false
 
 @export_tool_button("Editor Refresh") var _editor_refresh = func():
 	notify_property_list_changed()
@@ -51,12 +51,26 @@ func unblock_input() -> void: is_blocking = false
 		pivot_offset = floor(alignment * size)
 
 @export_group("Context Menu")
-@export var expanded_size: float = 190.0
+@export var _scroll_container = null:
+	set(v):
+		if !Engine.is_editor_hint():
+			if not v:
+				v = glob.scroll_container.instantiate()
+				add_child(v)
+			scroll = v
+			vbox = v.get_child(0)
+		_scroll_container = v
+
+
+@export var expanded_size: int = 190
+@onready var _unclamped_expanded_size: int = 0
+
 @export var expand_delay: bool = false
 @export var arrangement_padding: Vector2 = Vector2(10, 5)
 @export var mouse_open: bool = true
 @export var menu_type: StringName = &""
 @export var dynamic_size: bool = false
+@export var max_size: int = 0
 @export var expand_upwards: bool = false:
 	set(v):
 		if v != expand_upwards:
@@ -105,60 +119,85 @@ func _menu_handle_pressing(button: BlockComponent):
 func _menu_handle_release(button: BlockComponent):
 	pass
 
+var vbox: VBoxContainer
+var scroll: ScrollContainer
 func contain(child: BlockComponent):
+	if child.placeholder: return
+	if child in _contained: return
+
+	child.reparent(vbox)
+	#child.modulate.a = 0.0
+	#child.hide()
+	
 	if child.button_type == ButtonType.BLOCK_BUTTON:
 		child.hovered.connect(_menu_handle_hover.bind(child))
 		child.hovering.connect(_menu_handle_hovering.bind(child))
 		child.pressed.connect(_menu_handle_press.bind(child))
 		child.pressing.connect(_menu_handle_pressing.bind(child))
 		child.released.connect(_menu_handle_release.bind(child))
-	_contained.append(child); child.is_contained = true
+	
+	_contained.append(child); child.is_contained = self
 
 func initialize() -> void:
-	if not Engine.is_editor_hint():
-		match button_type:
-			ButtonType.CONTEXT_MENU:
-				for child in get_children():
-					if not child is BlockComponent:
-						continue
-					contain(child)
-				arrange()
-				hide()
-			ButtonType.BLOCK_BUTTON:
-				pass
+	if Engine.is_editor_hint(): return
+
+	if button_type == ButtonType.CONTEXT_MENU:
+		scroll.size = Vector2(base_size.x, expanded_size if not max_size else max_size-base_size.y)
+		if not dynamic_size:
+			for child in get_children():
+				if not child is BlockComponent:
+					continue
+				contain(child)
+			arrange()
+			_unclamped_expanded_size = expanded_size
+			
+		hide()
+
 		if dynamic_size:
-			expanded_size = 3.0 + base_size.y
+			expanded_size = 4.0 + base_size.y
 			for child in _contained:
 				expanded_size += child.size.y + arrangement_padding.y
-			child_exiting_tree.connect(dynamic_child_exit)
-			child_entered_tree.connect(dynamic_child_enter)
+			_unclamped_expanded_size = expanded_size
+			vbox.child_exiting_tree.connect(dynamic_child_exit)
+			vbox.child_entered_tree.connect(dynamic_child_enter)
 
 func dynamic_child_exit(child):
 	if child is BlockComponent and child in _contained:
-		expanded_size -= child.size.y + arrangement_padding.y
+		_unclamped_expanded_size -= child.size.y + arrangement_padding.y
+		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
+		scroll.size.y = max_size-base_size.y
 		_contained.erase(child)
+		
 
 func dynamic_child_enter(child):
 	if child is BlockComponent:
-		expanded_size += child.size.y + arrangement_padding.y
+		_unclamped_expanded_size += child.size.y + arrangement_padding.y
+		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
+		scroll.size.y = max_size-base_size.y
 		contain(child)
 
 func resize(_size: Vector2) -> void:
 	base_size = _size; size = _size; text = text
 	alignment = alignment
+	if is_contained:
+		custom_minimum_size = _size
 
 func arrange():
 	# Arrange children above or below based on expand_upwards
+	var maxsize: int = 0
 	var y = base_size.y * 0.9 if !expand_upwards else expanded_size / 2 - base_size.y * 1.45
-
+	scroll.position = Vector2(arrangement_padding.x, y)
+	
+	#print(_contained)
 	for node:BlockComponent in _contained:
 		var xo = arrangement_padding.x
 		node.position = Vector2(xo, y)
-		if node.size_arrangement_allowed:
-			var b_size = base_size.x - 2.2 * xo
-			node.resize(Vector2(b_size, node.size.y))
-			node.text = node.text
+		var b_size = base_size.x - 2.2 * xo
+		node.resize(Vector2(b_size, node.size.y))
+		node.text = node.text
 		y += (node.size.y + arrangement_padding.y)
+		maxsize += (node.size.y + arrangement_padding.y)
+		#print(maxsize)
 
 func _enter_tree() -> void:
 	if !Engine.is_editor_hint() and button_type == ButtonType.CONTEXT_MENU:
@@ -205,20 +244,20 @@ var bounce_scale = Vector2.ONE
 var hover_scale: Vector2 = Vector2.ONE
 
 @onready var parent = get_parent()
-var is_contained: bool = false
+var is_contained: BlockComponent = null
 var inside: bool = false
 var mouse_pressed: bool = false
 
 
 func _process_block_button(delta: float) -> void:
-	if not is_visible_in_tree(): return
-	var blocked = is_contained and parent.is_blocking
+	if not is_visible_in_tree() or not freedom: return
+
+	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)
 	var frozen = is_contained and parent.is_frozen
-	
 	if not frozen:
 		inside = is_mouse_inside() and not blocked
 		mouse_pressed = glob.mouse_pressed and not blocked
-	if not blocked and (not mouse_pressed or glob.mouse_just_pressed):
+	if not blocked and (not mouse_pressed or (inside and mouse_pressed)):
 		last_mouse_pos = get_global_mouse_position()
 
 	if inside:
@@ -257,19 +296,32 @@ func _process_block_button(delta: float) -> void:
 
 	scale = hover_scale * bounce_scale
 
+var freedom: bool = false
+
 func _update_children_reveal() -> void:
 	if not _contained: return
+	if not visible: return
+	var idx: int = 0
+	var bar = scroll.get_v_scroll_bar()
 	for c in _contained:
-		if expand_upwards:
-			c.visible = c.position.y + c.size.y < size.y + 20
-		else:
-			c.visible = c.position.y + c.size.y < size.y + 20
-		if not c.visible:
-			c.modulate = Color(c.base_modulate.r, c.base_modulate.g, c.base_modulate.b, 0.0)
+		idx += 1
+		var max = size.y + 35
+		if idx == len(_contained) and len(_contained) > 1: max += 20
+		var pos = c.position.y + scroll.position.y + c.base_size.y
+		c.visible = pos < max or (max_size and max_size < expanded_size)
+		c.freedom = pos - bar.value < max and pos - bar.value > base_size.y
+		if not c.freedom:
+			c.modulate.a = 0.0
+		var vec = Vector2(scroll.global_position.y if bar.value > 10.0 else -20.0, 
+		scroll.global_position.y+scroll.size.y*scroll.scale.y*mult.y if bar.value < bar.max_value-bar.page else 0.0)
+		if (max_size and max_size < expanded_size):
+			c.set_instance_shader_parameter("extents", vec)
+			c.label.set_instance_shader_parameter("extents", vec)
 
 var show_request:bool = false
 func menu_show(at_position: Vector2) -> void:
 	show()
+	last_mouse_pos = at_position
 	show_request = true
 	scale = base_scale
 	state.tween_hide = false
@@ -302,10 +354,15 @@ func pos_clamp(pos: Vector2):
 	last_mouse_pos = pos
 	pos.x = clamp(pos.x, 0.0, viewport_rect.size.x - size.x * mult.x)
 	if not expand_upwards:
-		pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - expanded_size * mult.y)
+		var max = min(max_size, expanded_size) if max_size else expanded_size
+		pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - max * mult.y)
 	return pos
 
 var timer: glob._Timer = null
+var scrolling: bool = false
+var scroll_anchor: float = 0.0
+var scroll_checking: bool = false
+var scroll_value_anchor: float = 0.0
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
 	# click belongs to another menu
@@ -329,12 +386,32 @@ func _process_context_menu(delta: float) -> void:
 	if glob.hide_menus and not state.holding:
 		left_pressed = false; right_pressed = false
 		left_click = false; right_click = false
-		
 		menu_hide()
 
 	var i_occupied: bool = false
+	var inside: bool = is_mouse_inside()
+	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
+		glob.occupy(self, &"scroll")
+		if glob.mouse_pressed:
+			if !scrolling and !scroll_checking: 
+				scroll_anchor = get_global_mouse_position().y
+				scroll_value_anchor = scroll.scroll_vertical
+				scroll_checking = true
+			elif scroll_checking:
+				if abs(scroll_anchor - get_global_mouse_position().y) > 10:
+					scroll_anchor = get_global_mouse_position().y
+					scroll_value_anchor = scroll.scroll_vertical
+					scrolling = true
+					scroll_checking = false
+			else: 
+				scroll.scroll_vertical = -get_global_mouse_position().y + scroll_anchor + scroll_value_anchor
+		else:
+			scrolling = false
+	else:
+		glob.un_occupy(self, &"scroll")
+	
 	if show_request or right_click or left_click or is_instance_valid(timer) or (reset_menu and right_click):
-		var inside_self_click = left_click and is_mouse_inside()
+		var inside_self_click = left_click and inside
 		if inside_self_click and visible and not state.tween_hide:
 			i_occupied = true
 			glob.occupy(self, &"menu")
@@ -356,13 +433,15 @@ func _process_context_menu(delta: float) -> void:
 	if not i_occupied:
 		glob.un_occupy(self, &"menu")
 	
-	var target_scale = Vector2(0.94, 0.94) if (state.holding or state.tween_hide) else Vector2.ONE
+	var target_scale = Vector2(0.94, 0.94) if (expand_delay and (state.holding or state.tween_hide)) else Vector2.ONE
 	scale = scale.lerp(target_scale * base_scale, 20.0 * delta)
 
 	if state.expanding:
-		size.y = lerpf(size.y, expanded_size, 30.0 * delta)
+		var target = expanded_size if not max_size else min(max_size, expanded_size)
+		size.y = lerpf(size.y, target, 30.0 * delta)
 		if expand_upwards:
 			position.y = anchor_position.y - size.y * mult.y
+		#if expanded_size-size.y > 5:
 		_update_children_reveal()
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)

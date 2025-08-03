@@ -35,7 +35,7 @@ func _input(event: InputEvent) -> void:
 		if event.button_index == drag_button:
 			dragging = event.pressed
 
-		elif event.pressed:
+		elif event.pressed and not glob.is_occupied(self, &"scroll"):
 			var factor = zoom_speed * event.factor * zoom.x
 			var prev_zoom = target_zoom
 			match event.button_index:

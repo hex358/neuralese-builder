@@ -3,6 +3,8 @@ extends Node2D
 
 var base_graph = preload("res://base_graph.tscn")
 var default_spline = preload("res://default_spline.tscn")
+var scroll_container = preload("res://vbox.tscn")
+
 var hide_menus: bool = false
 var hovered_connection: Connection = null
 var spline_connection: Connection = null
@@ -32,7 +34,7 @@ func get_spline(for_connection: Connection) -> Spline:
 # Occupation (some node blocks input of others)
 var occ_layers: Dictionary[StringName, Control] = {}
 
-func is_occupied(node: Control, layer: StringName) -> bool: 
+func is_occupied(node: Node, layer: StringName) -> bool: 
 	var occupied = occ_layers.get(layer, null)
 	return is_instance_valid(occupied) and occupied != node
 func occupy(node: Control, layer: StringName):
@@ -156,6 +158,8 @@ func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
 	propagation_q.get_or_add(tied_to, {}).get_or_add(key, []).append(value)
 	#print(propagation_q)
 
+
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	if propagation_q:
@@ -164,10 +168,7 @@ func _process(delta: float) -> void:
 		propagation_q.clear()
 		for conn: Connection in dup:
 			conn.parent_graph._do_propagate(dup[conn])
-	
-		#graph._do_propagate() 
-		
-	
+
 	ticks += 1
 	_after_process.call_deferred(delta)
 	
