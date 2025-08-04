@@ -17,6 +17,9 @@ offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_xvuro")
 base_size = Vector2(200, 50)
+scale_anim = null
+expand_anim = null
+menu_name = null
 max_size = 190
 config = ExtResource("3_drerm")
 

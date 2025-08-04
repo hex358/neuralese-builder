@@ -14,19 +14,17 @@ var output_keys: Dictionary[int, Connection] = {}
 var input_keys: Dictionary[int, Connection] = {}
 var input_key_by_conn: Dictionary[Connection, int] = {}
 
-func _new_anim(): # virtual
-	pass
+@onready var base_scale = scale
+func _new_animate(delta: float): # virtual
+	scale = glob.spring(base_scale * 0.5, base_scale, exist_time, 3.5, 16, 0.5)
 
-func _animate(delta: float): # virtual
-	pass
-
-func init_flags():
+func animate(delta: float):
 	if graph_flags & Flags.NEW:
-		_new_anim()
+		_new_animate(delta)
 
 func _ready() -> void:
-	init_flags()
 	position -= rect.position
+	animate(0)
 	for c in get_children():
 		if c is Connection: 
 			var child:Connection = c
@@ -56,10 +54,8 @@ func _io(inputs: Dictionary) -> Variant:
 	$ColorRect/root/Label.text = str(inputs[0][0]*2)
 	return inputs[0][0] + 1
 
-func _do_propagate(input_vals: Dictionary, gather: bool = false) -> void:
+func propagate(input_vals: Dictionary) -> void:
 	var out = _io(input_vals)
-	if gather:
-		glob.gather(self, {})
 	var output_vals = {}
 
 	match typeof(out):
@@ -73,24 +69,28 @@ func _do_propagate(input_vals: Dictionary, gather: bool = false) -> void:
 			for i in outputs.size():
 				output_vals[i] = out
 
-	for out_key in output_vals.keys():
+	for out_key in output_vals:
 		var next_conn = output_keys[out_key]
-		for branch_key in next_conn.outputs.keys():
+		for branch_key in next_conn.outputs:
 			var spline = next_conn.outputs[branch_key]
 			if not spline.tied_to: continue
 			var other = spline.tied_to.parent_graph
 			glob.next_frame_propagate(spline.tied_to, other.input_key_by_conn[spline.tied_to], output_vals[out_key])
-	
+
+func gather():
+	pass
+
 	#print(out)
 
 func _process(delta: float) -> void:
-	_animate(delta)
+	animate(delta)
+	exist_time += delta
 	
 	if Engine.is_editor_hint(): return
 	var inside = is_mouse_inside()
 	if inside:
 		if Input.is_action_just_pressed('ui_accept'):
-			_do_propagate({0: [1]})
+			propagate({0: [0]})
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed:
@@ -106,9 +106,8 @@ func _process(delta: float) -> void:
 	if dragging:
 		if not glob.mouse_pressed:
 			dragging = false
-			global_position.y += 10
 		else:
-			global_position = get_global_mouse_position() + attachement_position + Vector2(0,-10)
+			global_position = get_global_mouse_position() + attachement_position
 		for input in _inputs:
 			input.reposition_splines()
 		for output in outputs:

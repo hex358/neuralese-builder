@@ -97,6 +97,12 @@ func is_suitable(conn: Connection) -> bool:
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0)
 		and _is_suitable(conn))
 
+var hovered: bool = false
+var prog: float = 0.0
+func hover():
+	hovered = true
+@onready var base_modulate = modulate
+
 func _process(delta: float) -> void:
 	if not is_visible_in_tree():
 		return
@@ -116,7 +122,8 @@ func _process(delta: float) -> void:
 	elif glob.hovered_connection == self:
 		glob.hovered_connection = null
 
-	if connection_type == OUTPUT and inside:
+	var occ = glob.is_occupied(self, "conn_active")
+	if connection_type == OUTPUT and inside and not occ:
 		if mouse_just_pressed:
 			if multiple_splines or len(outputs) == 0:
 				start_spline(add_spline())
@@ -125,7 +132,7 @@ func _process(delta: float) -> void:
 		elif glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(outputs, self)
 
-	if connection_type == INPUT and inside:
+	if connection_type == INPUT and inside and not occ:
 		if glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(inputs, self)
 		elif mouse_just_pressed and inputs:
@@ -137,20 +144,35 @@ func _process(delta: float) -> void:
 		glob.occupy(self, &"conn_active")
 	else:
 		glob.un_occupy(self, &"conn_active")
-		
+	
+	if hovered:
+		#print("f")
+		prog = 0
+		modulate = modulate.lerp(Color(1.5, 1.5, 1.5), delta * 23.0)
+	elif prog < 0.95:
+		prog = lerpf(prog, 1, delta * 23.0)
+		if prog < 0.95: modulate = modulate.lerp(base_modulate, delta * 23.0)
+		else: modulate = base_modulate
+	
+	var suit = is_suitable(glob.hovered_connection)
 	for id in active_outputs:
 		var spline = active_outputs[id]
 		# live update using the splines origin
 		spline.update_points(spline.origin.get_origin(), get_global_mouse_position())
+		
 		if not mouse_pressed:
-			if is_suitable(glob.hovered_connection):
+			if suit:
 				glob.occupy(glob.hovered_connection, &"conn_active")
 				to_attach.append(id)
 			else:
 				glob.un_occupy(glob.hovered_connection, &"conn_active")
 				to_end.append(id)
+	if suit and active_outputs:
+		glob.hovered_connection.hover()
 
 	for id in to_end:
 		end_spline(id)
 	for id in to_attach:
 		attach_spline(id, glob.hovered_connection)
+
+	hovered = false

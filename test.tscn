@@ -1,7 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=15 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="Shader" uid="uid://cm0uwt66sanpc" path="res://test.gdshader" id="1_ykrsh"]
 [ext_resource type="Texture2D" uid="uid://ukxnlbmbabr" path="res://icon.svg" id="2_6uqi0"]
+[ext_resource type="Script" uid="uid://bnmswwbafj7fb" path="res://menus.gd" id="4_5tkv4"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://BaseBComponent.tscn" id="4_ppyta"]
 [ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://context_menu.tres" id="5_g14j6"]
 [ext_resource type="Script" uid="uid://dqx0m845e4ld3" path="res://cmenu.gd" id="6_ehkex"]
@@ -37,94 +38,136 @@ scale = Vector2(5, 5)
 texture = ExtResource("2_6uqi0")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(592, 323)
-process_callback = 0
-position_smoothing_enabled = true
 position_smoothing_speed = 22.0
 script = ExtResource("6_g14j6")
 zoom_speed = 0.2
 drag_button = 3
-zoom_interpolation_speed = 20.0
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="menus" type="CanvasLayer" parent="."]
 layer = 3
+script = ExtResource("4_5tkv4")
 
-[node name="add_graph" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
-visible = false
+[node name="add_graph" parent="menus" instance=ExtResource("4_ppyta")]
 material = ExtResource("5_g14j6")
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
+instance_shader_parameters/tuning = Color(0.28, 0.28, 0.28, 0.439216)
 offset_right = 239.0
 scale = Vector2(0.7, 0.7)
 script = ExtResource("6_ehkex")
 text = "Add graph       +"
 base_size = Vector2(239, 50)
-expanded_size = 233
-expand_delay = true
-menu_type = &"add_graph"
+expanded_size = 278
+scale_anim = true
+expand_anim = true
+menu_name = &"add_graph"
 max_size = 0
 
-[node name="neuron" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+[node name="input" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
-instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
+instance_shader_parameters/outline_color = Color(0.84, 0.84, 0.84, 1)
+instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
 layout_mode = 0
-offset_left = -94.2857
-offset_top = -68.5714
-offset_right = 124.714
-offset_bottom = -27.5714
+offset_left = 302.857
+offset_top = -358.571
+offset_right = 521.857
+offset_bottom = -317.571
 pivot_offset = Vector2(109, 20)
+color = Color(0.72, 1, 0.743333, 1)
+button_type = 1
+hint = &"1"
+text = "Init"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+scale_anim = false
+expand_anim = true
+menu_name = &""
+config = ExtResource("6_vbegm")
+
+[node name="input2" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
+instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
+layout_mode = 0
+offset_left = 302.857
+offset_top = -311.429
+offset_right = 521.857
+offset_bottom = -270.429
+pivot_offset = Vector2(109, 20)
+color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
+scale_anim = false
+expand_anim = true
+menu_name = &""
 config = ExtResource("6_vbegm")
 
-[node name="layer" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+[node name="input3" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.66994, 0.86, 0.6364, 1)
-instance_shader_parameters/tuning = Color(0.338165, 0.47, 0.3149, 0.552941)
+instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
+instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
 layout_mode = 0
-offset_right = 219.0
-offset_bottom = 41.0
+offset_left = 304.286
+offset_top = -261.429
+offset_right = 523.286
+offset_bottom = -220.429
 pivot_offset = Vector2(109, 20)
+color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
+hint = &"1"
 text = "Layer"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-arrangement_padding = Vector2(5, 5)
+scale_anim = false
+expand_anim = true
+menu_name = &""
 config = ExtResource("6_vbegm")
 
-[node name="condition" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+[node name="input4" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.7482, 0.86, 0.6364, 1)
-instance_shader_parameters/tuning = Color(0.39245, 0.47, 0.3149, 0.552941)
+instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
+instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
 layout_mode = 0
-offset_right = 219.0
-offset_bottom = 41.0
+offset_left = 302.857
+offset_top = -208.571
+offset_right = 521.857
+offset_bottom = -167.571
 pivot_offset = Vector2(109, 20)
+color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
+hint = &"1"
 text = "Condition"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
+scale_anim = false
+expand_anim = true
+menu_name = &""
 config = ExtResource("6_vbegm")
 
-[node name="remote" parent="CanvasLayer/add_graph" instance=ExtResource("4_ppyta")]
+[node name="input5" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.585833, 0.475, 0.95, 1)
-instance_shader_parameters/tuning = Color(0.35109, 0.3149, 0.47, 0.552941)
+instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
+instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
 layout_mode = 0
-offset_right = 236.0
-offset_bottom = 41.0
-pivot_offset = Vector2(118, 20)
+offset_left = 307.143
+offset_top = -154.286
+offset_right = 526.143
+offset_bottom = -113.286
+pivot_offset = Vector2(109, 20)
+color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
-text = "Remote"
-base_size = Vector2(236, 41)
+hint = &"1"
+text = "Cycle"
+base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
+scale_anim = false
+expand_anim = true
+menu_name = &""
 config = ExtResource("6_vbegm")
 
-[node name="detatch" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
+[node name="detatch" parent="menus" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.415686)
 offset_left = -1.0
@@ -137,13 +180,14 @@ text = "Detatch   -"
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
 base_size = Vector2(169, 50)
-expand_delay = true
+scale_anim = true
+expand_anim = true
 mouse_open = false
-menu_type = &"detatch"
+menu_name = &"detatch"
 dynamic_size = true
 max_size = 210
 
-[node name="delete" parent="CanvasLayer/detatch" instance=ExtResource("4_ppyta")]
+[node name="delete" parent="menus/detatch" instance=ExtResource("4_ppyta")]
 z_index = 2
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
@@ -157,16 +201,18 @@ placeholder = true
 text = "Hello!!"
 base_size = Vector2(236, 41)
 alignment = Vector2(0.5, 0.5)
-expand_delay = true
+scale_anim = false
+expand_anim = true
 mouse_open = false
+menu_name = &""
 config = SubResource("Resource_77dp3")
 
-[node name="ProceduralNodes" type="Node" parent="CanvasLayer/detatch" node_paths=PackedStringArray("instance")]
+[node name="ProceduralNodes" type="Node" parent="menus/detatch" node_paths=PackedStringArray("instance")]
 script = ExtResource("8_ehkex")
 instance = NodePath("../delete")
 metadata/_custom_type_script = "uid://cppqde4187p8n"
 
-[node name="edit_graph" parent="CanvasLayer" instance=ExtResource("4_ppyta")]
+[node name="edit_graph" parent="menus" instance=ExtResource("4_ppyta")]
 visible = false
 material = ExtResource("5_g14j6")
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -178,12 +224,13 @@ script = ExtResource("11_77dp3")
 text = "Edit graph .."
 base_size = Vector2(184, 46)
 expanded_size = 240
-expand_delay = true
+scale_anim = true
+expand_anim = true
 mouse_open = false
-menu_type = &"edit_graph"
+menu_name = &"edit_graph"
 config = null
 
-[node name="neuron" parent="CanvasLayer/edit_graph" instance=ExtResource("4_ppyta")]
+[node name="neuron" parent="menus/edit_graph" instance=ExtResource("4_ppyta")]
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
 instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
@@ -198,4 +245,9 @@ hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
+scale_anim = false
+expand_anim = true
+menu_name = &""
 config = ExtResource("6_vbegm")
+
+[node name="Node2D" type="Node2D" parent="menus"]

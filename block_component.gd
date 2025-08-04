@@ -27,7 +27,6 @@ func unblock_input() -> void: is_blocking = false
 
 @export_group("Text")
 @onready var label = $Label
-@export var icon: String = ""
 @export var text: String = "":
 	set(value):
 		text = value
@@ -61,14 +60,29 @@ func unblock_input() -> void: is_blocking = false
 			vbox = v.get_child(0)
 		_scroll_container = v
 
+func default_scroll():
+	var v = glob.scroll_container.instantiate()
+	add_child(v)
+	scroll = v
+	vbox = v.get_child(0)
+	_scroll_container = v
+
+func _init() -> void:
+	pass
+	#if button_type == ButtonType.CONTEXT_MENU:
+	#	_scroll_container = _scroll_container
+
+@export var secondary: bool = false
+
 
 @export var expanded_size: int = 190
 @onready var _unclamped_expanded_size: int = 0
 
-@export var expand_delay: bool = false
+@export var scale_anim: bool = false
+@export var expand_anim: bool = true
 @export var arrangement_padding: Vector2 = Vector2(10, 5)
 @export var mouse_open: bool = true
-@export var menu_type: StringName = &""
+@export var menu_name: StringName = &""
 @export var dynamic_size: bool = false
 @export var max_size: int = 0
 @export var expand_upwards: bool = false:
@@ -99,7 +113,8 @@ var state = {
 	"holding": false,
 	"tween_hide": false,
 	"tween_progress": 0.0,
-	"pressing": false
+	"pressing": false,
+	"hovering": false
 }
 var last_mouse_pos: Vector2 = Vector2()
 var anchor_position: Vector2 = Vector2()  # For upward expansion
@@ -140,9 +155,12 @@ func contain(child: BlockComponent):
 
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
+	if not scroll:
+		default_scroll()
+	bar = scroll.get_v_scroll_bar()
 
 	if button_type == ButtonType.CONTEXT_MENU:
-		scroll.size = Vector2(base_size.x, expanded_size if not max_size else max_size-base_size.y)
+		scroll.size = Vector2(base_size.x, expanded_size if not max_size else max_size-base_size.y-10)
 		if not dynamic_size:
 			for child in get_children():
 				if not child is BlockComponent:
@@ -165,7 +183,7 @@ func dynamic_child_exit(child):
 	if child is BlockComponent and child in _contained:
 		_unclamped_expanded_size -= child.size.y + arrangement_padding.y
 		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
-		scroll.size.y = max_size-base_size.y
+		scroll.size.y = max_size-base_size.y-10
 		_contained.erase(child)
 		
 
@@ -173,7 +191,7 @@ func dynamic_child_enter(child):
 	if child is BlockComponent:
 		_unclamped_expanded_size += child.size.y + arrangement_padding.y
 		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
-		scroll.size.y = max_size-base_size.y
+		scroll.size.y = max_size-base_size.y-10
 		contain(child)
 
 func resize(_size: Vector2) -> void:
@@ -201,8 +219,8 @@ func arrange():
 
 func _enter_tree() -> void:
 	if !Engine.is_editor_hint() and button_type == ButtonType.CONTEXT_MENU:
-		assert(not glob.menus.get(menu_type), "Menu %s already regged"%menu_type)
-		glob.menus[menu_type] = self
+		assert(not glob.menus.get(menu_name), "Menu %s already regged"%menu_name)
+		glob.menus[menu_name] = self
 
 var _contained = []
 func _ready() -> void:
@@ -264,12 +282,16 @@ func _process_block_button(delta: float) -> void:
 		if mouse_pressed:
 			hover_scale = hover_scale.lerp(base_scale * config._press_scale, delta * 30)
 			modulate = modulate.lerp(config.press_color, delta * 50)
+			state.hovering = false
 			if not state.pressing:
 				pressed.emit()
 				state.pressing = true
 				state.tween_progress = 0.0
 		else:
 			hovering.emit()
+			if not state.hovering:
+				hovered.emit()
+			state.hovering = true
 			modulate = modulate.lerp(config.hover_color, delta * 15)
 			if state.pressing:
 				released.emit()
@@ -278,6 +300,7 @@ func _process_block_button(delta: float) -> void:
 				state.tween_progress = delta
 			hover_scale = hover_scale.lerp(base_scale * config._hover_scale, delta * 30)
 	else:
+		state.hovering = false
 		hover_scale = hover_scale.lerp(base_scale, delta * 15)
 		modulate = modulate.lerp(base_modulate, delta * 17)
 		state.pressing = false
@@ -297,33 +320,42 @@ func _process_block_button(delta: float) -> void:
 	scale = hover_scale * bounce_scale
 
 var freedom: bool = false
+var bar: VScrollBar
 
-func _update_children_reveal() -> void:
+func update_children_reveal() -> void:
 	if not _contained: return
 	if not visible: return
 	var idx: int = 0
-	var bar = scroll.get_v_scroll_bar()
+	
 	for c in _contained:
 		idx += 1
 		var max = size.y + 35
 		if idx == len(_contained) and len(_contained) > 1: max += 20
 		var pos = c.position.y + scroll.position.y + c.base_size.y
 		c.visible = pos < max or (max_size and max_size < expanded_size)
-		c.freedom = pos - bar.value < max and pos - bar.value > base_size.y
+		c.freedom = pos - bar.value < max and pos - bar.value > base_size.y and size.y - base_size.y > 5
 		if not c.freedom:
 			c.modulate.a = 0.0
-		var vec = Vector2(scroll.global_position.y if bar.value > 10.0 else -20.0, 
-		scroll.global_position.y+scroll.size.y*scroll.scale.y*mult.y if bar.value < bar.max_value-bar.page else 0.0)
 		if (max_size and max_size < expanded_size):
+			var vec = Vector2(scroll.global_position.y if bar.value > 10.0 else -20.0, 
+		scroll.global_position.y+scroll.size.y*scroll.scale.y*mult.y if bar.value < bar.max_value-bar.page else 0.0)
 			c.set_instance_shader_parameter("extents", vec)
 			c.label.set_instance_shader_parameter("extents", vec)
 
 var show_request:bool = false
+
+func _proceed_show(at_position: Vector2) -> bool: # virtual
+	return true
+
 func menu_show(at_position: Vector2) -> void:
+	if not _proceed_show(at_position): return
 	show()
-	if glob.opened_menu:
-		glob.opened_menu.menu_hide()
-	glob.opened_menu = self
+	if not secondary:
+		if glob.opened_menu:
+			glob.opened_menu.menu_hide()
+		glob.opened_menu = self
+		
+
 	last_mouse_pos = at_position
 	show_request = true
 	scale = base_scale
@@ -335,9 +367,9 @@ func menu_show(at_position: Vector2) -> void:
 		position = at_position - Vector2(0, base_size.y)
 	else:
 		position = at_position
-	size.y = base_size.y
+	size.y = base_size.y if expand_anim else expanded_size
 	modulate = default_modulate
-	_update_children_reveal()
+	update_children_reveal()
 
 func menu_hide() -> void:
 	if state.tween_hide or not visible: return
@@ -357,16 +389,17 @@ func _is_not_menu():
 
 func pos_clamp(pos: Vector2):
 	last_mouse_pos = pos
-	pos.x = clamp(pos.x, 0.0, viewport_rect.size.x - size.x * mult.x)
+	pos.x = clamp(pos.x, 0.0, glob.window_size.x - size.x * mult.x)
 	if not expand_upwards:
 		var max = min(max_size, expanded_size) if max_size else expanded_size
-		pos.y = clamp(pos.y, 0.0, viewport_rect.size.y - max * mult.y)
+		pos.y = clamp(pos.y, 0.0, glob.window_size.y - max * mult.y)
 	return pos
 
 var timer: glob._Timer = null
 var scrolling: bool = false
 var scroll_anchor: float = 0.0
 var scroll_checking: bool = false
+var target_scroll: float = 0.0
 var scroll_value_anchor: float = 0.0
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
@@ -385,7 +418,7 @@ func _process_context_menu(delta: float) -> void:
 		right_pressed = false
 		right_click = false
 
-	if left_click or right_click or (not left_pressed and not right_pressed):
+	if left_click or right_click or (mouse_open and not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
 
 	if glob.hide_menus and not state.holding:
@@ -397,6 +430,7 @@ func _process_context_menu(delta: float) -> void:
 	var inside: bool = is_mouse_inside()
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
 		glob.occupy(self, &"scroll")
+		target_scroll += glob.mouse_scroll * delta * 10.0
 		if glob.mouse_pressed:
 			if !scrolling and !scroll_checking: 
 				scroll_anchor = get_global_mouse_position().y
@@ -422,7 +456,7 @@ func _process_context_menu(delta: float) -> void:
 			glob.occupy(self, &"menu")
 		if not state.holding and (not visible or not inside_self_click):
 			# small delay before opening
-			if expand_delay and (show_request or right_click):
+			if scale_anim and (show_request or right_click):
 				timer = glob.timer(0.065)
 			# clamp menu position to viewport
 			var pos = pos_clamp(last_mouse_pos)
@@ -438,16 +472,16 @@ func _process_context_menu(delta: float) -> void:
 	if not i_occupied:
 		glob.un_occupy(self, &"menu")
 	
-	var target_scale = Vector2(0.94, 0.94) if (expand_delay and (state.holding or state.tween_hide)) else Vector2.ONE
+	var target_scale = Vector2(0.94, 0.94) if (scale_anim and (state.holding or state.tween_hide)) else Vector2.ONE
 	scale = scale.lerp(target_scale * base_scale, 20.0 * delta)
 
 	if state.expanding:
 		var target = expanded_size if not max_size else min(max_size, expanded_size)
-		size.y = lerpf(size.y, target, 30.0 * delta)
+		size.y = lerpf(size.y, target, 30.0 * delta) if expand_anim else target
 		if expand_upwards:
 			position.y = anchor_position.y - size.y * mult.y
-		#if expanded_size-size.y > 5:
-		_update_children_reveal()
+		if not is_equal_approx(size.y, target):
+			update_children_reveal()
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
 		
@@ -463,6 +497,6 @@ func _process_context_menu(delta: float) -> void:
 			position.y = anchor_position.y - size.y * mult.y
 		
 		modulate = modulate.lerp(Color.TRANSPARENT, state.tween_progress)
-		_update_children_reveal()
+		update_children_reveal()
 	
 	show_request = false

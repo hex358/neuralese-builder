@@ -51,7 +51,7 @@ func un_occupy(node: Control, layer: StringName):
 var menu_type: StringName = &""
 var _menu_type_occupator: Node = null
 func is_my_menu(node: BlockComponent) -> bool:
-	return menu_type == node.menu_type if menu_type else node.menu_type == &"add_graph"
+	return menu_type == node.menu_name if menu_type else node.menu_name == &"add_graph"
 func set_menu_type(occ: Node, type: StringName):
 	if !is_instance_valid(_menu_type_occupator): 
 		_menu_type_occupator = occ
@@ -92,7 +92,7 @@ func layer_to_global(layer: CanvasLayer, point: Vector2):
 func global_to_layer(layer: CanvasLayer, point: Vector2):
 	return layer.transform.affine_inverse() * point
 
-func spring(from: Vector2, to: Vector2, t: float,
+func spring(from, to, t: float,
 			frequency: float = 4.5,
 			damping: float = 4.0,
 			amplitude: float = 2.0
@@ -135,46 +135,69 @@ var mouse_alt_pressed: bool = false
 var mouse_alt_just_pressed: bool = false
 var mouse_alt_released: bool = false
 var mouse_alt_just_released: bool = false
+var mouse_scroll: int = 0
+
+func press_poll():
+	mouse_just_pressed = Input.is_action_just_pressed("ui_mouse")
+	mouse_pressed = Input.is_action_pressed("ui_mouse")
+	mouse_just_released = Input.is_action_just_released("ui_mouse")
+	mouse_released = not mouse_pressed
+
+	mouse_alt_just_pressed = Input.is_action_just_pressed("ui_mouse_alt")
+	mouse_alt_pressed = Input.is_action_pressed("ui_mouse_alt")
+	mouse_alt_just_released = Input.is_action_just_released("ui_mouse_alt")
+	mouse_alt_released = not mouse_alt_pressed
 
 func input_poll():
-	if ticks <= 1: return
-	var press = Input.is_action_pressed("ui_mouse")
-	mouse_just_pressed = press and not mouse_pressed
-	mouse_pressed = press
+	press_poll()
+	if Input.is_action_just_pressed("scroll_up"): mouse_scroll = -1
+	elif Input.is_action_just_pressed("scroll_down"): mouse_scroll = 1
+	else: mouse_scroll = 0
 
-	var released = not Input.is_action_pressed("ui_mouse")
-	mouse_just_released = released and not mouse_released
-	mouse_released = released
-
-	var press_alt = Input.is_action_pressed("ui_mouse_alt")
-	mouse_alt_just_pressed = press_alt and not mouse_alt_pressed
-	mouse_alt_pressed = press_alt
-
-	var released_alt = not Input.is_action_pressed("ui_mouse_alt")
-	mouse_alt_just_released = released_alt and not mouse_alt_released
-	mouse_alt_released = released_alt
 
 var ticks: int = 0
 var propagation_q = {}
 func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
 	propagation_q.get_or_add(tied_to, {}).get_or_add(key, []).append(value)
+
+var gather_q = {}
+var gather_tree = {}
+func next_frame_gather(tied_to: Connection, key: int):
+	pass
 	#print(propagation_q)
 
-var gathered = {}
-func gather(inst, args):
+func gather_cycle():
 	pass
+	
+	#tree
 
 func propagate_cycle():
 	if not propagation_q: return
 	var dup = propagation_q
 	propagation_q = {}
+	#tree = {}
 	for conn: Connection in dup:
-		conn.parent_graph._do_propagate(dup[conn])
+		conn.parent_graph.propagate(dup[conn])
+
+var menu_canvas: CanvasLayer = null
+func get_display_mouse_position():
+	return menu_canvas.root.get_global_mouse_position()
+
+var window_size: Vector2 = Vector2.ONE
+var window_middle: Vector2 = Vector2.ONE
+
+var UP: int = 0
+var DOWN: int = 1
+var LEFT: int = 2
+var RIGHT: int = 3
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
-	while propagation_q:
-		propagate_cycle()
+	
+	window_size = DisplayServer.window_get_size()
+	window_middle = window_size / 2
+	gather_cycle()
+	propagate_cycle()
 
 	ticks += 1
 	_after_process.call_deferred(delta)

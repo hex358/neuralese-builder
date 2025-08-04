@@ -7,6 +7,7 @@ clip_contents = false
 offset_right = 199.0
 offset_bottom = 135.0
 theme = ExtResource("1_mskqk")
+scroll_vertical_custom_step = 1.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 3
 

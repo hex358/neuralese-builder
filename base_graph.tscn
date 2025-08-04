@@ -15,10 +15,10 @@ area_padding = 0.0
 
 [node name="ColorRect4" parent="." instance=ExtResource("4_ubyv8")]
 layout_mode = 0
-offset_left = 86.0
-offset_top = 22.0
-offset_right = 126.0
-offset_bottom = 62.0
+offset_left = 87.0
+offset_top = -19.0
+offset_right = 109.0
+offset_bottom = 19.0
 hint = 1
 connection_type = 1
 area_padding = 20.0
@@ -56,21 +56,12 @@ offset_right = 36.0
 offset_bottom = 34.0
 expand_mode = 1
 
-[node name="ColorRect2" parent="." instance=ExtResource("4_ubyv8")]
-layout_mode = 0
-offset_left = 87.0
-offset_top = -49.0
-offset_right = 127.0
-offset_bottom = -9.0
-connection_type = 1
-area_padding = 20.0
-
 [node name="ColorRect3" parent="." instance=ExtResource("4_ubyv8")]
 layout_mode = 0
-offset_left = -128.0
-offset_top = -15.0
-offset_right = -88.0
-offset_bottom = 25.0
+offset_left = -109.0
+offset_top = -19.0
+offset_right = -87.0
+offset_bottom = 21.0
 connection_type = 0
 area_padding = 20.0
 multiple_splines = true

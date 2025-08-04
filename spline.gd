@@ -12,6 +12,7 @@ class_name Spline
 		end = v
 		update_points(start, end)
 
+@export var keyword: StringName = &""
 @export var origin_dir: Vector2 = Vector2.RIGHT
 
 var origin: Connection
@@ -20,8 +21,7 @@ var tied_to: Connection
 var curve = Curve2D.new()
 
 func _ready() -> void:
-	curve.add_point(Vector2(), Vector2(), Vector2())
-	curve.add_point(Vector2(), Vector2(), Vector2())
+	pass
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -35,11 +35,16 @@ func disappear():
 	doomed = true
 	queue_free()
 
+
+
 func update_points(start: Vector2, end: Vector2) -> void:
+	curve.bake_interval = 20
 	curve.clear_points()
-	var dot = (end - start).normalized().dot(origin_dir)
-	curve.add_point(start, Vector2(), Vector2())
-	curve.add_point(end, (end-start).normalized().orthogonal()*50, Vector2())
+	if end.x > start.x:
+		curve.add_point(start, Vector2(), abs(end.x-start.x)*Vector2(sign(end.x-start.x)/2.0, 0))
+	else:
+		curve.add_point(start, Vector2(), abs(end.y-start.y)*Vector2(0, sign(end.y-start.y)/2.0))
+	curve.add_point(end, Vector2(), Vector2())
 	queue_redraw()
 	
 func _draw() -> void:
