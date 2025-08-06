@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://wd63efdi6bdn"]
 
-[ext_resource type="Material" uid="uid://br0td6lybjlh1" path="res://unroll_button.tres" id="1_25r5k"]
+[ext_resource type="Material" uid="uid://bywlioi5cvbjn" path="res://add_button.tres" id="1_c3ie6"]
 [ext_resource type="Script" uid="uid://dbelub2yuo5rm" path="res://block_component.gd" id="1_xvuro"]
 [ext_resource type="Resource" uid="uid://dfj4adcly3raw" path="res://default_config.tres" id="3_drerm"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://theme.tres" id="3_t44r3"]
@@ -10,16 +10,13 @@
 shader = ExtResource("4_c3ie6")
 
 [node name="ColorRect" type="ColorRect"]
-material = ExtResource("1_25r5k")
+material = ExtResource("1_c3ie6")
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.439216)
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_xvuro")
 base_size = Vector2(200, 50)
-scale_anim = null
-expand_anim = null
-menu_name = null
 max_size = 190
 config = ExtResource("3_drerm")
 

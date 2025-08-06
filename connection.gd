@@ -14,7 +14,7 @@ static var OUTPUT: int = 1
 
 @export var dir_vector: Vector2 = Vector2.RIGHT
 
-@onready var parent_graph: Graph = get_parent()
+@export var parent_graph: Graph
 # @onready var spline = glob.get_spline(self) if connection_type == OUTPUT else null
 
 var outputs: Dictionary[int, Spline] = {}
@@ -90,7 +90,8 @@ func remove_input_spline(spline: Spline):
 	spline.origin.end_spline(inputs[spline])
 
 func _ready() -> void:
-	pass
+	if !Engine.is_editor_hint():
+		parent_graph.add_connection(self)
 
 func get_origin() -> Vector2:
 	return global_position + size / 2
@@ -113,9 +114,11 @@ func _process(delta: float) -> void:
 		return
 
 	mouse_pressed = glob.mouse_pressed
-	mouse_just_pressed = glob.mouse_just_pressed and not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
+	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
+	mouse_just_pressed = glob.mouse_just_pressed and not_occ
 	var inside = is_mouse_inside()
 	var unpadded = is_mouse_inside(0)
+	
 	if unpadded:
 		glob.set_menu_type(self, "detatch")
 	else:

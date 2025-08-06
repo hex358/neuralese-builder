@@ -25,22 +25,21 @@ func animate(delta: float):
 func _sub_ready():
 	pass
 
+func add_connection(conn: Connection):
+	match conn.connection_type:
+		Connection.INPUT: 
+			_inputs.append(conn)
+			assert(not conn.hint in input_keys, "Occupied")
+			input_keys[conn.hint] = conn
+			input_key_by_conn[conn] = conn.hint
+		Connection.OUTPUT: 
+			outputs.append(conn)
+			assert(not conn.hint in output_keys, "Occupied")
+			output_keys[conn.hint] = conn
+
 func _ready() -> void:
 	position -= rect.position
 	animate(0)
-	for c in get_children():
-		if c is Connection: 
-			var child:Connection = c
-			match child.connection_type:
-				Connection.INPUT: 
-					_inputs.append(child)
-					assert(not child.hint in input_keys, "Occupied")
-					input_keys[child.hint] = child
-					input_key_by_conn[child] = child.hint
-				Connection.OUTPUT: 
-					outputs.append(child)
-					assert(not child.hint in output_keys, "Occupied")
-					output_keys[child.hint] = child
 	_sub_ready()
 
 func is_mouse_inside() -> bool:

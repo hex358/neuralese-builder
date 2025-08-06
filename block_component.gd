@@ -48,7 +48,10 @@ func unblock_input() -> void: is_blocking = false
 @export var alignment: Vector2 = Vector2(0,0):
 	set(v):
 		alignment = v
-		pivot_offset = alignment * size
+		if Engine.is_editor_hint():
+			pivot_offset = alignment * size
+		else:
+			pivot_offset = Vector2()
 
 @export_group("Context Menu")
 @export var _scroll_container = null:
@@ -156,9 +159,10 @@ func contain(child: BlockComponent):
 
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
-	if not scroll:
-		default_scroll()
-	bar = scroll.get_v_scroll_bar()
+	if button_type == ButtonType.CONTEXT_MENU:
+		if not scroll:
+			default_scroll()
+		bar = scroll.get_v_scroll_bar()
 
 	if button_type == ButtonType.CONTEXT_MENU:
 		scroll.size = Vector2(base_size.x, expanded_size if not max_size else max_size-base_size.y-10)
@@ -177,29 +181,34 @@ func initialize() -> void:
 			for child in _contained:
 				expanded_size += child.size.y + arrangement_padding.y
 			_unclamped_expanded_size = expanded_size
-			vbox.child_exiting_tree.connect(dynamic_child_exit)
-			vbox.child_entered_tree.connect(dynamic_child_enter)
+			#vbox.child_exiting_tree.connect(dynamic_child_exit)
+			#vbox.child_entered_tree.connect(dynamic_child_enter)
 
-func dynamic_child_exit(child):
-	if child is BlockComponent and child in _contained:
-		_unclamped_expanded_size -= child.size.y + arrangement_padding.y
+func dynamic_child_exit(child: BlockComponent):
+	if child in _contained:
+		_unclamped_expanded_size -= floor(child.base_size.y + arrangement_padding.y)
 		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
 		scroll.size.y = max_size-base_size.y-10
 		_contained.erase(child)
+	
 		
 
-func dynamic_child_enter(child):
-	if child is BlockComponent:
-		_unclamped_expanded_size += child.size.y + arrangement_padding.y
-		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
-		scroll.size.y = max_size-base_size.y-10
-		contain(child)
+func dynamic_child_enter(child: BlockComponent):
+	#if not c is Wrapper: return
+	#var child = c.wrapping_target
+	_unclamped_expanded_size += floor(child.base_size.y + arrangement_padding.y)
+	expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
+	scroll.size.y = max_size-base_size.y-10
+	contain(child)
 
 func resize(_size: Vector2) -> void:
+	_size = _size.floor()
 	base_size = _size; size = _size; text = text
 	alignment = alignment
-	if is_contained:
-		custom_minimum_size = _size
+	#if is_contained:
+	_wrapped_in.size = _size
+	scaler.size = size
+	_wrapped_in.custom_minimum_size = _size
 
 func arrange():
 	# Arrange children above or below based on expand_upwards
@@ -210,7 +219,7 @@ func arrange():
 	#print(_contained)
 	for node:BlockComponent in _contained:
 		var xo = arrangement_padding.x
-		node.position = Vector2(xo, y)
+		node._wrapped_in.position = Vector2(xo, y)
 		var b_size = base_size.x - 2.2 * xo
 		node.resize(Vector2(b_size, node.size.y))
 		node.text = node.text
@@ -223,11 +232,58 @@ func _enter_tree() -> void:
 		assert(not glob.menus.get(menu_name), "Menu %s already regged"%menu_name)
 		glob.menus[menu_name] = self
 
+
+func _create_scaler_wrapper() -> void:
+	#parent.remove_child(self)
+	var wrapper = Wrapper.new()
+	wrapper.position = self.position
+	
+	wrapper.size = self.base_size
+	wrapper.custom_minimum_size = self.base_size
+	# 4) Insert wrapper under the old parent
+
+	# 5) Move yourself under the wrapper
+	var secondary_wrapper = Wrapper.new()
+	secondary_wrapper.position += alignment*size
+	wrapper.add_child(secondary_wrapper)
+	
+	reparent(secondary_wrapper)
+	position = -alignment*size
+	
+	# Now wrapper.get_parent() will be old_parent, and you’re its child.
+	
+	scaler = secondary_wrapper
+	scaler.scale = self.scale
+	scale = Vector2.ONE
+	_wrapped_in = wrapper
+	
+	wrapper.wrapping_target = self
+	secondary_wrapper.wrapping_target = self
+
+	if parent is BlockComponent:
+		parent.vbox.add_child(wrapper)
+	else:
+		parent.add_child(wrapper)
+	
+
+	
+var _wrapped_in = self
+
 var _contained = []
+var scaler: Control = self
+var auto_ready: bool = true
+var auto_wrap: bool = true
+
 func _ready() -> void:
+	if not auto_ready: return
+	pivot_offset = Vector2()
 	initialize()
 	size = base_size
 	text = text  # Trigger setter
+	if !Engine.is_editor_hint() and button_type == ButtonType.BLOCK_BUTTON and not placeholder and auto_wrap:
+		_create_scaler_wrapper.call_deferred()
+
+	
 
 func _sub_process(delta: float):
 	pass
@@ -239,7 +295,8 @@ func _process(delta: float) -> void:
 		base_size = size
 		return
 	
-	mult = scale * parent.scale
+	
+	mult = scaler.scale * parent.scale
 	match button_type:
 		ButtonType.CONTEXT_MENU:
 			_process_context_menu(delta)
@@ -267,9 +324,9 @@ var is_contained: BlockComponent = null
 var inside: bool = false
 var mouse_pressed: bool = false
 
-
 func _process_block_button(delta: float) -> void:
 	if not is_visible_in_tree() or not freedom: return
+	
 
 	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)
 	var frozen = is_contained and parent.is_frozen
@@ -318,7 +375,7 @@ func _process_block_button(delta: float) -> void:
 	else:
 		bounce_scale = bounce_scale.lerp(Vector2.ONE, delta * 10.0)
 
-	scale = hover_scale * bounce_scale
+	scaler.scale = hover_scale * bounce_scale
 
 var freedom: bool = true
 var bar: VScrollBar
@@ -330,9 +387,9 @@ func update_children_reveal() -> void:
 	
 	for c in _contained:
 		idx += 1
-		var max = size.y + 35
-		if idx == len(_contained) and len(_contained) > 1: max += 20
-		var pos = c.position.y + scroll.position.y + c.base_size.y
+		var max = size.y - 10
+		if idx == len(_contained) and len(_contained) > 1: max += 40
+		var pos = c._wrapped_in.position.y + scroll.position.y + c.base_size.y
 		c.visible = pos < max or (max_size and max_size < expanded_size)
 		c.freedom = pos - bar.value < max and pos - bar.value > base_size.y and size.y - base_size.y > 5
 		if not c.freedom:
@@ -352,14 +409,14 @@ func menu_show(at_position: Vector2) -> void:
 	if not _proceed_show(at_position): return
 	show()
 	if not secondary:
-		if glob.opened_menu:
-			glob.opened_menu.menu_hide()
+		#if glob.opened_menu:
+		#	glob.opened_menu.menu_hide()
 		glob.opened_menu = self
 		
 
 	last_mouse_pos = at_position
 	show_request = true
-	scale = base_scale
+	scaler.scale = base_scale
 	state.tween_hide = false
 	state.holding = true
 	state.expanding = false
@@ -373,9 +430,12 @@ func menu_show(at_position: Vector2) -> void:
 	update_children_reveal()
 
 func menu_hide() -> void:
-	if state.tween_hide or not visible: return
 	if glob.opened_menu == self:
 		glob.opened_menu = null
+	if state.tween_hide or not visible: return
+	#if name == "detatch":
+		#print(get_stack())
+
 	state.tween_hide = true
 	state.tween_progress = 0.0
 	state.expanding = false
@@ -462,10 +522,12 @@ func _process_context_menu(delta: float) -> void:
 			# clamp menu position to viewport
 			var pos = pos_clamp(last_mouse_pos)
 			
-			if (show_request or right_pressed) and not reset_menu and not left_click:
+			if (show_request or right_click) and not reset_menu and not left_click:
 				menu_show(pos)
 			elif visible:
 				menu_hide()
+				if reset_menu:
+					hide()
 	else:
 		# while holding LMB expand gradually
 		if state.holding and not state.tween_hide:
@@ -474,7 +536,7 @@ func _process_context_menu(delta: float) -> void:
 		glob.un_occupy(self, &"menu")
 	
 	var target_scale = Vector2(0.94, 0.94) if (scale_anim and (state.holding or state.tween_hide)) else Vector2.ONE
-	scale = scale.lerp(target_scale * base_scale, 20.0 * delta)
+	scaler.scale = scaler.scale.lerp(target_scale * base_scale, 20.0 * delta)
 
 	if state.expanding:
 		var target = expanded_size if not max_size else min(max_size, expanded_size)
@@ -489,7 +551,7 @@ func _process_context_menu(delta: float) -> void:
 		# hide once tween almost done
 		if state.tween_progress > 0.8:
 			hide()
-			scale = base_scale
+			scaler.scale = base_scale
 			state.tween_hide = false
 			state.holding = false
 		

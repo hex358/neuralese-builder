@@ -60,7 +60,6 @@ text = "Add graph       +"
 base_size = Vector2(239, 50)
 expanded_size = 278
 scale_anim = true
-expand_anim = true
 menu_name = &"add_graph"
 max_size = 0
 
@@ -74,16 +73,12 @@ offset_left = 302.857
 offset_top = -358.571
 offset_right = 521.857
 offset_bottom = -317.571
-pivot_offset = Vector2(110, 21)
 color = Color(0.76, 1, 0.78, 1)
 button_type = 1
 hint = &"1"
 text = "Init"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-scale_anim = false
-expand_anim = true
-menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input2" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
@@ -96,16 +91,12 @@ offset_left = 302.857
 offset_top = -311.429
 offset_right = 521.857
 offset_bottom = -270.429
-pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-scale_anim = false
-expand_anim = true
-menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input3" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
@@ -118,16 +109,12 @@ offset_left = 304.286
 offset_top = -261.429
 offset_right = 523.286
 offset_bottom = -220.429
-pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"1"
 text = "Layer"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-scale_anim = false
-expand_anim = true
-menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input4" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
@@ -140,16 +127,12 @@ offset_left = 302.857
 offset_top = -208.571
 offset_right = 521.857
 offset_bottom = -167.571
-pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"1"
 text = "Condition"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-scale_anim = false
-expand_anim = true
-menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input5" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
@@ -162,16 +145,12 @@ offset_left = 307.143
 offset_top = -154.286
 offset_right = 526.143
 offset_bottom = -113.286
-pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"cycle"
 text = "Cycle"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-scale_anim = false
-expand_anim = true
-menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="detatch" parent="menus" instance=ExtResource("4_ppyta")]
@@ -189,7 +168,6 @@ text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
 base_size = Vector2(169, 50)
 scale_anim = true
-expand_anim = true
 mouse_open = false
 menu_name = &"detatch"
 dynamic_size = true
@@ -202,18 +180,16 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
 instance_shader_parameters/tuning = Color(0.44, 0.2244, 0.2244, 0.639216)
 layout_mode = 0
-offset_right = 236.0
-offset_bottom = 41.0
-pivot_offset = Vector2(118, 21)
+offset_left = 200.0
+offset_top = 221.333
+offset_right = 436.0
+offset_bottom = 262.333
 button_type = 1
 placeholder = true
 text = "Hello!!"
 base_size = Vector2(236, 41)
 alignment = Vector2(0.5, 0.5)
-scale_anim = false
-expand_anim = true
 mouse_open = false
-menu_name = &""
 config = SubResource("Resource_77dp3")
 
 [node name="ProceduralNodes" type="Node" parent="menus/detatch" node_paths=PackedStringArray("instance")]
@@ -222,7 +198,6 @@ instance = NodePath("../delete")
 metadata/_custom_type_script = "uid://cppqde4187p8n"
 
 [node name="edit_graph" parent="menus" instance=ExtResource("4_ppyta")]
-visible = false
 material = ExtResource("5_g14j6")
 instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -235,9 +210,9 @@ text = "Edit graph .."
 base_size = Vector2(184, 46)
 expanded_size = 240
 scale_anim = true
-expand_anim = true
 mouse_open = false
 menu_name = &"edit_graph"
+max_size = 0
 config = null
 
 [node name="neuron" parent="menus/edit_graph" instance=ExtResource("4_ppyta")]
@@ -250,15 +225,11 @@ offset_left = -94.2857
 offset_top = -68.5714
 offset_right = 124.714
 offset_bottom = -27.5714
-pivot_offset = Vector2(110, 21)
 button_type = 1
 hint = &"1"
 text = "Neuron"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-scale_anim = false
-expand_anim = true
-menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="Node2D" type="Node2D" parent="menus"]
