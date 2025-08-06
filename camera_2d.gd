@@ -54,9 +54,8 @@ func _input(event: InputEvent) -> void:
 		if _ignore_next_motion:
 			_ignore_next_motion = false
 			return
-
-		target_position -= event.relative * drag_speed / zoom
 		
+		target_position -= event.relative * drag_speed / zoom
 		glob.hide_all_menus()
 		_handle_mouse_wrap(event.position)
 
@@ -75,18 +74,20 @@ func mouse_range(pos: float, edge_start: float, edge_end: float, axis: int):
 	var t = inverse_lerp(edge_min, edge_max, pos)
 	return clamp(t, 0.0, 1.0)
 
+var rise_mult: float = 0.0
 func _process(delta: float) -> void:
 	var mouse: Vector2 = get_global_mouse_position()
+	RenderingServer.global_shader_parameter_set("_view_scale", pow(zoom.x, 0.25))
 	zoom = Vector2.ONE * lerp(zoom.x, target_zoom, delta * zoom_interpolation_speed)
 	move_intensity = lerp(move_intensity, 0.0, delta * zoom_interpolation_speed)
 	if glob.mouse_scroll:
 		zoom_move_vec = (mouse - get_global_mouse_position())
 	var display_mouse = glob.get_display_mouse_position()
 	
-	var rise_mult: float = min(mouse_range(display_mouse.x, 100, 50, glob.RIGHT)+
+	rise_mult = min(mouse_range(display_mouse.x, 100, 50, glob.RIGHT)+
 							mouse_range(display_mouse.x, 100, 50, glob.LEFT)+
-							mouse_range(display_mouse.y, 30, 10, glob.UP)+
-							mouse_range(display_mouse.y, 30, 10, glob.DOWN), 1.0)
+							mouse_range(display_mouse.y, 50, 20, glob.UP)+
+							mouse_range(display_mouse.y, 50, 20, glob.DOWN), 1.0)
 	if glob.mouse_pressed and rise_mult:
 		var dir = glob.window_middle.direction_to(display_mouse)
 		drag_move_vec = drag_move_vec.lerp(

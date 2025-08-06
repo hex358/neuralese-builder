@@ -48,11 +48,13 @@ layer = 3
 script = ExtResource("4_5tkv4")
 
 [node name="add_graph" parent="menus" instance=ExtResource("4_ppyta")]
+visible = false
 material = ExtResource("5_g14j6")
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/tuning = Color(0.28, 0.28, 0.28, 0.439216)
+instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
 offset_right = 239.0
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.75, 0.75)
 script = ExtResource("6_ehkex")
 text = "Add graph       +"
 base_size = Vector2(239, 50)
@@ -63,16 +65,17 @@ menu_name = &"add_graph"
 max_size = 0
 
 [node name="input" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.84, 0.84, 0.84, 1)
-instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0.65, 0.65, 0.65, 0.552941)
 layout_mode = 0
 offset_left = 302.857
 offset_top = -358.571
 offset_right = 521.857
 offset_bottom = -317.571
-pivot_offset = Vector2(109, 20)
-color = Color(0.72, 1, 0.743333, 1)
+pivot_offset = Vector2(110, 21)
+color = Color(0.76, 1, 0.78, 1)
 button_type = 1
 hint = &"1"
 text = "Init"
@@ -84,15 +87,16 @@ menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input2" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
-instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
 layout_mode = 0
 offset_left = 302.857
 offset_top = -311.429
 offset_right = 521.857
 offset_bottom = -270.429
-pivot_offset = Vector2(109, 20)
+pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"1"
@@ -105,15 +109,16 @@ menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input3" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
-instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
 layout_mode = 0
 offset_left = 304.286
 offset_top = -261.429
 offset_right = 523.286
 offset_bottom = -220.429
-pivot_offset = Vector2(109, 20)
+pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"1"
@@ -126,15 +131,16 @@ menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input4" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
-instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
 layout_mode = 0
 offset_left = 302.857
 offset_top = -208.571
 offset_right = 521.857
 offset_bottom = -167.571
-pivot_offset = Vector2(109, 20)
+pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
 hint = &"1"
@@ -147,18 +153,19 @@ menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="input5" parent="menus/add_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.839216, 0.839216, 0.839216, 1)
-instance_shader_parameters/tuning = Color(0.46, 0.46, 0.46, 0.552941)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
 layout_mode = 0
 offset_left = 307.143
 offset_top = -154.286
 offset_right = 526.143
 offset_bottom = -113.286
-pivot_offset = Vector2(109, 20)
+pivot_offset = Vector2(110, 21)
 color = Color(0.72, 1, 0.743333, 1)
 button_type = 1
-hint = &"1"
+hint = &"cycle"
 text = "Cycle"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
@@ -168,13 +175,14 @@ menu_name = &""
 config = ExtResource("6_vbegm")
 
 [node name="detatch" parent="menus" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.415686)
+instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
 offset_left = -1.0
 offset_top = 46.0
 offset_right = 168.0
 offset_bottom = 96.0
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.75, 0.75)
 script = ExtResource("8_xersf")
 text = "Detatch   -"
 text_alignment = Vector2(-1, 0)
@@ -189,13 +197,14 @@ max_size = 210
 
 [node name="delete" parent="menus/detatch" instance=ExtResource("4_ppyta")]
 z_index = 2
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
-instance_shader_parameters/tuning = Color(0.36, 0.1836, 0.1836, 0.639216)
+instance_shader_parameters/tuning = Color(0.44, 0.2244, 0.2244, 0.639216)
 layout_mode = 0
 offset_right = 236.0
 offset_bottom = 41.0
-pivot_offset = Vector2(118, 20)
+pivot_offset = Vector2(118, 21)
 button_type = 1
 placeholder = true
 text = "Hello!!"
@@ -215,11 +224,12 @@ metadata/_custom_type_script = "uid://cppqde4187p8n"
 [node name="edit_graph" parent="menus" instance=ExtResource("4_ppyta")]
 visible = false
 material = ExtResource("5_g14j6")
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
 offset_right = 184.0
 offset_bottom = 46.0
-scale = Vector2(0.7, 0.7)
+scale = Vector2(0.75, 0.75)
 script = ExtResource("11_77dp3")
 text = "Edit graph .."
 base_size = Vector2(184, 46)
@@ -231,6 +241,7 @@ menu_name = &"edit_graph"
 config = null
 
 [node name="neuron" parent="menus/edit_graph" instance=ExtResource("4_ppyta")]
+instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
 instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
@@ -239,7 +250,7 @@ offset_left = -94.2857
 offset_top = -68.5714
 offset_right = 124.714
 offset_bottom = -27.5714
-pivot_offset = Vector2(109, 20)
+pivot_offset = Vector2(110, 21)
 button_type = 1
 hint = &"1"
 text = "Neuron"

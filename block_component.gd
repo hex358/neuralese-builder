@@ -42,12 +42,13 @@ func unblock_input() -> void: is_blocking = false
 @export var text_alignment: Vector2 = Vector2()
 @export var text_offset: Vector2 = Vector2()
 
+
 @export_group("Rect")
 @export var base_size: Vector2 = size
 @export var alignment: Vector2 = Vector2(0,0):
 	set(v):
 		alignment = v
-		pivot_offset = floor(alignment * size)
+		pivot_offset = alignment * size
 
 @export_group("Context Menu")
 @export var _scroll_container = null:
@@ -319,7 +320,7 @@ func _process_block_button(delta: float) -> void:
 
 	scale = hover_scale * bounce_scale
 
-var freedom: bool = false
+var freedom: bool = true
 var bar: VScrollBar
 
 func update_children_reveal() -> void:
@@ -480,8 +481,8 @@ func _process_context_menu(delta: float) -> void:
 		size.y = lerpf(size.y, target, 30.0 * delta) if expand_anim else target
 		if expand_upwards:
 			position.y = anchor_position.y - size.y * mult.y
-		if not is_equal_approx(size.y, target):
-			update_children_reveal()
+		#if not is_equal_approx(size.y, target):
+		update_children_reveal()
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
 		

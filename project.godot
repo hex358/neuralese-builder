@@ -69,3 +69,10 @@ scroll_down={
 [rendering]
 
 anti_aliasing/quality/msaa_2d=1
+
+[shader_globals]
+
+_view_scale={
+"type": "float",
+"value": 0.0
+}

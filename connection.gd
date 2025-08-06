@@ -4,10 +4,15 @@ class_name Connection
 static var INPUT: int = 0
 static var OUTPUT: int = 1
 
+
+
 @export var hint: int = 0
+@export var keyword: StringName = &""
 @export_enum("Input", "Output") var connection_type: int = INPUT
 @export var area_padding: float = 10.0
 @export var multiple_splines: bool = false
+
+@export var dir_vector: Vector2 = Vector2.RIGHT
 
 @onready var parent_graph: Graph = get_parent()
 # @onready var spline = glob.get_spline(self) if connection_type == OUTPUT else null
@@ -30,10 +35,10 @@ func reposition_splines():
 	for id in outputs.keys():
 		var spline = outputs[id]
 		if is_instance_valid(spline.tied_to):
-			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin())
+			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), dir_vector)
 	for spline in inputs.keys():
 		if is_instance_valid(spline.origin) and is_instance_valid(spline.tied_to):
-			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin())
+			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), spline.origin.dir_vector)
 
 func add_spline() -> int:
 	var slot = len(outputs)
@@ -68,11 +73,11 @@ func forget_spline(spline: Spline, from_conn: Connection):
 var last_connected: Spline = null
 func attach_spline(id: int, target: Connection):
 	var spline = active_outputs[id]
-	spline.update_points(spline.origin.get_origin(), target.get_origin())
 	spline.tied_to = target
 	target.connected[self] = true
 	target.inputs[spline] = id
 	target.last_connected = spline
+	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector)
 	end_spline(id, false)
 
 func detatch_spline(spline: Spline):
@@ -158,7 +163,7 @@ func _process(delta: float) -> void:
 	for id in active_outputs:
 		var spline = active_outputs[id]
 		# live update using the splines origin
-		spline.update_points(spline.origin.get_origin(), get_global_mouse_position())
+		spline.update_points(spline.origin.get_origin(), get_global_mouse_position(), dir_vector)
 		
 		if not mouse_pressed:
 			if suit:

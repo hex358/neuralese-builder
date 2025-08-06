@@ -1,6 +1,28 @@
-[gd_resource type="Theme" load_steps=8 format=3 uid="uid://cxe1714v2p0a1"]
+[gd_resource type="Theme" load_steps=10 format=3 uid="uid://cxe1714v2p0a1"]
 
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://JetBrainsMono-VariableFont_wght.ttf" id="1_e1x85"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vj6dk"]
+bg_color = Color(0.27, 0.27, 0.27, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mihib"]
+bg_color = Color(0.27, 0.27, 0.27, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
 
 [sub_resource type="ImageTexture" id="ImageTexture_e1x85"]
 
@@ -85,6 +107,9 @@ expand_margin_bottom = 2.0
 default_font = ExtResource("1_e1x85")
 Label/font_sizes/font_size = 32
 Label/fonts/font = ExtResource("1_e1x85")
+LineEdit/colors/font_color = Color(0.37444, 0.74, 0.3552, 1)
+LineEdit/styles/focus = SubResource("StyleBoxFlat_vj6dk")
+LineEdit/styles/normal = SubResource("StyleBoxFlat_mihib")
 VScrollBar/icons/decrement = SubResource("ImageTexture_e1x85")
 VScrollBar/icons/decrement_highlight = SubResource("ImageTexture_e1x85")
 VScrollBar/icons/decrement_pressed = SubResource("ImageTexture_e1x85")

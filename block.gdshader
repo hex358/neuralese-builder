@@ -10,7 +10,8 @@ instance uniform vec4 tuning: source_color = vec4(1.0);
 
 uniform vec4 color_mult: source_color = vec4(1.0);
 #include "res://smooth_extents.gdshaderinc"
-
+global uniform float _view_scale = 1.0;
+instance uniform float corner_radius_add = 0.0;
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
 uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
@@ -32,13 +33,12 @@ void vertex() {
 }
 
 void fragment() {
-	// compute pixel coords
 	vec2 size_px = vec2(1.0 / dFdx(UV).x, 1.0 / dFdy(UV).y);
 	vec2 half = size_px * 0.5;
 	vec2 p = UV * size_px - half;
 
-	// compute effective radius and outline width in px
-	float r = corner_radius * min(view_scale.x, view_scale.y) * vert_scale.x;
+	float radius_added = corner_radius_add + corner_radius;
+	float r = radius_added * min(view_scale.x, view_scale.y) * vert_scale.x;
 	float w = outline_width * min(view_scale.x, view_scale.y) * vert_scale.y;
 
 	float sdf;
@@ -49,14 +49,13 @@ void fragment() {
 		sdf = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - r;
 	}
 
-	// compute mask and outline alpha
 	float mask = smoothstep(1.0, -1.0, sdf);
 	float ol = smoothstep(w + 1.0, w - 1.0, abs(sdf));
 
 	// compute fill color
 	vec4 col;
 	if (blurred_background) {
-		vec4 bg = textureLod(screen, SCREEN_UV, blur_level);
+		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale);
 		if (ol < 0.999) {
 			col = mix(alpha_blend(bg, tuning * mult_tuning) * color_mult, outline_color, ol);
 		} else {

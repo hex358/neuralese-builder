@@ -2,18 +2,21 @@
 extends Node2D
 class_name Spline
 
+@export var keyword: StringName = &""
 @export var start: Vector2 = Vector2():
 	set(v):
 		start = v
-		update_points(start, end)
+		update_points(start, end, start_vector)
 
 @export var end: Vector2 = Vector2():
 	set(v):
 		end = v
-		update_points(start, end)
+		update_points(start, end, start_vector)
+@export var start_vector: Vector2 = Vector2():
+	set(v):
+		start_vector = v
+		update_points(start, end, start_vector)
 
-@export var keyword: StringName = &""
-@export var origin_dir: Vector2 = Vector2.RIGHT
 
 var origin: Connection
 var tied_to: Connection
@@ -35,17 +38,25 @@ func disappear():
 	doomed = true
 	queue_free()
 
-
-
-func update_points(start: Vector2, end: Vector2) -> void:
+func update_points(start: Vector2, end: Vector2, start_dir: Vector2) -> void:
 	curve.bake_interval = 20
 	curve.clear_points()
-	if end.x > start.x:
-		curve.add_point(start, Vector2(), abs(end.x-start.x)*Vector2(sign(end.x-start.x)/2.0, 0))
+
+	var delta = end - start
+	var dir_norm = start_dir
+	var angle_to_x = dir_norm.angle()
+	var local = delta.rotated(-angle_to_x)
+	var local_handle = Vector2()
+	if local.x > 0:
+		local_handle.x = local.x * 0.5
 	else:
-		curve.add_point(start, Vector2(), abs(end.y-start.y)*Vector2(0, sign(end.y-start.y)/2.0))
-	curve.add_point(end, Vector2(), Vector2())
+		local_handle.y = local.y * 0.5
+	var handle_out = local_handle.rotated(angle_to_x)
+	curve.add_point(start, Vector2.ZERO, handle_out)
+	curve.add_point(end,   Vector2.ZERO, Vector2.ZERO)
 	queue_redraw()
+
+
 	
 func _draw() -> void:
 	draw_polyline(curve.get_baked_points(), Color.WHITE, 10.0)

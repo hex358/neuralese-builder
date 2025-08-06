@@ -22,6 +22,9 @@ func animate(delta: float):
 	if graph_flags & Flags.NEW:
 		_new_animate(delta)
 
+func _sub_ready():
+	pass
+
 func _ready() -> void:
 	position -= rect.position
 	animate(0)
@@ -38,6 +41,7 @@ func _ready() -> void:
 					outputs.append(child)
 					assert(not child.hint in output_keys, "Occupied")
 					output_keys[child.hint] = child
+	_sub_ready()
 
 func is_mouse_inside() -> bool:
 	# padded hit area
@@ -51,12 +55,20 @@ var attachement_position: Vector2 = Vector2()
 var exist_time: float = 0.0
 
 func _io(inputs: Dictionary) -> Variant:
-	$ColorRect/root/Label.text = str(inputs[0][0]*2)
-	return inputs[0][0] + 1
+	$ColorRect/root/Label.text = str(inputs[0][0]+1)
+	return inputs[0][0]+1
 
-func propagate(input_vals: Dictionary) -> void:
+var pushed_inputs = {}
+func _seq_push_input(connection_key: int, value) -> void:
+	pushed_inputs.get_or_add(connection_key, []).append(value)
+	if len(pushed_inputs) >= len(input_keys):
+		propagate(pushed_inputs)
+		pushed_inputs.clear()
+
+func propagate(input_vals: Dictionary, sequential_branching: bool = false) -> void:
 	var out = _io(input_vals)
 	var output_vals = {}
+	modulate = Color(randf_range(0,1),randf_range(0,1),randf_range(0,1))
 
 	match typeof(out):
 		TYPE_ARRAY:
@@ -74,8 +86,11 @@ func propagate(input_vals: Dictionary) -> void:
 		for branch_key in next_conn.outputs:
 			var spline = next_conn.outputs[branch_key]
 			if not spline.tied_to: continue
-			var other = spline.tied_to.parent_graph
-			glob.next_frame_propagate(spline.tied_to, other.input_key_by_conn[spline.tied_to], output_vals[out_key])
+			var other_node: Graph = spline.tied_to.parent_graph
+			var connection_key: int = other_node.input_key_by_conn[spline.tied_to]
+			other_node._seq_push_input(connection_key, output_vals[out_key])
+			#glob.next_frame_propagate(spline.tied_to, connection_key, output_vals[out_key])
+			
 
 func gather():
 	pass
@@ -90,7 +105,7 @@ func _process(delta: float) -> void:
 	var inside = is_mouse_inside()
 	if inside:
 		if Input.is_action_just_pressed('ui_accept'):
-			propagate({0: [0]})
+			await propagate({0: [0]})
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed:

@@ -2,6 +2,8 @@
 extends Node2D
 
 var base_graph = preload("res://base_graph.tscn")
+var loop_graph = preload("res://loop.tscn")
+var io_graph = preload("res://io_graph.tscn")
 var default_spline = preload("res://default_spline.tscn")
 var scroll_container = preload("res://vbox.tscn")
 
@@ -26,8 +28,9 @@ func getref(name):
 			refs.erase(name)
 	return null
 
-func get_spline(for_connection: Connection) -> Spline:
+func get_spline(for_connection: Connection, keyword: StringName = &"") -> Spline:
 	var new = default_spline.instantiate()
+	new.keyword = keyword
 	add_child(new); new.z_index = 9
 	return new
 
@@ -75,16 +78,16 @@ func show_menu(name: StringName, at_pos: Vector2 = Vector2()):
 
 func hide_all_menus() -> void: hide_menus = true
 
-func get_graph(flags = Graph.Flags.NONE) -> Graph:
-	var new = base_graph.instantiate()
+func get_graph(type = base_graph, flags = Graph.Flags.NONE) -> Graph:
+	var new = type.instantiate()
 	new.graph_flags = flags
 	return new
 
-func get_label_text_size(lbl: Label) -> Vector2:
+func get_label_text_size(lbl: Control) -> Vector2:
 	# Measure label text size
 	var font = lbl.get_theme_font("font")
 	var size = lbl.get_theme_font_size("font_size")
-	return font.get_string_size(lbl.text, lbl.horizontal_alignment, -1, size)
+	return font.get_string_size(lbl.text, 0, -1, size)
 
 func layer_to_global(layer: CanvasLayer, point: Vector2):
 	return layer.transform * point
