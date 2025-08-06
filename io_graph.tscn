@@ -1,79 +1,121 @@
-[gd_scene load_steps=7 format=3 uid="uid://ddl50qlfjt4st"]
+[gd_scene load_steps=9 format=3 uid="uid://ddl50qlfjt4st"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://base_graph.tscn" id="1_2pdka"]
+[ext_resource type="Script" uid="uid://dad2oa47ouedp" path="res://io_graph.gd" id="2_jeojw"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://Connection.tscn" id="2_rxypt"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://BaseBComponent.tscn" id="3_5xco4"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://theme.tres" id="5_5h31y"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://button_mat.tres" id="5_jeojw"]
-[ext_resource type="Resource" uid="uid://b87f7qp31583q" path="res://lite_config.tres" id="6_5khim"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://button_config.gd" id="6_5khim"]
 
-[node name="Base" instance=ExtResource("1_2pdka")]
+[sub_resource type="Resource" id="Resource_jeojw"]
+script = ExtResource("6_5khim")
+hover_color = Color(1.10196, 1.86275, 1.25098, 1)
+_hover_scale = 1.03
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 0.97
+animation_scale = 0.0
+animation_speed = 1.951
+animation_decay = 4.564
+animation_duration = 1.0
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[node name="Base" node_paths=PackedStringArray("unit", "add_button", "input") instance=ExtResource("1_2pdka")]
 mouse_filter = 2
+script = ExtResource("2_jeojw")
+unit = NodePath("connection")
+add_button = NodePath("input/ColorRect2")
+input = NodePath("input")
+padding = 0.0
 
 [node name="ColorRect" parent="." index="0"]
-instance_shader_parameters/corner_radius_add = -3.0
+instance_shader_parameters/corner_radius_add = -4.0
 instance_shader_parameters/tuning = Color(0.05, 0.05, 0.05, 0.505882)
-offset_right = 119.0
+offset_right = 82.0
+offset_bottom = 32.0
 mouse_filter = 2
 
 [node name="Label" parent="ColorRect/root" index="0"]
-offset_left = 5.99999
-offset_top = 2.0
-offset_right = 121.0
-offset_bottom = 45.0
-scale = Vector2(0.690509, 0.690509)
+offset_left = 9.0
+offset_top = 5.0
+offset_right = 124.0
+offset_bottom = 48.0
+scale = Vector2(0.461477, 0.461477)
 text = "getvar"
 
-[node name="ColorRect2" parent="." index="1" instance=ExtResource("3_5xco4")]
-material = ExtResource("5_jeojw")
-instance_shader_parameters/corner_radius_add = 1.0
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
-layout_mode = 0
-offset_left = 47.0
-offset_top = 23.0
-offset_right = 118.0
-offset_bottom = 65.0
-scale = Vector2(0.720007, 0.720007)
-button_type = 1
-text = "Add"
-base_size = Vector2(71, 42)
-alignment = Vector2(0.5, 0.5)
-config = ExtResource("6_5khim")
-
-[node name="Control" type="Control" parent="." index="2"]
+[node name="connection" type="Control" parent="." index="1"]
 anchors_preset = 0
 offset_left = -83.0
 offset_top = -26.0
 offset_right = 113.0
 offset_bottom = 14.0
 
-[node name="o" parent="Control" index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_rxypt")]
+[node name="o" parent="connection" index="0" instance=ExtResource("2_rxypt")]
 z_index = -9
 layout_mode = 0
-offset_left = 196.0
-offset_top = 0.0
-offset_right = 212.0
-offset_bottom = 40.0
+offset_left = 160.0
+offset_top = 6.0
+offset_right = 176.0
+offset_bottom = 41.0
 connection_type = 1
+area_padding = 0.0
 multiple_splines = true
-parent_graph = NodePath("../..")
 
-[node name="i" parent="Control" index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_rxypt")]
+[node name="i" parent="connection" index="1" instance=ExtResource("2_rxypt")]
 z_index = -9
 layout_mode = 0
 offset_left = -14.0
-offset_top = 0.0
+offset_top = 6.0
 offset_right = 2.0
-offset_bottom = 40.0
+offset_bottom = 42.0
 connection_type = 0
+area_padding = 0.0
 multiple_splines = true
-parent_graph = NodePath("../..")
 
-[node name="LineEdit" type="LineEdit" parent="." index="3"]
+[node name="Label" type="Label" parent="connection" index="2"]
+z_index = 1
 layout_mode = 0
-offset_left = -75.0
-offset_top = -17.0
-offset_right = 104.0
-offset_bottom = 13.0
+offset_left = 1.0
+offset_top = 11.0
+offset_right = 322.0
+offset_bottom = 54.0
+scale = Vector2(0.573806, 0.573806)
 theme = ExtResource("5_5h31y")
-max_length = 21
+text = "ffffffffff"
+
+[node name="input" type="Control" parent="." index="2"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LineEdit" type="LineEdit" parent="input" index="0"]
+layout_mode = 0
+offset_left = -78.0
+offset_top = -32.0
+offset_right = 240.0
+offset_bottom = 16.0
+scale = Vector2(0.475104, 0.475104)
+theme = ExtResource("5_5h31y")
+theme_override_font_sizes/font_size = 30
+placeholder_text = "Variable name"
+max_length = 17
+
+[node name="ColorRect2" parent="input" index="1" instance=ExtResource("3_5xco4")]
+material = ExtResource("5_jeojw")
+instance_shader_parameters/corner_radius_add = -3.0
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = 16.0
+offset_top = -10.0
+offset_right = 87.0
+offset_bottom = 32.0
+scale = Vector2(0.659331, 0.659331)
+pivot_offset = Vector2(35.5, 21)
+button_type = 1
+text = "Add"
+base_size = Vector2(71, 42)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_jeojw")
+
+[connection signal="pressed" from="input/ColorRect2" to="." method="_on_color_rect_2_pressed"]

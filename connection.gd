@@ -90,7 +90,7 @@ func remove_input_spline(spline: Spline):
 	spline.origin.end_spline(inputs[spline])
 
 func _ready() -> void:
-	if !Engine.is_editor_hint():
+	if !Engine.is_editor_hint() and parent_graph:
 		parent_graph.add_connection(self)
 
 func get_origin() -> Vector2:

@@ -231,6 +231,8 @@ func _enter_tree() -> void:
 	if !Engine.is_editor_hint() and button_type == ButtonType.CONTEXT_MENU:
 		assert(not glob.menus.get(menu_name), "Menu %s already regged"%menu_name)
 		glob.menus[menu_name] = self
+	if !Engine.is_editor_hint():
+		pivot_offset = Vector2()
 
 
 func _create_scaler_wrapper() -> void:
@@ -276,7 +278,6 @@ var auto_wrap: bool = true
 
 func _ready() -> void:
 	if not auto_ready: return
-	pivot_offset = Vector2()
 	initialize()
 	size = base_size
 	text = text  # Trigger setter
@@ -328,8 +329,8 @@ func _process_block_button(delta: float) -> void:
 	if not is_visible_in_tree() or not freedom: return
 	
 
-	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)
-	var frozen = is_contained and parent.is_frozen
+	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking
+	var frozen = is_contained and parent.is_frozen or is_frozen
 	if not frozen:
 		inside = is_mouse_inside() and not blocked
 		mouse_pressed = glob.mouse_pressed and not blocked

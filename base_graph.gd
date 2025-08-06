@@ -22,7 +22,7 @@ func animate(delta: float):
 	if graph_flags & Flags.NEW:
 		_new_animate(delta)
 
-func _sub_ready():
+func _after_ready():
 	pass
 
 func add_connection(conn: Connection):
@@ -40,7 +40,7 @@ func add_connection(conn: Connection):
 func _ready() -> void:
 	position -= rect.position
 	animate(0)
-	_sub_ready()
+	_after_ready()
 
 func is_mouse_inside() -> bool:
 	# padded hit area
@@ -103,8 +103,6 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	var inside = is_mouse_inside()
 	if inside:
-		if Input.is_action_just_pressed('ui_accept'):
-			await propagate({0: [0]})
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed:
@@ -126,3 +124,8 @@ func _process(delta: float) -> void:
 			input.reposition_splines()
 		for output in outputs:
 			output.reposition_splines()
+	
+	_after_process(delta)
+
+func _after_process(delta: float):
+	pass
