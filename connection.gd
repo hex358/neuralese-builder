@@ -9,7 +9,7 @@ static var OUTPUT: int = 1
 @export var hint: int = 0
 @export var keyword: StringName = &""
 @export_enum("Input", "Output") var connection_type: int = INPUT
-@export var area_padding: float = 10.0
+@export var area_paddings: Vector4 = Vector4(10,10,10,10)
 @export var multiple_splines: bool = false
 @export var origin_offset: Vector2 = Vector2()
 
@@ -26,10 +26,10 @@ var connected: Dictionary[Connection, bool] = {}
 var mouse_just_pressed: bool = false
 var mouse_pressed: bool = false
 
-func is_mouse_inside(padding:int=area_padding) -> bool:
+func is_mouse_inside(padding:Vector4=area_paddings) -> bool:
 	# padded hit area
-	var top_left = global_position - Vector2.ONE * padding * parent_graph.scale * scale
-	var padded_size = size * parent_graph.scale * scale + Vector2(padding, padding) * 2
+	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale
+	var padded_size = size * parent_graph.scale * scale + Vector2(padding.x+padding.z, padding.y+padding.w)
 	return Rect2(top_left, padded_size).has_point(get_global_mouse_position())
 
 func reposition_splines():

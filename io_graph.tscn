@@ -74,7 +74,6 @@ offset_right = 177.0
 offset_bottom = 39.0
 color = Color(0.46, 1, 0.793, 1)
 connection_type = 1
-area_padding = 10.0
 
 [node name="Label" type="Label" parent="connection" index="2"]
 z_index = 1
@@ -136,7 +135,7 @@ offset_bottom = -57.0
 color = Color(0.458824, 1, 0.792157, 1)
 keyword = &"router"
 connection_type = 0
-area_padding = 10.0
+area_paddings = Vector4(10, 10, 10, -10)
 dir_vector = Vector2(0, -1)
 parent_graph = NodePath("..")
 

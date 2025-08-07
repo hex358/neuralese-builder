@@ -208,8 +208,10 @@ func resize(_size: Vector2) -> void:
 	#if is_contained:
 	_wrapped_in.size = _size
 	scaler.size = size
+	text = text
 	_wrapped_in.custom_minimum_size = _size
 
+var wrapped: bool = false
 func arrange():
 	# Arrange children above or below based on expand_upwards
 	var maxsize: int = 0
@@ -240,19 +242,16 @@ func _create_scaler_wrapper() -> void:
 	var wrapper = Wrapper.new()
 	wrapper.position = self.position
 	
+	wrapped = true
 	wrapper.size = self.base_size
 	wrapper.custom_minimum_size = self.base_size
-	# 4) Insert wrapper under the old parent
 
-	# 5) Move yourself under the wrapper
 	var secondary_wrapper = Wrapper.new()
 	secondary_wrapper.position += alignment*size
 	wrapper.add_child(secondary_wrapper)
 	
 	reparent(secondary_wrapper)
 	position = -alignment*size
-	
-	# Now wrapper.get_parent() will be old_parent, and you’re its child.
 	
 	scaler = secondary_wrapper
 	scaler.scale = self.scale

@@ -58,7 +58,7 @@ void fragment() {
 	vec4 out_col = outline_color;
 	if (outline_width+corner_width_add < 0.01){out_col = tuning * mult_tuning;}
 	if (blurred_background) {
-		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale);
+		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale)*2.0;
 		if (ol < 0.999) {
 			col = mix(alpha_blend(bg, tuning * mult_tuning) * color_mult, out_col, ol);
 		} else {

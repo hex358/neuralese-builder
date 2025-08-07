@@ -24,7 +24,6 @@ offset_top = -20.0
 offset_right = -82.0
 offset_bottom = 20.0
 connection_type = 0
-area_padding = 20.0
 dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("..")
 
@@ -35,6 +34,5 @@ offset_top = 66.0
 offset_right = 27.0
 offset_bottom = 87.0
 connection_type = 1
-area_padding = 20.0
 dir_vector = Vector2(0, 1)
 parent_graph = NodePath("..")

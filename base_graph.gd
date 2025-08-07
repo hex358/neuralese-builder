@@ -105,7 +105,7 @@ func _process(delta: float) -> void:
 	
 	if Engine.is_editor_hint(): return
 	var inside = is_mouse_inside()
-	if inside:
+	if inside and not glob.hovered_connection:
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed:
@@ -116,7 +116,8 @@ func _process(delta: float) -> void:
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not glob.is_occupied(self, &"graph") and 
-		not glob.is_occupied(self, &"conn_active")):
+		not glob.is_occupied(self, &"conn_active") and
+		not glob.hovered_connection):
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 	if dragging:
 		if not glob.mouse_pressed:

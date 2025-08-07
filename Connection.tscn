@@ -12,4 +12,4 @@ offset_right = 4.0
 offset_bottom = 22.0
 color = Color(0.491557, 0.67, 0.4422, 1)
 script = ExtResource("1_n3v31")
-area_padding = 30.0
+area_paddings = Vector4(10, 10, 10, 0)

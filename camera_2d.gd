@@ -84,10 +84,10 @@ func _process(delta: float) -> void:
 		zoom_move_vec = (mouse - get_global_mouse_position())
 	var display_mouse = glob.get_display_mouse_position()
 	
-	rise_mult = min(mouse_range(display_mouse.x, 100, 50, glob.RIGHT)+
-							mouse_range(display_mouse.x, 100, 50, glob.LEFT)+
-							mouse_range(display_mouse.y, 50, 20, glob.UP)+
-							mouse_range(display_mouse.y, 50, 20, glob.DOWN), 1.0)
+	rise_mult = min(mouse_range(display_mouse.x, 120, 70, glob.RIGHT)+
+							mouse_range(display_mouse.x, 120, 70, glob.LEFT)+
+							mouse_range(display_mouse.y, 80, 40, glob.UP)+
+							mouse_range(display_mouse.y, 80, 40, glob.DOWN), 1.0)
 	if glob.mouse_pressed and rise_mult:
 		var dir = glob.window_middle.direction_to(display_mouse)
 		drag_move_vec = drag_move_vec.lerp(

@@ -12,7 +12,7 @@ func _menu_handle_release(button: BlockComponent):
 	graph.position = world_pos
 	get_parent().get_parent().add_child(graph)
 	#await glob.wait(0.1)
-	#menu_hide()
+	menu_hide()
 	#unfreeze_input()
 
 func _sub_process(delta):
