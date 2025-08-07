@@ -4,6 +4,7 @@ extends Node2D
 var base_graph = preload("res://base_graph.tscn")
 var loop_graph = preload("res://loop.tscn")
 var io_graph = preload("res://io_graph.tscn")
+var neuron_graph = preload("res://neuron.tscn")
 var default_spline = preload("res://default_spline.tscn")
 var scroll_container = preload("res://vbox.tscn")
 
@@ -55,8 +56,9 @@ var menu_type: StringName = &""
 var _menu_type_occupator: Node = null
 func is_my_menu(node: BlockComponent) -> bool:
 	return menu_type == node.menu_name if menu_type else node.menu_name == &"add_graph"
-func set_menu_type(occ: Node, type: StringName):
-	if !is_instance_valid(_menu_type_occupator): 
+var default = []
+func set_menu_type(occ: Node, type: StringName, low_priority_types=null ):
+	if !is_instance_valid(_menu_type_occupator) or (low_priority_types and menu_type in low_priority_types): 
 		_menu_type_occupator = occ
 		menu_type = type
 func reset_menu_type(occ: Node, type: StringName):
@@ -126,6 +128,7 @@ func wait(wait_time: float):
 
 func _after_process(delta: float) -> void:
 	hide_menus = false
+	#print(menu_type)
 
 var opened_menu = null
 
@@ -159,28 +162,7 @@ func input_poll():
 
 
 var ticks: int = 0
-var propagation_q = {}
-func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
-	propagation_q.get_or_add(tied_to, {}).get_or_add(key, []).append(value)
 
-var gather_q = {}
-var gather_tree = {}
-func next_frame_gather(tied_to: Connection, key: int):
-	pass
-	#print(propagation_q)
-
-func gather_cycle():
-	pass
-	
-	#tree
-
-func propagate_cycle():
-	if not propagation_q: return
-	var dup = propagation_q
-	propagation_q = {}
-	#tree = {}
-	for conn: Connection in dup:
-		conn.parent_graph.propagate(dup[conn])
 
 var menu_canvas: CanvasLayer = null
 func get_display_mouse_position():
@@ -195,14 +177,12 @@ var LEFT: int = 2
 var RIGHT: int = 3
 
 func _process(delta: float) -> void:
+	ticks += 1
 	if Engine.is_editor_hint(): return
 	
 	window_size = DisplayServer.window_get_size()
 	window_middle = window_size / 2
-	gather_cycle()
-	propagate_cycle()
 
-	ticks += 1
 	_after_process.call_deferred(delta)
 	
 	var to_erase = []

@@ -12,6 +12,7 @@ uniform vec4 color_mult: source_color = vec4(1.0);
 #include "res://smooth_extents.gdshaderinc"
 global uniform float _view_scale = 1.0;
 instance uniform float corner_radius_add = 0.0;
+instance uniform float corner_width_add = 0.0;
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
 uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
@@ -39,7 +40,7 @@ void fragment() {
 
 	float radius_added = corner_radius_add + corner_radius;
 	float r = radius_added * min(view_scale.x, view_scale.y) * vert_scale.x;
-	float w = outline_width * min(view_scale.x, view_scale.y) * vert_scale.y;
+	float w = (outline_width+corner_width_add) * min(view_scale.x, view_scale.y) * vert_scale.y;
 
 	float sdf;
 	if (false) { // if shape == 1 (triangle) or 2 (rombic) or 3
@@ -54,12 +55,14 @@ void fragment() {
 
 	// compute fill color
 	vec4 col;
+	vec4 out_col = outline_color;
+	if (outline_width+corner_width_add < 0.01){out_col = tuning * mult_tuning;}
 	if (blurred_background) {
 		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale);
 		if (ol < 0.999) {
-			col = mix(alpha_blend(bg, tuning * mult_tuning) * color_mult, outline_color, ol);
+			col = mix(alpha_blend(bg, tuning * mult_tuning) * color_mult, out_col, ol);
 		} else {
-			col = outline_color;
+			col = out_col;
 		}
 	} else {
 		col = mix(tuning * mult_tuning * color_mult, outline_color, ol);

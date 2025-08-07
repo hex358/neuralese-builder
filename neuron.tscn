@@ -1,0 +1,54 @@
+[gd_scene load_steps=5 format=3 uid="uid://cbtf5jh2s8v3j"]
+
+[ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://base_graph.tscn" id="1_mms1l"]
+[ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://neuron_graph.tres" id="2_pliy4"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://Connection.tscn" id="3_j2aws"]
+[ext_resource type="Material" uid="uid://c36ih2j1tae3s" path="res://neuron_conn'.tres" id="4_a7csb"]
+
+[node name="Base" instance=ExtResource("1_mms1l")]
+
+[node name="ColorRect" parent="." index="0"]
+z_index = 9
+material = ExtResource("2_pliy4")
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.505882)
+offset_left = -52.0
+offset_top = -48.0
+offset_right = 48.0
+offset_bottom = 52.0
+
+[node name="Label" parent="ColorRect/root" index="0"]
+text = ""
+
+[node name="ColorRect3" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
+material = ExtResource("4_a7csb")
+instance_shader_parameters/corner_radius_add = 3.0
+instance_shader_parameters/outline_color = Color(0.278431, 0.839216, 0.682353, 1)
+instance_shader_parameters/tuning = Color(1, 1, 1, 1)
+offset_left = -68.0
+offset_right = -52.0
+offset_bottom = -2.0
+scale = Vector2(2.29475, 2.29475)
+color = Color(1, 1, 1, 1)
+connection_type = 0
+area_padding = 0.0
+multiple_splines = true
+origin_offset = Vector2(-3, 0)
+dir_vector = Vector2(-1, 0)
+parent_graph = NodePath("..")
+
+[node name="ColorRect2" parent="." index="2" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
+material = ExtResource("4_a7csb")
+instance_shader_parameters/corner_radius_add = 3.0
+instance_shader_parameters/outline_color = Color(0.278431, 0.839216, 0.682353, 1)
+instance_shader_parameters/tuning = Color(1, 1, 1, 1)
+offset_left = 28.0
+offset_right = 44.0
+offset_bottom = -2.0
+scale = Vector2(2.29475, 2.29475)
+color = Color(1, 1, 1, 1)
+connection_type = 1
+area_padding = 0.0
+multiple_splines = true
+origin_offset = Vector2(3, 0)
+parent_graph = NodePath("..")

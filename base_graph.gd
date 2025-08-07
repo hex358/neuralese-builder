@@ -87,14 +87,17 @@ func propagate(input_vals: Dictionary, sequential_branching: bool = false) -> vo
 			if not spline.tied_to: continue
 			var other_node: Graph = spline.tied_to.parent_graph
 			var connection_key: int = other_node.input_key_by_conn[spline.tied_to]
-			other_node._seq_push_input(connection_key, output_vals[out_key])
-			#glob.next_frame_propagate(spline.tied_to, connection_key, output_vals[out_key])
+			#other_node._seq_push_input(connection_key, output_vals[out_key])
+			graphs.next_frame_propagate(spline.tied_to, connection_key, output_vals[out_key])
 			
 
 func gather():
 	pass
 
 	#print(out)
+
+func _can_drag() -> bool:
+	return true
 
 func _process(delta: float) -> void:
 	animate(delta)
@@ -110,7 +113,7 @@ func _process(delta: float) -> void:
 	else:
 		glob.reset_menu_type(self, &"edit_graph")
 		glob.un_occupy(self, &"graph")
-	if inside and glob.mouse_just_pressed and (
+	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not glob.is_occupied(self, &"graph") and 
 		not glob.is_occupied(self, &"conn_active")):

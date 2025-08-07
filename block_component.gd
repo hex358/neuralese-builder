@@ -221,7 +221,7 @@ func arrange():
 		var xo = arrangement_padding.x
 		node._wrapped_in.position = Vector2(xo, y)
 		var b_size = base_size.x - 2.2 * xo
-		node.resize(Vector2(b_size, node.size.y))
+		node.resize(Vector2(b_size, round(node.size.y)))
 		node.text = node.text
 		y += (node.size.y + arrangement_padding.y)
 		maxsize += (node.size.y + arrangement_padding.y)
@@ -325,6 +325,17 @@ var is_contained: BlockComponent = null
 var inside: bool = false
 var mouse_pressed: bool = false
 
+var press_request: bool = false
+var imm_unpress: bool = false
+func press(press_time: float = 0.0):
+	if press_request: return
+	press_request = true
+	if !press_time: imm_unpress = true
+	else: 
+		imm_unpress = false
+		await glob.wait(press_time)
+		press_request = false
+
 func _process_block_button(delta: float) -> void:
 	if not is_visible_in_tree() or not freedom: return
 	
@@ -336,7 +347,11 @@ func _process_block_button(delta: float) -> void:
 		mouse_pressed = glob.mouse_pressed and not blocked
 	if not blocked and (not mouse_pressed or (inside and mouse_pressed)):
 		last_mouse_pos = get_global_mouse_position()
-
+	if press_request:
+		inside = true; mouse_pressed = true
+		if imm_unpress:
+			press_request = false
+	
 	if inside:
 		if mouse_pressed:
 			hover_scale = hover_scale.lerp(base_scale * config._press_scale, delta * 30)
@@ -408,6 +423,7 @@ func _proceed_show(at_position: Vector2) -> bool: # virtual
 
 func menu_show(at_position: Vector2) -> void:
 	if not _proceed_show(at_position): return
+	if _is_not_menu(): return
 	show()
 	if not secondary:
 		#if glob.opened_menu:
@@ -447,7 +463,7 @@ func menu_expand() -> void:
 	state.expanding = true
 
 func _is_not_menu():
-	return (not glob.is_my_menu(self) and glob.mouse_alt_pressed)
+	return (glob.mouse_alt_pressed and not glob.is_my_menu(self))
 
 func pos_clamp(pos: Vector2):
 	last_mouse_pos = pos
@@ -487,7 +503,7 @@ func _process_context_menu(delta: float) -> void:
 		left_pressed = false; right_pressed = false
 		left_click = false; right_click = false
 		menu_hide()
-
+		
 	var i_occupied: bool = false
 	var inside: bool = is_mouse_inside()
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
@@ -527,8 +543,6 @@ func _process_context_menu(delta: float) -> void:
 				menu_show(pos)
 			elif visible:
 				menu_hide()
-				if reset_menu:
-					hide()
 	else:
 		# while holding LMB expand gradually
 		if state.holding and not state.tween_hide:

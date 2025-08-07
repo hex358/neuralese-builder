@@ -5,14 +5,14 @@ func _menu_handle_release(button: BlockComponent):
 	#freeze_input()
 	var type = glob.io_graph
 	if button.hint == "cycle":
-		type = glob.loop_graph
+		type = glob.neuron_graph
 	var graph = glob.get_graph(type, Graph.Flags.NEW)
 	var cam = get_viewport().get_camera_2d()
 	var world_pos = cam.get_canvas_transform().affine_inverse() * position
 	graph.position = world_pos
 	get_parent().get_parent().add_child(graph)
 	#await glob.wait(0.1)
-	menu_hide()
+	#menu_hide()
 	#unfreeze_input()
 
 func _sub_process(delta):

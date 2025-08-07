@@ -11,6 +11,7 @@ static var OUTPUT: int = 1
 @export_enum("Input", "Output") var connection_type: int = INPUT
 @export var area_padding: float = 10.0
 @export var multiple_splines: bool = false
+@export var origin_offset: Vector2 = Vector2()
 
 @export var dir_vector: Vector2 = Vector2.RIGHT
 
@@ -28,21 +29,21 @@ var mouse_pressed: bool = false
 func is_mouse_inside(padding:int=area_padding) -> bool:
 	# padded hit area
 	var top_left = global_position - Vector2.ONE * padding * parent_graph.scale * scale
-	var padded_size = size + Vector2(padding, padding) * 2
+	var padded_size = size * parent_graph.scale * scale + Vector2(padding, padding) * 2
 	return Rect2(top_left, padded_size).has_point(get_global_mouse_position())
 
 func reposition_splines():
 	for id in outputs.keys():
 		var spline = outputs[id]
 		if is_instance_valid(spline.tied_to):
-			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), dir_vector)
+			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), dir_vector, spline.tied_to.dir_vector)
 	for spline in inputs.keys():
 		if is_instance_valid(spline.origin) and is_instance_valid(spline.tied_to):
-			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), spline.origin.dir_vector)
+			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), spline.origin.dir_vector, dir_vector)
 
 func add_spline() -> int:
 	var slot = len(outputs)
-	var spline = glob.get_spline(self)
+	var spline = glob.get_spline(self, &"weight")
 	spline.origin = self
 	outputs[slot] = spline
 	return slot
@@ -77,7 +78,7 @@ func attach_spline(id: int, target: Connection):
 	target.connected[self] = true
 	target.inputs[spline] = id
 	target.last_connected = spline
-	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector)
+	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector, target.dir_vector)
 	end_spline(id, false)
 
 func detatch_spline(spline: Spline):
@@ -94,14 +95,19 @@ func _ready() -> void:
 		parent_graph.add_connection(self)
 
 func get_origin() -> Vector2:
-	return global_position + size / 2
+	return global_position + (origin_offset + size / 2) * scale
 
 func _is_suitable(conn: Connection) -> bool: return true # virtual
 
 func is_suitable(conn: Connection) -> bool:
+	#print(len(outputs))
 	return (conn and conn != self and conn.connection_type == INPUT
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0)
+		and (len(outputs) <= 1 or multiple_splines or conn.keyword == &"router")
 		and _is_suitable(conn))
+
+func _stylize_spline(spline: Spline):
+	pass
 
 var hovered: bool = false
 var prog: float = 0.0
@@ -109,6 +115,7 @@ func hover():
 	hovered = true
 @onready var base_modulate = modulate
 
+var low = {"detatch": true, "edit_graph": true}
 func _process(delta: float) -> void:
 	if not is_visible_in_tree():
 		return
@@ -117,10 +124,9 @@ func _process(delta: float) -> void:
 	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	mouse_just_pressed = glob.mouse_just_pressed and not_occ
 	var inside = is_mouse_inside()
-	var unpadded = is_mouse_inside(0)
 	
-	if unpadded:
-		glob.set_menu_type(self, "detatch")
+	if inside:
+		glob.set_menu_type(self, "detatch", low)
 	else:
 		glob.reset_menu_type(self, "detatch")
 
@@ -133,15 +139,15 @@ func _process(delta: float) -> void:
 	var occ = glob.is_occupied(self, "conn_active")
 	if connection_type == OUTPUT and inside and not occ:
 		if mouse_just_pressed:
-			if multiple_splines or len(outputs) == 0:
+			if 1: # TODO: implement router splines
 				start_spline(add_spline())
-			elif !multiple_splines and outputs:
-				outputs[0].tied_to.detatch_spline(outputs[0])
-		elif glob.mouse_alt_just_pressed and unpadded:
+			#elif !multiple_splines and outputs:
+				#outputs[0].tied_to.detatch_spline(outputs[0])
+		elif glob.mouse_alt_just_pressed and inside:
 			glob.menus["detatch"].show_up(outputs, self)
 
 	if connection_type == INPUT and inside and not occ:
-		if glob.mouse_alt_just_pressed and unpadded:
+		if glob.mouse_alt_just_pressed and inside:
 			glob.menus["detatch"].show_up(inputs, self)
 		elif mouse_just_pressed and inputs:
 			detatch_spline(inputs.keys()[-1])
@@ -162,7 +168,9 @@ func _process(delta: float) -> void:
 		if prog < 0.95: modulate = modulate.lerp(base_modulate, delta * 23.0)
 		else: modulate = base_modulate
 	
-	var suit = is_suitable(glob.hovered_connection)
+	var suit
+	if active_outputs:
+		suit = is_suitable(glob.hovered_connection)
 	for id in active_outputs:
 		var spline = active_outputs[id]
 		# live update using the splines origin

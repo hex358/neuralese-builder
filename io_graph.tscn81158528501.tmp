@@ -1,11 +1,10 @@
-[gd_scene load_steps=12 format=3 uid="uid://ddl50qlfjt4st"]
+[gd_scene load_steps=11 format=3 uid="uid://ddl50qlfjt4st"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://base_graph.tscn" id="1_2pdka"]
 [ext_resource type="Script" uid="uid://dad2oa47ouedp" path="res://io_graph.gd" id="2_jeojw"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://Connection.tscn" id="2_rxypt"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://BaseBComponent.tscn" id="3_5xco4"]
 [ext_resource type="Script" uid="uid://7mf5v1esvqbs" path="res://unit.gd" id="3_bp7um"]
-[ext_resource type="Material" uid="uid://blkv556akjllh" path="res://panel.tres" id="4_q7htc"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://theme.tres" id="5_5h31y"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://button_mat.tres" id="5_jeojw"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://button_config.gd" id="6_5khim"]
@@ -55,28 +54,19 @@ offset_right = 82.0
 offset_bottom = 14.0
 script = ExtResource("3_bp7um")
 
-[node name="ColorRect" type="ColorRect" parent="connection" index="0"]
-material = ExtResource("4_q7htc")
-instance_shader_parameters/outline_color = Color(0.501961, 0.501961, 0.501961, 0.490196)
-instance_shader_parameters/tuning = Color(0.5, 0.5, 0.5, 0.490196)
-layout_mode = 0
-offset_left = 3.0
-offset_top = 12.0
-offset_right = 162.0
-offset_bottom = 39.0
-
-[node name="o" parent="connection" index="1" instance=ExtResource("2_rxypt")]
+[node name="o" parent="connection" index="0" instance=ExtResource("2_rxypt")]
 z_index = -9
 layout_mode = 0
 offset_left = 161.0
-offset_top = 11.0
+offset_top = 6.0
 offset_right = 177.0
-offset_bottom = 39.0
+offset_bottom = 41.0
 color = Color(0.46, 1, 0.793, 1)
 connection_type = 1
 area_padding = 10.0
+multiple_splines = true
 
-[node name="Label" type="Label" parent="connection" index="2"]
+[node name="Label" type="Label" parent="connection" index="1"]
 z_index = 1
 layout_mode = 0
 offset_left = 6.0
@@ -88,12 +78,11 @@ theme = ExtResource("5_5h31y")
 text = "Variable name"
 
 [node name="input" type="Control" parent="." index="2"]
-z_index = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="LineEdit" type="LineEdit" parent="input" index="0" node_paths=PackedStringArray("accept_button")]
+[node name="LineEdit" type="LineEdit" parent="input" index="0"]
 layout_mode = 0
 offset_left = -78.0
 offset_top = -32.0
@@ -105,19 +94,17 @@ theme_override_font_sizes/font_size = 30
 placeholder_text = "Variable name"
 max_length = 17
 script = ExtResource("6_pkn4s")
-accept_button = NodePath("../ColorRect2")
 
 [node name="ColorRect2" parent="input" index="1" instance=ExtResource("3_5xco4")]
 material = ExtResource("5_jeojw")
 instance_shader_parameters/corner_radius_add = -2.0
-instance_shader_parameters/corner_width_add = 0.5
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
 offset_left = 18.0
-offset_top = -11.0
+offset_top = -13.0
 offset_right = 89.0
-offset_bottom = 31.0
+offset_bottom = 29.0
 scale = Vector2(0.583319, 0.583319)
 pivot_offset = Vector2(35.5, 21)
 button_type = 1
@@ -134,9 +121,9 @@ offset_top = -74.0
 offset_right = 18.0
 offset_bottom = -57.0
 color = Color(0.458824, 1, 0.792157, 1)
-keyword = &"router"
 connection_type = 0
 area_padding = 10.0
+multiple_splines = true
 dir_vector = Vector2(0, -1)
 parent_graph = NodePath("..")
 
