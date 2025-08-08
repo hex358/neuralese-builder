@@ -26,6 +26,14 @@ var connected: Dictionary[Connection, bool] = {}
 var mouse_just_pressed: bool = false
 var mouse_pressed: bool = false
 
+func delete():
+	if connection_type == INPUT:
+		for i in inputs.duplicate():
+			detatch_spline(i)
+	else:
+		for i in outputs.duplicate():
+			outputs[i].tied_to.detatch_spline(outputs[i])
+
 func is_mouse_inside(padding:Vector4=area_paddings) -> bool:
 	# padded hit area
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale

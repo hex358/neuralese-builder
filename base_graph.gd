@@ -41,6 +41,7 @@ func _ready() -> void:
 	position -= rect.position
 	animate(0)
 	_after_ready()
+	glob.collider(self, $ColorRect.size)
 
 func is_mouse_inside() -> bool:
 	# padded hit area
@@ -123,7 +124,10 @@ func _process(delta: float) -> void:
 		if not glob.mouse_pressed:
 			dragging = false
 		else:
-			global_position = get_global_mouse_position() + attachement_position
+			glob.collider(self, $ColorRect.size)
+			var new_pos = get_global_mouse_position() + attachement_position
+			#var vec = glob.can_move(self, rect.size, global_position, new_pos-global_position)
+			global_position = new_pos
 		for input in _inputs:
 			input.reposition_splines()
 		for output in outputs:

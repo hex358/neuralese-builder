@@ -154,6 +154,17 @@ func press_poll():
 	mouse_alt_just_released = Input.is_action_just_released("ui_mouse_alt")
 	mouse_alt_released = not mouse_alt_pressed
 
+
+var colliders: Dictionary[Control, PhysicsShapeQueryParameters2D] = {}
+
+func collider(control: Control, size: Vector2):
+	pass
+
+@onready var direct_space = get_world_2d().direct_space_state
+func can_move(control: Control, size: Vector2, a: Vector2, vec: Vector2) -> Vector2:
+	return Vector2()
+
+
 func input_poll():
 	press_poll()
 	if Input.is_action_just_pressed("scroll_up"): mouse_scroll = -1

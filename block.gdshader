@@ -16,6 +16,7 @@ instance uniform float corner_width_add = 0.0;
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
 uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
+uniform float mult = 2.0;
 instance uniform vec4 outline_color: source_color = vec4(1.0);
 uniform float blur_level: hint_range(0.0, 7.0) = 2.5;
 
@@ -58,7 +59,7 @@ void fragment() {
 	vec4 out_col = outline_color;
 	if (outline_width+corner_width_add < 0.01){out_col = tuning * mult_tuning;}
 	if (blurred_background) {
-		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale)*2.0;
+		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale)*mult;
 		if (ol < 0.999) {
 			col = mix(alpha_blend(bg, tuning * mult_tuning) * color_mult, out_col, ol);
 		} else {

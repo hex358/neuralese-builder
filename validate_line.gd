@@ -35,6 +35,6 @@ func _input_submit(input: String):
 	pass
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.keycode == KEY_ENTER:
-		accept_button.press(0.5)
-		release_focus()
+	if event is InputEventKey and event.keycode == KEY_ENTER and ui.is_focus(self):
+		accept_button.press(0.1)
+		ui.click_screen(global_position + Vector2(10,10))

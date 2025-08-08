@@ -10,3 +10,22 @@ func _input(event: InputEvent) -> void:
 			var rect = Rect2(focused.get_global_position(), focused.size)
 			if not rect.has_point(event.position):
 				focused.release_focus()
+
+func click_screen(pos: Vector2, button = MOUSE_BUTTON_LEFT, double_click = false) -> void:
+	var vp = get_viewport()
+
+	var down = InputEventMouseButton.new()
+	down.button_index = button
+	down.pressed = true
+	down.double_click = double_click
+	down.position = pos
+	down.global_position = pos
+	vp.push_input(down)
+
+	var up = InputEventMouseButton.new()
+	up.button_index = button
+	up.pressed = false
+	up.double_click = false
+	up.position = pos
+	up.global_position = pos
+	vp.push_input(up)

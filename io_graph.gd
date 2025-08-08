@@ -14,6 +14,7 @@ func _enter_tree():
 		if i is Connection:
 			connection_paths.append(NodePath(i.name))
 
+@onready var target_size: float = $ColorRect.size.y
 var total_size: float = 0.0
 var hint_counter: int = 5
 var unit_script = null
@@ -27,6 +28,8 @@ func _can_drag() -> bool:
 
 var units = []
 var appear_units = []
+var dissapear_units = []
+var offset_units = {}
 func _get_unit(kw: Dictionary) -> Control:
 	var dup = _unit.duplicate()
 	dup.get_node("Label").text = kw["text"]
@@ -35,16 +38,30 @@ func _get_unit(kw: Dictionary) -> Control:
 	appear_units.append(dup)
 	return dup
 
+func remove_unit(id: int):
+	var unit = units[id]; var dec = unit.size.y + padding
+	dissapear_units.append(unit)
+	total_size -= dec; target_size -= dec
+	target_y = total_size
+	units[id].delete()
+	units.remove_at(id)
+	for i in range(id, len(units)):
+		offset_units[units[i]] = (units[i].position.y-dec if units[i].connect_position != null 
+		else units[i].connect_position-dec)
+		units[i].connect_position = units[i].position.y-dec
+		units[i].id -= 1
+
 var target_y: float = 0.0
 func add_unit(kw: Dictionary = {}):
 	var new_unit = _get_unit(kw)
 	new_unit.set_script(unit_script)
+	new_unit.id = len(units)
 	units.append(new_unit)
 	new_unit.position.y = total_size + padding - input.size.y
 	total_size += new_unit.size.y + padding
 	target_y = total_size
 	#input.position.y = total_size
-	$ColorRect.size.y += new_unit.size.y + padding
+	target_size += new_unit.size.y + padding
 	for path in connection_paths:
 		var conn = new_unit.get_node(path)
 		hint_counter += 1
@@ -55,14 +72,35 @@ func add_unit(kw: Dictionary = {}):
 
 func _after_process(delta: float):
 	var to_del = []
-	for i in appear_units:
-		i.modulate.a = lerpf(i.modulate.a, 1.0, 5.0*delta)
-		if i.modulate.a > 0.9:
-			i.modulate.a = 1.0
+	for i in len(appear_units):
+		var appearer = appear_units[i]
+		appearer.modulate.a = lerpf(appearer.modulate.a, 1.0, 10.0*delta)
+		if appearer.modulate.a > 0.9:
+			appearer.modulate.a = 1.0
 			to_del.append(i)
-	for i in len(to_del):
+	for i in to_del:
 		appear_units.remove_at(i)
+	to_del = []
+	for i in len(dissapear_units):
+		var dissapearer = dissapear_units[i]
+		dissapearer.modulate.a = lerpf(dissapearer.modulate.a, 0.0, 10.0*delta)
+		if dissapearer.modulate.a < 0.1:
+			dissapearer.modulate.a = 0.0
+			to_del.append(i)
+	for i in to_del:
+		dissapear_units[i].queue_free()
+		dissapear_units.remove_at(i)
+	to_del = []
+	for unit in offset_units:
+		var target = offset_units[unit]
+		unit.position.y = lerpf(unit.position.y, target, delta*10.0)
+		if abs(target - unit.position.y) < 1:
+			unit.position.y = target
+			to_del.append(unit)
+	for i in to_del:
+		offset_units.erase(i)
 	input.position.y = lerpf(input.position.y, target_y, delta*10.0)
+	rect.size.y = lerpf(rect.size.y, target_size, delta*10.0)
 
 
 func _on_color_rect_2_pressed() -> void:
