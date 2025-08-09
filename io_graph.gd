@@ -69,6 +69,7 @@ func add_unit(kw: Dictionary = {}):
 		conn.parent_graph = self
 		#add_connection(conn)
 	add_child(new_unit)
+	new_unit.child_exiting_tree.connect(conn_exit)
 
 func _after_process(delta: float):
 	var to_del = []
@@ -105,5 +106,6 @@ func _after_process(delta: float):
 
 func _on_color_rect_2_pressed() -> void:
 	if $input/LineEdit.is_valid:
+		ui.click_screen($input/LineEdit.global_position + Vector2(10,10))
 		add_unit({"text": $input/LineEdit.text})
 		$input/LineEdit.clear()

@@ -42,6 +42,18 @@ func _ready() -> void:
 	animate(0)
 	_after_ready()
 	glob.collider(self, $ColorRect.size)
+	child_exiting_tree.connect(conn_exit)
+
+func conn_exit(conn):
+	if not conn is Connection: return
+	match conn.connection_type:
+		Connection.INPUT: 
+			_inputs.erase(conn)
+			input_keys.erase(conn.hint)
+			input_key_by_conn.erase(conn)
+		Connection.OUTPUT: 
+			output_keys.erase(conn.hint)
+			outputs.erase(conn)
 
 func is_mouse_inside() -> bool:
 	# padded hit area
@@ -64,6 +76,16 @@ func _seq_push_input(connection_key: int, value) -> void:
 	if len(pushed_inputs) >= len(input_keys):
 		propagate(pushed_inputs)
 		pushed_inputs.clear()
+
+func get_info() -> Dictionary:
+	var output = {
+	"position": Vector2()
+	}
+	output.merge(_get_info())
+	return output
+
+func _get_info() -> Dictionary:
+	return {}
 
 func propagate(input_vals: Dictionary, sequential_branching: bool = false) -> void:
 	var out = _io(input_vals)
@@ -106,7 +128,7 @@ func _process(delta: float) -> void:
 	
 	if Engine.is_editor_hint(): return
 	var inside = is_mouse_inside()
-	if inside and not glob.hovered_connection:
+	if inside:
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed:
@@ -116,9 +138,9 @@ func _process(delta: float) -> void:
 		glob.un_occupy(self, &"graph")
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
-		not glob.is_occupied(self, &"graph") and 
-		not glob.is_occupied(self, &"conn_active") and
-		not glob.hovered_connection):
+		not glob.is_occupied(self, &"graph")):# and 
+		#not glob.is_occupied(self, &"conn_active") and
+		#not glob.hovered_connection):
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 	if dragging:
 		if not glob.mouse_pressed:

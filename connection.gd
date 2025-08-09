@@ -12,6 +12,7 @@ static var OUTPUT: int = 1
 @export var area_paddings: Vector4 = Vector4(10,10,10,10)
 @export var multiple_splines: bool = false
 @export var origin_offset: Vector2 = Vector2()
+@export var unpadded_area: Vector4 = Vector4()
 
 @export var dir_vector: Vector2 = Vector2.RIGHT
 
@@ -51,7 +52,8 @@ func reposition_splines():
 
 func add_spline() -> int:
 	var slot = len(outputs)
-	var spline = glob.get_spline(self, &"weight")
+	var spline = glob.get_spline(self)
+	spline.turn_into(keyword)
 	spline.origin = self
 	outputs[slot] = spline
 	return slot
@@ -84,6 +86,7 @@ func attach_spline(id: int, target: Connection):
 	var spline = active_outputs[id]
 	spline.tied_to = target
 	target.connected[self] = true
+	conn_counts.get_or_add(target.keyword, [0])[0] += 1
 	target.inputs[spline] = id
 	target.last_connected = spline
 	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector, target.dir_vector)
@@ -91,6 +94,8 @@ func attach_spline(id: int, target: Connection):
 
 func detatch_spline(spline: Spline):
 	var other = spline.origin
+	if not other.outputs.has(inputs[spline]): return
+	other.conn_counts.get_or_add(keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
 	forget_spline(spline, other)
 
@@ -98,6 +103,7 @@ func remove_input_spline(spline: Spline):
 	# call end_spline on the origin of that spline
 	spline.origin.end_spline(inputs[spline])
 
+var conn_counts: Dictionary = {&"": [0]}
 func _ready() -> void:
 	if !Engine.is_editor_hint() and parent_graph:
 		parent_graph.add_connection(self)
@@ -110,8 +116,8 @@ func _is_suitable(conn: Connection) -> bool: return true # virtual
 func is_suitable(conn: Connection) -> bool:
 	#print(len(outputs))
 	return (conn and conn != self and conn.connection_type == INPUT
-		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0)
-		and (len(outputs) <= 1 or multiple_splines or conn.keyword == &"router")
+		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.keyword == &"router")
+		and (conn_counts.get_or_add(conn.keyword, [0])[0] <= 1 or multiple_splines or conn.keyword == &"router")
 		and _is_suitable(conn))
 
 func _stylize_spline(spline: Spline):
@@ -132,8 +138,9 @@ func _process(delta: float) -> void:
 	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	mouse_just_pressed = glob.mouse_just_pressed and not_occ
 	var inside = is_mouse_inside()
+	var unpadded = is_mouse_inside(unpadded_area)
 	
-	if inside:
+	if unpadded:
 		glob.set_menu_type(self, "detatch", low)
 	else:
 		glob.reset_menu_type(self, "detatch")
@@ -191,6 +198,11 @@ func _process(delta: float) -> void:
 			else:
 				glob.un_occupy(glob.hovered_connection, &"conn_active")
 				to_end.append(id)
+		if glob.hovered_connection:
+			spline.turn_into(keyword, glob.hovered_connection.keyword)
+		else:
+			spline.turn_into(keyword)
+			
 	if suit and active_outputs:
 		glob.hovered_connection.hover()
 

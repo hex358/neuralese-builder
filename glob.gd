@@ -8,6 +8,13 @@ var neuron_graph = preload("res://neuron.tscn")
 var default_spline = preload("res://default_spline.tscn")
 var scroll_container = preload("res://vbox.tscn")
 
+var graph_types = {
+	"io": preload("res://io_graph.tscn"),
+	"neuron": preload("res://neuron.tscn"),
+	"loop": preload("res://loop.tscn"),
+	"base": preload("res://base_graph.tscn")
+}
+
 var hide_menus: bool = false
 var hovered_connection: Connection = null
 var spline_connection: Connection = null
@@ -29,7 +36,14 @@ func getref(name):
 			refs.erase(name)
 	return null
 
-func get_spline(for_connection: Connection, keyword: StringName = &"") -> Spline:
+# deltas. Changes/adds/deletes of different types of things
+const DELETE: int = 0; const CHANGE: int = 1; const ADD: int = 2
+var deltas = {}
+
+func store_delta(graph: Graph):
+	var new_info = graph.get_info()
+
+func get_spline(for_connection: Connection, keyword: StringName = &"default") -> Spline:
 	var new = default_spline.instantiate()
 	new.keyword = keyword
 	add_child(new); new.z_index = 9
@@ -208,5 +222,6 @@ func _process(delta: float) -> void:
 
 	input_poll()
 
+var buffer: BackBufferCopy
 func _ready() -> void:
 	pass

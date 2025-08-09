@@ -6,7 +6,6 @@
 
 [node name="Base" instance=ExtResource("1_gg3sf")]
 script = ExtResource("2_1k3e5")
-graph_flags = 0
 
 [node name="ColorRect" parent="." index="0"]
 z_index = 1
@@ -24,7 +23,11 @@ offset_left = -95.0
 offset_top = -20.0
 offset_right = -82.0
 offset_bottom = 20.0
+hint = 0
+keyword = &""
 connection_type = 0
+multiple_splines = false
+origin_offset = Vector2(0, 0)
 dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("..")
 
@@ -34,6 +37,10 @@ offset_left = -30.0
 offset_top = 66.0
 offset_right = 27.0
 offset_bottom = 87.0
+hint = 0
+keyword = &""
 connection_type = 1
+multiple_splines = false
+origin_offset = Vector2(0, 0)
 dir_vector = Vector2(0, 1)
 parent_graph = NodePath("..")

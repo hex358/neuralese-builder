@@ -155,7 +155,12 @@ func contain(child: BlockComponent):
 		child.pressing.connect(_menu_handle_pressing.bind(child))
 		child.released.connect(_menu_handle_release.bind(child))
 	
+	if add_to_size:
+		expanded_size += child.size.y + arrangement_padding.y
+	
 	_contained.append(child); child.is_contained = self
+
+var add_to_size: bool = false
 
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
@@ -163,9 +168,11 @@ func initialize() -> void:
 		if not scroll:
 			default_scroll()
 		bar = scroll.get_v_scroll_bar()
-
+		if expanded_size == 0 and !dynamic_size:
+			expanded_size = base_size.y
+			add_to_size = true
 	if button_type == ButtonType.CONTEXT_MENU:
-		scroll.size = Vector2(base_size.x, expanded_size if not max_size else max_size-base_size.y-10)
+		scroll.size = Vector2(base_size.x - 21, expanded_size if not max_size else max_size-base_size.y-10)
 		if not dynamic_size:
 			for child in get_children():
 				if not child is BlockComponent:
@@ -217,12 +224,13 @@ func arrange():
 	var maxsize: int = 0
 	var y = base_size.y * 0.9 if !expand_upwards else expanded_size / 2 - base_size.y * 1.45
 	scroll.position = Vector2(arrangement_padding.x, y)
-	
+	var is_shrinked: bool = max_size < expanded_size and max_size
+	var b_size = base_size.x - 2.2 * arrangement_padding.x
+	if is_shrinked:
+		b_size -= 14
 	#print(_contained)
 	for node:BlockComponent in _contained:
-		var xo = arrangement_padding.x
-		node._wrapped_in.position = Vector2(xo, y)
-		var b_size = base_size.x - 2.2 * xo
+		node._wrapped_in.position = Vector2(arrangement_padding.x, y)
 		node.resize(Vector2(b_size, round(node.size.y)))
 		node.text = node.text
 		y += (node.size.y + arrangement_padding.y)
@@ -277,6 +285,7 @@ var auto_wrap: bool = true
 
 func _ready() -> void:
 	if not auto_ready: return
+	
 	initialize()
 	size = base_size
 	text = text  # Trigger setter
@@ -336,11 +345,16 @@ func press(press_time: float = 0.0):
 		press_request = false
 
 func _process_block_button(delta: float) -> void:
-	if not is_visible_in_tree() or not freedom: return
-	
+
+	if not is_visible_in_tree() or not freedom: 
+		return
 
 	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking
 	var frozen = is_contained and parent.is_frozen or is_frozen
+
+	#if parent.name == "add_graph" and text == "Condition":
+	#	print(parent.scrolling)
+
 	if not frozen:
 		inside = is_mouse_inside() and not blocked
 		mouse_pressed = glob.mouse_pressed and not blocked
@@ -350,7 +364,7 @@ func _process_block_button(delta: float) -> void:
 		inside = true; mouse_pressed = true
 		if imm_unpress:
 			press_request = false
-	
+
 	if inside:
 		if mouse_pressed:
 			hover_scale = hover_scale.lerp(base_scale * config._press_scale, delta * 30)
@@ -402,7 +416,7 @@ func update_children_reveal() -> void:
 	
 	for c in _contained:
 		idx += 1
-		var max = size.y - 10
+		var max = size.y + 20
 		if idx == len(_contained) and len(_contained) > 1: max += 40
 		var pos = c._wrapped_in.position.y + scroll.position.y + c.base_size.y
 		c.visible = pos < max or (max_size and max_size < expanded_size)
@@ -423,7 +437,9 @@ func _proceed_show(at_position: Vector2) -> bool: # virtual
 func menu_show(at_position: Vector2) -> void:
 	if not _proceed_show(at_position): return
 	if _is_not_menu(): return
+	bar.self_modulate.a = 0.0
 	show()
+	scrolling = false
 	if not secondary:
 		#if glob.opened_menu:
 		#	glob.opened_menu.menu_hide()
@@ -443,6 +459,8 @@ func menu_show(at_position: Vector2) -> void:
 		position = at_position
 	size.y = base_size.y if expand_anim else expanded_size
 	modulate = default_modulate
+	update_children_reveal()
+	await get_tree().process_frame
 	update_children_reveal()
 
 func menu_hide() -> void:
@@ -474,10 +492,12 @@ func pos_clamp(pos: Vector2):
 
 var timer: glob._Timer = null
 var scrolling: bool = false
-var scroll_anchor: float = 0.0
+var scroll_anchor: Vector2 = Vector2()
 var scroll_checking: bool = false
 var target_scroll: float = 0.0
 var scroll_value_anchor: float = 0.0
+var is_in_bar: bool = false
+
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
 	# click belongs to another menu
@@ -505,25 +525,39 @@ func _process_context_menu(delta: float) -> void:
 		
 	var i_occupied: bool = false
 	var inside: bool = is_mouse_inside()
+	
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
+		bar.scale.x = 1.2
+		var _bar = ui.is_focus(bar) or get_global_mouse_position().x > global_position.x + (size.x-40) * scale.x * parent.scale.x
+		if glob.mouse_just_pressed:
+			is_in_bar = _bar
+		if _bar:
+			block_input()
+		else:
+			unblock_input()
 		glob.occupy(self, &"scroll")
 		target_scroll += glob.mouse_scroll * delta * 10.0
-		if glob.mouse_pressed:
+		if is_in_bar:
+			scrolling = false; scroll_checking = false
+		if glob.mouse_pressed and !is_in_bar:
 			if !scrolling and !scroll_checking: 
-				scroll_anchor = get_global_mouse_position().y
+				scroll_anchor = get_global_mouse_position()
 				scroll_value_anchor = scroll.scroll_vertical
+				scrolling = false
 				scroll_checking = true
 			elif scroll_checking:
-				if abs(scroll_anchor - get_global_mouse_position().y) > 10:
-					scroll_anchor = get_global_mouse_position().y
+				if abs(scroll_anchor.y - get_global_mouse_position().y) > 30:
+					scroll_anchor = get_global_mouse_position()
 					scroll_value_anchor = scroll.scroll_vertical
 					scrolling = true
 					scroll_checking = false
-			else: 
-				scroll.scroll_vertical = -get_global_mouse_position().y + scroll_anchor + scroll_value_anchor
+			elif !is_in_bar: 
+				scroll.scroll_vertical = -get_global_mouse_position().y + scroll_anchor.y + scroll_value_anchor
 		else:
+			scroll_checking = false
 			scrolling = false
 	else:
+		scroll_checking = false
 		glob.un_occupy(self, &"scroll")
 	
 	if show_request or right_click or left_click or is_instance_valid(timer) or (reset_menu and right_click):
@@ -539,8 +573,10 @@ func _process_context_menu(delta: float) -> void:
 			var pos = pos_clamp(last_mouse_pos)
 			
 			if (show_request or right_click) and not reset_menu and not left_click:
+				scrolling = false
 				menu_show(pos)
 			elif visible:
+				scrolling = false
 				menu_hide()
 	else:
 		# while holding LMB expand gradually
@@ -557,11 +593,11 @@ func _process_context_menu(delta: float) -> void:
 		size.y = lerpf(size.y, target, 30.0 * delta) if expand_anim else target
 		if expand_upwards:
 			position.y = anchor_position.y - size.y * mult.y
-		#if not is_equal_approx(size.y, target):
-		update_children_reveal()
+		if not is_equal_approx(size.y, target):
+			update_children_reveal()
+		bar.self_modulate.a = lerpf(bar.self_modulate.a, 1.0, delta * 10.0)
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
-		
 		# hide once tween almost done
 		if state.tween_progress > 0.8:
 			hide()

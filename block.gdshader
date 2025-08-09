@@ -71,6 +71,6 @@ void fragment() {
 
 	col.a *= mask;
 	COLOR = col * modulate;
-	
+
 	COLOR.a *= alphamult(vert);
 }
