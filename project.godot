@@ -13,13 +13,13 @@ config_version=5
 config/name="nnets"
 run/main_scene="uid://dbgi78pifb8xh"
 config/features=PackedStringArray("4.4", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://assets/icons/icon.svg"
 
 [autoload]
 
-glob="*res://glob.gd"
-ui="*res://ui_manager.gd"
-graphs="*res://graph_manager.gd"
+glob="*res://scripts/glob.gd"
+ui="*res://scripts/ui_manager.gd"
+graphs="*res://scripts/graph_manager.gd"
 
 [gui]
 
