@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://c273ln1w241b0"]
+
+[ext_resource type="Script" uid="uid://bboi0er273pp0" path="res://scripts/spline.gd" id="1_ejf68"]
+
+[node name="spline" type="Node2D" node_paths=PackedStringArray("line_2d")]
+z_index = -5
+script = ExtResource("1_ejf68")
+line_2d = NodePath("Line2D")
+color = Color(1, 1, 1, 1)
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(67, 575)
+
+[node name="Line2D" type="Line2D" parent="."]
+points = PackedVector2Array(0, 0, 12.4971, 24.707, 18.6229, 53.064, 21.6337, 70.5063, 24.6016, 89.8438, 27.5203, 110.866, 30.3839, 133.362, 33.1861, 157.121, 35.9209, 181.934, 38.582, 207.588, 41.1635, 233.875, 43.659, 260.582, 46.0625, 287.5, 48.3679, 314.418, 50.569, 341.125, 52.6597, 367.412, 54.6338, 393.066, 56.4852, 417.879, 58.2079, 441.638, 59.7956, 464.134, 61.2422, 485.156, 62.5416, 504.494, 63.6876, 521.936, 65.4951, 550.293, 67, 575)
+width = 7.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
