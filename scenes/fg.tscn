@@ -1,17 +1,28 @@
-[gd_scene load_steps=3 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=4 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
-[ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scenes/top_panel.gd" id="2_1j68c"]
+[ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
+[ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="3_xwiyo"]
 
 [node name="fg" type="CanvasLayer"]
 layer = 128
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = ExtResource("1_s7ao5")
-instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
-instance_shader_parameters/tuning = Color(0.98, 0.98, 0.98, 0.266667)
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 1151.0
-offset_bottom = 115.52
+instance_shader_parameters/outline_color = Color(0, 0, 0, 0.521569)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.521569)
+offset_left = -30.0
+offset_top = -6.0
+offset_right = 1196.0
+offset_bottom = 48.0
 script = ExtResource("2_1j68c")
+
+[node name="Label" type="Label" parent="ColorRect"]
+layout_mode = 0
+offset_left = 104.0
+offset_top = 14.0
+offset_right = 334.0
+offset_bottom = 57.0
+scale = Vector2(0.77261, 0.77261)
+theme = ExtResource("3_xwiyo")
+text = "Perzeptron01"

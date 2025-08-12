@@ -23,6 +23,7 @@ color = Color(0.9, 0.9, 0.9, 1)
 connection_type = 0
 area_paddings = Vector4(0, 10, 20, 10)
 multiple_splines = true
+dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("..")
 
 [node name="ColorRect3" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]

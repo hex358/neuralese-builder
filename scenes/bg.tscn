@@ -5,16 +5,16 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0m0f1"]
 shader = ExtResource("1_dpp0m")
-shader_parameter/width = 2.4
-shader_parameter/spacing = 150.0
-shader_parameter/grid_color = Color(0.2128, 0.218373, 0.38, 1)
-shader_parameter/bg_color = Color(0.1653, 0.19024, 0.29, 1)
+shader_parameter/width = 10.0
+shader_parameter/spacing = 137.143
+shader_parameter/grid_color = Color(0.59, 0.59, 0.59, 1)
+shader_parameter/bg_color = Color(0.45, 0.45, 0.45, 1)
 shader_parameter/aa_pixels = 1.0
 
 [node name="bg" type="CanvasLayer"]
 layer = -128
 follow_viewport_enabled = true
-follow_viewport_scale = 0.8
+follow_viewport_scale = 0.75
 
 [node name="ColorRect" type="ColorRect" parent="."]
 z_index = -4096

@@ -1,13 +1,21 @@
-[gd_scene load_steps=7 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=9 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="PackedScene" uid="uid://by1briddb0hwg" path="res://scenes/bg.tscn" id="1_j5jx5"]
+[ext_resource type="Script" uid="uid://cm2g043jhfcdw" path="res://scripts/storer.gd" id="2_jcd4p"]
 [ext_resource type="PackedScene" uid="uid://8u7275kgyen4" path="res://scenes/menus.tscn" id="3_lpvoh"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://scripts/camera_2d.gd" id="6_g14j6"]
 [ext_resource type="PackedScene" uid="uid://tjiw5jmnnrgh" path="res://scenes/fg.tscn" id="6_lpvoh"]
+[ext_resource type="Script" uid="uid://cycf8wrmrdnkj" path="res://scripts/gview.gd" id="7_at5dv"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="13_0m0f1"]
 [ext_resource type="CodeHighlighter" uid="uid://ccbt2ieavpasa" path="res://resources/python.tres" id="14_b0q6j"]
 
 [node name="base" type="Node2D"]
+
+[node name="GraphStorage" type="Node2D" parent="."]
+script = ExtResource("7_at5dv")
+
+[node name="Node2D" type="Node2D" parent="GraphStorage"]
+script = ExtResource("2_jcd4p")
 
 [node name="menus" parent="." instance=ExtResource("3_lpvoh")]
 

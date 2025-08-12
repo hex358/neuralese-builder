@@ -1,5 +1,8 @@
 extends Node2D
 
+
+var storage: GraphStorage
+
 var propagation_q = {}
 func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
 	propagation_q.get_or_add(tied_to, {}).get_or_add(key, []).append(value)
@@ -36,11 +39,11 @@ var dragged: Dictionary[Graph, Array] = {}
 
 func drag(graph: Graph) -> void:
 	var from = graph.get_index()
-	var last = get_child_count() - 1
+	var last = storage.get_child_count() - 1
+	dragged[graph] = [graph.z_index, from]
 	if from == last:
 		return
-	dragged[graph] = [graph.z_index, from]
-	var kids = get_children()
+	var kids = storage.get_children()
 	var carry = graph.z_index
 	for i in range(from + 1, kids.size()):
 		var k = kids[i]
@@ -49,7 +52,7 @@ func drag(graph: Graph) -> void:
 			k.z_index = carry
 			carry = z
 	graph.z_index = carry
-	move_child(graph, -1)
+	storage.move_child(graph, -1)
 
 
 func stop_drag(graph: Graph) -> void:
@@ -81,14 +84,43 @@ func mark_rect(graph: Graph):
 	
 func can_move(graph: Graph, vec: Vector2) -> Vector2:
 	return Vector2()
-
+# deltas. Changes/adds/deletes of different types of things
 # deltas. Changes/adds/deletes of different types of things
 const DELETE: int = 0; const CHANGE: int = 1; const ADD: int = 2
-var deltas = {}
+var delta_objects = {}
+var iterables: Dictionary[int, bool] = {
+TYPE_ARRAY = 1,
+TYPE_PACKED_BYTE_ARRAY = 1,
+TYPE_PACKED_COLOR_ARRAY = 1,
+TYPE_PACKED_VECTOR2_ARRAY = 1,
+TYPE_PACKED_VECTOR3_ARRAY = 1,
+TYPE_PACKED_VECTOR4_ARRAY = 1,
+TYPE_DICTIONARY = 1,
+TYPE_PACKED_STRING_ARRAY = 1,
+TYPE_PACKED_FLOAT32_ARRAY = 1,
+TYPE_PACKED_FLOAT64_ARRAY = 1,
+TYPE_PACKED_INT32_ARRAY = 1,
+TYPE_PACKED_INT64_ARRAY = 1
+}
+
+var conns_active = {}
+class FieldPack:
+	var fields = null; var dtype: int; var nested_fields: Array; var is_nested: bool
+	func _init(iterable, _is_nested:bool=false, _nested_fields=[]) -> void:
+		dtype = typeof(iterable); var id = iterable
+		assert(dtype in graphs.iterables, "Must be array, packed array or dict")
+		is_nested = _is_nested; nested_fields = _nested_fields
 
 func store_delta(graph: Graph):
-	var new_info = graph.get_info()
-
+	var new_info: FieldPack = graph.get_info()
+	var q = []
+	for field in new_info.nested_fields:
+		q.append([new_info.nested_fields[field], "origin"])
+	var delta_paths = {}
+	while q:
+		var popped = q.pop_back()
+		for i in popped[0]:
+			pass
 
 var graph_types = {
 	"io": preload("res://scenes/io_graph.tscn"),
@@ -101,9 +133,10 @@ var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
 func get_graph(type = graph_types.base, flags = Graph.Flags.NONE) -> Graph:
 	var new = type.instantiate()
 	new.graph_flags = flags
-	z_count += get_child(-1).z_space if get_child(-1) else 0
+	var last = storage.get_child(-1)
+	z_count += last.z_space if last else 0
 	new.z_index = z_count
-	add_child(new)
+	storage.add_child(new)
 	return new
 
 var graph_layers: Dictionary[int, CanvasLayer] = {}
@@ -113,3 +146,6 @@ func _ready():
 func _process(delta: float) -> void:
 	propagate_cycle()
 	gather_cycle()
+	
+	for graph:Graph in storage.get_children():
+		graph.is_mouse_inside()

@@ -1,3 +1,4 @@
+
 @tool
 extends ColorRect
 class_name BlockComponent
@@ -118,6 +119,7 @@ signal released
 
 const EPSILON: float = 0.0002
 
+# State and anchor
 var state = {
 	"expanding": false,
 	"holding": false,
@@ -125,7 +127,7 @@ var state = {
 	"tween_progress": 0.0,
 	"pressing": false,
 	"hovering": false,
-	"expanded": true
+	"expanded": false
 }
 var last_mouse_pos: Vector2 = Vector2()
 var anchor_position: Vector2 = Vector2()  # For upward expansion
@@ -250,13 +252,6 @@ func _enter_tree() -> void:
 		glob.menus[menu_name] = self
 	if !Engine.is_editor_hint():
 		pivot_offset = Vector2()
-		if button_type == ButtonType.BLOCK_BUTTON and not placeholder:
-			ui.reg_button(self)
-
-func _exit_tree() -> void:
-	if !Engine.is_editor_hint():
-		if button_type == ButtonType.BLOCK_BUTTON and not placeholder:
-			ui.unreg_button(self)
 
 
 func _create_scaler_wrapper() -> void:
@@ -328,6 +323,10 @@ func _process(delta: float) -> void:
 	_sub_process(delta)
 
 func is_mouse_inside() -> bool:
+	if graph:
+		var cons = glob.get_consumed("mouse")
+		if cons and graph != cons: return false
+	if glob.get_display_mouse_position().y < glob.space_begin.y: return false
 	var height = base_size.y if button_type == ButtonType.BLOCK_BUTTON else expanded_size
 	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
 	bounds.size *= mult
@@ -335,6 +334,8 @@ func is_mouse_inside() -> bool:
 	return bounds.has_point(last_mouse_pos)
 
 func _align_label() -> void:
+	var text_size = glob.get_label_text_size(label) * label.scale
+	label.position = (base_size - text_size) / 2 * (text_alignment + Vector2.ONE) + text_offset
 	var base_scale = 0.643
 	var txt = label.text
 	var n = txt.length()
@@ -386,13 +387,11 @@ func press(press_time: float = 0.0):
 		await glob.wait(press_time)
 		press_request = false
 
-var overlapped: bool = false
 func _process_block_button(delta: float) -> void:
 	if not visible or not parent.visible or (graph and !graph.visible) or not freedom: 
 		return
 
-	var blocked = overlapped or (
-	is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking)
+	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking
 	var frozen = is_contained and parent.is_frozen or is_frozen
 
 	#if parent.name == "add_graph" and text == "Condition":
@@ -482,8 +481,10 @@ func _proceed_show(at_position: Vector2) -> bool: # virtual
 
 func menu_show(at_position: Vector2) -> void:
 	if not _proceed_show(at_position): return
+	if glob.get_display_mouse_position().y < glob.space_begin.y: return
 	if _is_not_menu(): return
 	bar.self_modulate.a = 0.0
+	state.expanded = false
 	show()
 	scrolling = false
 	if not secondary:
@@ -498,7 +499,6 @@ func menu_show(at_position: Vector2) -> void:
 	state.tween_hide = false
 	state.holding = true
 	state.expanding = false
-	state.expanded = false
 	anchor_position = at_position
 	if expand_upwards:
 		position = at_position - Vector2(0, base_size.y)
@@ -507,10 +507,13 @@ func menu_show(at_position: Vector2) -> void:
 	size.y = base_size.y if expand_anim else expanded_size
 	modulate = default_modulate
 	update_children_reveal()
+	await get_tree().process_frame
+	update_children_reveal()
 
 func menu_hide() -> void:
 	if glob.opened_menu == self:
 		glob.opened_menu = null
+	state.expanded = false
 	if state.tween_hide or not visible: return
 	#if name == "detatch":
 		#print(get_stack())
@@ -518,7 +521,6 @@ func menu_hide() -> void:
 	state.tween_hide = true
 	state.tween_progress = 0.0
 	state.expanding = false
-	state.expanded = false
 	state.holding = false
 
 func menu_expand() -> void:
@@ -571,14 +573,13 @@ func _process_context_menu(delta: float) -> void:
 		
 	var i_occupied: bool = false
 	var inside: bool = is_mouse_inside()
+
 	if glob.mouse_scroll:
 		update_children_reveal()
 
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
 		bar.scale.x = 1.2
 		var _bar = ui.is_focus(bar) or get_global_mouse_position().x > global_position.x + (size.x-40) * scale.x * parent.scale.x
-		if _bar and glob.mouse_pressed:
-			update_children_reveal()
 		if glob.mouse_just_pressed:
 			is_in_bar = _bar
 		if _bar:
@@ -586,11 +587,9 @@ func _process_context_menu(delta: float) -> void:
 		else:
 			unblock_input()
 		glob.occupy(self, &"scroll")
-		#if not _bar:
-		#target_scroll += glob.mouse_scroll * delta * 10.0
 		if is_in_bar:
 			scrolling = false; scroll_checking = false
-		if glob.mouse_pressed and !is_in_bar and not glob.mouse_scroll :
+		if glob.mouse_pressed and !is_in_bar:
 			if !scrolling and !scroll_checking: 
 				scroll_anchor = get_global_mouse_position()
 				scroll_value_anchor = scroll.scroll_vertical
@@ -603,13 +602,12 @@ func _process_context_menu(delta: float) -> void:
 					scrolling = true
 					scroll_checking = false
 			elif !is_in_bar: 
-				scroll.scroll_vertical = -get_global_mouse_position().y + scroll_anchor.y + scroll_value_anchor
 				update_children_reveal()
+				scroll.scroll_vertical = -get_global_mouse_position().y + scroll_anchor.y + scroll_value_anchor
 		else:
 			scroll_checking = false
 			scrolling = false
 	else:
-		scrolling = false
 		scroll_checking = false
 		glob.un_occupy(self, &"scroll")
 	
@@ -617,7 +615,7 @@ func _process_context_menu(delta: float) -> void:
 	if left_activate and not mouse_open and do_reset:
 		state.holding = false
 	if show_request or right_click or left_click or is_instance_valid(timer) or do_reset:
-		var inside_self_click = glob.mouse_pressed and inside and state.expanded and not state.tween_hide
+		var inside_self_click = glob.mouse_pressed and inside and state.expanding and not state.tween_hide
 		if inside_self_click and visible and not state.tween_hide:
 			i_occupied = true
 			glob.occupy(self, &"menu")
@@ -648,19 +646,15 @@ func _process_context_menu(delta: float) -> void:
 		size.y = lerpf(size.y, target, 30.0 * delta) if expand_anim else target
 		if expand_upwards:
 			position.y = anchor_position.y - size.y * mult.y
-		bar.self_modulate.a = lerpf(bar.self_modulate.a, 1.0, delta * 20.0)
 		if not is_equal_approx(size.y, target):
 			update_children_reveal()
-		else:
-			size.y = target
-			bar.self_modulate.a = 1.0
-			state.expanding = false
+		elif not state.expanded:
 			state.expanded = true
-			glob.wait(2, true).connect(update_children_reveal)
+			glob.wait(3, true).connect(update_children_reveal)
+		bar.self_modulate.a = lerpf(bar.self_modulate.a, 1.0, delta * 10.0)
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
 		# hide once tween almost done
-		bar.self_modulate.a = lerpf(bar.self_modulate.a, 0.0, delta * 20.0)
 		if state.tween_progress > 0.8:
 			hide()
 			scaler.scale = base_scale

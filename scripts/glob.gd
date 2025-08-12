@@ -147,12 +147,18 @@ var mouse_scroll: int = 0
 
 var consumed_input: Dictionary[StringName, Control] = {}
 
+var cam: Camera2D
+var viewport: Viewport
+
 func consume_input(inst: Control, input: StringName):
 	if not consumed_input.has(input) or consumed_input[input].z_index <= inst.z_index:
 		consumed_input[input] = inst
 
 func is_consumed(inst: Control, input: StringName):
-	return consumed_input.has(input) and consumed_input[input].z_index > inst.z_index
+	return consumed_input.has(input) and consumed_input[input] != inst
+
+func get_consumed(input: StringName):
+	return consumed_input.get(input, null)
 
 func press_poll():
 	mouse_just_pressed = Input.is_action_just_pressed("ui_mouse")
@@ -189,6 +195,12 @@ var UP: int = 0
 var DOWN: int = 1
 var LEFT: int = 2
 var RIGHT: int = 3
+
+func world_to_screen(p_world: Vector2) -> Vector2:
+	return get_viewport().get_canvas_transform() * p_world
+
+func screen_to_world(p_screen: Vector2) -> Vector2:
+	return get_viewport().get_canvas_transform().affine_inverse() * p_screen
 
 func _process(delta: float) -> void:
 	ticks += 1

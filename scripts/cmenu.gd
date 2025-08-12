@@ -12,7 +12,7 @@ func _menu_handle_release(button: BlockComponent):
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()
-	graph.position = world_pos
+	graph.global_position = world_pos
 	#await glob.wait(0.1)
 	menu_hide()
 	#unfreeze_input()

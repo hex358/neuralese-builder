@@ -8,6 +8,10 @@ class_name GraphViewport
 
 var dragging: bool = false
 
+func _enter_tree() -> void:
+	glob.cam = self
+	glob.viewport = get_viewport()
+
 func _handle_mouse_wrap(pos: Vector2) -> void:
 	#pos -= glob.space_begin
 	var vp = get_viewport()
@@ -43,7 +47,7 @@ func _input(event: InputEvent) -> void:
 			
 			match event.button_index:
 				MOUSE_BUTTON_WHEEL_DOWN:
-					target_zoom = max(0.8, zoom.x - factor)
+					target_zoom = max(0.6, zoom.x - factor)
 				MOUSE_BUTTON_WHEEL_UP:
 					target_zoom = min(2, zoom.x + factor)
 			if target_zoom != prev_zoom:
@@ -83,15 +87,15 @@ func _process(delta: float) -> void:
 	if glob.mouse_scroll:
 		zoom_move_vec = (mouse - get_global_mouse_position())
 	var display_mouse = glob.get_display_mouse_position()
-	
-	rise_mult = min(mouse_range(display_mouse.x, 160, 80, glob.RIGHT)+
-							mouse_range(display_mouse.x, 160, 80, glob.LEFT)+
-							mouse_range(display_mouse.y, 80, 40, glob.UP)+
-							mouse_range(display_mouse.y, 80, 40, glob.DOWN), 1.0) if !glob.is_occupied(self,&"scroll") else 0.0
-	if glob.mouse_pressed and rise_mult:
+
+	rise_mult = min(mouse_range(display_mouse.x, 110, 50, glob.RIGHT)+
+							mouse_range(display_mouse.x, 110, 50, glob.LEFT)+
+							mouse_range(display_mouse.y, 30, -30, glob.UP)+
+							mouse_range(display_mouse.y, 80, 10, glob.DOWN), 1.0) if !glob.is_occupied(self,&"scroll") else 0.0
+	if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult:
 		var dir = glob.window_middle.direction_to(display_mouse)
 		drag_move_vec = drag_move_vec.lerp(
-		1200 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
+		1300 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
 		delta * 10.0)
 	else:
 		drag_move_vec = drag_move_vec.lerp(Vector2(), delta * 10.0)

@@ -68,6 +68,7 @@ func start_spline(id: int):
 		node.inputs.erase(spline)
 	spline.tied_to = null
 	spline.show()
+	graphs.conns_active[self] = true
 	active_outputs[id] = spline
 
 func end_spline(id: int, hide: bool = true):
@@ -79,6 +80,7 @@ func end_spline(id: int, hide: bool = true):
 			node.forget_spline(spline, self)
 		outputs.erase(id)
 	active_outputs.erase(id)
+	graphs.conns_active.erase(self)
 
 func forget_spline(spline: Spline, from_conn: Connection):
 	inputs.erase(spline)

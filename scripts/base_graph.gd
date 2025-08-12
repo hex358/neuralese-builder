@@ -64,13 +64,13 @@ func conn_exit(conn):
 
 func is_mouse_inside() -> bool:
 	# padded hit area
-	#if glob.is_consumed(self, "graph_mouse_inside"): return false
+	#if glob.is_consumed(self, "mouse"): return false
 	var top_left = rect.global_position - Vector2.ONE*area_padding
 	var padded_size = rect.size + Vector2(area_padding, area_padding)*2
 	var bounds = Rect2(top_left, padded_size)
 	var has: bool = bounds.has_point(get_global_mouse_position())
-	#if has:
-	#	glob.consume_input(self, "graph_mouse_inside")
+	if has:
+		glob.consume_input(self, "mouse")
 	return has
 
 var dragging: bool = false
@@ -88,13 +88,16 @@ func _seq_push_input(connection_key: int, value) -> void:
 		propagate(pushed_inputs)
 		pushed_inputs.clear()
 
-func get_info() -> Dictionary:
+func get_info() -> graphs.FieldPack:
 	var output = {
-	"position": Vector2()
+	"position": Vector2(),
+	"arr": [position, rotation, scale, input_keys]
 	}
 	output.merge(_get_info())
-	return output
+	var fields = graphs.FieldPack.new(output, 0<len(info_nested_fields), info_nested_fields)
+	return fields
 
+var info_nested_fields: Array = []
 func _get_info() -> Dictionary:
 	return {}
 
@@ -137,6 +140,7 @@ func _can_drag() -> bool:
 var inside: bool = false
 func _process(delta: float) -> void:
 	animate(delta)
+	graphs.store_delta(self)
 	if prev_size_ != rect.size:
 		prev_size_ = rect.size
 		#graphs.collider(rect)
