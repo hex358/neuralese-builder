@@ -1,0 +1,316 @@
+[gd_scene load_steps=11 format=3 uid="uid://8u7275kgyen4"]
+
+[ext_resource type="Script" uid="uid://bnmswwbafj7fb" path="res://scripts/menus.gd" id="1_chs3c"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_rnbi1"]
+[ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://resources/context_menu.tres" id="3_gygdu"]
+[ext_resource type="Script" uid="uid://dqx0m845e4ld3" path="res://scripts/cmenu.gd" id="4_rgbxd"]
+[ext_resource type="Resource" uid="uid://b87f7qp31583q" path="res://resources/lite_config.tres" id="5_0ypn7"]
+[ext_resource type="Script" uid="uid://1afleute7nbb" path="res://scripts/detatch_menu.gd" id="6_r44s1"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_w6445"]
+[ext_resource type="Script" uid="uid://ynrhp2d5ge1o" path="res://scripts/detatch.gd" id="8_6how5"]
+[ext_resource type="Script" uid="uid://cb40vkd5uu1g1" path="res://scripts/edit_graph.gd" id="9_rxqxn"]
+
+[sub_resource type="Resource" id="Resource_77dp3"]
+script = ExtResource("7_w6445")
+hover_color = Color(1.3, 1.1, 1.1, 1)
+_hover_scale = 1.03
+press_color = Color(1.1, 0.9, 0.9, 1)
+_press_scale = 0.97
+animation_scale = 0.0
+animation_speed = 1.951
+animation_decay = 4.564
+animation_duration = 1.0
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[node name="menus" type="CanvasLayer"]
+layer = 127
+script = ExtResource("1_chs3c")
+
+[node name="Node2D" type="Node2D" parent="."]
+
+[node name="add_graph" parent="." instance=ExtResource("2_rnbi1")]
+material = ExtResource("3_gygdu")
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
+offset_right = 239.0
+scale = Vector2(0.75, 0.75)
+script = ExtResource("4_rgbxd")
+resize_after = 0
+text = "Add node        +"
+base_size = Vector2(239, 50)
+expanded_size = 0
+scale_anim = true
+menu_name = &"add_graph"
+max_size = 250
+
+[node name="input" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0.65, 0.65, 0.65, 0.552941)
+layout_mode = 0
+offset_left = 302.857
+offset_top = -358.571
+offset_right = 521.857
+offset_bottom = -317.571
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.76, 1, 0.78, 1)
+button_type = 1
+hint = &"input"
+resize_after = 0
+text = "Input"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="input2" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
+layout_mode = 0
+offset_left = 302.857
+offset_top = -311.429
+offset_right = 521.857
+offset_bottom = -270.429
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.72, 1, 0.743333, 1)
+button_type = 1
+hint = &"neuron"
+resize_after = 0
+text = "Neuron"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="input3" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
+layout_mode = 0
+offset_left = 304.286
+offset_top = -261.429
+offset_right = 523.286
+offset_bottom = -220.429
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.72, 1, 0.743333, 1)
+button_type = 1
+hint = &"layer"
+resize_after = 0
+text = "Layer"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="input4" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
+layout_mode = 0
+offset_left = 302.857
+offset_top = -208.571
+offset_right = 521.857
+offset_bottom = -167.571
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.72, 1, 0.743333, 1)
+button_type = 1
+hint = &"cond"
+resize_after = 0
+text = "Condition"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="input5" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
+layout_mode = 0
+offset_left = 307.143
+offset_top = -154.286
+offset_right = 526.143
+offset_bottom = -113.286
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.72, 1, 0.743333, 1)
+button_type = 1
+hint = &"loop"
+resize_after = 0
+text = "Loop"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="input6" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
+layout_mode = 0
+offset_left = 305.333
+offset_top = -100.0
+offset_right = 524.333
+offset_bottom = -59.0
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.72, 1, 0.743333, 1)
+button_type = 1
+hint = &"get"
+resize_after = 0
+text = "Getter"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="input7" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.941176, 0.941176, 0.941176, 1)
+instance_shader_parameters/tuning = Color(0.65098, 0.65098, 0.65098, 0.552941)
+layout_mode = 0
+offset_left = 305.333
+offset_top = -50.6667
+offset_right = 524.333
+offset_bottom = -9.6667
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.72, 1, 0.743333, 1)
+button_type = 1
+hint = &"set"
+resize_after = 0
+text = "Setter"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
+visible = false
+material = ExtResource("3_gygdu")
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
+offset_left = -1.0
+offset_top = 46.0
+offset_right = 168.0
+offset_bottom = 96.0
+scale = Vector2(0.75, 0.75)
+script = ExtResource("6_r44s1")
+resize_after = 0
+text = "Detatch   -"
+text_alignment = Vector2(-1, 0)
+text_offset = Vector2(15, 0)
+base_size = Vector2(169, 50)
+scale_anim = true
+mouse_open = false
+menu_name = &"detatch"
+dynamic_size = true
+max_size = 210
+
+[node name="delete" parent="detatch" instance=ExtResource("2_rnbi1")]
+z_index = 2
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
+instance_shader_parameters/tuning = Color(0.44, 0.2244, 0.2244, 0.639216)
+layout_mode = 0
+offset_left = 200.0
+offset_top = 221.333
+offset_right = 436.0
+offset_bottom = 262.333
+pivot_offset = Vector2(118, 20.5)
+button_type = 1
+placeholder = true
+resize_after = 0
+text = "Hello!!"
+base_size = Vector2(236, 41)
+alignment = Vector2(0.5, 0.5)
+mouse_open = false
+config = SubResource("Resource_77dp3")
+
+[node name="ProceduralNodes" type="Node" parent="detatch" node_paths=PackedStringArray("instance")]
+script = ExtResource("8_6how5")
+instance = NodePath("../delete")
+metadata/_custom_type_script = "uid://cppqde4187p8n"
+
+[node name="edit_graph" parent="." instance=ExtResource("2_rnbi1")]
+visible = false
+material = ExtResource("3_gygdu")
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
+offset_right = 184.0
+offset_bottom = 46.0
+scale = Vector2(0.75, 0.75)
+script = ExtResource("9_rxqxn")
+placeholder = true
+resize_after = 0
+text = "Edit node  .."
+base_size = Vector2(184, 46)
+expanded_size = 240
+scale_anim = true
+mouse_open = false
+menu_name = &"edit_graph"
+max_size = 0
+config = null
+
+[node name="neuron" parent="edit_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
+instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
+layout_mode = 0
+offset_left = -94.2857
+offset_top = -68.5714
+offset_right = 124.714
+offset_bottom = -27.5714
+pivot_offset = Vector2(109.5, 20.5)
+button_type = 1
+hint = &"1"
+resize_after = 0
+text = "Neuron"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
+[node name="delete_i" parent="." instance=ExtResource("2_rnbi1")]
+visible = false
+material = ExtResource("3_gygdu")
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
+offset_right = 159.0
+offset_bottom = 46.0
+scale = Vector2(0.75, 0.75)
+script = ExtResource("9_rxqxn")
+resize_after = 0
+text = "Variable .."
+text_alignment = Vector2(-1, 0)
+text_offset = Vector2(17, 0)
+base_size = Vector2(159, 46)
+expanded_size = 96
+scale_anim = true
+mouse_open = false
+menu_name = &"delete_i"
+max_size = 0
+config = null
+
+[node name="delete" parent="delete_i" instance=ExtResource("2_rnbi1")]
+z_index = 2
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
+instance_shader_parameters/tuning = Color(0.44, 0.2244, 0.2244, 0.639216)
+layout_mode = 0
+offset_left = 4.0
+offset_top = 33.0
+offset_right = 105.0
+offset_bottom = 74.0
+pivot_offset = Vector2(50.5, 20.5)
+button_type = 1
+resize_after = 0
+text = "Delete"
+base_size = Vector2(101, 41)
+alignment = Vector2(0.5, 0.5)
+mouse_open = false
+config = SubResource("Resource_77dp3")

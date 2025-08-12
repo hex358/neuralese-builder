@@ -9,19 +9,20 @@ class_name GraphViewport
 var dragging: bool = false
 
 func _handle_mouse_wrap(pos: Vector2) -> void:
+	#pos -= glob.space_begin
 	var vp = get_viewport()
-	var sz = vp.size
+	var sz = Vector2(vp.size)
 	var new_pos = pos
 
-	if pos.x <= 0:
+	if pos.x <= glob.space_begin.x:
 		new_pos.x = sz.x - 2
 	elif pos.x >= sz.x - 1:
-		new_pos.x = 1
+		new_pos.x = 1 + glob.space_begin.x
 
-	if pos.y <= 0:
+	if pos.y <= glob.space_begin.y:
 		new_pos.y = sz.y - 2
 	elif pos.y >= sz.y - 1:
-		new_pos.y = 1
+		new_pos.y = 1 + glob.space_begin.y
 
 	if new_pos != pos:
 		_ignore_next_motion = true
@@ -54,7 +55,7 @@ func _input(event: InputEvent) -> void:
 			_ignore_next_motion = false
 			return
 		
-		target_position -= event.relative * drag_speed / zoom / ((0.7 + 1.0)*0.5)
+		target_position -= event.relative * drag_speed / zoom
 		glob.hide_all_menus()
 		_handle_mouse_wrap(event.position)
 
@@ -66,8 +67,8 @@ func mouse_range(pos: float, edge_start: float, edge_end: float, axis: int):
 	var edge_min: float = -edge_start 
 	var edge_max: float = -edge_end
 	match axis:
-		glob.UP: edge_min *= -1; edge_max *= -1
-		glob.LEFT: edge_min *= -1; edge_max *= -1
+		glob.UP: edge_min = glob.space_begin.y-edge_min; edge_max = glob.space_begin.y-edge_max
+		glob.LEFT: edge_min = glob.space_begin.x-edge_min; edge_max = glob.space_begin.x-edge_max
 		glob.DOWN: edge_min += glob.window_size.y; edge_max += glob.window_size.y
 		glob.RIGHT: edge_min += glob.window_size.x; edge_max += glob.window_size.x
 	var t = inverse_lerp(edge_min, edge_max, pos)

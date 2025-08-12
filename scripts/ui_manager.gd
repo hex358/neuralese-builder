@@ -11,6 +11,19 @@ func _input(event: InputEvent) -> void:
 			if not rect.has_point(event.position):
 				focused.release_focus()
 
+var _buttons = []
+#var _parent_graphs = {}
+func reg_button(b: BlockComponent):
+	pass
+	#_parent_graphs[b] = [b.graph, b.graph.z_index if b.graph else 0]
+
+func unreg_button(b: BlockComponent):
+	pass
+
+func _process(delta: float):
+	pass
+			
+
 func click_screen(pos: Vector2, button = MOUSE_BUTTON_LEFT, double_click = false) -> void:
 	var vp = get_viewport()
 

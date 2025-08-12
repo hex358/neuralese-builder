@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://tjiw5jmnnrgh"]
+
+[ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
+[ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scenes/top_panel.gd" id="2_1j68c"]
+
+[node name="fg" type="CanvasLayer"]
+layer = 128
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = ExtResource("1_s7ao5")
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/tuning = Color(0.98, 0.98, 0.98, 0.266667)
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 1151.0
+offset_bottom = 115.52
+script = ExtResource("2_1j68c")

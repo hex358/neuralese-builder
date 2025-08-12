@@ -78,6 +78,14 @@ func show_menu(name: StringName, at_pos: Vector2 = Vector2()):
 
 func hide_all_menus() -> void: hide_menus = true
 
+func get_global_z_index(init_node: CanvasItem) -> int:
+	var z: int = 0; var node: Node = init_node
+	while node is CanvasItem:
+		z += node.z_index
+		if !node.z_as_relative: break
+		node = node.get_parent()
+	return z
+
 func get_label_text_size(lbl: Control) -> Vector2:
 	# Measure label text size
 	var font = lbl.get_theme_font("font")
@@ -104,19 +112,19 @@ func spring(from, to, t: float,
 
 
 class _Timer extends Object:
-	var wait_time: float; var progress: float
+	var wait_time: float; var progress: float; var frames: bool 
 	signal timeout
-	func _init(wait_time: float):
-		self.wait_time = wait_time; self.progress = 0.0
+	func _init(wait_time: float, _frames: bool):
+		self.wait_time = wait_time; self.progress = 0.0; frames = _frames
 
 var timers: Dictionary[_Timer, bool] = {}
 
-func timer(wait_time: float):
-	var timer = _Timer.new(wait_time)
+func timer(wait_time: float, frames: bool = false):
+	var timer = _Timer.new(wait_time, frames)
 	timers[timer] = true; return timer
 
-func wait(wait_time: float):
-	var timer = _Timer.new(wait_time)
+func wait(wait_time: float, frames: bool = false):
+	var timer = _Timer.new(wait_time, frames)
 	timers[timer] = true; return timer.timeout
 
 func _after_process(delta: float) -> void:
@@ -193,7 +201,7 @@ func _process(delta: float) -> void:
 	
 	var to_erase = []
 	for timer in timers:
-		timer.progress += delta
+		timer.progress += delta if not timer.frames else 1
 		if timer.progress > timer.wait_time: 
 			timer.timeout.emit()
 			to_erase.append(timer)
@@ -205,6 +213,8 @@ func _process(delta: float) -> void:
 
 var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
+
+var space_begin: Vector2 = Vector2()
 func _ready() -> void:
 	splines_layer = CanvasLayer.new()
 	splines_layer.layer = 4

@@ -154,9 +154,10 @@ func _process(delta: float) -> void:
 		glob.reset_menu_type(self, &"edit_graph")
 		glob.un_occupy(self, &"graph")
 
-	if inside and glob.mouse_pressed and _can_drag() and (
+	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
-		not glob.is_occupied(self, &"graph")) and not dragging:
+		not glob.is_occupied(self, &"graph") and 
+		not glob.is_occupied(self, &"conn_active")) and not dragging:
 		graphs.drag(self)
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 
