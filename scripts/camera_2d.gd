@@ -50,7 +50,7 @@ func _input(event: InputEvent) -> void:
 				glob.hide_all_menus()
 
 	
-	elif event is InputEventMouseMotion and dragging:
+	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed:
 		if _ignore_next_motion:
 			_ignore_next_motion = false
 			return
@@ -84,14 +84,14 @@ func _process(delta: float) -> void:
 		zoom_move_vec = (mouse - get_global_mouse_position())
 	var display_mouse = glob.get_display_mouse_position()
 	
-	rise_mult = min(mouse_range(display_mouse.x, 120, 70, glob.RIGHT)+
-							mouse_range(display_mouse.x, 120, 70, glob.LEFT)+
+	rise_mult = min(mouse_range(display_mouse.x, 160, 80, glob.RIGHT)+
+							mouse_range(display_mouse.x, 160, 80, glob.LEFT)+
 							mouse_range(display_mouse.y, 80, 40, glob.UP)+
 							mouse_range(display_mouse.y, 80, 40, glob.DOWN), 1.0) if !glob.is_occupied(self,&"scroll") else 0.0
 	if glob.mouse_pressed and rise_mult:
 		var dir = glob.window_middle.direction_to(display_mouse)
 		drag_move_vec = drag_move_vec.lerp(
-		800 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
+		1200 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
 		delta * 10.0)
 	else:
 		drag_move_vec = drag_move_vec.lerp(Vector2(), delta * 10.0)

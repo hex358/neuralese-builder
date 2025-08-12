@@ -32,19 +32,21 @@ func disappear():
 var end_dir_vec: Vector2
 var baked: PackedVector2Array = [Vector2(), Vector2()]
 
-var keyword_mapping = {&"router": &"weight"}
 func turn_into(word: StringName, other_word: StringName = &"default"):
-	if other_word == "router":
-		color = Color.YELLOW
-	else:
-		color = Color.WHITE
+	match other_word:
+		"router":
+			color = Color(1,1,0.5)
+			keyword = "default"
+		_:
+			color = Color.WHITE
+			keyword = "default"
 
 var space = PackedVector2Array([Vector2(), Vector2()])
-func weight_points(a:Vector2, b:Vector2, dir_a:Vector2, dir_b:Vector2):
+func weight_points(a:Vector2, b:Vector2, dir_a:Vector2, dir_b):
 	space[0] = a; space[1] = b
 	baked = space
 
-func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir: Vector2):
+func other_default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir):
 	var delta = end - start
 	curve.bake_interval = clamp(delta.length()*0.1, 2, 30)
 	var angle_to_x = start_dir.angle()
@@ -60,12 +62,40 @@ func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir: V
 	baked = curve.get_baked_points()
 
 var mapping = {"weight": weight_points}
-func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir: Vector2 = Vector2()) -> void:
+func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
 	curve.clear_points()
 	mapping.get(keyword, default_points).call(start, end, start_dir, end_dir)
 	line_2d.default_color = color
 	line_2d.points = baked
 
+func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
+	#if keyword == &"weight":
+		#baked = PackedVector2Array([start, end])
+		##print(baked)
+		#queue_redraw()
+		#return
+	
+	if end_dir == null:
+		if !end_dir_vec:
+			end_dir_vec = -start_dir
+		end_dir = end_dir_vec
+	else:
+		end_dir_vec = end_dir
+		#print(end_dir_vec)
+	
+	var length: float = (end-start).length()
+	var size: float = clamp(length*0.1, 2, 10)-2 # the initial "crusty" part of curve will become smaller
+	curve.bake_interval = 10#clamp(length*0.05, 1, 2) # so the small curves looked better
+	#print(curve.bake_interval)
+	curve.clear_points()
+
+	var second_point = start + start_dir * size
+	var end_second_point = end + end_dir * size
+	curve.add_point(start, Vector2(),Vector2())
+	curve.add_point(second_point, Vector2(), size * (second_point-start))
+	curve.add_point(end_second_point, -size * (end-end_second_point), Vector2())
+	curve.add_point(end, Vector2(), Vector2())
+	baked = curve.get_baked_points()
 
 
 	

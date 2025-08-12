@@ -4,12 +4,6 @@ extends Node2D
 var default_spline = preload("res://scenes/default_spline.tscn")
 var scroll_container = preload("res://scenes/vbox.tscn")
 
-var graph_types = {
-	"io": preload("res://scenes/io_graph.tscn"),
-	"neuron": preload("res://scenes/neuron.tscn"),
-	"loop": preload("res://scenes/loop.tscn"),
-	"base": preload("res://scenes/base_graph.tscn")
-}
 
 var hide_menus: bool = false
 var hovered_connection: Connection = null
@@ -32,17 +26,11 @@ func getref(name):
 			refs.erase(name)
 	return null
 
-# deltas. Changes/adds/deletes of different types of things
-const DELETE: int = 0; const CHANGE: int = 1; const ADD: int = 2
-var deltas = {}
-
-func store_delta(graph: Graph):
-	var new_info = graph.get_info()
 
 func get_spline(for_connection: Connection, keyword: StringName = &"default") -> Spline:
 	var new = default_spline.instantiate()
 	new.keyword = keyword
-	add_child(new); new.z_index = 9
+	splines_layer.add_child(new); new.z_index = 9
 	return new
 
 # Occupation (some node blocks input of others)
@@ -90,11 +78,6 @@ func show_menu(name: StringName, at_pos: Vector2 = Vector2()):
 
 func hide_all_menus() -> void: hide_menus = true
 
-func get_graph(type = graph_types.base, flags = Graph.Flags.NONE) -> Graph:
-	var new = type.instantiate()
-	new.graph_flags = flags
-	return new
-
 func get_label_text_size(lbl: Control) -> Vector2:
 	# Measure label text size
 	var font = lbl.get_theme_font("font")
@@ -138,6 +121,7 @@ func wait(wait_time: float):
 
 func _after_process(delta: float) -> void:
 	hide_menus = false
+	consumed_input.clear()
 	#print(menu_type)
 
 var opened_menu = null
@@ -153,6 +137,15 @@ var mouse_alt_released: bool = false
 var mouse_alt_just_released: bool = false
 var mouse_scroll: int = 0
 
+var consumed_input: Dictionary[StringName, Control] = {}
+
+func consume_input(inst: Control, input: StringName):
+	if not consumed_input.has(input) or consumed_input[input].z_index <= inst.z_index:
+		consumed_input[input] = inst
+
+func is_consumed(inst: Control, input: StringName):
+	return consumed_input.has(input) and consumed_input[input].z_index > inst.z_index
+
 func press_poll():
 	mouse_just_pressed = Input.is_action_just_pressed("ui_mouse")
 	mouse_pressed = Input.is_action_pressed("ui_mouse")
@@ -165,14 +158,6 @@ func press_poll():
 	mouse_alt_released = not mouse_alt_pressed
 
 
-var colliders: Dictionary[Control, PhysicsShapeQueryParameters2D] = {}
-
-func collider(control: Control, size: Vector2):
-	pass
-
-@onready var direct_space = get_world_2d().direct_space_state
-func can_move(control: Control, size: Vector2, a: Vector2, vec: Vector2) -> Vector2:
-	return Vector2()
 
 
 func input_poll():
@@ -219,5 +204,10 @@ func _process(delta: float) -> void:
 	input_poll()
 
 var buffer: BackBufferCopy
+var splines_layer: CanvasLayer
 func _ready() -> void:
-	pass
+	splines_layer = CanvasLayer.new()
+	splines_layer.layer = 4
+	splines_layer.follow_viewport_enabled = true
+	
+	add_child(splines_layer)

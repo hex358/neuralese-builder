@@ -29,16 +29,20 @@ script = ExtResource("2_jeojw")
 unit = NodePath("connection")
 add_button = NodePath("input/ColorRect2")
 input = NodePath("input")
-padding = 0.0
+padding = -7.0
+z_space = 1
 
 [node name="ColorRect" parent="." index="0"]
+z_index = 1
 instance_shader_parameters/corner_radius_add = -4.0
-instance_shader_parameters/tuning = Color(0.05, 0.05, 0.05, 0.505882)
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/tuning = Color(0.05, 0.05, 0.05, 0.541176)
 offset_right = 82.0
 offset_bottom = 30.0
 mouse_filter = 2
 
 [node name="Label" parent="ColorRect/root" index="0"]
+z_index = 0
 offset_left = 9.0
 offset_top = 5.0
 offset_right = 124.0
@@ -56,6 +60,7 @@ offset_bottom = 14.0
 script = ExtResource("3_bp7um")
 
 [node name="ColorRect" type="ColorRect" parent="connection" index="0"]
+z_index = 1
 material = ExtResource("4_q7htc")
 instance_shader_parameters/outline_color = Color(0.501961, 0.501961, 0.501961, 0.490196)
 instance_shader_parameters/tuning = Color(0.5, 0.5, 0.5, 0.490196)
@@ -66,7 +71,7 @@ offset_right = 162.0
 offset_bottom = 39.0
 
 [node name="o" parent="connection" index="1" instance=ExtResource("2_rxypt")]
-z_index = -9
+process_mode = 3
 layout_mode = 0
 offset_left = 161.0
 offset_top = 11.0
@@ -88,10 +93,11 @@ theme = ExtResource("5_5h31y")
 text = "Variable name"
 
 [node name="input" type="Control" parent="." index="2"]
-z_index = 3
+z_index = 1
 anchors_preset = 0
+offset_top = 20.0
 offset_right = 40.0
-offset_bottom = 40.0
+offset_bottom = 60.0
 
 [node name="LineEdit" type="LineEdit" parent="input" index="0" node_paths=PackedStringArray("accept_button")]
 layout_mode = 0
@@ -124,10 +130,11 @@ button_type = 1
 text = "Add"
 base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
+left_activate = null
 config = SubResource("Resource_jeojw")
 
 [node name="i" parent="." index="3" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_rxypt")]
-z_index = -9
+process_mode = 3
 instance_shader_parameters/corner_radius_add = 5.0
 instance_shader_parameters/tuning = Color(1, 1, 1, 1)
 layout_mode = 0

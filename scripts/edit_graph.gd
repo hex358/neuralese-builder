@@ -9,5 +9,5 @@ func show_up(input: String, call: Callable):
 	state.holding = false
 
 func _menu_handle_release(button: BlockComponent):
-	menu_call.call()
+	#menu_call.call()
 	menu_hide()

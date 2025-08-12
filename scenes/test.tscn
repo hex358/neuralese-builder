@@ -15,6 +15,14 @@
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="13_0m0f1"]
 [ext_resource type="CodeHighlighter" uid="uid://ccbt2ieavpasa" path="res://resources/python.tres" id="14_b0q6j"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0m0f1"]
+shader = ExtResource("11_5tkv4")
+shader_parameter/width = 2.4
+shader_parameter/spacing = 180.0
+shader_parameter/grid_color = Color(0.2128, 0.218373, 0.38, 1)
+shader_parameter/bg_color = Color(0.1653, 0.19024, 0.29, 1)
+shader_parameter/aa_pixels = 1.0
+
 [sub_resource type="Resource" id="Resource_77dp3"]
 script = ExtResource("9_00tp4")
 hover_color = Color(1.3, 1.1, 1.1, 1)
@@ -27,14 +35,23 @@ animation_decay = 4.564
 animation_duration = 1.0
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_0m0f1"]
-shader = ExtResource("11_5tkv4")
-shader_parameter/width = 2.4
-shader_parameter/spacing = 152.365
-shader_parameter/grid_color = Color(0.2128, 0.218373, 0.38, 1)
-shader_parameter/bg_color = Color(0.1653, 0.19024, 0.29, 1)
-
 [node name="Node2D" type="Node2D"]
+
+[node name="bg" type="CanvasLayer" parent="."]
+layer = -128
+follow_viewport_enabled = true
+follow_viewport_scale = 0.7
+
+[node name="ColorRect" type="ColorRect" parent="bg"]
+z_index = -4096
+material = SubResource("ShaderMaterial_0m0f1")
+offset_left = -550.0
+offset_top = -541.0
+offset_right = 3175.0
+offset_bottom = 1560.0
+color = Color(0.45, 0.45, 0.45, 1)
+script = ExtResource("12_5tkv4")
+offset_mult = 2.0
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_speed = 22.0
@@ -43,7 +60,7 @@ zoom_speed = 0.2
 drag_button = 3
 
 [node name="menus" type="CanvasLayer" parent="."]
-layer = 3
+layer = 127
 script = ExtResource("4_5tkv4")
 
 [node name="add_graph" parent="menus" instance=ExtResource("4_ppyta")]
@@ -251,8 +268,10 @@ offset_right = 184.0
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("11_77dp3")
+placeholder = true
 text = "Edit node  .."
 base_size = Vector2(184, 46)
+left_activate = true
 expanded_size = 240
 scale_anim = true
 mouse_open = false
@@ -319,16 +338,6 @@ base_size = Vector2(101, 41)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_77dp3")
-
-[node name="ColorRect" type="ColorRect" parent="."]
-z_index = -4096
-material = SubResource("ShaderMaterial_0m0f1")
-offset_left = -550.0
-offset_top = -541.0
-offset_right = 1584.0
-offset_bottom = 595.0
-color = Color(0.45, 0.45, 0.45, 1)
-script = ExtResource("12_5tkv4")
 
 [node name="CodeEdit" type="CodeEdit" parent="."]
 offset_left = 770.0

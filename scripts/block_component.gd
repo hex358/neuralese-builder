@@ -54,6 +54,7 @@ func unblock_input() -> void: is_blocking = false
 			pivot_offset = Vector2()
 
 @export_group("Context Menu")
+@export var left_activate: bool = false
 @export var _scroll_container = null:
 	set(v):
 		if !Engine.is_editor_hint():
@@ -98,6 +99,7 @@ func _init() -> void:
 
 @export_group("Button")
 @export var config: ButtonConfig
+@export var graph: Graph
 
 signal hovered
 signal hovering
@@ -345,8 +347,7 @@ func press(press_time: float = 0.0):
 		press_request = false
 
 func _process_block_button(delta: float) -> void:
-
-	if not is_visible_in_tree() or not freedom: 
+	if not visible or not parent.visible or (graph and !graph.visible) or not freedom: 
 		return
 
 	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking
@@ -364,6 +365,7 @@ func _process_block_button(delta: float) -> void:
 		inside = true; mouse_pressed = true
 		if imm_unpress:
 			press_request = false
+	mouse_pressed = mouse_pressed# and not glob.is_overlapped(self)
 
 	if inside:
 		if mouse_pressed:
@@ -405,6 +407,8 @@ func _process_block_button(delta: float) -> void:
 		bounce_scale = bounce_scale.lerp(Vector2.ONE, delta * 10.0)
 
 	scaler.scale = hover_scale * bounce_scale
+	if graph and (!is_equal_approx(scaler.scale.x, base_scale.x) or !base_modulate.is_equal_approx(modulate)):
+		graph.hold_for_frame()
 
 var freedom: bool = true
 var bar: VScrollBar
@@ -480,7 +484,7 @@ func menu_expand() -> void:
 	state.expanding = true
 
 func _is_not_menu():
-	return (glob.mouse_alt_pressed and not glob.is_my_menu(self))
+	return (not glob.is_my_menu(self))
 
 func pos_clamp(pos: Vector2):
 	last_mouse_pos = pos
@@ -506,10 +510,10 @@ func _process_context_menu(delta: float) -> void:
 		return
 	
 	# mouse state
-	var left_pressed = glob.mouse_pressed
-	var right_pressed = glob.mouse_alt_pressed
-	var left_click = glob.mouse_just_pressed
-	var right_click = glob.mouse_alt_just_pressed
+	var left_pressed = glob.mouse_pressed if !left_activate else glob.mouse_alt_pressed
+	var right_pressed = glob.mouse_alt_pressed if !left_activate else glob.mouse_pressed
+	var left_click = glob.mouse_just_pressed if !left_activate else glob.mouse_alt_just_pressed
+	var right_click = glob.mouse_alt_just_pressed if !left_activate else glob.mouse_just_pressed
 	
 	if not mouse_open and not reset_menu:
 		right_pressed = false
@@ -560,8 +564,11 @@ func _process_context_menu(delta: float) -> void:
 		scroll_checking = false
 		glob.un_occupy(self, &"scroll")
 	
-	if show_request or right_click or left_click or is_instance_valid(timer) or (reset_menu and right_click):
-		var inside_self_click = left_click and inside
+	var do_reset: bool = (reset_menu and (right_click or (left_click and left_activate)) )
+	if left_activate and not mouse_open and do_reset:
+		state.holding = false
+	if show_request or right_click or left_click or is_instance_valid(timer) or do_reset:
+		var inside_self_click = glob.mouse_pressed and inside and state.expanding and not state.tween_hide
 		if inside_self_click and visible and not state.tween_hide:
 			i_occupied = true
 			glob.occupy(self, &"menu")
@@ -571,8 +578,7 @@ func _process_context_menu(delta: float) -> void:
 				timer = glob.timer(0.065)
 			# clamp menu position to viewport
 			var pos = pos_clamp(last_mouse_pos)
-			
-			if (show_request or right_click) and not reset_menu and not left_click:
+			if (show_request or right_click) and not do_reset and not left_click:
 				scrolling = false
 				menu_show(pos)
 			elif visible:

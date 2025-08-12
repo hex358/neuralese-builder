@@ -3,6 +3,7 @@ class_name Graph
 
 @onready var label = $ColorRect/root/Label
 @onready var rect = $ColorRect
+@export var z_space: int = 2
 
 enum Flags {NONE=0, NEW=2}
 @export_flags("none", "new") var graph_flags = 0
@@ -14,12 +15,17 @@ var output_keys: Dictionary[int, Connection] = {}
 var input_keys: Dictionary[int, Connection] = {}
 var input_key_by_conn: Dictionary[Connection, int] = {}
 
+var hold_process: bool = false
+
 @onready var base_scale = scale
 func _new_animate(delta: float): # virtual
 	scale = glob.spring(base_scale * 0.5, base_scale, exist_time, 3.5, 16, 0.5)
 
+func hold_for_frame(): hold_process = true
+
 func animate(delta: float):
 	if graph_flags & Flags.NEW:
+		if exist_time < 2.0: hold_for_frame()
 		_new_animate(delta)
 
 func _after_ready():
@@ -41,7 +47,8 @@ func _ready() -> void:
 	position -= rect.position
 	animate(0)
 	_after_ready()
-	glob.collider(self, $ColorRect.size)
+	graphs.mark_rect(self)
+	#graphs.collider(rect)
 	child_exiting_tree.connect(conn_exit)
 
 func conn_exit(conn):
@@ -57,10 +64,14 @@ func conn_exit(conn):
 
 func is_mouse_inside() -> bool:
 	# padded hit area
+	#if glob.is_consumed(self, "graph_mouse_inside"): return false
 	var top_left = rect.global_position - Vector2.ONE*area_padding
 	var padded_size = rect.size + Vector2(area_padding, area_padding)*2
 	var bounds = Rect2(top_left, padded_size)
-	return bounds.has_point(get_global_mouse_position())
+	var has: bool = bounds.has_point(get_global_mouse_position())
+	#if has:
+	#	glob.consume_input(self, "graph_mouse_inside")
+	return has
 
 var dragging: bool = false
 var attachement_position: Vector2 = Vector2()
@@ -122,16 +133,22 @@ func gather():
 func _can_drag() -> bool:
 	return true
 
+@onready var prev_size_: Vector2 = rect.size
+var inside: bool = false
 func _process(delta: float) -> void:
 	animate(delta)
+	if prev_size_ != rect.size:
+		prev_size_ = rect.size
+		#graphs.collider(rect)
 	exist_time += delta
 	
 	if Engine.is_editor_hint(): return
-	var inside = is_mouse_inside()
+	inside = is_mouse_inside()
+	
 	if inside:
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
-		if glob.mouse_alt_just_pressed:
+		if glob.mouse_just_pressed:
 			glob.show_menu("edit_graph")
 	else:
 		glob.reset_menu_type(self, &"edit_graph")
@@ -141,15 +158,20 @@ func _process(delta: float) -> void:
 		not glob.is_occupied(self, &"graph")):# and 
 		#not glob.is_occupied(self, &"conn_active") and
 		#not glob.hovered_connection):
+		graphs.drag(self)
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
+
 	if dragging:
+		hold_for_frame()
 		if not glob.mouse_pressed:
 			dragging = false
+			graphs.stop_drag(self)
 		else:
-			glob.collider(self, $ColorRect.size)
-			var new_pos = get_global_mouse_position() + attachement_position
-			#var vec = glob.can_move(self, rect.size, global_position, new_pos-global_position)
-			global_position = new_pos
+			var vec = get_global_mouse_position() + attachement_position - global_position
+			#graphs.mark_rect(self)
+			#vec = graphs.can_move(self, vec)
+			global_position += vec
+			#graphs.collider(rect)
 		for input in _inputs:
 			input.reposition_splines()
 		for output in outputs:

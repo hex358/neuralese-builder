@@ -37,9 +37,12 @@ func delete():
 
 func is_mouse_inside(padding:Vector4=area_paddings) -> bool:
 	# padded hit area
+	#if glob.is_consumed(self, "conn_mouse_inside"): return false
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale
 	var padded_size = size * parent_graph.scale * scale + Vector2(padding.x+padding.z, padding.y+padding.w)
-	return Rect2(top_left, padded_size).has_point(get_global_mouse_position())
+	var has: bool = Rect2(top_left, padded_size).has_point(get_global_mouse_position())
+	#if has: glob.consume_input(self, "conn_mouse_inside")
+	return has
 
 func reposition_splines():
 	for id in outputs.keys():
@@ -115,6 +118,8 @@ func _is_suitable(conn: Connection) -> bool: return true # virtual
 
 func is_suitable(conn: Connection) -> bool:
 	#print(len(outputs))
+	#if conn:
+		#print(conn.connected.has(self))
 	return (conn and conn != self and conn.connection_type == INPUT
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.keyword == &"router")
 		and (conn_counts.get_or_add(conn.keyword, [0])[0] <= 1 or multiple_splines or conn.keyword == &"router")
@@ -131,25 +136,32 @@ func hover():
 
 var low = {"detatch": true, "edit_graph": true}
 func _process(delta: float) -> void:
-	if not is_visible_in_tree():
+	if not visible or not parent_graph.visible:
 		return
+	var inside = is_mouse_inside()
+	
+	if active_outputs:
+		parent_graph.hold_for_frame()
+
+	if inside:
+		parent_graph.hold_for_frame()
+		if not is_instance_valid(glob.hovered_connection):
+			glob.hovered_connection = self
+	elif glob.hovered_connection == self:
+		glob.hovered_connection = null
+
+	#if not inside and not active_outputs:
+		#return
 
 	mouse_pressed = glob.mouse_pressed
 	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	mouse_just_pressed = glob.mouse_just_pressed and not_occ
-	var inside = is_mouse_inside()
 	var unpadded = is_mouse_inside(unpadded_area)
 	
 	if unpadded:
 		glob.set_menu_type(self, "detatch", low)
 	else:
 		glob.reset_menu_type(self, "detatch")
-
-	if inside:
-		if not is_instance_valid(glob.hovered_connection):
-			glob.hovered_connection = self
-	elif glob.hovered_connection == self:
-		glob.hovered_connection = null
 
 	var occ = glob.is_occupied(self, "conn_active")
 	if connection_type == OUTPUT and inside and not occ:
@@ -198,13 +210,14 @@ func _process(delta: float) -> void:
 			else:
 				glob.un_occupy(glob.hovered_connection, &"conn_active")
 				to_end.append(id)
-		if glob.hovered_connection:
+		if suit:
 			spline.turn_into(keyword, glob.hovered_connection.keyword)
 		else:
 			spline.turn_into(keyword)
 			
 	if suit and active_outputs:
 		glob.hovered_connection.hover()
+	
 
 	for id in to_end:
 		end_spline(id)

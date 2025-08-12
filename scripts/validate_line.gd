@@ -12,15 +12,16 @@ var prev_input: StringName
 func set_valid(valid: bool):
 	is_valid = valid
 
+func _process(delta: float) -> void:
+	pass
+
 func _gui_input(event: InputEvent) -> void:
-	# If the user just pressed Right-Click, eat the event
 	if (event is InputEventMouseButton and
 		event.button_index == 2 and
 		event.pressed):
 		get_viewport().set_input_as_handled()
 		return
 
-	# Otherwise let LineEdit do its normal thing
 	#super(event)
 
 var is_valid: bool = false

@@ -60,6 +60,7 @@ func add_unit(kw: Dictionary = {}):
 	new_unit.position.y = total_size + padding - input.size.y
 	total_size += new_unit.size.y + padding
 	target_y = total_size
+	
 	#input.position.y = total_size
 	target_size += new_unit.size.y + padding
 	for path in connection_paths:
@@ -68,6 +69,7 @@ func add_unit(kw: Dictionary = {}):
 		conn.hint = hint_counter
 		conn.parent_graph = self
 		#add_connection(conn)
+#	graphs.increment_z_counter(3)
 	add_child(new_unit)
 	new_unit.child_exiting_tree.connect(conn_exit)
 
@@ -84,7 +86,7 @@ func _after_process(delta: float):
 	to_del = []
 	for i in len(dissapear_units):
 		var dissapearer = dissapear_units[i]
-		dissapearer.modulate.a = lerpf(dissapearer.modulate.a, 0.0, 10.0*delta)
+		dissapearer.modulate.a = lerpf(dissapearer.modulate.a, 0.0, 20.0*delta)
 		if dissapearer.modulate.a < 0.1:
 			dissapearer.modulate.a = 0.0
 			to_del.append(i)
@@ -94,14 +96,16 @@ func _after_process(delta: float):
 	to_del = []
 	for unit in offset_units:
 		var target = offset_units[unit]
-		unit.position.y = lerpf(unit.position.y, target, delta*10.0)
+		unit.position.y = lerpf(unit.position.y, target, delta*20.0)
 		if abs(target - unit.position.y) < 1:
 			unit.position.y = target
 			to_del.append(unit)
 	for i in to_del:
 		offset_units.erase(i)
-	input.position.y = lerpf(input.position.y, target_y, delta*10.0)
-	rect.size.y = lerpf(rect.size.y, target_size, delta*10.0)
+	input.position.y = lerpf(input.position.y, target_y, delta*20.0)
+	rect.size.y = lerpf(rect.size.y, target_size, delta*20.0)
+	if ui.is_focus($input/LineEdit):
+		hold_for_frame()
 
 
 func _on_color_rect_2_pressed() -> void:
