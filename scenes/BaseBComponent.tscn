@@ -16,8 +16,8 @@ instance_shader_parameters/tuning = Color(0, 0, 0, 0.439216)
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_b3f76")
+resize_after = null
 base_size = Vector2(200, 50)
-left_activate = null
 max_size = 190
 config = ExtResource("3_ei1qp")
 

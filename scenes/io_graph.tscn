@@ -23,13 +23,15 @@ animation_decay = 4.564
 animation_duration = 1.0
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[node name="Base" node_paths=PackedStringArray("unit", "add_button", "input") instance=ExtResource("1_2pdka")]
+[node name="Base" node_paths=PackedStringArray("unit", "add_button", "input", "line_edit") instance=ExtResource("1_2pdka")]
 mouse_filter = 2
 script = ExtResource("2_jeojw")
 unit = NodePath("connection")
 add_button = NodePath("input/ColorRect2")
 input = NodePath("input")
 padding = -7.0
+line_edit = NodePath("input/LineEdit")
+target_size = 94.0
 z_space = 1
 
 [node name="ColorRect" parent="." index="0"]
@@ -127,10 +129,10 @@ offset_bottom = 31.0
 scale = Vector2(0.583319, 0.583319)
 pivot_offset = Vector2(35.5, 21)
 button_type = 1
+resize_after = 0
 text = "Add"
 base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
-left_activate = null
 config = SubResource("Resource_jeojw")
 
 [node name="i" parent="." index="3" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_rxypt")]

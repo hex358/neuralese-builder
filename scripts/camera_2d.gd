@@ -49,13 +49,12 @@ func _input(event: InputEvent) -> void:
 				move_intensity = 1.0
 				glob.hide_all_menus()
 
-	
 	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed:
 		if _ignore_next_motion:
 			_ignore_next_motion = false
 			return
 		
-		target_position -= event.relative * drag_speed / zoom
+		target_position -= event.relative * drag_speed / zoom / ((0.7 + 1.0)*0.5)
 		glob.hide_all_menus()
 		_handle_mouse_wrap(event.position)
 

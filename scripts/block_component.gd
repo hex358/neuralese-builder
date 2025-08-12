@@ -26,6 +26,11 @@ func unblock_input() -> void: is_blocking = false
 @export var hint: StringName = &""
 
 @export_group("Text")
+@export var resize_after: int = 0:
+	set(v):
+		resize_after = v
+		if not Engine.is_editor_hint():
+			text = text
 @onready var label = $Label
 @export var text: String = "":
 	set(value):
@@ -323,8 +328,36 @@ func is_mouse_inside() -> bool:
 	return bounds.has_point(last_mouse_pos)
 
 func _align_label() -> void:
-	var text_size = glob.get_label_text_size(label) * label.scale
-	label.position = (base_size - text_size) / 2 * (text_alignment + Vector2.ONE) + text_offset
+	var base_scale = 0.643
+	var txt = label.text
+	var n = txt.length()
+	var font = label.get_theme_font("font")
+	var fs = label.get_theme_font_size("font_size")
+
+	var full_sz: Vector2 = font.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1.0, fs)
+	var keep_txt = txt.substr(0, min(n, max(0, resize_after)))
+	var keep_sz: Vector2 = font.get_string_size(keep_txt, HORIZONTAL_ALIGNMENT_LEFT, -1.0, fs)
+
+	var base_full = full_sz * base_scale
+	var base_pos_full = (base_size - base_full) / 2.0 * (text_alignment + Vector2.ONE) + text_offset
+
+	if resize_after > 0 and n > resize_after and full_sz.x > 0.0:
+		var target_w = keep_sz.x * base_scale
+		var mult = clamp(target_w / base_full.x, 0.1, 1.0)
+		label.scale = Vector2.ONE * (base_scale * mult)
+
+		var new_sz = full_sz * label.scale
+		var base_keep = keep_sz * base_scale
+		var base_pos_keep = (base_size - base_keep) / 2.0 * (text_alignment + Vector2.ONE) + text_offset
+		var right_x = base_pos_keep.x + base_keep.x
+
+		var pos = Vector2()
+		pos.x = right_x - new_sz.x
+		pos.y = (base_size.y - new_sz.y) / 2.0 * (text_alignment.y + 1.0) + text_offset.y
+		label.position = pos
+	else:
+		label.scale = Vector2.ONE * base_scale
+		label.position = base_pos_full
 
 
 var bounce_scale = Vector2.ONE

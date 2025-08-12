@@ -5,6 +5,7 @@ class_name DynamicGraph
 @export var add_button: BlockComponent
 @export var input: Control
 @export var padding: float = 0.0
+@export var line_edit: ValidInput
 
 @onready var _unit = unit.duplicate()
 
@@ -14,7 +15,7 @@ func _enter_tree():
 		if i is Connection:
 			connection_paths.append(NodePath(i.name))
 
-@onready var target_size: float = $ColorRect.size.y
+@export var target_size: float = 94
 var total_size: float = 0.0
 var hint_counter: int = 5
 var unit_script = null
@@ -24,13 +25,13 @@ func _after_ready():
 	unit_script = unit.get_script()
 
 func _can_drag() -> bool:
-	return not ui.is_focus($input/LineEdit) and not add_button.state.hovering
+	return not ui.is_focus(line_edit) and not add_button.state.hovering
 
 var units = []
 var appear_units = []
 var dissapear_units = []
 var offset_units = {}
-func _get_unit(kw: Dictionary) -> Control:
+func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
 	dup.get_node("Label").text = kw["text"]
 	dup.show()
@@ -104,12 +105,12 @@ func _after_process(delta: float):
 		offset_units.erase(i)
 	input.position.y = lerpf(input.position.y, target_y, delta*20.0)
 	rect.size.y = lerpf(rect.size.y, target_size, delta*20.0)
-	if ui.is_focus($input/LineEdit):
-		hold_for_frame()
+	#if ui.is_focus($input/LineEdit):
+		#hold_for_frame()
 
 
 func _on_color_rect_2_pressed() -> void:
-	if $input/LineEdit.is_valid:
-		ui.click_screen($input/LineEdit.global_position + Vector2(10,10))
-		add_unit({"text": $input/LineEdit.text})
-		$input/LineEdit.clear()
+	if line_edit.is_valid:
+		ui.click_screen(line_edit.global_position + Vector2(10,10))
+		add_unit({"text": line_edit.text})
+		line_edit.clear()
