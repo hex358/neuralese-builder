@@ -119,8 +119,8 @@ accept_button = NodePath("../ColorRect2")
 
 [node name="ColorRect2" parent="input" index="1" node_paths=PackedStringArray("graph") instance=ExtResource("3_5xco4")]
 material = ExtResource("5_jeojw")
-instance_shader_parameters/corner_radius_add = -2.0
-instance_shader_parameters/corner_width_add = 0.5
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -131,6 +131,7 @@ offset_bottom = 31.0
 scale = Vector2(0.583319, 0.583319)
 pivot_offset = Vector2(35.5, 21)
 button_type = 1
+top = false
 text = "Add"
 base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)

@@ -89,9 +89,6 @@ func _seq_push_input(connection_key: int, value) -> void:
 		pushed_inputs.clear()
 
 func get_info() -> Dictionary:
-	var ks = []
-	for i in output_keys:
-		output_keys[i].get_node("../Label").text = str(i)
 	var output = {
 	"position": Vector2(),
 	"arr": [position, rotation, scale, output_keys.keys()]
@@ -146,7 +143,7 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 
 	animate(delta)
-	graphs.store_delta(self)
+#	graphs.store_delta(self)
 	if prev_size_ != rect.size:
 		prev_size_ = rect.size
 		#graphs.collider(rect)

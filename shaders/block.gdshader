@@ -55,9 +55,10 @@ void fragment() {
 	float ol = smoothstep(w + 1.0, w - 1.0, abs(sdf));
 
 	// compute fill color
+	
 	vec4 col;
 	vec4 out_col = outline_color;
-	if (outline_width+corner_width_add < 0.01){out_col = tuning * mult_tuning;}
+	if (outline_width+corner_width_add < 0.01){ol = 0.0;}
 	if (blurred_background) {
 		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale)*mult;
 		if (ol < 0.999) {

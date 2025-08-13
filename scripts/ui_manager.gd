@@ -11,6 +11,7 @@ func _input(event: InputEvent) -> void:
 			if not rect.has_point(event.position):
 				focused.release_focus()
 
+var expanded_menu: SubMenu = null
 var _buttons = []
 #var _parent_graphs = {}
 func reg_button(b: BlockComponent):

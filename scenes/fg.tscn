@@ -1,8 +1,33 @@
-[gd_scene load_steps=4 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=11 format=3 uid="uid://tjiw5jmnnrgh"]
 
+[ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
 [ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="3_xwiyo"]
+[ext_resource type="Script" uid="uid://b8ehbcul6kgbc" path="res://scripts/submenu_neuron.gd" id="5_m4erh"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="6_m4erh"]
+[ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_x5ox8"]
+
+[sub_resource type="Gradient" id="Gradient_5k5he"]
+colors = PackedColorArray(0, 0.81, 0.4995, 1, 0.20286, 0.23, 0.0943, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_nwut5"]
+gradient = SubResource("Gradient_5k5he")
+width = 400
+fill = 1
+fill_from = Vector2(0, 0.00828157)
+fill_to = Vector2(0.248447, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nwut5"]
+shader = ExtResource("1_5k5he")
+shader_parameter/shape = 0
+shader_parameter/mult_tuning = Color(1, 1, 1, 1)
+shader_parameter/color_mult = Color(1, 1, 1, 1)
+shader_parameter/corner_radius = 0.0
+shader_parameter/blurred_background = true
+shader_parameter/outline_width = 1.688
+shader_parameter/mult = 1.5
+shader_parameter/blur_level = 5.07
 
 [node name="fg" type="CanvasLayer"]
 layer = 128
@@ -11,18 +36,78 @@ layer = 128
 material = ExtResource("1_s7ao5")
 instance_shader_parameters/outline_color = Color(0, 0, 0, 0.521569)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.521569)
-offset_left = -30.0
-offset_top = -6.0
-offset_right = 1196.0
-offset_bottom = 48.0
+offset_left = -1.0
+offset_top = -3.0
+offset_right = 1155.0
+offset_bottom = 51.0
 script = ExtResource("2_1j68c")
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect"]
+self_modulate = Color(1, 1, 1, 0.403922)
+layout_mode = 0
+offset_top = -0.999998
+offset_right = 315.0
+offset_bottom = 53.0
+scale = Vector2(1.36387, 1.00387)
+texture = SubResource("GradientTexture2D_nwut5")
+expand_mode = 1
+stretch_mode = 2
 
 [node name="Label" type="Label" parent="ColorRect"]
 layout_mode = 0
-offset_left = 104.0
+offset_left = 59.0
 offset_top = 14.0
-offset_right = 334.0
+offset_right = 289.0
 offset_bottom = 57.0
 scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("3_xwiyo")
 text = "Perzeptron01"
+
+[node name="ColorRect3" type="ColorRect" parent="ColorRect"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 54.0
+offset_bottom = 52.0
+scale = Vector2(0.764192, 0.764192)
+
+[node name="submenu" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_nwut5")
+instance_shader_parameters/corner_radius_add = 40.0
+instance_shader_parameters/corner_width_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.39, 1, 0.766167, 1)
+instance_shader_parameters/tuning = Color(0.36, 0.36, 0.36, 0.811765)
+offset_left = 754.0
+offset_top = 50.0
+offset_right = 1160.0
+offset_bottom = 568.0
+script = ExtResource("5_m4erh")
+
+[node name="Label" type="Label" parent="submenu"]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 19.0
+offset_right = 249.0
+offset_bottom = 62.0
+scale = Vector2(0.77261, 0.77261)
+theme = ExtResource("3_xwiyo")
+text = "Edit neuron"
+
+[node name="graph" type="Line2D" parent="submenu"]
+position = Vector2(39, 127)
+points = PackedVector2Array(204, -40, 0, 0)
+width = 5.0
+
+[node name="LineEdit" type="LineEdit" parent="submenu"]
+layout_mode = 0
+offset_left = 43.0
+offset_top = 152.0
+offset_right = 296.0
+offset_bottom = 200.0
+scale = Vector2(0.475104, 0.475104)
+theme = ExtResource("6_m4erh")
+theme_override_font_sizes/font_size = 30
+placeholder_text = " Bias"
+max_length = 17
+script = ExtResource("7_x5ox8")

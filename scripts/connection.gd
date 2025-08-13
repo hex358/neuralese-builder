@@ -136,7 +136,7 @@ func _stylize_spline(spline: Spline, hovered_suitable: bool):
 		spline.turn_into(keyword, glob.hovered_connection.keyword)
 		spline.color_a = spline.origin.color
 	else:
-		spline.modulate = Color(0.8,0.8,0.8,1.0)
+		spline.modulate = Color(0.8,0.8,0.8,0.8)
 		spline.turn_into(keyword)
 		spline.color_a = Color.WHITE
 	if hovered_suitable:

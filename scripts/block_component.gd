@@ -3,7 +3,7 @@
 extends ColorRect
 class_name BlockComponent
 
-enum ButtonType { CONTEXT_MENU, BLOCK_BUTTON, PANEL, GRAPH_CONTAINER }
+enum ButtonType { CONTEXT_MENU, BLOCK_BUTTON, DROPOUT_MENU,  }
 
 var _instance_uniforms = []
 var is_blocking: bool = false
@@ -17,6 +17,7 @@ func unblock_input() -> void: is_blocking = false
 @export var button_type: ButtonType = ButtonType.CONTEXT_MENU
 @export var area_padding: float = 0.0
 @export var placeholder: bool = false
+@export var top: bool = false
 
 @export_tool_button("Editor Refresh") var _editor_refresh = func():
 	notify_property_list_changed()
@@ -171,16 +172,19 @@ func contain(child: BlockComponent):
 
 var add_to_size: bool = false
 
+# 3) Initialize menu internals for DROPOUT_MENU same as CONTEXT_MENU
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
-	if button_type == ButtonType.CONTEXT_MENU:
+	
+	if button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU:
 		if not scroll:
 			default_scroll()
 		bar = scroll.get_v_scroll_bar()
 		if expanded_size == 0 and !dynamic_size:
 			expanded_size = base_size.y
 			add_to_size = true
-	if button_type == ButtonType.CONTEXT_MENU:
+	
+	if button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU:
 		scroll.size = Vector2(base_size.x - 21, expanded_size if not max_size else max_size-base_size.y-10)
 		if not dynamic_size:
 			for child in get_children():
@@ -190,15 +194,14 @@ func initialize() -> void:
 			arrange()
 			_unclamped_expanded_size = expanded_size
 			
-		hide()
+		hide()  # start closed
 
 		if dynamic_size:
 			expanded_size = 4.0 + base_size.y
 			for child in _contained:
 				expanded_size += child.size.y + arrangement_padding.y
 			_unclamped_expanded_size = expanded_size
-			#vbox.child_exiting_tree.connect(dynamic_child_exit)
-			#vbox.child_entered_tree.connect(dynamic_child_enter)
+
 
 func dynamic_child_exit(child: BlockComponent):
 	if child in _contained:
@@ -247,7 +250,7 @@ func arrange():
 		#print(maxsize)
 
 func _enter_tree() -> void:
-	if !Engine.is_editor_hint() and button_type == ButtonType.CONTEXT_MENU:
+	if !Engine.is_editor_hint() and (button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU):
 		assert(not glob.menus.get(menu_name), "Menu %s already regged"%menu_name)
 		glob.menus[menu_name] = self
 	if !Engine.is_editor_hint():
@@ -306,6 +309,31 @@ func _ready() -> void:
 func _sub_process(delta: float):
 	pass
 
+func _process_dropout_menu(delta: float) -> void:
+	# If the dropdown is closed, run normal button behavior/visuals.
+	var was_expanded = (state.expanding or state.expanded) and visible
+	if not was_expanded:
+		_process_block_button(delta)
+		
+		# Open on press (left click like standard buttons).
+		# state.pressing becomes true on initial LMB down inside.
+		if state.pressing and not visible and not state.tween_hide:
+			# Make context-menu logic left-click activated while open.
+			left_activate = true
+			mouse_open = true
+			# Anchor the menu to the bottom of the button (typical dropdown behavior).
+			var anchor = global_position
+			anchor.y += base_size.y * mult.y
+			menu_show(anchor)
+			state.holding = true
+			state.expanding = true
+	
+	# If opened (or opening/closing), hand off to the context-menu code.
+	if visible or state.tween_hide or state.expanding:
+		_process_context_menu(delta)
+
+
+
 var mult: Vector2 = Vector2.ONE
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -320,13 +348,15 @@ func _process(delta: float) -> void:
 			_process_context_menu(delta)
 		ButtonType.BLOCK_BUTTON:
 			_process_block_button(delta)
+		ButtonType.DROPOUT_MENU:
+			_process_dropout_menu(delta)
 	_sub_process(delta)
 
 func is_mouse_inside() -> bool:
 	if graph:
 		var cons = glob.get_consumed("mouse")
 		if cons and graph != cons: return false
-	if glob.get_display_mouse_position().y < glob.space_begin.y: return false
+	if !top and glob.get_display_mouse_position().y < glob.space_begin.y: return false
 	var height = base_size.y if button_type == ButtonType.BLOCK_BUTTON else expanded_size
 	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
 	bounds.size *= mult
