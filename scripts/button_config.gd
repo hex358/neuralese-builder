@@ -3,6 +3,9 @@ class_name ButtonConfig
 
 @export_subgroup("Hover")
 @export var hover_color: Color = Color.BLUE
+@export var hover_mult: float = 1.0
+func _init() -> void:
+	hover_color *= hover_mult
 @export_range(0.5, 1.5) var _hover_scale: float = 1.03
 
 @export_subgroup("Press")

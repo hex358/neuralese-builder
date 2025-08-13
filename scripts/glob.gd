@@ -150,6 +150,40 @@ var consumed_input: Dictionary[StringName, Control] = {}
 var cam: Camera2D
 var viewport: Viewport
 
+const arrays: Dictionary[int, bool] = {
+TYPE_ARRAY:true,
+TYPE_PACKED_BYTE_ARRAY:true,
+TYPE_PACKED_COLOR_ARRAY:true,
+TYPE_PACKED_VECTOR2_ARRAY:true,
+TYPE_PACKED_VECTOR3_ARRAY:true,
+TYPE_PACKED_VECTOR4_ARRAY:true,
+TYPE_PACKED_STRING_ARRAY:true,
+TYPE_PACKED_FLOAT32_ARRAY:true,
+TYPE_PACKED_FLOAT64_ARRAY:true,
+TYPE_PACKED_INT32_ARRAY:true,
+TYPE_PACKED_INT64_ARRAY:true
+}
+
+var iterables: Dictionary[int, bool] = arrays.merged({
+TYPE_DICTIONARY:true,})
+
+func list(type: int):
+	var res = null
+	match type:
+		TYPE_ARRAY:res=[]
+		TYPE_PACKED_BYTE_ARRAY:res=PackedByteArray()
+		TYPE_PACKED_COLOR_ARRAY:res=PackedColorArray()
+		TYPE_PACKED_VECTOR2_ARRAY:res=PackedVector2Array()
+		TYPE_PACKED_VECTOR3_ARRAY:res=PackedVector3Array()
+		TYPE_PACKED_VECTOR4_ARRAY:res=PackedVector4Array()
+		TYPE_PACKED_STRING_ARRAY:res=PackedStringArray()
+		TYPE_PACKED_FLOAT32_ARRAY:res=PackedFloat32Array()
+		TYPE_PACKED_FLOAT64_ARRAY:res=PackedFloat64Array()
+		TYPE_PACKED_INT32_ARRAY:res=PackedInt32Array()
+		TYPE_PACKED_INT64_ARRAY:res=PackedInt64Array()
+		TYPE_DICTIONARY:res={}
+	return res
+
 func consume_input(inst: Control, input: StringName):
 	if not consumed_input.has(input) or consumed_input[input].z_index <= inst.z_index:
 		consumed_input[input] = inst

@@ -95,6 +95,9 @@ func attach_spline(id: int, target: Connection):
 	target.inputs[spline] = id
 	target.last_connected = spline
 	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector, target.dir_vector)
+	glob.hovered_connection = target
+	_stylize_spline(spline, true)
+	glob.hovered_connection = null
 	end_spline(id, false)
 
 func detatch_spline(spline: Spline):
@@ -127,8 +130,19 @@ func is_suitable(conn: Connection) -> bool:
 		and (conn_counts.get_or_add(conn.keyword, [0])[0] <= 1 or multiple_splines or conn.keyword == &"router")
 		and _is_suitable(conn))
 
-func _stylize_spline(spline: Spline):
-	pass
+func _stylize_spline(spline: Spline, hovered_suitable: bool):
+	if hovered_suitable:
+		spline.modulate = Color.WHITE * 1.1
+		spline.turn_into(keyword, glob.hovered_connection.keyword)
+		spline.color_a = spline.origin.color
+	else:
+		spline.modulate = Color(0.8,0.8,0.8,1.0)
+		spline.turn_into(keyword)
+		spline.color_a = Color.WHITE
+	if hovered_suitable:
+		spline.color_b = glob.hovered_connection.color
+	else:
+		spline.color_b = Color.WHITE
 
 var hovered: bool = false
 var prog: float = 0.0
@@ -166,7 +180,7 @@ func _process(delta: float) -> void:
 		glob.reset_menu_type(self, "detatch")
 
 	var occ = glob.is_occupied(self, "conn_active")
-	if connection_type == OUTPUT and inside and not occ:
+	if connection_type == OUTPUT and inside and not occ and not glob.is_occupied(self, &"menu_inside"):
 		if mouse_just_pressed:
 			if 1: # TODO: implement router splines
 				start_spline(add_spline())
@@ -202,7 +216,7 @@ func _process(delta: float) -> void:
 		suit = is_suitable(glob.hovered_connection)
 	for id in active_outputs:
 		var spline = active_outputs[id]
-		# live update using the splines origin
+		# update using the splines origin
 		spline.update_points(spline.origin.get_origin(), get_global_mouse_position(), dir_vector)
 		
 		if not mouse_pressed:
@@ -212,10 +226,7 @@ func _process(delta: float) -> void:
 			else:
 				glob.un_occupy(glob.hovered_connection, &"conn_active")
 				to_end.append(id)
-		if suit:
-			spline.turn_into(keyword, glob.hovered_connection.keyword)
-		else:
-			spline.turn_into(keyword)
+		_stylize_spline(spline, suit)
 			
 	if suit and active_outputs:
 		glob.hovered_connection.hover()

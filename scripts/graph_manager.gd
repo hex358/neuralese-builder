@@ -84,43 +84,86 @@ func mark_rect(graph: Graph):
 	
 func can_move(graph: Graph, vec: Vector2) -> Vector2:
 	return Vector2()
+	
 # deltas. Changes/adds/deletes of different types of things
-# deltas. Changes/adds/deletes of different types of things
-const DELETE: int = 0; const CHANGE: int = 1; const ADD: int = 2
-var delta_objects = {}
-var iterables: Dictionary[int, bool] = {
-TYPE_ARRAY = 1,
-TYPE_PACKED_BYTE_ARRAY = 1,
-TYPE_PACKED_COLOR_ARRAY = 1,
-TYPE_PACKED_VECTOR2_ARRAY = 1,
-TYPE_PACKED_VECTOR3_ARRAY = 1,
-TYPE_PACKED_VECTOR4_ARRAY = 1,
-TYPE_DICTIONARY = 1,
-TYPE_PACKED_STRING_ARRAY = 1,
-TYPE_PACKED_FLOAT32_ARRAY = 1,
-TYPE_PACKED_FLOAT64_ARRAY = 1,
-TYPE_PACKED_INT32_ARRAY = 1,
-TYPE_PACKED_INT64_ARRAY = 1
-}
+const DELETE: int = 0; const ADD: int = 2
+
 
 var conns_active = {}
-class FieldPack:
-	var fields = null; var dtype: int; var nested_fields: Array; var is_nested: bool
-	func _init(iterable, _is_nested:bool=false, _nested_fields=[]) -> void:
-		dtype = typeof(iterable); var id = iterable
-		assert(dtype in graphs.iterables, "Must be array, packed array or dict")
-		is_nested = _is_nested; nested_fields = _nested_fields
+
+class Deltas:
+	var snapshot = null
+	var iterable = null
+	func _init(_iterable, default):
+		iterable = _iterable
+		snapshot = default
+
+var _graph_delta_paths = {}
+var _graph_delta_objects = {}
+var _graph_deltas = null
 
 func store_delta(graph: Graph):
-	var new_info: FieldPack = graph.get_info()
-	var q = []
-	for field in new_info.nested_fields:
-		q.append([new_info.nested_fields[field], "origin"])
-	var delta_paths = {}
-	while q:
+	var new_info: Dictionary = graph.get_info()
+	var delta_paths = _graph_delta_paths.get_or_add(graph, {})
+	var delta_objects = _graph_delta_objects.get_or_add(graph, {})
+	var graph_deltas = _graph_deltas if typeof(_graph_deltas) == TYPE_DICTIONARY else {}
+	if typeof(graph_deltas) != TYPE_DICTIONARY:
+		graph_deltas = {}
+	_graph_deltas = graph_deltas
+
+	var q = [[new_info, TYPE_DICTIONARY, ["origin"], false]]
+
+	var globdelta = graph_deltas.get(graph)
+	if globdelta == null:
+		var root_deltas = Deltas.new(new_info, {})
+		q[0][3] = root_deltas
+		graph_deltas[graph] = root_deltas
+	else:
+		q[0][3] = globdelta
+
+	var result_adds = {}
+	var result_deletes = {}
+
+	while q.size() > 0:
 		var popped = q.pop_back()
-		for i in popped[0]:
-			pass
+		var cur_iterable = popped[0]
+		var parent_dtype: int = popped[1]
+		var path = popped[2]
+		var deltas = popped[3]
+
+		delta_objects[cur_iterable] = path
+
+		if not delta_paths.has(path):
+			delta_paths[path] = Deltas.new(cur_iterable, glob.list(parent_dtype))
+		deltas = delta_paths[path]
+
+		for key in cur_iterable if not (parent_dtype in glob.arrays) else len(cur_iterable):
+			var value = cur_iterable[key]
+			var dtype: int = typeof(value)
+
+			if dtype in glob.iterables:
+				var next_path = path.duplicate()
+				next_path.append(key)
+				q.append([value, dtype, next_path, false])
+			else:
+				var dict: bool = parent_dtype == TYPE_DICTIONARY
+				if (dict and (not deltas.snapshot.has(key) or deltas.snapshot[key] != value)) \
+				or (!dict and (key >= len(deltas.snapshot) or deltas.snapshot[key] != value)):
+					result_adds.get_or_add(path, {})[key] = value
+
+		if deltas.snapshot:
+			if parent_dtype == TYPE_DICTIONARY:
+				for k in deltas.snapshot.keys():
+					if not cur_iterable.has(k):
+						result_deletes.get_or_add(path, {})[k] = deltas.snapshot[k]
+			else:
+				var old_len = len(deltas.snapshot)
+				var cur_len = len(cur_iterable)
+				if old_len > cur_len:
+					for i in range(cur_len, old_len):
+						result_deletes.get_or_add(path, {})[i] = deltas.snapshot[i]
+
+		deltas.snapshot = cur_iterable.duplicate()
 
 var graph_types = {
 	"io": preload("res://scenes/io_graph.tscn"),
@@ -143,9 +186,45 @@ var graph_layers: Dictionary[int, CanvasLayer] = {}
 func _ready():
 	pass
 
+var pos_cache: Dictionary = {}
 func _process(delta: float) -> void:
 	propagate_cycle()
 	gather_cycle()
-	
-	for graph:Graph in storage.get_children():
-		graph.is_mouse_inside()
+
+	var vp = Rect2(Vector2.ZERO, glob.window_size)
+
+	for graph: Graph in storage.get_children():
+		var r = graph.rect
+		
+		var vis: bool = false
+		if not graph.dragging:
+			var gp = r.global_position
+			var s  = r.size
+
+			var p0 = glob.world_to_screen(gp)
+			var p1 = glob.world_to_screen(gp + Vector2(s.x, 0.0))
+			var p2 = glob.world_to_screen(gp + Vector2(0.0, s.y))
+			var p3 = glob.world_to_screen(gp + s)
+
+			var minx = min(p0.x, p1.x, p2.x, p3.x)
+			var maxx = max(p0.x, p1.x, p2.x, p3.x)
+			var miny = min(p0.y, p1.y, p2.y, p3.y)
+			var maxy = max(p0.y, p1.y, p2.y, p3.y)
+			var rect_screen = Rect2(Vector2(minx, miny), Vector2(maxx - minx, maxy - miny))
+
+			vis = rect_screen.intersects(vp)
+		vis = vis or graph.dragging or graph.hold_process
+		if graph.hold_process:
+			graph.hold_process = false
+		
+		#vis = vis and 
+
+		if vis:
+			graph.process_mode = Node.PROCESS_MODE_ALWAYS
+			graph.show()
+			graph.is_mouse_inside()
+		else:
+			graph.hide()
+			graph.process_mode = Node.PROCESS_MODE_DISABLED
+		
+		

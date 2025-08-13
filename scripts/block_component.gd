@@ -422,7 +422,7 @@ func _process_block_button(delta: float) -> void:
 			if not state.hovering:
 				hovered.emit()
 			state.hovering = true
-			modulate = modulate.lerp(config.hover_color, delta * 15)
+			modulate = modulate.lerp(config.hover_color * config.hover_mult, delta * 15)
 			if state.pressing:
 				released.emit()
 				state.pressing = false
@@ -551,6 +551,8 @@ func _process_context_menu(delta: float) -> void:
 	# click belongs to another menu
 	var reset_menu = _is_not_menu()
 	if not is_visible_in_tree() and reset_menu:
+		glob.un_occupy(self, &"menu")
+		glob.un_occupy(self, "menu_inside")
 		return
 	
 	# mouse state
@@ -614,6 +616,7 @@ func _process_context_menu(delta: float) -> void:
 	var do_reset: bool = (reset_menu and (right_click or (left_click and left_activate)) )
 	if left_activate and not mouse_open and do_reset:
 		state.holding = false
+
 	if show_request or right_click or left_click or is_instance_valid(timer) or do_reset:
 		var inside_self_click = glob.mouse_pressed and inside and state.expanding and not state.tween_hide
 		if inside_self_click and visible and not state.tween_hide:
@@ -637,7 +640,12 @@ func _process_context_menu(delta: float) -> void:
 			menu_expand()
 	if not i_occupied:
 		glob.un_occupy(self, &"menu")
-	
+
+	if inside and not state.tween_hide:
+		glob.occupy(self, "menu_inside")
+	else:
+		glob.un_occupy(self, "menu_inside")
+
 	var target_scale = Vector2(0.94, 0.94) if (scale_anim and (state.holding or state.tween_hide)) else Vector2.ONE
 	scaler.scale = scaler.scale.lerp(target_scale * base_scale, 20.0 * delta)
 

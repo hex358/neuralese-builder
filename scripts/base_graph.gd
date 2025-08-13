@@ -88,14 +88,18 @@ func _seq_push_input(connection_key: int, value) -> void:
 		propagate(pushed_inputs)
 		pushed_inputs.clear()
 
-func get_info() -> graphs.FieldPack:
+func get_info() -> Dictionary:
+	var ks = []
+	for i in output_keys:
+		output_keys[i].get_node("../Label").text = str(i)
 	var output = {
 	"position": Vector2(),
-	"arr": [position, rotation, scale, input_keys]
+	"arr": [position, rotation, scale, output_keys.keys()]
 	}
+	#print(input_keys)
 	output.merge(_get_info())
-	var fields = graphs.FieldPack.new(output, 0<len(info_nested_fields), info_nested_fields)
-	return fields
+	#var fields = graphs.FieldPack.new(output, 0<len(info_nested_fields), info_nested_fields)
+	return output
 
 var info_nested_fields: Array = []
 func _get_info() -> Dictionary:
@@ -139,6 +143,8 @@ func _can_drag() -> bool:
 @onready var prev_size_: Vector2 = rect.size
 var inside: bool = false
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint(): return
+
 	animate(delta)
 	graphs.store_delta(self)
 	if prev_size_ != rect.size:
@@ -146,10 +152,11 @@ func _process(delta: float) -> void:
 		#graphs.collider(rect)
 	exist_time += delta
 	
-	if Engine.is_editor_hint(): return
 	inside = is_mouse_inside()
+	var conn_free = (not glob.hovered_connection or glob.hovered_connection.connection_type == 0 or z_index >= glob.hovered_connection.parent_graph.z_index)
+
 	
-	if inside:
+	if inside and conn_free:
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed and not dragging:
@@ -157,11 +164,13 @@ func _process(delta: float) -> void:
 	else:
 		glob.reset_menu_type(self, &"edit_graph")
 		glob.un_occupy(self, &"graph")
-
+	
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not glob.is_occupied(self, &"graph") and 
-		not glob.is_occupied(self, &"conn_active")) and not dragging:
+		#not glob.is_occupied(self, &"menu_inside") and 
+		not glob.is_occupied(self, &"conn_active") and
+		conn_free) and not dragging:
 		graphs.drag(self)
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 

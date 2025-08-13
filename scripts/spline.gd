@@ -62,10 +62,18 @@ func other_default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_
 	baked = curve.get_baked_points()
 
 var mapping = {"weight": weight_points}
+var colors_array: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHITE])
+@export var color_a: Color = Color.WHITE:
+	set(v):
+		color_a = v; colors_array[0] = v
+@export var color_b: Color = Color.WHITE:
+	set(v):
+		color_b = v; colors_array[1] = v
 func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
 	curve.clear_points()
 	mapping.get(keyword, default_points).call(start, end, start_dir, end_dir)
-	line_2d.default_color = color
+	#line_2d.default_color = color
+	line_2d.gradient.colors = colors_array
 	line_2d.points = baked
 
 func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
@@ -85,7 +93,7 @@ func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = 
 	
 	var length: float = (end-start).length()
 	var size: float = clamp(length*0.1, 2, 10)-2 # the initial "crusty" part of curve will become smaller
-	curve.bake_interval = 10#clamp(length*0.05, 1, 2) # so the small curves looked better
+	curve.bake_interval = clamp(length*0.01, 1, 30) # so the small curves looked better
 	#print(curve.bake_interval)
 	curve.clear_points()
 
@@ -96,8 +104,3 @@ func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = 
 	curve.add_point(end_second_point, -size * (end-end_second_point), Vector2())
 	curve.add_point(end, Vector2(), Vector2())
 	baked = curve.get_baked_points()
-
-
-	
-func _draw() -> void:
-	pass

@@ -97,6 +97,7 @@ func _process(delta: float) -> void:
 		drag_move_vec = drag_move_vec.lerp(
 		1300 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
 		delta * 10.0)
+		glob.hide_all_menus.call_deferred()
 	else:
 		drag_move_vec = drag_move_vec.lerp(Vector2(), delta * 10.0)
 	target_position += drag_move_vec

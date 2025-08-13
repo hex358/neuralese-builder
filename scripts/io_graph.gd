@@ -23,6 +23,8 @@ func _after_ready():
 	#total_size += input.size.y
 	unit.queue_free()
 	unit_script = unit.get_script()
+	for i in 0:
+		add_unit({"text": "hif"})
 
 func _can_drag() -> bool:
 	return not ui.is_focus(line_edit) and not add_button.state.hovering
@@ -105,8 +107,8 @@ func _after_process(delta: float):
 		offset_units.erase(i)
 	input.position.y = lerpf(input.position.y, target_y, delta*20.0)
 	rect.size.y = lerpf(rect.size.y, target_size, delta*20.0)
-	#if ui.is_focus($input/LineEdit):
-		#hold_for_frame()
+	if ui.is_focus(line_edit):
+		hold_for_frame()
 
 
 func _on_color_rect_2_pressed() -> void:
