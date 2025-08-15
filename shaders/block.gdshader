@@ -7,9 +7,10 @@ uniform int shape: hint_range(0,2) = 0;
 
 uniform vec4 mult_tuning: source_color = vec4(1.0);
 instance uniform vec4 tuning: source_color = vec4(1.0);
-
 uniform vec4 color_mult: source_color = vec4(1.0);
+
 #include "res://shaders/smooth_extents.gdshaderinc"
+
 global uniform float _view_scale = 1.0;
 instance uniform float corner_radius_add = 0.0;
 instance uniform float corner_width_add = 0.0;
@@ -18,8 +19,13 @@ uniform bool blurred_background = true;
 uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
 uniform float mult = 2.0;
 instance uniform vec4 outline_color: source_color = vec4(1.0);
-uniform float blur_level: hint_range(0.0, 7.0) = 2.5;
 
+// === Blur controls ===
+uniform float blur_level: hint_range(0.0, 7.0) = 2.5;      // исходный LOD
+uniform float gaussian_mix: hint_range(0.0, 1.0) = 1.0;     // 0=Lod only, 1=Gauss over LOD
+uniform float gaussian_step: hint_range(0.0, 4.0) = 1.0;    // множитель шага в пикселях экрана
+
+// Экранная текстура с мипами
 uniform sampler2D screen: hint_screen_texture, filter_linear_mipmap;
 
 varying vec2 view_scale;
@@ -34,33 +40,75 @@ void vertex() {
 	vert_scale = vec2(length(MODEL_MATRIX[0].xy), length(MODEL_MATRIX[1].xy));
 }
 
+// 9-tap Gaussian approx (binomial 3×3): веса [1 2 1; 2 4 2; 1 2 1]/16
+bool in_bounds(vec2 uv) {
+	return uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0;
+}
+
+vec4 sample_screen_safe(vec2 uv, float lod) {
+	vec4 cont = textureLod(screen, uv, lod);
+	return in_bounds(uv) ? cont : vec4(cont.rgb, 0.0);
+}
+
+// 9-tap Gaussian approx (binomial 3×3) with OOB -> a=0
+vec4 gaussian9_mip(vec2 uv, float lod, vec2 step_px) {
+	vec2 sx = vec2(step_px.x, 0.0);
+	vec2 sy = vec2(0.0, step_px.y);
+
+	vec4 c  = sample_screen_safe(uv, lod) * 4.0;
+
+	vec4 ax = sample_screen_safe(uv - sx, lod) * 2.0
+	        + sample_screen_safe(uv + sx, lod) * 2.0;
+
+	vec4 ay = sample_screen_safe(uv - sy, lod) * 2.0
+	        + sample_screen_safe(uv + sy, lod) * 2.0;
+
+	vec4 d  = sample_screen_safe(uv + sx + sy, lod)
+	        + sample_screen_safe(uv + sx - sy, lod)
+	        + sample_screen_safe(uv - sx + sy, lod)
+	        + sample_screen_safe(uv - sx - sy, lod);
+
+	return (c + ax + ay + d) / 16.0;
+}
+
 void fragment() {
+	// Локальные размеры и SDF
 	vec2 size_px = vec2(1.0 / dFdx(UV).x, 1.0 / dFdy(UV).y);
 	vec2 half = size_px * 0.5;
 	vec2 p = UV * size_px - half;
 
 	float radius_added = corner_radius_add + corner_radius;
 	float r = radius_added * min(view_scale.x, view_scale.y) * vert_scale.x;
-	float w = (outline_width+corner_width_add) * min(view_scale.x, view_scale.y) * vert_scale.y;
+	float w = (outline_width + corner_width_add) * min(view_scale.x, view_scale.y) * vert_scale.y;
 
 	float sdf;
-	if (false) { // if shape == 1 (triangle) or 2 (rombic) or 3
+	if (false) {
 	} else {
-		// rounded rectangle
 		vec2 q = abs(p) - (half - vec2(r));
 		sdf = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - r;
 	}
 
 	float mask = smoothstep(1.0, -1.0, sdf);
 	float ol = smoothstep(w + 1.0, w - 1.0, abs(sdf));
+	if (outline_width + corner_width_add < 0.01) { ol = 0.0; }
 
-	// compute fill color
-	
+	// === Блюр задника ===
 	vec4 col;
 	vec4 out_col = outline_color;
-	if (outline_width+corner_width_add < 0.01){ol = 0.0;}
+
 	if (blurred_background) {
-		vec4 bg = textureLod(screen, SCREEN_UV, blur_level*_view_scale)*mult;
+		float lod = blur_level * _view_scale;
+
+		// Размер шага в UV экрана: завязан на реальный пиксель + масштаб от blur_level
+		// SCREEN_PIXEL_SIZE — builtin (1/viewport_size)
+		vec2 step_px = SCREEN_PIXEL_SIZE * max(gaussian_step, 0.0001) * (1.0 + blur_level);
+
+		// Дешёвый путь (только LOD) и «красивый» путь (LOD + Gaussian9)
+		vec4 bg_lod = textureLod(screen, SCREEN_UV, lod);
+		vec4 bg_gauss = gaussian9_mip(SCREEN_UV, lod, step_px);
+
+		vec4 bg = mix(bg_lod, bg_gauss, gaussian_mix) * mult;
+
 		if (ol < 0.999) {
 			col = mix(alpha_blend(bg, tuning * mult_tuning) * color_mult, out_col, ol);
 		} else {
@@ -72,6 +120,5 @@ void fragment() {
 
 	col.a *= mask;
 	COLOR = col * modulate;
-
 	COLOR.a *= alphamult(vert);
 }

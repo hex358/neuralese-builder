@@ -245,11 +245,12 @@ func get_graph(type = graph_types.base, flags = Graph.Flags.NONE) -> Graph:
 var graph_layers: Dictionary[int, CanvasLayer] = {}
 func _ready():
 	pass
+	#print(await web.send_get("test"))
 
 var pos_cache: Dictionary = {}
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("up"):
-		run_request(null)
+	#if Input.is_action_just_pressed("up"):
+		#run_request(null)
 	
 	propagate_cycle()
 	gather_cycle()
@@ -284,23 +285,25 @@ func _process(delta: float) -> void:
 			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
 			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))
 			if graph.hold_process or padded_inside or graph.active_output_connections:
-				graph.process_mode = Node.PROCESS_MODE_ALWAYS
+				graph.process_mode = PROCESS_MODE_ALWAYS
 				
 				if inside:
 					force_held = true
 					graph.hold_for_frame()
 			else:
-				if graph.process_mode != Node.PROCESS_MODE_DISABLED:
+				if graph.process_mode != PROCESS_MODE_DISABLED:
+					#print("GJKGJ")
 					graph._stopped_processing()
-				graph.process_mode = Node.PROCESS_MODE_DISABLED
+				graph.process_mode = PROCESS_MODE_DISABLED
 			graph.show()
 		else:
 			graph.hide()
-			if graph.process_mode != Node.PROCESS_MODE_DISABLED:
+			if graph.process_mode != PROCESS_MODE_DISABLED:
+			#	print("GJKGJ")
 				graph._stopped_processing()
-			graph.process_mode = Node.PROCESS_MODE_DISABLED
+			graph.process_mode = PROCESS_MODE_DISABLED
 
 		if graph.hold_process and !force_held:
 			graph.hold_process = false
 		
-		dc += int(graph.process_mode != Node.PROCESS_MODE_DISABLED)
+		dc += int(graph.process_mode != PROCESS_MODE_DISABLED)

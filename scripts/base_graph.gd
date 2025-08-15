@@ -167,6 +167,9 @@ func _stopped_processing():
 	graphs.stop_drag(self)
 	if glob._menu_type_occupator in output_key_by_conn:
 		glob.reset_menu_type(glob._menu_type_occupator, "detatch")
+	if glob.is_occupied(self, "conn_active"):
+		glob.un_occupy(glob.occ_layers["conn_active"], "conn_active")
+		#hold_for_frame()
 	#for i in graphs.conns_active:
 		#if i in output_key_by_conn:
 		#	glob.un_occupy(i, "conn_active")
@@ -202,7 +205,13 @@ func _process(delta: float) -> void:
 	else:
 		glob.reset_menu_type(self, &"edit_graph")
 		glob.un_occupy(self, &"graph")
-	#print(glob.is_occupied(self, &"conn_active"))
+	
+	# TODO: remove this crutch
+	var conn_active_layer = glob.occ_layers.get("conn_active")
+	if conn_active_layer:
+		if !conn_active_layer.active_outputs:
+			glob.un_occupy(conn_active_layer, "conn_active")
+		
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not glob.is_occupied(self, &"graph") and 

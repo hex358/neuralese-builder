@@ -14,7 +14,6 @@ offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_b3f76")
 base_size = Vector2(200, 50)
-size_add = null
 max_size = 190
 config = ExtResource("3_ei1qp")
 

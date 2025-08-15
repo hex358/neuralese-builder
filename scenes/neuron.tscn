@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="6_u3r6r"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="8_g8jnw"]
 
-[node name="Base" node_paths=PackedStringArray("unit", "line_edit") instance=ExtResource("1_mms1l")]
+[node name="neuronlayer" node_paths=PackedStringArray("unit", "line_edit") instance=ExtResource("1_mms1l")]
 script = ExtResource("2_u856i")
 bottom_attached = false
 unit = NodePath("unit")
@@ -20,9 +20,9 @@ target_size = 90.0
 
 [node name="i" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
 layout_mode = 0
-offset_left = -67.0
+offset_left = -65.0
 offset_top = -30.0
-offset_right = -51.0
+offset_right = -49.0
 offset_bottom = -2.0
 color = Color(0, 1, 0.883333, 1)
 connection_type = 0
@@ -35,9 +35,9 @@ gradient_color = Color(0, 1, 0.882353, 1)
 
 [node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
 layout_mode = 0
-offset_left = 47.0
+offset_left = 44.0
 offset_top = -30.0
-offset_right = 63.0
+offset_right = 60.0
 offset_bottom = -2.0
 color = Color(0, 1, 0.882353, 1)
 connection_type = 1

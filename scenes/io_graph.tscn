@@ -71,9 +71,9 @@ material = ExtResource("4_q7htc")
 instance_shader_parameters/outline_color = Color(0.501961, 0.501961, 0.501961, 0.490196)
 instance_shader_parameters/tuning = Color(0.5, 0.5, 0.5, 0.490196)
 layout_mode = 0
-offset_left = 3.0
+offset_left = 5.0
 offset_top = 12.0
-offset_right = 162.0
+offset_right = 160.0
 offset_bottom = 39.0
 
 [node name="o" parent="connection" index="1" instance=ExtResource("2_rxypt")]
@@ -87,6 +87,7 @@ connection_type = 1
 area_paddings = Vector4(20, 5, 20, 5)
 origin_offset = Vector2(3, 0)
 unpadded_area = Vector4(0, 0, 20, 0)
+gradient_color = Color(0, 1, 0.717647, 1)
 
 [node name="Label" type="Label" parent="connection" index="2"]
 z_index = 1
@@ -133,7 +134,6 @@ button_type = 1
 text = "Add +"
 base_size = Vector2(88, 42)
 alignment = Vector2(0.5, 0.5)
-size_add = 0.0
 config = SubResource("Resource_jeojw")
 graph = NodePath("../..")
 
@@ -145,7 +145,7 @@ offset_left = -10.0
 offset_top = -75.0
 offset_right = 11.0
 offset_bottom = -54.0
-color = Color(0.965, 1, 0.58, 1)
+color = Color(1, 0.992667, 0.78, 1)
 keyword = &"router"
 connection_type = 0
 area_paddings = Vector4(16, 16, 16, 16)
@@ -153,6 +153,6 @@ origin_offset = Vector2(0, -3)
 dir_vector = Vector2(0, -1)
 parent_graph = NodePath("..")
 conn_count_keyword = "router"
-gradient_color = Color(0.964706, 1, 0.580392, 1)
+gradient_color = Color(1, 0.992157, 0.780392, 1)
 
 [connection signal="pressed" from="input/ColorRect2" to="." method="_on_color_rect_2_pressed"]

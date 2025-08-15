@@ -95,7 +95,7 @@ func attach_spline(id: int, target: Connection):
 	var spline = active_outputs[id]
 	spline.tied_to = target
 	target.connected[self] = true
-	conn_counts.get_or_add(target.keyword, [0])[0] += 1
+	conn_counts.get_or_add(target.conn_count_keyword, [0])[0] += 1
 	target.inputs[spline] = id
 	target.last_connected = spline
 	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector, target.dir_vector)
@@ -108,7 +108,7 @@ func attach_spline(id: int, target: Connection):
 func detatch_spline(spline: Spline):
 	var other = spline.origin
 	if not other.outputs.has(inputs[spline]): return
-	other.conn_counts.get_or_add(keyword, [1])[0] -= 1
+	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
 	graphs.remove_edge(spline.origin, spline.tied_to)
 	forget_spline(spline, other)
@@ -136,8 +136,6 @@ func _is_suitable(conn: Connection) -> bool: return true # virtual
 
 func is_suitable(conn: Connection) -> bool:
 	#print(len(outputs))
-	#if conn:
-		#print(conn.connected.has(self))
 	return (conn and conn != self and conn.connection_type == INPUT
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
 		and (conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or multiple_splines or conn.conn_count_keyword == &"router")
@@ -185,6 +183,7 @@ func _process(delta: float) -> void:
 				glob.hovered_connection = self
 		elif glob.hovered_connection == self:
 			glob.hovered_connection = null
+	#print(glob.hovered_connection)
 
 	#if not inside and not active_outputs:
 		#return
@@ -200,10 +199,11 @@ func _process(delta: float) -> void:
 		glob.reset_menu_type(self, "detatch")
 
 	var occ = glob.is_occupied(self, "conn_active")
-	
-	if connection_type == OUTPUT and inside and not occ and not glob.is_occupied(self, &"menu_inside"):
+	#if connection_type == OUTPUT:
+	#	print(glob.is_occupied(self, &"menu_inside"))
+	if connection_type == OUTPUT and inside and not occ:
 		if mouse_just_pressed:
-			if 1: # TODO: implement router splines
+			if not glob.is_occupied(self, &"menu_inside"): # TODO: implement router splines
 				start_spline(add_spline())
 			#elif !multiple_splines and outputs:
 				#outputs[0].tied_to.detatch_spline(outputs[0])
@@ -235,7 +235,10 @@ func _process(delta: float) -> void:
 	var suit
 	if active_outputs:
 		suit = is_suitable(glob.hovered_connection)
+		#if glob.hovered_connection:
+			#print(suit)
 		parent_graph.active_output_connections[self] = true
+		parent_graph.hold_for_frame()
 	else:
 		parent_graph.active_output_connections.erase(self)
 	for id in active_outputs:
@@ -252,7 +255,9 @@ func _process(delta: float) -> void:
 				to_end.append(id)
 		#print(spline.tied_to)
 		_stylize_spline(spline, suit)
-			
+	
+	#if connection_type == OUTPUT and !active_outputs.is_empty():
+		#print(suit)
 	if suit and active_outputs:
 		glob.hovered_connection.hover()
 	

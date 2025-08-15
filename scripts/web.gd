@@ -1,33 +1,58 @@
 extends Node
 
-const api_url: String = "http://localhost:8000/"
+const api_url: String = "http://localhost:8100/"
 
 var _http_request: HTTPRequest
+var _headers: PackedStringArray = PackedStringArray()
 
-func _ready():
+func get_headers() -> PackedStringArray:
+	var os_name = OS.get_name()
+	var os_version = OS.get_version()
+	var godot_version = Engine.get_version_info()
+	var project_name = ProjectSettings.get_setting("application/config/name", "UnnamedProject")
+	var project_version = ProjectSettings.get_setting("application/config/version", "dev")
+
+	var ua_string = "User-Agent: %s/%s Godot/%s.%s.%s-%s (%s %s)" % [
+		project_name,
+		project_version,
+		godot_version.major,
+		godot_version.minor,
+		godot_version.patch,
+		godot_version.status,
+		os_name,
+		os_version
+	]
+
+	return PackedStringArray([ua_string])
+
+func _enter_tree() -> void:
 	_http_request = HTTPRequest.new()
+	_headers = get_headers()
 	add_child(_http_request)
 
-func send_get(page: String, headers: Array = []) -> Dictionary:
-	return await _send_request(page, HTTPClient.METHOD_GET, headers, "")
+func _ready() -> void:
+	pass
 
-func send_post(page: String, data: String, headers: Array = []) -> Dictionary:
-	return await _send_request(page, HTTPClient.METHOD_POST, headers, data)
+func _process(delta: float) -> void:
+	if Input.is_action_just_pressed("ui_accept"):
+		print(await post("test", graphs.get_deltas()))
 
-func _send_request(url: String, method: int, headers: Array, body: String) -> Dictionary:
-	var err = _http_request.request(url, headers, method, body)
-	if err != OK:
-		return {"ok": false, "error": err}
-	url = api_url + url
+func post(page: String, data: Dictionary) -> Dictionary:
+	return await _request(api_url + page, data, HTTPClient.METHOD_POST)
 
-	var result = await _http_request.request_completed
-	var response_code: int = result[1]
-	var response_body: String = result[3].get_string_from_utf8()
-
-	return {
-		"ok": response_code >= 200 and response_code < 300,
-		"status_code": response_code,
-		"text": response_body,
-		"json": func():
-			return JSON.parse_string(response_body)
-	}
+signal res_dict_assigned(dict: Dictionary)
+func _request(address: String, request_body: Dictionary, method: int) -> Dictionary:
+	var request = HTTPRequest.new()
+	request.timeout = 3.0
+	request.use_threads = true
+	add_child(request)
+	var body = JSON.stringify(request_body)
+	request.request(address, _headers, method, body)
+	var res_dict: Dictionary = {}
+	var res_call = func(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
+		res_dict_assigned.emit({
+			"code": response_code,
+			"body": body
+		})
+	request.request_completed.connect(res_call)
+	return (await res_dict_assigned)

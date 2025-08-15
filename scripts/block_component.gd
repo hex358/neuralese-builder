@@ -220,6 +220,7 @@ func dynamic_child_enter(child: BlockComponent):
 	_unclamped_expanded_size += floor(child.base_size.y + arrangement_padding.y)
 	expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
 	scroll.size.y = max_size-base_size.y-10
+
 	contain(child)
 
 func resize(_size: Vector2) -> void:
@@ -231,6 +232,9 @@ func resize(_size: Vector2) -> void:
 	scaler.size = size
 	text = text
 	_wrapped_in.custom_minimum_size = _size
+	if button_type == ButtonType.BLOCK_BUTTON or button_type == ButtonType.DROPOUT_MENU:
+		scaler.position = alignment*size
+		position = -alignment*size
 
 var wrapped: bool = false
 func arrange():

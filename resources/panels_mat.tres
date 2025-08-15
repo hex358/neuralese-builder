@@ -11,4 +11,6 @@ shader_parameter/corner_radius = 0.0
 shader_parameter/blurred_background = true
 shader_parameter/outline_width = 0.0
 shader_parameter/mult = 1.5
-shader_parameter/blur_level = 6.497
+shader_parameter/blur_level = 4.474
+shader_parameter/gaussian_mix = 1.0
+shader_parameter/gaussian_step = 4.0
