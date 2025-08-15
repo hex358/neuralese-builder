@@ -111,9 +111,9 @@ offset_bottom = 64.0
 [node name="LineEdit" parent="input" index="0" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_q8r0s")]
 layout_mode = 0
 offset_left = 0.0
-offset_top = -31.0
+offset_top = -33.0
 offset_right = 318.0
-offset_bottom = 17.0
+offset_bottom = 15.0
 context_menu_enabled = false
 accept_button = NodePath("../ColorRect2")
 
