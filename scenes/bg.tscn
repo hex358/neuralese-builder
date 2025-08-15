@@ -7,9 +7,9 @@
 shader = ExtResource("1_dpp0m")
 shader_parameter/width = 10.0
 shader_parameter/spacing = 137.143
-shader_parameter/grid_color = Color(0.3796, 0.52, 0.48022, 1)
-shader_parameter/bg_color = Color(0.3772, 0.41, 0.397427, 1)
-shader_parameter/aa_pixels = 1.0
+shader_parameter/grid_color = Color(0.3366, 0.51, 0.46087, 1)
+shader_parameter/bg_color = Color(0.32, 0.32, 0.32, 1)
+shader_parameter/aa_pixels = 2.0
 
 [node name="bg" type="CanvasLayer"]
 layer = -128

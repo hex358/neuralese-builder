@@ -13,7 +13,7 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
 
 [sub_resource type="Gradient" id="Gradient_5k5he"]
-colors = PackedColorArray(0, 0.81, 0.4995, 1, 0.20286, 0.23, 0.0943, 0)
+colors = PackedColorArray(0.3564, 0.81, 0.68148, 1, 0, 0, 0, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_nwut5"]
 gradient = SubResource("Gradient_5k5he")

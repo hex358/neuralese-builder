@@ -20,6 +20,7 @@ config/icon="res://assets/icons/icon.svg"
 glob="*res://scripts/glob.gd"
 ui="*res://scripts/ui_manager.gd"
 graphs="*res://scripts/graph_manager.gd"
+web="*res://scripts/web.gd"
 
 [gui]
 
