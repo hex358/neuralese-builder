@@ -38,6 +38,8 @@ func delete():
 func is_mouse_inside(padding:Vector4=area_paddings) -> bool:
 	# padded hit area
 	#if glob.is_consumed(self, "conn_mouse_inside"): return false
+	if glob.get_display_mouse_position().y < glob.space_begin.y\
+	or glob.get_display_mouse_position().x > glob.space_end.x: return false
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale
 	var padded_size = size * parent_graph.scale * scale + Vector2(padding.x+padding.z, padding.y+padding.w)
 	var has: bool = Rect2(top_left, padded_size).has_point(get_global_mouse_position())
@@ -54,6 +56,7 @@ func reposition_splines():
 			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), spline.origin.dir_vector, dir_vector)
 
 func add_spline() -> int:
+	
 	var slot = len(outputs)
 	var spline = glob.get_spline(self)
 	spline.turn_into(keyword)
@@ -67,6 +70,7 @@ func start_spline(id: int):
 	if is_instance_valid(node):
 		node.inputs.erase(spline)
 	spline.tied_to = null
+	parent_graph.active_output_connections[self] = true
 	spline.show()
 	graphs.conns_active[self] = true
 	active_outputs[id] = spline
@@ -96,8 +100,9 @@ func attach_spline(id: int, target: Connection):
 	target.last_connected = spline
 	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector, target.dir_vector)
 	glob.hovered_connection = target
-	_stylize_spline(spline, true)
+	_stylize_spline(spline, true, true)
 	glob.hovered_connection = null
+	graphs.attach_edge(self, target)
 	end_spline(id, false)
 
 func detatch_spline(spline: Spline):
@@ -105,6 +110,7 @@ func detatch_spline(spline: Spline):
 	if not other.outputs.has(inputs[spline]): return
 	other.conn_counts.get_or_add(keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
+	graphs.remove_edge(spline.origin, spline.tied_to)
 	forget_spline(spline, other)
 
 func remove_input_spline(spline: Spline):
@@ -116,33 +122,46 @@ func _ready() -> void:
 	if !Engine.is_editor_hint() and parent_graph:
 		parent_graph.add_connection(self)
 
+func _exit_tree() -> void:
+	delete()
+	if !Engine.is_editor_hint() and parent_graph:
+		parent_graph.conn_exit(self)
+
 func get_origin() -> Vector2:
 	return global_position + (origin_offset + size / 2) * scale
 
 func _is_suitable(conn: Connection) -> bool: return true # virtual
+
+@export var conn_count_keyword: String = ""
 
 func is_suitable(conn: Connection) -> bool:
 	#print(len(outputs))
 	#if conn:
 		#print(conn.connected.has(self))
 	return (conn and conn != self and conn.connection_type == INPUT
-		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.keyword == &"router")
-		and (conn_counts.get_or_add(conn.keyword, [0])[0] <= 1 or multiple_splines or conn.keyword == &"router")
+		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
+		and (conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or multiple_splines or conn.conn_count_keyword == &"router")
+		and graphs.validate_acyclic_edge(self, conn)
 		and _is_suitable(conn))
 
-func _stylize_spline(spline: Spline, hovered_suitable: bool):
+@export var gradient_color: Color = Color.WHITE
+
+func _stylize_spline(spline: Spline, hovered_suitable: bool, finalize: bool = false):
+	
 	if hovered_suitable:
-		spline.modulate = Color.WHITE * 1.1
+		spline.modulate = Color(1.1, 1.1, 1.1)
 		spline.turn_into(keyword, glob.hovered_connection.keyword)
-		spline.color_a = spline.origin.color
+		spline.color_a = spline.origin.gradient_color
 	else:
-		spline.modulate = Color(0.8,0.8,0.8,0.8)
+		spline.modulate = Color(0.8,0.8,0.8)
 		spline.turn_into(keyword)
 		spline.color_a = Color.WHITE
 	if hovered_suitable:
-		spline.color_b = glob.hovered_connection.color
+		spline.color_b = glob.hovered_connection.gradient_color
 	else:
 		spline.color_b = Color.WHITE
+	if finalize: spline.modulate.a = 1.0
+	else: spline.modulate.a = 0.7
 
 var hovered: bool = false
 var prog: float = 0.0
@@ -158,13 +177,14 @@ func _process(delta: float) -> void:
 	
 	if active_outputs:
 		parent_graph.hold_for_frame()
-
-	if inside:
-		parent_graph.hold_for_frame()
-		if not is_instance_valid(glob.hovered_connection):
-			glob.hovered_connection = self
-	elif glob.hovered_connection == self:
-		glob.hovered_connection = null
+	
+	if connection_type == INPUT:
+		if inside:
+			parent_graph.hold_for_frame()
+			if not is_instance_valid(glob.hovered_connection):
+				glob.hovered_connection = self
+		elif glob.hovered_connection == self:
+			glob.hovered_connection = null
 
 	#if not inside and not active_outputs:
 		#return
@@ -180,6 +200,7 @@ func _process(delta: float) -> void:
 		glob.reset_menu_type(self, "detatch")
 
 	var occ = glob.is_occupied(self, "conn_active")
+	
 	if connection_type == OUTPUT and inside and not occ and not glob.is_occupied(self, &"menu_inside"):
 		if mouse_just_pressed:
 			if 1: # TODO: implement router splines
@@ -214,6 +235,9 @@ func _process(delta: float) -> void:
 	var suit
 	if active_outputs:
 		suit = is_suitable(glob.hovered_connection)
+		parent_graph.active_output_connections[self] = true
+	else:
+		parent_graph.active_output_connections.erase(self)
 	for id in active_outputs:
 		var spline = active_outputs[id]
 		# update using the splines origin
@@ -226,6 +250,7 @@ func _process(delta: float) -> void:
 			else:
 				glob.un_occupy(glob.hovered_connection, &"conn_active")
 				to_end.append(id)
+		#print(spline.tied_to)
 		_stylize_spline(spline, suit)
 			
 	if suit and active_outputs:

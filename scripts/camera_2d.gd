@@ -14,8 +14,7 @@ func _enter_tree() -> void:
 
 func _handle_mouse_wrap(pos: Vector2) -> void:
 	#pos -= glob.space_begin
-	var vp = get_viewport()
-	var sz = Vector2(vp.size)
+	var sz = Vector2(glob.space_end)
 	var new_pos = pos
 
 	if pos.x <= glob.space_begin.x:
@@ -30,12 +29,13 @@ func _handle_mouse_wrap(pos: Vector2) -> void:
 
 	if new_pos != pos:
 		_ignore_next_motion = true
-		vp.warp_mouse(new_pos)
+		get_viewport().warp_mouse(new_pos)
 
 var _ignore_next_motion: bool = false
 var target_zoom: float = zoom.x
 
 var target_position: Vector2 = Vector2()
+var acc: bool = false
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == drag_button:
@@ -54,7 +54,7 @@ func _input(event: InputEvent) -> void:
 				move_intensity = 1.0
 				glob.hide_all_menus()
 
-	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed:
+	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed and acc:
 		if _ignore_next_motion:
 			_ignore_next_motion = false
 			return
@@ -73,13 +73,15 @@ func mouse_range(pos: float, edge_start: float, edge_end: float, axis: int):
 	match axis:
 		glob.UP: edge_min = glob.space_begin.y-edge_min; edge_max = glob.space_begin.y-edge_max
 		glob.LEFT: edge_min = glob.space_begin.x-edge_min; edge_max = glob.space_begin.x-edge_max
-		glob.DOWN: edge_min += glob.window_size.y; edge_max += glob.window_size.y
-		glob.RIGHT: edge_min += glob.window_size.x; edge_max += glob.window_size.x
+		glob.DOWN: edge_min += glob.space_end.y; edge_max += glob.space_end.y
+		glob.RIGHT: edge_min += glob.space_end.x; edge_max += glob.space_end.x
 	var t = inverse_lerp(edge_min, edge_max, pos)
 	return clamp(t, 0.0, 1.0)
 
 var rise_mult: float = 0.0
 func _process(delta: float) -> void:
+	if glob.mouse_middle_just_pressed:
+		acc = glob.get_display_mouse_position().x < glob.space_end.x
 	var mouse: Vector2 = get_global_mouse_position()
 	RenderingServer.global_shader_parameter_set("_view_scale", pow(zoom.x, 0.25))
 	zoom = Vector2.ONE * lerp(zoom.x, target_zoom, delta * zoom_interpolation_speed)
@@ -95,7 +97,7 @@ func _process(delta: float) -> void:
 	if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult:
 		var dir = glob.window_middle.direction_to(display_mouse)
 		drag_move_vec = drag_move_vec.lerp(
-		1300 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
+		1000 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
 		delta * 10.0)
 		glob.hide_all_menus.call_deferred()
 	else:

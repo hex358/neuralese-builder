@@ -5,10 +5,11 @@
 [resource]
 script = ExtResource("1_balws")
 hover_color = Color(1.1, 1.1, 1.1, 1)
-_hover_scale = 1.03
+hover_mult = 1.3
+_hover_scale = 1.0
 press_color = Color(0.9, 0.9, 0.9, 1)
-_press_scale = 0.97
-animation_scale = 4.0
+_press_scale = 1.0
+animation_scale = 0.0
 animation_speed = 1.951
 animation_decay = 4.564
 animation_duration = 1.0

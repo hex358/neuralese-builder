@@ -12,5 +12,7 @@ func _process(delta: float) -> void:
 		for m in menus:
 			var menu = menus[m]
 			menu.attachement_x = size.x - menu.size.x + 30
-	if Input.is_action_just_pressed("ui_accept"):
-		menus["a"].expand()
+	#if Input.is_action_just_pressed("ui_accept"):
+	#	menus["a"].expand()
+	#elif Input.is_action_just_pressed("down"):
+	#	menus["a"].close()

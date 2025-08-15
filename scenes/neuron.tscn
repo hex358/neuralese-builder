@@ -1,109 +1,134 @@
-[gd_scene load_steps=8 format=3 uid="uid://cbtf5jh2s8v3j"]
+[gd_scene load_steps=9 format=3 uid="uid://cbtf5jh2s8v3j"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_mms1l"]
 [ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="2_pliy4"]
+[ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_u856i"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="3_j2aws"]
-[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="5_u3r6r"]
-[ext_resource type="Resource" uid="uid://b87f7qp31583q" path="res://resources/lite_config.tres" id="6_fqm4g"]
-[ext_resource type="Texture2D" uid="uid://dt0muya35xqxx" path="res://assets/icons/act.png" id="6_g8jnw"]
-[ext_resource type="Texture2D" uid="uid://dqe52jyg1eqv5" path="res://assets/icons/bias.png" id="7_0nr7h"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="4_2oyde"]
+[ext_resource type="Script" uid="uid://7nab6wgidrl1" path="res://scenes/unit.gd" id="4_fqm4g"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="6_u3r6r"]
+[ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="8_g8jnw"]
 
-[node name="Base" instance=ExtResource("1_mms1l")]
-z_space = 1
+[node name="Base" node_paths=PackedStringArray("unit", "line_edit") instance=ExtResource("1_mms1l")]
+script = ExtResource("2_u856i")
+bottom_attached = false
+unit = NodePath("unit")
+padding = 0.0
+line_edit = NodePath("LineEdit")
+unit_offset_y = 34.97
+target_size = 90.0
 
-[node name="ColorRect4" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
-instance_shader_parameters/corner_radius_add = 3.0
-instance_shader_parameters/tuning = Color(0.93, 0.93, 0.93, 1)
+[node name="i" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
 layout_mode = 0
-offset_left = -60.0
-offset_top = -16.0
-offset_right = -40.0
-offset_bottom = 17.0
-color = Color(0.9, 0.9, 0.9, 1)
+offset_left = -67.0
+offset_top = -30.0
+offset_right = -51.0
+offset_bottom = -2.0
+color = Color(0, 1, 0.883333, 1)
 connection_type = 0
-area_paddings = Vector4(0, 10, 20, 10)
-multiple_splines = true
+area_paddings = Vector4(20, 5, 20, 5)
+origin_offset = Vector2(-4, 0)
+unpadded_area = Vector4(0, 10, 20, 10)
 dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("..")
+gradient_color = Color(0, 1, 0.882353, 1)
 
-[node name="ColorRect3" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
-instance_shader_parameters/corner_radius_add = 3.0
-instance_shader_parameters/tuning = Color(0.93, 0.93, 0.93, 1)
+[node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
 layout_mode = 0
-offset_left = 40.0
-offset_top = -16.0
-offset_right = 60.0
-offset_bottom = 17.0
-color = Color(0.9, 0.9, 0.9, 1)
+offset_left = 47.0
+offset_top = -30.0
+offset_right = 63.0
+offset_bottom = -2.0
+color = Color(0, 1, 0.882353, 1)
 connection_type = 1
-area_paddings = Vector4(0, 10, 20, 10)
+area_paddings = Vector4(20, 5, 20, 5)
 multiple_splines = true
+origin_offset = Vector2(4, 0)
+unpadded_area = Vector4(0, 10, 20, 10)
 parent_graph = NodePath("..")
+gradient_color = Color(0.74, 1, 0.969667, 1)
 
 [node name="ColorRect" parent="." index="2"]
-material = ExtResource("2_pliy4")
-instance_shader_parameters/outline_color = Color(0.59, 1, 0.883833, 1)
-instance_shader_parameters/tuning = Color(0.1276, 0.44, 0.351487, 0.443137)
-offset_left = -50.0
-offset_top = -48.0
-offset_right = 50.0
-offset_bottom = 52.0
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
+offset_left = -56.0
+offset_top = -49.0
+offset_right = 51.0
+offset_bottom = 40.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
-text = ""
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 219.0
+offset_bottom = 47.0
+scale = Vector2(0.370296, 0.370296)
+theme_override_colors/font_color = Color(0, 1, 0.882353, 1)
+text = "DenseLayer"
 
-[node name="bias" parent="." index="3" node_paths=PackedStringArray("graph") instance=ExtResource("5_u3r6r")]
-instance_shader_parameters/corner_radius_add = 0.0
-instance_shader_parameters/corner_width_add = 0.5
-instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
-instance_shader_parameters/tuning = Color(0.65, 0.65, 0.65, 0.552941)
+[node name="unit" type="Control" parent="." index="3"]
+anchors_preset = 0
+offset_left = -49.0
+offset_top = 23.0
+offset_right = -16.0
+offset_bottom = 49.0
+script = ExtResource("4_fqm4g")
+
+[node name="ColorRect5" type="ColorRect" parent="unit" index="0"]
+material = ExtResource("2_pliy4")
+instance_shader_parameters/corner_width_add = -1.0
+instance_shader_parameters/outline_color = Color(0.59, 1, 0.883833, 1)
+instance_shader_parameters/tuning = Color(0.1276, 0.44, 0.351487, 0.443137)
 layout_mode = 0
-offset_left = -44.0
-offset_top = -33.0
-offset_right = 56.0
-offset_bottom = 8.0
-scale = Vector2(0.507524, 0.507524)
-pivot_offset = Vector2(50, 20.5)
-color = Color(0.84, 0.84, 0.84, 1)
-button_type = 1
-hint = &"input"
-resize_after = 0
-text = "Bias"
-base_size = Vector2(100, 41)
-alignment = Vector2(0.5, 0.5)
-config = ExtResource("6_fqm4g")
-graph = NodePath("..")
+offset_left = 36.0
+offset_top = 1.0
+offset_right = 59.0
+offset_bottom = 24.0
 
-[node name="activation" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("5_u3r6r")]
-instance_shader_parameters/corner_radius_add = 0.0
-instance_shader_parameters/corner_width_add = 0.5
-instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
-instance_shader_parameters/tuning = Color(0.65, 0.65, 0.65, 0.552941)
+[node name="amount" type="Label" parent="." index="4"]
+z_index = 1
 layout_mode = 0
-offset_left = -44.0
-offset_top = -10.0
-offset_right = 57.0
-offset_bottom = 31.0
-scale = Vector2(0.507524, 0.507524)
-pivot_offset = Vector2(50.5, 20.5)
-color = Color(0.84, 0.84, 0.84, 1)
-button_type = 1
-hint = &"input"
-resize_after = 7
-text = "Change"
-base_size = Vector2(101, 41)
-alignment = Vector2(0.5, 0.5)
-config = ExtResource("6_fqm4g")
-graph = NodePath("..")
+offset_left = -47.0
+offset_top = -26.0
+offset_right = 77.0
+offset_bottom = 17.0
+scale = Vector2(0.461, 0.461)
+theme = ExtResource("4_2oyde")
+text = "Amount"
 
-[node name="Act" type="Sprite2D" parent="." index="5"]
-position = Vector2(-29, -12)
-scale = Vector2(0.394402, 0.394402)
-texture = ExtResource("6_g8jnw")
+[node name="type" type="Label" parent="." index="5"]
+z_index = 1
+layout_mode = 0
+offset_left = -47.0
+offset_top = -6.0
+offset_right = 77.0
+offset_bottom = 37.0
+scale = Vector2(0.461, 0.461)
+theme = ExtResource("4_2oyde")
+text = "Type"
 
-[node name="Bias" type="Sprite2D" parent="." index="6"]
-position = Vector2(-29, 10)
-scale = Vector2(0.363281, 0.363281)
-texture = ExtResource("7_0nr7h")
+[node name="activation" type="Label" parent="." index="6"]
+z_index = 1
+layout_mode = 0
+offset_left = -47.0
+offset_top = 15.0
+offset_right = 145.0
+offset_bottom = 58.0
+scale = Vector2(0.461, 0.461)
+theme = ExtResource("4_2oyde")
+text = "Func"
+
+[node name="LineEdit" parent="." index="7" instance=ExtResource("6_u3r6r")]
+layout_mode = 0
+offset_left = 15.0
+offset_top = -24.0
+offset_right = 95.0
+offset_bottom = 24.0
+scale = Vector2(0.326617, 0.326617)
+placeholder_text = "0"
+context_menu_enabled = false
+emoji_menu_enabled = false
+virtual_keyboard_type = 2
+script = ExtResource("8_g8jnw")
+change_always_accepted = false
+
+[connection signal="text_changed" from="LineEdit" to="." method="_on_line_edit_text_changed"]

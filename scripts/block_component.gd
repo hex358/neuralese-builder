@@ -62,6 +62,7 @@ func unblock_input() -> void: is_blocking = false
 
 @export_group("Context Menu")
 @export var left_activate: bool = false
+@export var size_add: float = 0.0
 @export var _scroll_container = null:
 	set(v):
 		if !Engine.is_editor_hint():
@@ -193,8 +194,9 @@ func initialize() -> void:
 				contain(child)
 			arrange()
 			_unclamped_expanded_size = expanded_size
-			
-		hide()  # start closed
+		
+		if button_type == ButtonType.CONTEXT_MENU:
+			hide()
 
 		if dynamic_size:
 			expanded_size = 4.0 + base_size.y
@@ -233,6 +235,7 @@ func resize(_size: Vector2) -> void:
 var wrapped: bool = false
 func arrange():
 	# Arrange children above or below based on expand_upwards
+	vbox.add_theme_constant_override("separation", arrangement_padding.y)
 	var maxsize: int = 0
 	var y = base_size.y * 0.9 if !expand_upwards else expanded_size / 2 - base_size.y * 1.45
 	scroll.position = Vector2(arrangement_padding.x, y)
@@ -303,12 +306,15 @@ func _ready() -> void:
 	text = text  # Trigger setter
 	if !Engine.is_editor_hint() and button_type == ButtonType.BLOCK_BUTTON and not placeholder and auto_wrap:
 		_create_scaler_wrapper.call_deferred()
+	if button_type == ButtonType.DROPOUT_MENU:
+		update_children_reveal()
 
 	
 
 func _sub_process(delta: float):
 	pass
 
+var current_type: int = ButtonType.BLOCK_BUTTON
 func _process_dropout_menu(delta: float) -> void:
 	# If the dropdown is closed, run normal button behavior/visuals.
 	var was_expanded = (state.expanding or state.expanded) and visible
@@ -317,7 +323,8 @@ func _process_dropout_menu(delta: float) -> void:
 		
 		# Open on press (left click like standard buttons).
 		# state.pressing becomes true on initial LMB down inside.
-		if state.pressing and not visible and not state.tween_hide:
+		if state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
+			current_type = ButtonType.CONTEXT_MENU
 			# Make context-menu logic left-click activated while open.
 			left_activate = true
 			mouse_open = true
@@ -329,7 +336,7 @@ func _process_dropout_menu(delta: float) -> void:
 			state.expanding = true
 	
 	# If opened (or opening/closing), hand off to the context-menu code.
-	if visible or state.tween_hide or state.expanding:
+	if state.tween_hide or state.expanding:
 		_process_context_menu(delta)
 
 
@@ -356,7 +363,8 @@ func is_mouse_inside() -> bool:
 	if graph:
 		var cons = glob.get_consumed("mouse")
 		if cons and graph != cons: return false
-	if !top and glob.get_display_mouse_position().y < glob.space_begin.y: return false
+	if !top and (glob.get_display_mouse_position().y < glob.space_begin.y\
+	or glob.get_display_mouse_position().x > glob.space_end.x): return false
 	var height = base_size.y if button_type == ButtonType.BLOCK_BUTTON else expanded_size
 	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
 	bounds.size *= mult
@@ -671,7 +679,7 @@ func _process_context_menu(delta: float) -> void:
 	if not i_occupied:
 		glob.un_occupy(self, &"menu")
 
-	if inside and not state.tween_hide:
+	if inside and not state.tween_hide and visible:
 		glob.occupy(self, "menu_inside")
 	else:
 		glob.un_occupy(self, "menu_inside")
@@ -681,6 +689,7 @@ func _process_context_menu(delta: float) -> void:
 
 	if state.expanding:
 		var target = expanded_size if not max_size else min(max_size, expanded_size)
+		target += size_add
 		size.y = lerpf(size.y, target, 30.0 * delta) if expand_anim else target
 		if expand_upwards:
 			position.y = anchor_position.y - size.y * mult.y
@@ -694,7 +703,10 @@ func _process_context_menu(delta: float) -> void:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
 		# hide once tween almost done
 		if state.tween_progress > 0.8:
-			hide()
+			if button_type == ButtonType.CONTEXT_MENU:
+				hide()
+			else:
+				current_type = ButtonType.BLOCK_BUTTON
 			scaler.scale = base_scale
 			state.tween_hide = false
 			state.holding = false
@@ -702,8 +714,9 @@ func _process_context_menu(delta: float) -> void:
 		size.y = lerpf(size.y, base_size.y, state.tween_progress)
 		if expand_upwards:
 			position.y = anchor_position.y - size.y * mult.y
-		
-		modulate = modulate.lerp(Color.TRANSPARENT, state.tween_progress)
+		if button_type == ButtonType.CONTEXT_MENU:
+			modulate.a = lerpf(modulate.a, 0.0, state.tween_progress)
+		bar.self_modulate.a = 0.0
 		update_children_reveal()
 	
 	show_request = false

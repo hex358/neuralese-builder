@@ -100,24 +100,47 @@ class Deltas:
 
 var _graph_delta_paths = {}
 var _graph_delta_objects = {}
+var _delta_roots = null
 var _graph_deltas = null
+
+var prev_graphs: Dictionary[int, bool] = {}
+func get_deltas() -> Dictionary:
+	var object_adds = {}
+	var object_deletes = {}
+	var graph_adds = []
+	var graph_deletes = []
+	for g in _graphs:
+		var graph = _graphs[g]
+		var res = store_delta(graph)
+		if res[0]:object_adds[g] = res[0]
+		if res[1]:object_deletes[g] = res[1]
+		if not g in prev_graphs:
+			graph_adds.append(g)
+		prev_graphs.erase(g)
+	for prev_graph in prev_graphs:
+		graph_deletes.append(prev_graph)
+	prev_graphs = _graphs_ids.duplicate()
+	return {"graph_adds": graph_adds, 
+	"graph_deletes": graph_deletes, 
+	"object_adds": object_adds,
+	"object_deletes": object_deletes}
 
 func store_delta(graph: Graph):
 	var new_info: Dictionary = graph.get_info()
 	var delta_paths = _graph_delta_paths.get_or_add(graph, {})
 	var delta_objects = _graph_delta_objects.get_or_add(graph, {})
-	var graph_deltas = _graph_deltas if typeof(_graph_deltas) == TYPE_DICTIONARY else {}
-	if typeof(graph_deltas) != TYPE_DICTIONARY:
-		graph_deltas = {}
-	_graph_deltas = graph_deltas
+	var delta_roots = _delta_roots if typeof(_delta_roots) == TYPE_DICTIONARY else {}
+	if typeof(delta_roots) != TYPE_DICTIONARY:
+		delta_roots = {}
+	_delta_roots = delta_roots
 
 	var q = [[new_info, TYPE_DICTIONARY, ["origin"], false]]
 
-	var globdelta = graph_deltas.get(graph)
+	var globdelta = delta_roots.get(graph)
 	if globdelta == null:
 		var root_deltas = Deltas.new(new_info, {})
 		q[0][3] = root_deltas
-		graph_deltas[graph] = root_deltas
+		delta_roots[graph] = root_deltas
 	else:
 		q[0][3] = globdelta
 
@@ -150,10 +173,10 @@ func store_delta(graph: Graph):
 				if (dict and (not deltas.snapshot.has(key) or deltas.snapshot[key] != value)) \
 				or (!dict and (key >= len(deltas.snapshot) or deltas.snapshot[key] != value)):
 					result_adds.get_or_add(path, {})[key] = value
-
+			#deltas.snapshot.erase()
 		if deltas.snapshot:
 			if parent_dtype == TYPE_DICTIONARY:
-				for k in deltas.snapshot.keys():
+				for k in deltas.snapshot:
 					if not cur_iterable.has(k):
 						result_deletes.get_or_add(path, {})[k] = deltas.snapshot[k]
 			else:
@@ -164,12 +187,48 @@ func store_delta(graph: Graph):
 						result_deletes.get_or_add(path, {})[i] = deltas.snapshot[i]
 
 		deltas.snapshot = cur_iterable.duplicate()
+	
+	return [result_adds, result_deletes]
+
+var _graphs_ids: Dictionary[int, bool] = {}
+var _graphs: Dictionary[int, Graph] = {}
+func add(graph: Graph):
+	_graphs[graph.graph_id] = graph
+	_graphs_ids[graph.graph_id] = true
+
+func remove(graph: Graph):
+	_graphs.erase(graph.graph_id)
+	_graphs_ids.erase(graph.graph_id)
+
+func attach_edge(from_conn: Connection, to_conn: Connection):
+	pass
+
+func remove_edge(from_conn: Connection, to_conn: Connection):
+	pass
+
+func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
+	return true
+
+
+func save():
+	var jsonified = JSON.new().stringify(get_deltas())
+	var bytes = jsonified.to_ascii_buffer()
+	var compressed = bytes.compress(FileAccess.CompressionMode.COMPRESSION_GZIP)
+	print(len(bytes))
+	print(len(compressed))
+
+func run_request(input: Graph):
+	save()
+
+
+
 
 var graph_types = {
 	"io": preload("res://scenes/io_graph.tscn"),
 	"neuron": preload("res://scenes/neuron.tscn"),
 	"loop": preload("res://scenes/loop.tscn"),
-	"base": preload("res://scenes/base_graph.tscn")
+	"base": preload("res://scenes/base_graph.tscn"),
+	"input": preload("res://scenes/input_graph.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
@@ -180,6 +239,7 @@ func get_graph(type = graph_types.base, flags = Graph.Flags.NONE) -> Graph:
 	z_count += last.z_space if last else 0
 	new.z_index = z_count
 	storage.add_child(new)
+	add(new)
 	return new
 
 var graph_layers: Dictionary[int, CanvasLayer] = {}
@@ -188,10 +248,14 @@ func _ready():
 
 var pos_cache: Dictionary = {}
 func _process(delta: float) -> void:
+	if Input.is_action_just_pressed("up"):
+		run_request(null)
+	
 	propagate_cycle()
 	gather_cycle()
 
 	var vp = Rect2(Vector2.ZERO, glob.window_size)
+	var dc = 0
 
 	for graph: Graph in storage.get_children():
 		var r = graph.rect
@@ -213,18 +277,30 @@ func _process(delta: float) -> void:
 			var rect_screen = Rect2(Vector2(minx, miny), Vector2(maxx - minx, maxy - miny))
 
 			vis = rect_screen.intersects(vp)
-		vis = vis or graph.dragging or graph.hold_process
-		if graph.hold_process:
-			graph.hold_process = false
 		
-		#vis = vis and 
-
-		if vis:
-			graph.process_mode = Node.PROCESS_MODE_ALWAYS
+		var force_held: bool = false
+		if vis or graph.hold_process or graph.dragging or graph.active_output_connections:
+			var inside = graph.is_mouse_inside()
+			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
+			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))
+			if graph.hold_process or padded_inside or graph.active_output_connections:
+				graph.process_mode = Node.PROCESS_MODE_ALWAYS
+				
+				if inside:
+					force_held = true
+					graph.hold_for_frame()
+			else:
+				if graph.process_mode != Node.PROCESS_MODE_DISABLED:
+					graph._stopped_processing()
+				graph.process_mode = Node.PROCESS_MODE_DISABLED
 			graph.show()
-			graph.is_mouse_inside()
 		else:
 			graph.hide()
+			if graph.process_mode != Node.PROCESS_MODE_DISABLED:
+				graph._stopped_processing()
 			graph.process_mode = Node.PROCESS_MODE_DISABLED
+
+		if graph.hold_process and !force_held:
+			graph.hold_process = false
 		
-		
+		dc += int(graph.process_mode != Node.PROCESS_MODE_DISABLED)

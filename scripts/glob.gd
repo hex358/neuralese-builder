@@ -36,6 +36,27 @@ func get_spline(for_connection: Connection, keyword: StringName = &"default") ->
 # Occupation (some node blocks input of others)
 var occ_layers: Dictionary[StringName, Control] = {}
 
+
+class GenArray:
+	var _iterable = null; var _wrapper: Callable = Callable()
+	func _init(iterable, wrapper: Callable):
+		iterable = _iterable; _wrapper = wrapper
+
+	func _iter_init(iter):
+		iter[0] = 0
+		return iter[0] < len(_iterable)
+
+	func _iter_next(iter):
+		iter[0] += 1
+		return iter[0] < len(_iterable)
+
+	func _iter_get(iter):
+		return _wrapper.call(iter[0])
+
+
+func gen(iterable, wrapper: Callable) -> GenArray:
+	return GenArray.new(iterable, wrapper)
+
 func is_occupied(node: Node, layer: StringName) -> bool: 
 	var occupied = occ_layers.get(layer, null)
 	return is_instance_valid(occupied) and occupied != node
@@ -143,6 +164,12 @@ var mouse_alt_pressed: bool = false
 var mouse_alt_just_pressed: bool = false
 var mouse_alt_released: bool = false
 var mouse_alt_just_released: bool = false
+
+var mouse_middle_pressed: bool = false
+var mouse_middle_just_pressed: bool = false
+var mouse_middle_released: bool = false
+var mouse_middle_just_released: bool = false
+
 var mouse_scroll: int = 0
 
 var consumed_input: Dictionary[StringName, Control] = {}
@@ -205,6 +232,25 @@ func press_poll():
 	mouse_alt_just_released = Input.is_action_just_released("ui_mouse_alt")
 	mouse_alt_released = not mouse_alt_pressed
 
+	mouse_middle_just_pressed = Input.is_action_just_pressed("ui_mouse_middle")
+	mouse_middle_pressed = Input.is_action_pressed("ui_mouse_middle")
+	mouse_middle_just_released = Input.is_action_just_released("ui_mouse_middle")
+	mouse_middle_released = not mouse_alt_pressed
+
+
+func cull(gp: Vector2, s: Vector2) -> bool:
+	var p0: Vector2 = glob.world_to_screen(gp)
+	var p1: Vector2 = glob.world_to_screen(gp + Vector2(s.x, 0.0))
+	var p2: Vector2 = glob.world_to_screen(gp + Vector2(0.0, s.y))
+	var p3: Vector2 = glob.world_to_screen(gp + s)
+
+	var minx: float = min(p0.x, p1.x, p2.x, p3.x)
+	var maxx: float  = max(p0.x, p1.x, p2.x, p3.x)
+	var miny: float = min(p0.y, p1.y, p2.y, p3.y)
+	var maxy: float = max(p0.y, p1.y, p2.y, p3.y)
+	var rect_screen = Rect2(Vector2(minx, miny), Vector2(maxx - minx, maxy - miny))
+
+	return rect_screen.intersects(window_rect)
 
 
 
@@ -236,11 +282,13 @@ func world_to_screen(p_world: Vector2) -> Vector2:
 func screen_to_world(p_screen: Vector2) -> Vector2:
 	return get_viewport().get_canvas_transform().affine_inverse() * p_screen
 
+var window_rect: Rect2 = Rect2()
 func _process(delta: float) -> void:
 	ticks += 1
 	if Engine.is_editor_hint(): return
 	
 	window_size = DisplayServer.window_get_size()
+	window_rect = Rect2(Vector2(), window_size)
 	window_middle = window_size / 2
 
 	_after_process.call_deferred(delta)
@@ -261,6 +309,7 @@ var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
 
 var space_begin: Vector2 = Vector2()
+var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
 	splines_layer = CanvasLayer.new()
 	splines_layer.layer = 4

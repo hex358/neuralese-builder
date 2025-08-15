@@ -1,12 +1,16 @@
-[gd_scene load_steps=11 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=16 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
 [ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="3_xwiyo"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="4_5k5he"]
 [ext_resource type="Script" uid="uid://b8ehbcul6kgbc" path="res://scripts/submenu_neuron.gd" id="5_m4erh"]
+[ext_resource type="Script" uid="uid://bdl80c5ge01pa" path="res://scripts/graphic.gd" id="6_5i506"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="6_m4erh"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_x5ox8"]
+[ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_4033n"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
 
 [sub_resource type="Gradient" id="Gradient_5k5he"]
 colors = PackedColorArray(0, 0.81, 0.4995, 1, 0.20286, 0.23, 0.0943, 0)
@@ -14,9 +18,8 @@ colors = PackedColorArray(0, 0.81, 0.4995, 1, 0.20286, 0.23, 0.0943, 0)
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_nwut5"]
 gradient = SubResource("Gradient_5k5he")
 width = 400
-fill = 1
+height = 60
 fill_from = Vector2(0, 0.00828157)
-fill_to = Vector2(0.248447, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nwut5"]
 shader = ExtResource("1_5k5he")
@@ -29,25 +32,42 @@ shader_parameter/outline_width = 1.688
 shader_parameter/mult = 1.5
 shader_parameter/blur_level = 5.07
 
+[sub_resource type="Resource" id="Resource_thedb"]
+script = ExtResource("10_5i506")
+hover_color = Color(0.68, 1, 0.834667, 1)
+hover_mult = 1.4
+_hover_scale = 1.037
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 0.97
+animation_scale = 0.0
+animation_speed = 1.951
+animation_decay = 4.564
+animation_duration = 1.0
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
 [node name="fg" type="CanvasLayer"]
 layer = 128
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." node_paths=PackedStringArray("menus")]
 material = ExtResource("1_s7ao5")
 instance_shader_parameters/outline_color = Color(0, 0, 0, 0.521569)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.521569)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.411765)
 offset_left = -1.0
 offset_top = -3.0
 offset_right = 1155.0
 offset_bottom = 51.0
 script = ExtResource("2_1j68c")
+menus = {
+&"a": NodePath("../submenu")
+}
 
 [node name="TextureRect" type="TextureRect" parent="ColorRect"]
 self_modulate = Color(1, 1, 1, 0.403922)
 layout_mode = 0
-offset_top = -0.999998
-offset_right = 315.0
-offset_bottom = 53.0
+offset_left = 1.0
+offset_top = -6.0
+offset_right = 316.0
+offset_bottom = 54.0
 scale = Vector2(1.36387, 1.00387)
 texture = SubResource("GradientTexture2D_nwut5")
 expand_mode = 1
@@ -71,7 +91,8 @@ offset_right = 54.0
 offset_bottom = 52.0
 scale = Vector2(0.764192, 0.764192)
 
-[node name="submenu" type="ColorRect" parent="."]
+[node name="submenu" type="ColorRect" parent="." node_paths=PackedStringArray("top")]
+visible = false
 material = SubResource("ShaderMaterial_nwut5")
 instance_shader_parameters/corner_radius_add = 40.0
 instance_shader_parameters/corner_width_add = 0.0
@@ -83,6 +104,7 @@ offset_top = 50.0
 offset_right = 1160.0
 offset_bottom = 568.0
 script = ExtResource("5_m4erh")
+top = NodePath("../ColorRect")
 
 [node name="Label" type="Label" parent="submenu"]
 layout_mode = 0
@@ -95,9 +117,16 @@ theme = ExtResource("3_xwiyo")
 text = "Edit neuron"
 
 [node name="graph" type="Line2D" parent="submenu"]
+visible = false
 position = Vector2(39, 127)
-points = PackedVector2Array(204, -40, 0, 0)
+points = PackedVector2Array(0, 10, 4, 10, 8, 10, 12, 10, 16, 10, 20, 10, 24, 10, 28, 9.99999, 32, 9.99998, 36, 9.99994, 40, 9.99988, 44, 9.99973, 48, 9.99939, 52, 9.99865, 56, 9.99699, 60, 9.99329, 64, 9.98508, 68, 9.96682, 72, 9.92632, 76, 9.83675, 80, 9.64028, 84, 9.21669, 88, 8.33655, 92, 6.64037, 96, 3.79949, 100, 0, 104, -3.79949, 108, -6.64037, 112, -8.33655, 116, -9.21669, 120, -9.64028, 124, -9.83675, 128, -9.92632, 132, -9.96682, 136, -9.98508, 140, -9.99329, 144, -9.99699, 148, -9.99865, 152, -9.99939, 156, -9.99973, 160, -9.99988, 164, -9.99994, 168, -9.99998, 172, -9.99999, 176, -10, 180, -10, 184, -10, 188, -10, 192, -10, 196, -10)
 width = 5.0
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+script = ExtResource("6_5i506")
+expr = "tanh(x*0.1)
+"
 
 [node name="LineEdit" type="LineEdit" parent="submenu"]
 layout_mode = 0
@@ -105,9 +134,40 @@ offset_left = 43.0
 offset_top = 152.0
 offset_right = 296.0
 offset_bottom = 200.0
-scale = Vector2(0.475104, 0.475104)
+scale = Vector2(0.725194, 0.725194)
 theme = ExtResource("6_m4erh")
 theme_override_font_sizes/font_size = 30
 placeholder_text = " Bias"
 max_length = 17
 script = ExtResource("7_x5ox8")
+
+[node name="ColorRect2" parent="submenu" instance=ExtResource("4_5k5he")]
+z_index = 99
+layout_mode = 0
+offset_left = 41.0
+offset_top = 212.0
+offset_right = 241.0
+offset_bottom = 262.0
+button_type = 2
+top = true
+size_add = 0.0
+mouse_open = false
+
+[node name="ColorRect2" parent="submenu/ColorRect2" instance=ExtResource("4_5k5he")]
+material = ExtResource("9_4033n")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 70.0
+offset_bottom = 46.0
+pivot_offset = Vector2(35.5, 21)
+button_type = 1
+text = "Add"
+base_size = Vector2(71, 42)
+alignment = Vector2(0.5, 0.5)
+size_add = 0.0
+config = SubResource("Resource_thedb")

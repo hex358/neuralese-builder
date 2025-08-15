@@ -4,15 +4,19 @@ class_name SubMenu
 @export var top: TopBar = null
 
 var attachement_x: int = 0
-var state: int = 0 #1 - expand, 2 - hide
+var state: int = 2 #1 - expand, 2 - hide
 func _process(delta: float) -> void:
 	if visible:
 		size.y = glob.window_size.y - position.y
 		match state:
 			1:
-				position.x = lerpf(position.x, attachement_x, delta * 10.0)
+				glob.space_end.x = position.x
+				#graphs.storage.get_parent().target_offset.x = -60
+				position.x = lerpf(position.x, attachement_x, delta * 20.0)
 			2:
-				position.x = lerpf(position.x, glob.window_size.x, delta * 10.0)
+				#graphs.storage.get_parent().target_offset.x = 0
+				glob.space_end.x = position.x
+				position.x = lerpf(position.x, glob.window_size.x, delta * 20.0)
 				if abs(position.x-glob.window_size.x)<2:
 					hide()
 

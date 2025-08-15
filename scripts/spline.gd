@@ -13,7 +13,7 @@ var tied_to: Connection
 var curve = Curve2D.new()
 
 func _ready() -> void:
-	
+	line_2d.gradient = line_2d.gradient.duplicate(true)
 	if !Engine.is_editor_hint():
 		$Marker2D.queue_free()
 
@@ -66,14 +66,16 @@ var colors_array: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHITE]
 @export var color_a: Color = Color.WHITE:
 	set(v):
 		color_a = v; colors_array[0] = v
+		line_2d.gradient.colors = colors_array
 @export var color_b: Color = Color.WHITE:
 	set(v):
 		color_b = v; colors_array[1] = v
+		line_2d.gradient.colors = colors_array
 func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
 	curve.clear_points()
 	mapping.get(keyword, default_points).call(start, end, start_dir, end_dir)
 	#line_2d.default_color = color
-	line_2d.gradient.colors = colors_array
+	
 	line_2d.points = baked
 
 func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
@@ -93,7 +95,7 @@ func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = 
 	
 	var length: float = (end-start).length()
 	var size: float = clamp(length*0.1, 2, 10)-2 # the initial "crusty" part of curve will become smaller
-	curve.bake_interval = clamp(length*0.01, 1, 30) # so the small curves looked better
+	curve.bake_interval = clamp(length*0.05, 1, 30) # so the small curves looked better
 	#print(curve.bake_interval)
 	curve.clear_points()
 

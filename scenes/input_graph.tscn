@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3 uid="uid://e3l6g3u21slb"]
+
+[ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_6ucvy"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_m1bro"]
+
+[node name="Base" instance=ExtResource("1_6ucvy")]
+
+[node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
+layout_mode = 0
+offset_left = 82.0
+offset_top = -16.0
+offset_right = 98.0
+offset_bottom = 12.0
+color = Color(1, 0.988235, 0.6, 1)
+connection_type = 1
+area_paddings = Vector4(20, 5, 20, 5)
+multiple_splines = true
+origin_offset = Vector2(3, 0)
+unpadded_area = Vector4(0, 0, 20, 0)
+parent_graph = NodePath("..")
+gradient_color = Color(1, 0.988235, 0.6, 1)
+
+[node name="ColorRect" parent="." index="1"]
+instance_shader_parameters/corner_radius_add = -4.0
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
+offset_top = -50.0
+offset_bottom = 48.0
+
+[node name="Label" parent="ColorRect/root" index="0"]
+offset_left = 11.0
+offset_top = 7.0
+offset_right = 107.0
+offset_bottom = 50.0
+scale = Vector2(0.569577, 0.569577)
+theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
+text = "Input"
