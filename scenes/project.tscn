@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=7 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="PackedScene" uid="uid://tjiw5jmnnrgh" path="res://scenes/fg.tscn" id="1_djuk3"]
 [ext_resource type="Script" uid="uid://cycf8wrmrdnkj" path="res://scripts/gview.gd" id="2_6ipd3"]
@@ -6,8 +6,6 @@
 [ext_resource type="PackedScene" uid="uid://8u7275kgyen4" path="res://scenes/menus.tscn" id="4_dsnwd"]
 [ext_resource type="PackedScene" uid="uid://by1briddb0hwg" path="res://scenes/bg.tscn" id="5_sa0gx"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://scripts/camera_2d.gd" id="6_agq83"]
-[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="7_3560t"]
-[ext_resource type="CodeHighlighter" uid="uid://ccbt2ieavpasa" path="res://resources/python.tres" id="8_a7mxu"]
 
 [node name="base" type="Node2D"]
 
@@ -29,16 +27,3 @@ position_smoothing_speed = 22.0
 script = ExtResource("6_agq83")
 zoom_speed = 0.2
 drag_button = 3
-
-[node name="CodeEdit" type="CodeEdit" parent="."]
-offset_left = 770.0
-offset_top = -57.0
-offset_right = 1102.0
-offset_bottom = 300.0
-theme = ExtResource("7_3560t")
-text = "ff
-print(\"hi\")
-print(\"fjfjffj\") # warning: crazy watermelons"
-placeholder_text = "# input your code here..."
-syntax_highlighter = ExtResource("8_a7mxu")
-code_completion_enabled = true

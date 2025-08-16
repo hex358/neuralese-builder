@@ -8,7 +8,7 @@ func _menu_handle_release(button: BlockComponent):
 		"neuron":
 			type = graphs.graph_types.layer
 		"input":
-			type = graphs.graph_types.input
+			type = graphs.graph_types.neuron
 		"output":
 			type = graphs.graph_types.io
 

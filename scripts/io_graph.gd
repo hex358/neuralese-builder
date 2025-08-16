@@ -12,7 +12,7 @@ class_name DynamicGraph
 @onready var _unit = unit.duplicate()
 
 
-func _unit_modulate_updated(unit: Control, fin: bool = false):
+func _unit_modulate_updated(unit: Control, fin: bool = false, diss: bool = false):
 	pass
 
 var connection_paths = []
@@ -30,6 +30,7 @@ func _after_ready():
 	
 	unit.queue_free()
 	unit_script = unit.get_script()
+	_size_changed()
 	#for i in 100:
 	#	add_unit({"text": "hif"})
 
@@ -48,6 +49,7 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	appear_units[dup] = true
 	return dup
 
+var key_by_unit: Dictionary = {}
 func remove_unit(id: int):
 	var unit = units[id]; var dec = unit.size.y + padding
 	appear_units.erase(unit)
@@ -73,13 +75,18 @@ var target_y: float = 0.0
 func add_unit(kw: Dictionary = {}):
 	add_q.append(_add_q.bind(kw))
 
+@export var min_size: float = 0.0
+@export var size_add: float = 0.0
+
 var add_q: Queue = Queue.new()
 func _add_q(kw: Dictionary):
 	var new_unit = _get_unit(kw)
 	appear_units[new_unit] = true
 	new_unit.set_script(unit_script)
 	new_unit.id = len(units)
-	units.append(new_unit)
+	units.append(new_unit)	
+	key_by_unit[new_unit] = len(units)-1
+
 	new_unit.position.y = total_size + padding + unit_offset_y
 	if bottom_attached:
 		new_unit.position.y -= input.size.y
@@ -123,11 +130,12 @@ func _after_process(delta: float):
 			dissapearer.modulate.a = 0
 			dissapearer.queue_free()
 			to_del.append(dissapearer)
-			_unit_modulate_updated(dissapearer, true)
+			_unit_modulate_updated(dissapearer, true, true)
 		else:
-			_unit_modulate_updated(dissapearer, false)
+			_unit_modulate_updated(dissapearer, false, true)
 	for unit in to_del:
 		dissapear_units.erase(unit)
+		key_by_unit.erase(unit)
 	to_del = []
 	for unit in offset_units:
 		var target = offset_units[unit]
@@ -140,10 +148,15 @@ func _after_process(delta: float):
 	
 	if bottom_attached:
 		input.position.y = lerpf(input.position.y, target_y, delta*20.0)
-	rect.size.y = lerpf(rect.size.y, target_size, delta*20.0)
+	var prev_size:float = rect.size.y
+	rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
+	if !is_equal_approx(prev_size, rect.size.y):
+		_size_changed()
 	if ui.is_focus(line_edit):
 		hold_for_frame()
 
+func _size_changed(): # virtual
+	pass
 
 func _on_color_rect_2_pressed() -> void:
 	if line_edit.is_valid:

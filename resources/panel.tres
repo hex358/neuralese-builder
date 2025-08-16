@@ -12,3 +12,5 @@ shader_parameter/blurred_background = true
 shader_parameter/outline_width = 0.0
 shader_parameter/mult = 2.0
 shader_parameter/blur_level = 3.368
+shader_parameter/gaussian_mix = 1.0
+shader_parameter/gaussian_step = 1.0

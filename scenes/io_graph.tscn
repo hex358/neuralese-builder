@@ -35,6 +35,8 @@ padding = -7.0
 line_edit = NodePath("input/LineEdit")
 unit_offset_y = 0.0
 target_size = 96.0
+min_size = 0.0
+size_add = 0.0
 z_space = 1
 
 [node name="ColorRect" parent="." index="0"]
@@ -48,11 +50,11 @@ mouse_filter = 2
 
 [node name="Label" parent="ColorRect/root" index="0"]
 z_index = 0
-offset_left = 10.0
-offset_top = 7.0
-offset_right = 125.0
-offset_bottom = 50.0
-scale = Vector2(0.461477, 0.461477)
+offset_left = 9.0
+offset_top = 5.0
+offset_right = 124.0
+offset_bottom = 48.0
+scale = Vector2(0.414803, 0.414803)
 theme_override_colors/font_color = Color(0, 1, 0.716667, 1)
 text = "MapVar"
 
@@ -111,9 +113,9 @@ offset_bottom = 64.0
 [node name="LineEdit" parent="input" index="0" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_q8r0s")]
 layout_mode = 0
 offset_left = 0.0
-offset_top = -34.0
+offset_top = -33.0
 offset_right = 318.0
-offset_bottom = 14.0
+offset_bottom = 15.0
 context_menu_enabled = false
 accept_button = NodePath("../ColorRect2")
 

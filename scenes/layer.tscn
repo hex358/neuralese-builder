@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://dk05hn4etkckc"]
+[gd_scene load_steps=8 format=3 uid="uid://dk05hn4etkckc"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_oobeh"]
 [ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_2eb8h"]
 [ext_resource type="Script" uid="uid://7nab6wgidrl1" path="res://scenes/unit.gd" id="3_gemti"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="3_j0ma4"]
 [ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_3b4h0"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_3b4h0"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="6_j0ma4"]
@@ -13,21 +14,67 @@ bottom_attached = false
 unit = NodePath("unit")
 padding = 5.0
 line_edit = NodePath("LineEdit")
-unit_offset_y = -4.0
+unit_offset_y = -26.0
 target_size = 64.0
+min_size = 64.0
+size_add = -24.0
 
-[node name="ColorRect" parent="." index="0"]
+[node name="ni" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j0ma4")]
+offset_left = -33.0
+offset_top = 0.0
+offset_right = -15.0
+offset_bottom = 19.0
+color = Color(0.297, 0.9, 0.72915, 1)
+_accepted_datatypes = "layer"
+hint = 1
+connection_type = 0
+area_paddings = Vector4(20, 5, 20, 5)
+origin_offset = Vector2(-10, 0)
+unpadded_area = Vector4(20, 10, 0, 10)
+dir_vector = Vector2(-1, 0)
+parent_graph = NodePath("..")
+gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
+
+[node name="i" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j0ma4")]
+offset_left = -10.0
+offset_top = -72.0
+offset_right = 9.0
+offset_bottom = -44.0
+color = Color(0, 1, 0.882353, 1)
+connection_type = 0
+area_paddings = Vector4(20, 5, 20, 5)
+origin_offset = Vector2(0, -10)
+unpadded_area = Vector4(10, 0, 10, 20)
+dir_vector = Vector2(0, -1)
+parent_graph = NodePath("..")
+gradient_color = Color(0, 1, 0.882353, 1)
+
+[node name="o" parent="." index="2" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j0ma4")]
+offset_left = 13.0
+offset_top = 0.0
+offset_right = 31.0
+offset_bottom = 19.0
+color = Color(0.297, 0.9, 0.72915, 1)
+_accepted_datatypes = "layer"
+connection_type = 1
+area_paddings = Vector4(20, 5, 20, 5)
+origin_offset = Vector2(10, 0)
+unpadded_area = Vector4(0, 10, 20, 10)
+parent_graph = NodePath("..")
+gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
+
+[node name="ColorRect" parent="." index="3"]
 instance_shader_parameters/corner_radius_add = -2.0
 instance_shader_parameters/outline_color = Color(0.5538, 0.71, 0.665743, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_left = -25.0
 offset_right = 23.5
-offset_bottom = 46.0
+offset_bottom = 0.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 text = ""
 
-[node name="unit" type="Control" parent="." index="1"]
+[node name="unit" type="Control" parent="." index="4"]
 layout_mode = 3
 anchors_preset = 0
 offset_left = -47.0
@@ -47,17 +94,22 @@ offset_top = -6.0
 offset_right = 62.0
 offset_bottom = 24.0
 
-[node name="LineEdit" parent="." index="2" instance=ExtResource("5_3b4h0")]
+[node name="LineEdit" parent="." index="5" instance=ExtResource("5_3b4h0")]
+layout_mode = 0
 offset_left = -16.0
 offset_top = -55.0
 offset_right = 64.0
 offset_bottom = -7.0
 scale = Vector2(0.389326, 0.389326)
 placeholder_text = "0"
+max_length = 4
+expand_to_text_length = true
 context_menu_enabled = false
 emoji_menu_enabled = false
 virtual_keyboard_type = 2
 script = ExtResource("6_j0ma4")
+resize_after = 4
 change_always_accepted = false
 
+[connection signal="changed" from="LineEdit" to="." method="_on_line_edit_changed"]
 [connection signal="text_changed" from="LineEdit" to="." method="_on_line_edit_text_changed"]

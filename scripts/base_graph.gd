@@ -230,18 +230,21 @@ func _process(delta: float) -> void:
 			dragging = false
 			graphs.stop_drag(self)
 		else:
-			_dragged()
 			var vec = get_global_mouse_position() + attachement_position - global_position
 			#graphs.mark_rect(self)
 			#vec = graphs.can_move(self, vec)
 			global_position += vec
 			#graphs.collider(rect)
-		for input in _inputs:
-			input.reposition_splines()
-		for output in outputs:
-			output.reposition_splines()
+		reposition_splines()
+		_dragged()
 	
 	_after_process(delta)
+
+func reposition_splines():
+	for input in _inputs:
+		input.reposition_splines()
+	for output in outputs:
+		output.reposition_splines()
 
 func _after_process(delta: float):
 	pass

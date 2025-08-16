@@ -10,10 +10,10 @@ script = ExtResource("2_g8jnw")
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
 layout_mode = 0
-offset_left = -12.0
-offset_top = 7.0
-offset_right = 15.0
-offset_bottom = 35.0
+offset_left = -10.0
+offset_top = 5.0
+offset_right = 9.0
+offset_bottom = 33.0
 color = Color(0, 1, 0.882353, 1)
 connection_type = 1
 area_paddings = Vector4(20, 5, 20, 5)
@@ -25,6 +25,7 @@ parent_graph = NodePath("..")
 gradient_color = Color(0, 1, 0.882353, 1)
 
 [node name="ColorRect" parent="." index="1"]
+instance_shader_parameters/corner_radius_add = -3.0
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_left = -52.0
@@ -37,7 +38,7 @@ offset_left = 8.0
 offset_top = 4.0
 offset_right = 219.0
 offset_bottom = 47.0
-scale = Vector2(0.461, 0.461)
+scale = Vector2(0.340395, 0.340395)
 theme_override_colors/font_color = Color(0, 1, 0.882353, 1)
 text = "DenseLayer"
 

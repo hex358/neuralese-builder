@@ -173,7 +173,6 @@ func contain(child: BlockComponent):
 
 var add_to_size: bool = false
 
-# 3) Initialize menu internals for DROPOUT_MENU same as CONTEXT_MENU
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
 	
@@ -320,13 +319,9 @@ func _sub_process(delta: float):
 
 var current_type: int = ButtonType.BLOCK_BUTTON
 func _process_dropout_menu(delta: float) -> void:
-	# If the dropdown is closed, run normal button behavior/visuals.
 	var was_expanded = (state.expanding or state.expanded) and visible
 	if not was_expanded:
 		_process_block_button(delta)
-		
-		# Open on press (left click like standard buttons).
-		# state.pressing becomes true on initial LMB down inside.
 		if state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
 			current_type = ButtonType.CONTEXT_MENU
 			# Make context-menu logic left-click activated while open.
@@ -369,7 +364,8 @@ func is_mouse_inside() -> bool:
 		if cons and graph != cons: return false
 	if !top and (glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x): return false
-	var height = base_size.y if button_type == ButtonType.BLOCK_BUTTON else expanded_size
+	var height = base_size.y if (
+		button_type == ButtonType.BLOCK_BUTTON or (button_type == ButtonType.DROPOUT_MENU and current_type == ButtonType.BLOCK_BUTTON)) else expanded_size
 	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
 	bounds.size *= mult
 	bounds.position += global_position - Vector2.ONE*area_padding*mult
@@ -449,6 +445,7 @@ func _process_block_button(delta: float) -> void:
 		if imm_unpress:
 			press_request = false
 	mouse_pressed = mouse_pressed# and not glob.is_overlapped(self)
+	#print(inside)
 
 	if inside:
 		if mouse_pressed:

@@ -5,7 +5,20 @@ static var INPUT: int = 0
 static var OUTPUT: int = 1
 
 
-
+var accepted_datatypes: Dictionary[StringName, bool] = {}
+var datatype: StringName = ""
+@export var _accepted_datatypes: String = "": ##any(empty), float, config
+	set(v):
+		if not is_node_ready():
+			await ready
+		_accepted_datatypes = v
+		accepted_datatypes.clear()
+		if _accepted_datatypes:
+			for i in _accepted_datatypes.split(" "):
+				if connection_type == OUTPUT:
+					datatype = i
+				accepted_datatypes[i] = true
+		#print(connection_type == OUTPUT)
 @export var hint: int = 0
 @export var keyword: StringName = &""
 @export_enum("Input", "Output") var connection_type: int = INPUT
@@ -137,6 +150,7 @@ func _is_suitable(conn: Connection) -> bool: return true # virtual
 func is_suitable(conn: Connection) -> bool:
 	#print(len(outputs))
 	return (conn and conn != self and conn.connection_type == INPUT
+		and (!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype))
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
 		and (conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or multiple_splines or conn.conn_count_keyword == &"router")
 		and graphs.validate_acyclic_edge(self, conn)
