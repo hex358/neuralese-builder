@@ -46,7 +46,7 @@ multiple_splines = true
 origin_offset = Vector2(4, 0)
 unpadded_area = Vector4(0, 10, 20, 10)
 parent_graph = NodePath("..")
-gradient_color = Color(0.74, 1, 0.969667, 1)
+gradient_color = Color(0, 1, 0.882353, 1)
 
 [node name="ColorRect" parent="." index="2"]
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)

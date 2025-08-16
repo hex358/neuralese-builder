@@ -23,7 +23,7 @@ instance uniform vec4 outline_color: source_color = vec4(1.0);
 // === Blur controls ===
 uniform float blur_level: hint_range(0.0, 7.0) = 2.5;      // исходный LOD
 uniform float gaussian_mix: hint_range(0.0, 1.0) = 1.0;     // 0=Lod only, 1=Gauss over LOD
-uniform float gaussian_step: hint_range(0.0, 4.0) = 1.0;    // множитель шага в пикселях экрана
+uniform float gaussian_step: hint_range(0.0, 8.0) = 1.0;    // множитель шага в пикселях экрана
 
 // Экранная текстура с мипами
 uniform sampler2D screen: hint_screen_texture, filter_linear_mipmap;
@@ -50,7 +50,6 @@ vec4 sample_screen_safe(vec2 uv, float lod) {
 	return in_bounds(uv) ? cont : vec4(cont.rgb, 0.0);
 }
 
-// 9-tap Gaussian approx (binomial 3×3) with OOB -> a=0
 vec4 gaussian9_mip(vec2 uv, float lod, vec2 step_px) {
 	vec2 sx = vec2(step_px.x, 0.0);
 	vec2 sy = vec2(0.0, step_px.y);

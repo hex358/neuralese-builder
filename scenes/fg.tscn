@@ -56,8 +56,8 @@ layer = 128
 
 [node name="ColorRect" type="ColorRect" parent="." node_paths=PackedStringArray("menus")]
 material = ExtResource("1_s7ao5")
-instance_shader_parameters/outline_color = Color(0, 0, 0, 0.521569)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.411765)
+instance_shader_parameters/outline_color = Color(0.47, 0.47, 0.47, 0.521569)
+instance_shader_parameters/tuning = Color(0.44, 0.44, 0.44, 0.756863)
 offset_left = -1.0
 offset_top = -3.0
 offset_right = 1155.0

@@ -111,9 +111,9 @@ offset_bottom = 64.0
 [node name="LineEdit" parent="input" index="0" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_q8r0s")]
 layout_mode = 0
 offset_left = 0.0
-offset_top = -33.0
+offset_top = -34.0
 offset_right = 318.0
-offset_bottom = 15.0
+offset_bottom = 14.0
 context_menu_enabled = false
 accept_button = NodePath("../ColorRect2")
 
@@ -145,7 +145,7 @@ offset_left = -10.0
 offset_top = -75.0
 offset_right = 11.0
 offset_bottom = -54.0
-color = Color(1, 0.992667, 0.78, 1)
+color = Color(1, 0.986, 0.58, 1)
 keyword = &"router"
 connection_type = 0
 area_paddings = Vector4(16, 16, 16, 16)
@@ -153,6 +153,6 @@ origin_offset = Vector2(0, -3)
 dir_vector = Vector2(0, -1)
 parent_graph = NodePath("..")
 conn_count_keyword = "router"
-gradient_color = Color(1, 0.992157, 0.780392, 1)
+gradient_color = Color(1, 0.984314, 0.580392, 1)
 
 [connection signal="pressed" from="input/ColorRect2" to="." method="_on_color_rect_2_pressed"]

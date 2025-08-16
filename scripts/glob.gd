@@ -290,6 +290,7 @@ func _process(delta: float) -> void:
 	window_size = DisplayServer.window_get_size()
 	window_rect = Rect2(Vector2(), window_size)
 	window_middle = window_size / 2
+	space_end = DisplayServer.window_get_size()
 
 	_after_process.call_deferred(delta)
 	
