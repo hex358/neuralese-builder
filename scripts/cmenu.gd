@@ -6,7 +6,7 @@ func _menu_handle_release(button: BlockComponent):
 	var type = null
 	match button.hint:
 		"neuron":
-			type = graphs.graph_types.neuron
+			type = graphs.graph_types.layer
 		"input":
 			type = graphs.graph_types.input
 		"output":

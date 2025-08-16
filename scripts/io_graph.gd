@@ -12,7 +12,7 @@ class_name DynamicGraph
 @onready var _unit = unit.duplicate()
 
 
-func _unit_modulate_updated(unit: Control):
+func _unit_modulate_updated(unit: Control, fin: bool = false):
 	pass
 
 var connection_paths = []
@@ -111,7 +111,9 @@ func _after_process(delta: float):
 		if appearer.modulate.a > 0.9:
 			appearer.modulate.a = 1.0
 			to_del.append(appearer)
-		_unit_modulate_updated(appearer)
+			_unit_modulate_updated(appearer, true)
+		else:
+			_unit_modulate_updated(appearer, false)
 	for unit in to_del:
 		appear_units.erase(unit)
 	to_del = []
@@ -121,7 +123,9 @@ func _after_process(delta: float):
 			dissapearer.modulate.a = 0
 			dissapearer.queue_free()
 			to_del.append(dissapearer)
-		_unit_modulate_updated(dissapearer)
+			_unit_modulate_updated(dissapearer, true)
+		else:
+			_unit_modulate_updated(dissapearer, false)
 	for unit in to_del:
 		dissapear_units.erase(unit)
 	to_del = []
@@ -131,7 +135,6 @@ func _after_process(delta: float):
 		if abs(target - unit.position.y) < 1:
 			unit.position.y = target
 			to_del.append(unit)
-		_unit_modulate_updated(unit)
 	for unit in to_del:
 		offset_units.erase(unit)
 	

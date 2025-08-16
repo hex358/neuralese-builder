@@ -1,134 +1,64 @@
-[gd_scene load_steps=9 format=3 uid="uid://cbtf5jh2s8v3j"]
+[gd_scene load_steps=5 format=3 uid="uid://cbtf5jh2s8v3j"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_mms1l"]
-[ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="2_pliy4"]
-[ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_u856i"]
+[ext_resource type="Script" uid="uid://djv1yj3ii8ktb" path="res://scripts/neuron_config.gd" id="2_g8jnw"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="3_j2aws"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="4_2oyde"]
-[ext_resource type="Script" uid="uid://7nab6wgidrl1" path="res://scenes/unit.gd" id="4_fqm4g"]
-[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="6_u3r6r"]
-[ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="8_g8jnw"]
 
-[node name="neuronlayer" node_paths=PackedStringArray("unit", "line_edit") instance=ExtResource("1_mms1l")]
-script = ExtResource("2_u856i")
-bottom_attached = false
-unit = NodePath("unit")
-padding = 0.0
-line_edit = NodePath("LineEdit")
-unit_offset_y = 34.97
-target_size = 90.0
+[node name="neuronlayer" instance=ExtResource("1_mms1l")]
+script = ExtResource("2_g8jnw")
 
-[node name="i" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
+[node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
 layout_mode = 0
-offset_left = -65.0
-offset_top = -30.0
-offset_right = -49.0
-offset_bottom = -2.0
-color = Color(0, 1, 0.883333, 1)
-connection_type = 0
-area_paddings = Vector4(20, 5, 20, 5)
-origin_offset = Vector2(-4, 0)
-unpadded_area = Vector4(0, 10, 20, 10)
-dir_vector = Vector2(-1, 0)
-parent_graph = NodePath("..")
-gradient_color = Color(0, 1, 0.882353, 1)
-
-[node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
-layout_mode = 0
-offset_left = 44.0
-offset_top = -30.0
-offset_right = 60.0
-offset_bottom = -2.0
+offset_left = -12.0
+offset_top = 7.0
+offset_right = 15.0
+offset_bottom = 35.0
 color = Color(0, 1, 0.882353, 1)
 connection_type = 1
 area_paddings = Vector4(20, 5, 20, 5)
 multiple_splines = true
-origin_offset = Vector2(4, 0)
-unpadded_area = Vector4(0, 10, 20, 10)
+origin_offset = Vector2(0, 10)
+unpadded_area = Vector4(10, 0, 10, 20)
+dir_vector = Vector2(0, 1)
 parent_graph = NodePath("..")
 gradient_color = Color(0, 1, 0.882353, 1)
 
-[node name="ColorRect" parent="." index="2"]
+[node name="ColorRect" parent="." index="1"]
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
-offset_left = -56.0
-offset_top = -49.0
-offset_right = 51.0
-offset_bottom = 40.0
+offset_left = -52.0
+offset_top = -38.0
+offset_right = 53.0
+offset_bottom = 24.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 offset_left = 8.0
 offset_top = 4.0
 offset_right = 219.0
 offset_bottom = 47.0
-scale = Vector2(0.370296, 0.370296)
+scale = Vector2(0.461, 0.461)
 theme_override_colors/font_color = Color(0, 1, 0.882353, 1)
 text = "DenseLayer"
 
-[node name="unit" type="Control" parent="." index="3"]
-anchors_preset = 0
-offset_left = -49.0
-offset_top = 23.0
-offset_right = -16.0
-offset_bottom = 49.0
-script = ExtResource("4_fqm4g")
-
-[node name="ColorRect5" type="ColorRect" parent="unit" index="0"]
-material = ExtResource("2_pliy4")
-instance_shader_parameters/corner_width_add = -1.0
-instance_shader_parameters/outline_color = Color(0.59, 1, 0.883833, 1)
-instance_shader_parameters/tuning = Color(0.1276, 0.44, 0.351487, 0.443137)
-layout_mode = 0
-offset_left = 36.0
-offset_top = 1.0
-offset_right = 59.0
-offset_bottom = 24.0
-
-[node name="amount" type="Label" parent="." index="4"]
+[node name="type" type="Label" parent="." index="2"]
 z_index = 1
 layout_mode = 0
-offset_left = -47.0
-offset_top = -26.0
-offset_right = 77.0
-offset_bottom = 17.0
-scale = Vector2(0.461, 0.461)
-theme = ExtResource("4_2oyde")
-text = "Amount"
-
-[node name="type" type="Label" parent="." index="5"]
-z_index = 1
-layout_mode = 0
-offset_left = -47.0
-offset_top = -6.0
-offset_right = 77.0
-offset_bottom = 37.0
-scale = Vector2(0.461, 0.461)
+offset_left = -43.0
+offset_top = -16.0
+offset_right = 81.0
+offset_bottom = 27.0
+scale = Vector2(0.385403, 0.385403)
 theme = ExtResource("4_2oyde")
 text = "Type"
 
-[node name="activation" type="Label" parent="." index="6"]
+[node name="activation" type="Label" parent="." index="3"]
 z_index = 1
 layout_mode = 0
-offset_left = -47.0
-offset_top = 15.0
-offset_right = 145.0
-offset_bottom = 58.0
-scale = Vector2(0.461, 0.461)
+offset_left = -42.0
+offset_top = -0.999998
+offset_right = 150.0
+offset_bottom = 42.0
+scale = Vector2(0.387925, 0.387925)
 theme = ExtResource("4_2oyde")
 text = "Func"
-
-[node name="LineEdit" parent="." index="7" instance=ExtResource("6_u3r6r")]
-layout_mode = 0
-offset_left = 15.0
-offset_top = -24.0
-offset_right = 95.0
-offset_bottom = 24.0
-scale = Vector2(0.326617, 0.326617)
-placeholder_text = "0"
-context_menu_enabled = false
-emoji_menu_enabled = false
-virtual_keyboard_type = 2
-script = ExtResource("8_g8jnw")
-change_always_accepted = false
-
-[connection signal="text_changed" from="LineEdit" to="." method="_on_line_edit_text_changed"]

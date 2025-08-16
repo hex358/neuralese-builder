@@ -183,6 +183,9 @@ var graph_id: int = 0
 func _init() -> void:
 	graph_id = randi_range(0,99999999)
 
+func _dragged():
+	pass
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 
@@ -227,6 +230,7 @@ func _process(delta: float) -> void:
 			dragging = false
 			graphs.stop_drag(self)
 		else:
+			_dragged()
 			var vec = get_global_mouse_position() + attachement_position - global_position
 			#graphs.mark_rect(self)
 			#vec = graphs.can_move(self, vec)

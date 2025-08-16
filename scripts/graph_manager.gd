@@ -229,6 +229,7 @@ var graph_types = {
 	"loop": preload("res://scenes/loop.tscn"),
 	"base": preload("res://scenes/base_graph.tscn"),
 	"input": preload("res://scenes/input_graph.tscn"),
+	"layer": preload("res://scenes/layer.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

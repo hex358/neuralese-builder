@@ -1,0 +1,63 @@
+[gd_scene load_steps=7 format=3 uid="uid://dk05hn4etkckc"]
+
+[ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_oobeh"]
+[ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_2eb8h"]
+[ext_resource type="Script" uid="uid://7nab6wgidrl1" path="res://scenes/unit.gd" id="3_gemti"]
+[ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_3b4h0"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_3b4h0"]
+[ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="6_j0ma4"]
+
+[node name="Base" node_paths=PackedStringArray("unit", "line_edit") instance=ExtResource("1_oobeh")]
+script = ExtResource("2_2eb8h")
+bottom_attached = false
+unit = NodePath("unit")
+padding = 5.0
+line_edit = NodePath("LineEdit")
+unit_offset_y = -4.0
+target_size = 64.0
+
+[node name="ColorRect" parent="." index="0"]
+instance_shader_parameters/corner_radius_add = -2.0
+instance_shader_parameters/outline_color = Color(0.5538, 0.71, 0.665743, 1)
+instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
+offset_left = -25.0
+offset_right = 23.5
+offset_bottom = 46.0
+
+[node name="Label" parent="ColorRect/root" index="0"]
+text = ""
+
+[node name="unit" type="Control" parent="." index="1"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -47.0
+offset_top = 23.0
+offset_right = -14.0
+offset_bottom = 55.0
+script = ExtResource("3_gemti")
+
+[node name="ColorRect5" type="ColorRect" parent="unit" index="0"]
+material = ExtResource("4_3b4h0")
+instance_shader_parameters/corner_width_add = -1.0
+instance_shader_parameters/outline_color = Color(0.59, 1, 0.883833, 1)
+instance_shader_parameters/tuning = Color(0.1276, 0.44, 0.351487, 0.443137)
+layout_mode = 0
+offset_left = 31.0
+offset_top = -6.0
+offset_right = 62.0
+offset_bottom = 24.0
+
+[node name="LineEdit" parent="." index="2" instance=ExtResource("5_3b4h0")]
+offset_left = -16.0
+offset_top = -55.0
+offset_right = 64.0
+offset_bottom = -7.0
+scale = Vector2(0.389326, 0.389326)
+placeholder_text = "0"
+context_menu_enabled = false
+emoji_menu_enabled = false
+virtual_keyboard_type = 2
+script = ExtResource("6_j0ma4")
+change_always_accepted = false
+
+[connection signal="text_changed" from="LineEdit" to="." method="_on_line_edit_text_changed"]
