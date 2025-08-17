@@ -240,6 +240,7 @@ func arrange():
 	# Arrange children above or below based on expand_upwards
 	vbox.add_theme_constant_override("separation", arrangement_padding.y)
 	var maxsize: int = 0
+	
 	var y = base_size.y * 0.9 if !expand_upwards else expanded_size / 2 - base_size.y * 1.45
 	scroll.position = Vector2(arrangement_padding.x, y)
 	var is_shrinked: bool = max_size < expanded_size and max_size
@@ -248,15 +249,16 @@ func arrange():
 		b_size -= 14
 	#print(_contained)
 	for node:BlockComponent in _contained:
-		node._wrapped_in.position = Vector2(arrangement_padding.x, y)
-		node.resize(Vector2(b_size, round(node.size.y)))
+		#node._wrapped_in.position = Vector2(arrangement_padding.x, y)
+		var size_y = node.size.y
+		node.resize(Vector2(b_size/node.scale.x, round(size_y)))
 		node.text = node.text
-		y += (node.size.y + arrangement_padding.y)
-		maxsize += (node.size.y + arrangement_padding.y)
+		y += (size_y + arrangement_padding.y)
+		maxsize += (size_y + arrangement_padding.y)
 		#print(maxsize)
 
 func _enter_tree() -> void:
-	if !Engine.is_editor_hint() and (button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU):
+	if !Engine.is_editor_hint() and (button_type == ButtonType.CONTEXT_MENU):
 		assert(not glob.menus.get(menu_name), "Menu %s already regged"%menu_name)
 		glob.menus[menu_name] = self
 	if !Engine.is_editor_hint():
@@ -267,13 +269,15 @@ func _create_scaler_wrapper() -> void:
 	#parent.remove_child(self)
 	var wrapper = Wrapper.new()
 	wrapper.position = self.position
+	#if scale.x != 1.0:
+	#	print(scale.x)
 	
 	wrapped = true
 	wrapper.size = self.base_size
 	wrapper.custom_minimum_size = self.base_size
 
 	var secondary_wrapper = Wrapper.new()
-	secondary_wrapper.position += alignment*size
+	secondary_wrapper.position += alignment*size*scale if is_contained else alignment*size
 	wrapper.add_child(secondary_wrapper)
 	
 	reparent(secondary_wrapper)
@@ -319,22 +323,27 @@ func _sub_process(delta: float):
 
 var current_type: int = ButtonType.BLOCK_BUTTON
 func _process_dropout_menu(delta: float) -> void:
-	var was_expanded = (state.expanding or state.expanded) and visible
-	if not was_expanded:
+	var was_expanded = (state.expanding or state.expanded or state.tween_hide) and visible
+	if graph and ButtonType.CONTEXT_MENU == current_type:
+		graph.hold_for_frame()
+	var inside = is_mouse_inside()
+	if inside:
+		glob.occupy(self, "dropout_inside")
+	else:
+		glob.un_occupy(self, "dropout_inside")
+	if ButtonType.BLOCK_BUTTON == current_type:
 		_process_block_button(delta)
-		if state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
+		if (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
 			current_type = ButtonType.CONTEXT_MENU
-			# Make context-menu logic left-click activated while open.
 			left_activate = true
 			mouse_open = true
-			# Anchor the menu to the bottom of the button (typical dropdown behavior).
 			var anchor = global_position
 			anchor.y += base_size.y * mult.y
+			modulate = config.hover_color * config.hover_mult
 			menu_show(anchor)
 			state.holding = true
 			state.expanding = true
-	
-	# If opened (or opening/closing), hand off to the context-menu code.
+
 	if state.tween_hide or state.expanding:
 		_process_context_menu(delta)
 
@@ -407,7 +416,7 @@ func _align_label() -> void:
 
 
 var bounce_scale = Vector2.ONE
-var hover_scale: Vector2 = Vector2.ONE
+@onready var hover_scale: Vector2 = scale
 
 @onready var parent = get_parent()
 var is_contained: BlockComponent = null
@@ -487,6 +496,8 @@ func _process_block_button(delta: float) -> void:
 		bounce_scale = bounce_scale.lerp(Vector2.ONE, delta * 10.0)
 
 	scaler.scale = hover_scale * bounce_scale
+	#if button_type == ButtonType.BLOCK_BUTTON:
+	#	print(scaler.scale)
 	if graph and (!is_equal_approx(scaler.scale.x, base_scale.x) or !base_modulate.is_equal_approx(modulate)):
 		graph.hold_for_frame()
 
@@ -703,7 +714,7 @@ func _process_context_menu(delta: float) -> void:
 	elif state.tween_hide:
 		state.tween_progress = lerpf(state.tween_progress, 1.0, delta * 5.0)
 		# hide once tween almost done
-		if state.tween_progress > 0.8:
+		if state.tween_progress > 0.8 or (button_type == ButtonType.DROPOUT_MENU and state.tween_progress > 0.6):
 			if button_type == ButtonType.CONTEXT_MENU:
 				hide()
 			else:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://dk05hn4etkckc"]
+[gd_scene load_steps=9 format=3 uid="uid://dk05hn4etkckc"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_oobeh"]
 [ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_2eb8h"]
@@ -7,9 +7,11 @@
 [ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_3b4h0"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_3b4h0"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="6_j0ma4"]
+[ext_resource type="Material" uid="uid://b32bkwpidhiyp" path="res://resources/font_alphamult.tres" id="6_jkrlx"]
 
 [node name="Base" node_paths=PackedStringArray("unit", "line_edit") instance=ExtResource("1_oobeh")]
 script = ExtResource("2_2eb8h")
+group_size = 1
 bottom_attached = false
 unit = NodePath("unit")
 padding = 5.0
@@ -20,6 +22,7 @@ min_size = 64.0
 size_add = -24.0
 
 [node name="ni" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j0ma4")]
+layout_mode = 0
 offset_left = -33.0
 offset_top = 0.0
 offset_right = -15.0
@@ -36,6 +39,7 @@ parent_graph = NodePath("..")
 gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
 
 [node name="i" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j0ma4")]
+layout_mode = 0
 offset_left = -10.0
 offset_top = -72.0
 offset_right = 9.0
@@ -50,6 +54,7 @@ parent_graph = NodePath("..")
 gradient_color = Color(0, 1, 0.882353, 1)
 
 [node name="o" parent="." index="2" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j0ma4")]
+layout_mode = 0
 offset_left = 13.0
 offset_top = 0.0
 offset_right = 31.0
@@ -93,6 +98,15 @@ offset_left = 31.0
 offset_top = -6.0
 offset_right = 62.0
 offset_bottom = 24.0
+
+[node name="Label" type="Label" parent="unit/ColorRect5" index="0"]
+material = ExtResource("6_jkrlx")
+layout_mode = 0
+offset_left = 6.0
+offset_top = 4.0
+offset_right = 46.0
+offset_bottom = 26.3333
+text = "12"
 
 [node name="LineEdit" parent="." index="5" instance=ExtResource("5_3b4h0")]
 layout_mode = 0

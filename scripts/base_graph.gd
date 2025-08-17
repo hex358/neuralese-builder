@@ -220,6 +220,7 @@ func _process(delta: float) -> void:
 		not glob.is_occupied(self, &"graph") and 
 		not glob.is_occupied(self, &"menu_inside") and 
 		not glob.is_occupied(self, &"conn_active") and
+		not glob.is_occupied(self, &"dropout_inside") and
 		conn_free) and not dragging:
 		graphs.drag(self)
 		dragging = true; attachement_position = global_position - get_global_mouse_position()

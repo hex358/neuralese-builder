@@ -1,9 +1,25 @@
-[gd_scene load_steps=5 format=3 uid="uid://cbtf5jh2s8v3j"]
+[gd_scene load_steps=9 format=3 uid="uid://cbtf5jh2s8v3j"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_mms1l"]
 [ext_resource type="Script" uid="uid://djv1yj3ii8ktb" path="res://scripts/neuron_config.gd" id="2_g8jnw"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="3_j2aws"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="4_2oyde"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="5_fqm4g"]
+[ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="6_g8jnw"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_0nr7h"]
+
+[sub_resource type="Resource" id="Resource_q868x"]
+script = ExtResource("7_0nr7h")
+hover_color = Color(0.68, 1, 0.834667, 1)
+hover_mult = 1.4
+_hover_scale = 1.037
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 0.97
+animation_scale = 0.0
+animation_speed = 1.951
+animation_decay = 4.564
+animation_duration = 1.0
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="neuronlayer" instance=ExtResource("1_mms1l")]
 script = ExtResource("2_g8jnw")
@@ -35,9 +51,9 @@ offset_bottom = 24.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 offset_left = 8.0
-offset_top = 4.0
+offset_top = 5.0
 offset_right = 219.0
-offset_bottom = 47.0
+offset_bottom = 48.0
 scale = Vector2(0.340395, 0.340395)
 theme_override_colors/font_color = Color(0, 1, 0.882353, 1)
 text = "DenseLayer"
@@ -63,3 +79,41 @@ offset_bottom = 42.0
 scale = Vector2(0.387925, 0.387925)
 theme = ExtResource("4_2oyde")
 text = "Func"
+
+[node name="ColorRect2" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("5_fqm4g")]
+instance_shader_parameters/corner_radius_add = -3.0
+layout_mode = 0
+offset_left = -9.0
+offset_top = -3.0
+offset_right = 70.0
+offset_bottom = 31.0
+scale = Vector2(0.733764, 0.733764)
+button_type = 2
+top = true
+resize_after = 5
+text = "Activation"
+base_size = Vector2(79, 34)
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+graph = NodePath("..")
+
+[node name="ColorRect2" parent="ColorRect2" index="1" instance=ExtResource("5_fqm4g")]
+material = ExtResource("6_g8jnw")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 46.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 21)
+button_type = 1
+top = true
+text = "Add"
+base_size = Vector2(99, 42)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_q868x")

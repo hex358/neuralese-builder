@@ -72,8 +72,11 @@ func remove_unit(id: int):
 			offset_units.erase(units[i])
 
 var target_y: float = 0.0
-func add_unit(kw: Dictionary = {}):
-	add_q.append(_add_q.bind(kw))
+func add_unit(kw: Dictionary = {}, instant=false):
+	if !instant:
+		add_q.append(_add_q.bind(kw))
+	else:
+		_add_q(kw)
 
 @export var min_size: float = 0.0
 @export var size_add: float = 0.0
@@ -112,6 +115,14 @@ func _after_process(delta: float):
 		if add_q.empty(): break
 		var popped = add_q.pop()
 		popped.call()
+
+	if bottom_attached:
+		input.position.y = lerpf(input.position.y, target_y, delta*20.0)
+	var prev_size:float = rect.size.y
+	rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
+	if !is_equal_approx(prev_size, rect.size.y):
+		_size_changed()
+
 	var to_del = []
 	for appearer in appear_units:
 		appearer.modulate.a = lerpf(appearer.modulate.a, 1.0, 10.0*delta)
@@ -146,12 +157,7 @@ func _after_process(delta: float):
 	for unit in to_del:
 		offset_units.erase(unit)
 	
-	if bottom_attached:
-		input.position.y = lerpf(input.position.y, target_y, delta*20.0)
-	var prev_size:float = rect.size.y
-	rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
-	if !is_equal_approx(prev_size, rect.size.y):
-		_size_changed()
+
 	if ui.is_focus(line_edit):
 		hold_for_frame()
 
