@@ -271,7 +271,6 @@ func get_syntax_tree() -> Dictionary:
 
 func run_request():
 	save()
-	#var tree = compress_dict_gzip(get_syntax_tree())
 	await web.post("run", compress_dict_gzip(get_syntax_tree()), true)
 
 
