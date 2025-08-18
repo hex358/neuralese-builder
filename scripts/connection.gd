@@ -20,6 +20,10 @@ var datatype: StringName = ""
 				accepted_datatypes[i] = true
 		#print(connection_type == OUTPUT)
 @export var hint: int = 0
+@export var server_name: StringName = "":
+	set(v):
+		assert(v, "Please set server_name for server execution identification")
+		server_name = v
 @export var keyword: StringName = &""
 @export_enum("Input", "Output") var connection_type: int = INPUT
 @export var area_paddings: Vector4 = Vector4(10,10,10,10)
@@ -74,9 +78,11 @@ func add_spline() -> int:
 	var spline = glob.get_spline(self)
 	spline.turn_into(keyword)
 	spline.origin = self
+	key_by_spline[spline] = slot
 	outputs[slot] = spline
 	return slot
 
+var key_by_spline: Dictionary[Spline, int] = {}
 func start_spline(id: int):
 	var spline = outputs[id]
 	var node = spline.tied_to
@@ -92,7 +98,10 @@ func end_spline(id: int, hide: bool = true):
 	if hide:
 		var spline = outputs[id]
 		var node = spline.tied_to
+		if node:
+			node.detatch_spline(spline)
 		spline.disappear()
+		key_by_spline.erase(spline)
 		if is_instance_valid(node):
 			node.forget_spline(spline, self)
 		outputs.erase(id)
@@ -116,7 +125,12 @@ func attach_spline(id: int, target: Connection):
 	_stylize_spline(spline, true, true)
 	glob.hovered_connection = null
 	graphs.attach_edge(self, target)
+	parent_graph.just_connected(target)
 	end_spline(id, false)
+
+var conn_id: int = 0
+func _init() -> void:
+	conn_id = randi_range(0,99999999)
 
 func detatch_spline(spline: Spline):
 	var other = spline.origin
@@ -124,11 +138,9 @@ func detatch_spline(spline: Spline):
 	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
 	graphs.remove_edge(spline.origin, spline.tied_to)
+	other.parent_graph.just_disconnected(self)
 	forget_spline(spline, other)
 
-func remove_input_spline(spline: Spline):
-	# call end_spline on the origin of that spline
-	spline.origin.end_spline(inputs[spline])
 
 var conn_counts: Dictionary = {&"": [0]}
 func _ready() -> void:

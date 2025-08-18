@@ -34,6 +34,15 @@ func animate(delta: float):
 func _after_ready():
 	pass
 
+func just_connected(to: Connection):
+	_just_connected(to)
+
+func just_disconnected(from: Connection):
+	_just_disconnected(from)
+
+func _just_connected(to: Connection):pass
+func _just_disconnected(from: Connection):pass
+
 func add_connection(conn: Connection):
 	match conn.connection_type:
 		Connection.INPUT: 
@@ -65,7 +74,12 @@ func conn_exit(conn: Connection):
 func _exit_tree() -> void:
 	graphs.remove(self)
 
+func _useful_properties() -> Dictionary:
+	return {}
+
 func _ready() -> void:
+	if is_input:
+		graphs.add_input(self)
 	position -= rect.position
 	animate(0)
 	graphs.add(self)
@@ -116,7 +130,7 @@ var info_nested_fields: Array = []
 func _get_info() -> Dictionary:
 	return {}
 
-func propagate(input_vals: Dictionary, sequential_branching: bool = false, gather_call: Callable = graphs.next_frame_propagate) -> void:
+func propagate(input_vals: Dictionary, sequential_branching: bool = false) -> void:
 	var out = _io(input_vals) if not gather else null
 	var output_vals = {}
 
@@ -139,7 +153,8 @@ func propagate(input_vals: Dictionary, sequential_branching: bool = false, gathe
 			var other_node: Graph = spline.tied_to.parent_graph
 			var connection_key: int = other_node.input_key_by_conn[spline.tied_to]
 			#other_node._seq_push_input(connection_key, output_vals[out_key])
-			gather_call.call(spline.tied_to, connection_key, output_vals[out_key])
+			graphs.next_frame_from(spline.origin, spline.tied_to)
+			graphs.next_frame_propagate(spline.tied_to, connection_key, output_vals[out_key])
 			
 
 func gather():

@@ -16,6 +16,7 @@ script = ExtResource("2_b3f76")
 base_size = Vector2(200, 50)
 max_size = 190
 config = ExtResource("3_ei1qp")
+scrollbar_padding = null
 
 [node name="Label" type="Label" parent="."]
 material = ExtResource("4_gbfpr")

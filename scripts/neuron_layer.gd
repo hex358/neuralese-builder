@@ -1,14 +1,21 @@
 extends DynamicGraph
 
+func _useful_properties() -> Dictionary:
+	#assert (input_keys[0].inputs, "no config. TODO: implement error handling")
+	return {
+	"neuron_count": _real_amount,
+	"config": input_keys[0].inputs.keys()[0].origin.parent_graph._useful_properties() if input_keys[0].inputs else {}
+	}
+
 @export var group_size: int = 1:
 	set(value):
 		group_size = max(1, value)
-		_apply_grouping() # re-group at runtime
+		_apply_grouping()
 
-var _real_amount = 0 # total neuron_count (from LineEdit)
+var _real_amount = 0
 @onready var base_size_add: float = size_add
 
-func _get_unit(kw: Dictionary) -> Control: # virtual
+func _get_unit(kw: Dictionary) -> Control:
 	var dup = _unit.duplicate()
 	dup.modulate.a = 0.0
 	dup.show()
@@ -17,28 +24,49 @@ func _get_unit(kw: Dictionary) -> Control: # virtual
 func _get_info() -> Dictionary:
 	return {}
 
+var last_resized: int = 0
 func _size_changed():
 	$ni.position.y = (rect.size.y) / 2 + rect.position.y
 	$o.position.y = (rect.size.y) / 2 + rect.position.y
 	reposition_splines()
+	last_resized = 0
 
 func _dragged():
-	var extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y + 5 - 4)
-	if len(units) > 10:
-		units[-1].set_extents(extents)
-		units[0].set_extents(extents)
-	elif units:
-		units[0].set_extents(Vector2())
+	last_resized = 0
+
+func _after_process(delta:float):
+	super(delta)
+	last_resized += 1
+	if last_resized < 20:
+		if len(units) > 10:
+			var extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
+			units[-1].set_extents(extents)
+			units[0].set_extents(extents)
+		elif units:
+			units[0].set_extents(Vector2())
+
+func _just_connected(to: Connection):
+	print("conn")
+
+func _just_disconnected(from: Connection):
+	print("Disconn")
 
 func _unit_modulate_updated(of: Control, fin: bool = false, diss: bool = false):
 	var extents
 	var key = key_by_unit[of]
 	if not fin or (len(units) > 9 and key == 10):
-		extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y + 5 - 3)
+		extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
 	else:
 		extents = Vector2()
 	of.set_extents(extents)
-	_dragged()
+	#for i in 2:
+		#await get_tree().process_frame
+	#if len(units) > 10:
+		#extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
+		#units[-1].set_extents(extents)
+		#units[0].set_extents(extents)
+	#elif units:
+		#units[0].set_extents(Vector2())
 
 func _apply_grouping() -> void:
 	var MAX_UNITS = 11
@@ -73,7 +101,7 @@ func _apply_grouping() -> void:
 			units[i].set_text(gs)
 		var covered = gs * (MAX_UNITS - 1)
 		var tail = max(0, _real_amount - covered)
-		units[MAX_UNITS - 1].set_text(tail)
+		units[MAX_UNITS - 1].set_text(tail, true)
 
 func _on_line_edit_changed(new_text) -> void:
 	await get_tree().process_frame

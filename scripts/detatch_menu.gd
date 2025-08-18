@@ -23,9 +23,9 @@ func _menu_handle_hovering(button: BlockComponent):
 	var _inst = button.metadata["inst"]
 	if button.metadata["all"]:
 		for inst in _inst:
-			_hovered[inst] = [0.0, inst.modulate]
+			_hovered[inst] = [0.0, inst.blender]
 	else:
-		_hovered[_inst] = [0.0, _inst.modulate]
+		_hovered[_inst] = [0.0, _inst.blender]
 
 func _sub_process(delta:float):
 	if Engine.is_editor_hint(): return
@@ -39,15 +39,15 @@ func _sub_process(delta:float):
 				continue
 			old_hovered[spline][0] = lerpf(old_hovered[spline][0], 1.0, delta*14.0)
 			if old_hovered[spline][0] > 0.9: 
-				spline.modulate = Color.WHITE
+				spline.blender = Color.TRANSPARENT
 				to_delete.append(spline)
 				continue
-			spline.modulate = spline.modulate.lerp(Color.WHITE, delta*14.0)
+			spline.blender = spline.blender.lerp(Color.TRANSPARENT, delta*14.0)
 	for i in to_delete:
 		old_hovered.erase(i)
 	old_hovered.merge(_hovered)
 	for spline in _hovered:
-		spline.modulate = spline.modulate.lerp(Color.RED, delta * 14.0)
+		spline.blender = spline.blender.lerp(Color.RED, delta * 14.0)
 	_hovered = {}
 
 func _menu_handle_release(button: BlockComponent):
@@ -55,11 +55,13 @@ func _menu_handle_release(button: BlockComponent):
 	block_input()
 	var _inst = button.metadata["inst"]
 	if button.metadata["all"]:
-		var node = _inst[0].tied_to
-		for inst in _inst:
-			node.remove_input_spline(inst)
+		var node = _inst[0].origin
+		var dup = node.outputs.duplicate()
+		for i in dup:
+			node.end_spline(i)
 	else:
-		_inst.tied_to.remove_input_spline(_inst)
+		var i = _inst.origin.key_by_spline[_inst]
+		_inst.origin.end_spline(i)
 	_hovered.clear()
 	menu_hide()
 	

@@ -4,8 +4,12 @@ extends Node2D
 var storage: GraphStorage
 
 var propagation_q = {}
+var _propagated_from = {}
 func next_frame_propagate(tied_to: Connection, key: int, value: Variant):
 	propagation_q.get_or_add(tied_to, {}).get_or_add(key, []).append(value)
+
+func next_frame_from(from: Connection, tied_to: Connection):
+	_propagated_from.get_or_add(from, []).append(tied_to)
 
 var gather_q = {}
 var gather_tree = {}
@@ -16,13 +20,6 @@ func next_frame_gather(tied_to: Connection, key: int):
 func gather_cycle():
 	pass
 
-func propagate_cycle():
-	if not propagation_q: return
-	var dup = propagation_q
-	propagation_q = {}
-	#tree = {}
-	for conn: Connection in dup:
-		conn.parent_graph.propagate(dup[conn])
 
 const csize: int = 10
 var chunks: Dictionary[int, Dictionary] = {}
@@ -94,14 +91,16 @@ var conns_active = {}
 class Deltas:
 	var snapshot = null
 	var iterable = null
+	var dtype_snapshot: int
 	func _init(_iterable, default):
 		iterable = _iterable
 		snapshot = default
+		dtype_snapshot = -30
 
-var _graph_delta_paths = {}
-var _graph_delta_objects = {}
-var _delta_roots = null
-var _graph_deltas = null
+var delta_paths = {}
+var delta_objects = {}
+var owners_deltas = null
+var deltas_between_owners = null
 
 var prev_graphs: Dictionary[int, bool] = {}
 func get_deltas() -> Dictionary:
@@ -109,7 +108,7 @@ func get_deltas() -> Dictionary:
 	var object_deletes = {}
 	var graph_adds = []
 	var graph_deletes = []
-	for g in _graphs:
+	for g:int in _graphs:
 		var graph = _graphs[g]
 		var res = store_delta(graph)
 		if res[0]:object_adds[g] = res[0]
@@ -127,15 +126,14 @@ func get_deltas() -> Dictionary:
 
 func store_delta(graph: Graph):
 	var new_info: Dictionary = graph.get_info()
-	var delta_paths = _graph_delta_paths.get_or_add(graph, {})
-	var delta_objects = _graph_delta_objects.get_or_add(graph, {})
-	var delta_roots = _delta_roots if typeof(_delta_roots) == TYPE_DICTIONARY else {}
+	var delta_paths = delta_paths.get_or_add(graph, {})
+	var delta_objects = delta_objects.get_or_add(graph, {})
+	var delta_roots = owners_deltas if typeof(owners_deltas) == TYPE_DICTIONARY else {}
 	if typeof(delta_roots) != TYPE_DICTIONARY:
 		delta_roots = {}
-	_delta_roots = delta_roots
+	owners_deltas = delta_roots
 
 	var q = [[new_info, TYPE_DICTIONARY, ["origin"], false]]
-
 	var globdelta = delta_roots.get(graph)
 	if globdelta == null:
 		var root_deltas = Deltas.new(new_info, {})
@@ -158,33 +156,38 @@ func store_delta(graph: Graph):
 
 		if not delta_paths.has(path):
 			delta_paths[path] = Deltas.new(cur_iterable, glob.list(parent_dtype))
-		deltas = delta_paths[path]
+			deltas = delta_paths[path]
+		else:
+			deltas = delta_paths[path]
+
+		if deltas.dtype_snapshot != parent_dtype:
+			result_adds.get_or_add(path, {})["__type__"] = parent_dtype
+			deltas.dtype_snapshot = parent_dtype
 
 		for key in cur_iterable if not (parent_dtype in glob.arrays) else len(cur_iterable):
 			var value = cur_iterable[key]
 			var dtype: int = typeof(value)
-
 			if dtype in glob.iterables:
 				var next_path = path.duplicate()
 				next_path.append(key)
 				q.append([value, dtype, next_path, false])
 			else:
 				var dict: bool = parent_dtype == TYPE_DICTIONARY
-				if (dict and (not deltas.snapshot.has(key) or deltas.snapshot[key] != value)) \
-				or (!dict and (key >= len(deltas.snapshot) or deltas.snapshot[key] != value)):
-					result_adds.get_or_add(path, {})[key] = value
-			#deltas.snapshot.erase()
+				if ((dict and (not deltas.snapshot.has(key) or deltas.snapshot[key] != value))
+					or (!dict and (key >= len(deltas.snapshot) or deltas.snapshot[key] != value))):
+					result_adds.get_or_add((path), {})[key] = value
+
 		if deltas.snapshot:
 			if parent_dtype == TYPE_DICTIONARY:
 				for k in deltas.snapshot:
 					if not cur_iterable.has(k):
-						result_deletes.get_or_add(path, {})[k] = deltas.snapshot[k]
+						result_deletes.get_or_add((path), {})[k] = deltas.snapshot[k]
 			else:
 				var old_len = len(deltas.snapshot)
 				var cur_len = len(cur_iterable)
 				if old_len > cur_len:
 					for i in range(cur_len, old_len):
-						result_deletes.get_or_add(path, {})[i] = deltas.snapshot[i]
+						result_deletes.get_or_add((path), {})[i] = deltas.snapshot[i]
 
 		deltas.snapshot = cur_iterable.duplicate()
 	
@@ -209,18 +212,67 @@ func remove_edge(from_conn: Connection, to_conn: Connection):
 func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
 	return true
 
+func compress_dict_gzip(dict: Dictionary):
+	var jsonified = JSON.new().stringify(dict)
+	var bytes = jsonified.to_ascii_buffer()
+	return bytes.compress(FileAccess.CompressionMode.COMPRESSION_GZIP)
 
 func save():
-	var jsonified = JSON.new().stringify(get_deltas())
-	var bytes = jsonified.to_ascii_buffer()
-	var compressed = bytes.compress(FileAccess.CompressionMode.COMPRESSION_GZIP)
-	print(len(bytes))
-	print(len(compressed))
+	var compressed = compress_dict_gzip(get_deltas())
 
-func run_request(input: Graph):
+var _input_graphs: Dictionary[Graph, bool] = {}
+func add_input(graph: Graph): 
+	_input_graphs[graph] = true
+
+func reg_gather(gather_into) -> Dictionary:
+	var result = {}
+	for conn: Connection in gather_into:
+		#print(conn.connection_type == Connection.INPUT)
+		if !conn.outputs: continue
+		var emit = {}
+		for node_conn: Connection in conn.parent_graph.outputs:
+			emit[node_conn.server_name] = {}
+			for i in conn.outputs:
+				var other_name = conn.outputs[i].tied_to.server_name
+				var id = conn.outputs[i].tied_to.parent_graph.graph_id
+				emit[node_conn.server_name].get_or_add(id, []).append(other_name)
+		result[conn.parent_graph.graph_id] = {
+		"props": conn.parent_graph._useful_properties(),
+		"emit": emit
+		}
+	return result
+
+
+func propagate_cycle(gather=null):
+	if not propagation_q: return
+	var dup = propagation_q
+	propagation_q = {}
+	#tree = {}
+	for conn: Connection in dup:
+		if gather != null:
+			if gather in glob.arrays:
+				gather.append(conn)
+			else:
+				gather[conn] = true
+		conn.parent_graph.propagate(dup[conn])
+
+func get_syntax_tree() -> Dictionary:
+	var gathered = {}
+	var index_counter: int = 0
+	for i in _input_graphs:
+		i.propagate({})
+		gathered[index_counter] = reg_gather(i.outputs)
+	while propagation_q:
+		index_counter += 1
+		_propagated_from.clear()
+		propagate_cycle()
+		gathered[index_counter] = reg_gather(_propagated_from)
+	return gathered
+
+func run_request():
 	save()
-
-
+	#var tree = compress_dict_gzip(get_syntax_tree())
+	await web.post("run", compress_dict_gzip(get_syntax_tree()), true)
 
 
 var graph_types = {
@@ -250,14 +302,10 @@ func _ready():
 
 var pos_cache: Dictionary = {}
 func _process(delta: float) -> void:
-	#if Input.is_action_just_pressed("up"):
-		#run_request(null)
-	
-	propagate_cycle()
-	gather_cycle()
-
 	var vp = Rect2(Vector2.ZERO, glob.window_size)
 	var dc = 0
+	if Input.is_action_just_pressed("ui_accept"):
+		run_request()
 
 	for graph: Graph in storage.get_children():
 		var r = graph.rect

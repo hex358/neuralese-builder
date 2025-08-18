@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=8 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="PackedScene" uid="uid://tjiw5jmnnrgh" path="res://scenes/fg.tscn" id="1_djuk3"]
 [ext_resource type="Script" uid="uid://cycf8wrmrdnkj" path="res://scripts/gview.gd" id="2_6ipd3"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://8u7275kgyen4" path="res://scenes/menus.tscn" id="4_dsnwd"]
 [ext_resource type="PackedScene" uid="uid://by1briddb0hwg" path="res://scenes/bg.tscn" id="5_sa0gx"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://scripts/camera_2d.gd" id="6_agq83"]
+[ext_resource type="Script" uid="uid://ddn84p6nhiie0" path="res://scripts/follow_menus.gd" id="7_ioxnp"]
 
 [node name="base" type="Node2D"]
 
@@ -27,3 +28,8 @@ position_smoothing_speed = 22.0
 script = ExtResource("6_agq83")
 zoom_speed = 0.2
 drag_button = 3
+
+[node name="follow_menus" type="CanvasLayer" parent="."]
+layer = 128
+follow_viewport_enabled = true
+script = ExtResource("7_ioxnp")

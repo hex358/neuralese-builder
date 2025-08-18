@@ -5,12 +5,12 @@ func _menu_handle_release(button: BlockComponent):
 	#freeze_input()
 	var type = null
 	match button.hint:
-		"neuron":
+		"layer":
 			type = graphs.graph_types.layer
-		"input":
+		"config":
 			type = graphs.graph_types.neuron
-		"output":
-			type = graphs.graph_types.io
+		"input":
+			type = graphs.graph_types.input
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

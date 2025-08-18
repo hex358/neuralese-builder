@@ -21,7 +21,7 @@ animation_decay = 4.564
 animation_duration = 1.0
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[node name="neuronlayer" instance=ExtResource("1_mms1l")]
+[node name="config" instance=ExtResource("1_mms1l")]
 script = ExtResource("2_g8jnw")
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
@@ -81,22 +81,25 @@ theme = ExtResource("4_2oyde")
 text = "Func"
 
 [node name="ColorRect2" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("5_fqm4g")]
-instance_shader_parameters/corner_radius_add = -3.0
+instance_shader_parameters/corner_radius_add = -7.0
 layout_mode = 0
 offset_left = -9.0
-offset_top = -3.0
-offset_right = 70.0
-offset_bottom = 31.0
+offset_top = -2.0
+offset_right = 66.0
+offset_bottom = 24.0
 scale = Vector2(0.733764, 0.733764)
 button_type = 2
 top = true
-resize_after = 5
-text = "Activation"
-base_size = Vector2(79, 34)
-arrangement_padding = Vector2(5, 5)
+resize_after = 3
+text = "None"
+base_size = Vector2(75, 26)
+expanded_size = 130
+arrangement_padding = Vector2(6, 5)
 mouse_open = false
 menu_name = &"g"
+max_size = 140
 graph = NodePath("..")
+scrollbar_padding = 21
 
 [node name="ColorRect2" parent="ColorRect2" index="1" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
@@ -108,12 +111,78 @@ layout_mode = 0
 offset_left = -1.0
 offset_top = 4.0
 offset_right = 98.0
-offset_bottom = 46.0
+offset_bottom = 40.0
 scale = Vector2(0.601426, 0.601426)
-pivot_offset = Vector2(49.5, 21)
+pivot_offset = Vector2(49.5, 18)
 button_type = 1
 top = true
-text = "Add"
-base_size = Vector2(99, 42)
+text = "None"
+base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_q868x")
+scrollbar_padding = 21
+
+[node name="ColorRect3" parent="ColorRect2" index="2" instance=ExtResource("5_fqm4g")]
+material = ExtResource("6_g8jnw")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+text = "RelU"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_q868x")
+scrollbar_padding = 21
+
+[node name="ColorRect4" parent="ColorRect2" index="3" instance=ExtResource("5_fqm4g")]
+material = ExtResource("6_g8jnw")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+resize_after = 6
+text = "Sigmoid"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_q868x")
+scrollbar_padding = 21
+
+[node name="ColorRect5" parent="ColorRect2" index="4" instance=ExtResource("5_fqm4g")]
+material = ExtResource("6_g8jnw")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+resize_after = 5
+text = "Tanh"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_q868x")
+scrollbar_padding = 21

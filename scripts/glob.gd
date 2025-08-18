@@ -282,6 +282,7 @@ func world_to_screen(p_world: Vector2) -> Vector2:
 func screen_to_world(p_screen: Vector2) -> Vector2:
 	return get_viewport().get_canvas_transform().affine_inverse() * p_screen
 
+var follow_menus: CanvasLayer
 var window_rect: Rect2 = Rect2()
 func _process(delta: float) -> void:
 	ticks += 1

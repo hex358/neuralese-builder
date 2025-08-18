@@ -34,20 +34,25 @@ func _ready() -> void:
 	pass
 
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("ui_accept"):
-		print(await post("test", graphs.get_deltas()))
+	pass
 
-func post(page: String, data: Dictionary) -> Dictionary:
-	return await _request(api_url + page, data, HTTPClient.METHOD_POST)
+func post(page: String, data, bytes: bool = false) -> Dictionary:
+	return await _request(api_url + page, data, HTTPClient.METHOD_POST, bytes)
+
+func push_get(page: String) -> Dictionary:
+	return await _request(api_url + page, {}, HTTPClient.METHOD_GET, false)
 
 signal res_dict_assigned(dict: Dictionary)
-func _request(address: String, request_body: Dictionary, method: int) -> Dictionary:
+func _request(address: String, request_body, method: int, bytes: bool = false) -> Dictionary:
 	var request = HTTPRequest.new()
 	request.timeout = 3.0
 	request.use_threads = true
 	add_child(request)
-	var body = JSON.stringify(request_body)
-	request.request(address, _headers, method, body)
+	if !bytes:
+		var body = JSON.stringify(request_body)
+		request.request(address, _headers, method, body)
+	else:
+		request.request_raw(address, _headers, method, request_body)
 	var res_dict: Dictionary = {}
 	var res_call = func(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
 		res_dict_assigned.emit({

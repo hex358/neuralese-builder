@@ -45,6 +45,7 @@ scale_anim = true
 arrangement_padding = Vector2(10, 8)
 menu_name = &"add_graph"
 max_size = 250
+scrollbar_padding = null
 
 [node name="5" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/corner_radius_add = 0.0
@@ -60,10 +61,11 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(1, 0.996, 0.76, 1)
 button_type = 1
 hint = &"input"
-text = "Input"
+text = "NodeInput"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+scrollbar_padding = null
 
 [node name="2" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/corner_radius_add = 0.0
@@ -78,11 +80,12 @@ offset_bottom = -270.429
 pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.72, 0.925333, 1, 1)
 button_type = 1
-hint = &"neuron"
-text = "NeuronLayer"
+hint = &"config"
+text = "LayerConfig"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+scrollbar_padding = null
 
 [node name="1" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/corner_radius_add = 0.0
@@ -97,11 +100,12 @@ offset_bottom = -317.571
 pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.76, 1, 0.78, 1)
 button_type = 1
-hint = &"output"
-text = "Output"
+hint = &"layer"
+text = "NeuronLayer"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+scrollbar_padding = null
 
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
@@ -124,6 +128,7 @@ mouse_open = false
 menu_name = &"detatch"
 dynamic_size = true
 max_size = 210
+scrollbar_padding = null
 
 [node name="delete" parent="detatch" instance=ExtResource("2_rnbi1")]
 z_index = 2
@@ -144,6 +149,7 @@ base_size = Vector2(236, 41)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_77dp3")
+scrollbar_padding = null
 
 [node name="ProceduralNodes" type="Node" parent="detatch" node_paths=PackedStringArray("instance")]
 script = ExtResource("8_6how5")
@@ -169,6 +175,7 @@ mouse_open = false
 menu_name = &"edit_graph"
 max_size = 0
 config = null
+scrollbar_padding = null
 
 [node name="neuron" parent="edit_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/corner_radius_add = 0.0
@@ -187,6 +194,7 @@ text = "Neuron"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+scrollbar_padding = null
 
 [node name="delete_i" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
@@ -208,6 +216,7 @@ mouse_open = false
 menu_name = &"delete_i"
 max_size = 0
 config = null
+scrollbar_padding = null
 
 [node name="delete" parent="delete_i" instance=ExtResource("2_rnbi1")]
 z_index = 2
@@ -227,3 +236,4 @@ base_size = Vector2(101, 41)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_77dp3")
+scrollbar_padding = null

@@ -6,16 +6,18 @@ class_name Spline
 @export var keyword: StringName = "default"
 @export var color: Color
 
-
 var origin: Connection
 var tied_to: Connection
 
 var curve = Curve2D.new()
 
 func _ready() -> void:
-	line_2d.gradient = line_2d.gradient.duplicate(true)
+	if line_2d and line_2d.gradient:
+		line_2d.gradient = line_2d.gradient.duplicate(true)
 	if !Engine.is_editor_hint():
 		$Marker2D.queue_free()
+	# Ensure initial gradient matches current properties
+	_recolor_gradient()
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() and glob.ticks % 10 == 0:
@@ -62,46 +64,57 @@ func other_default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_
 	baked = curve.get_baked_points()
 
 var mapping = {"weight": weight_points}
-var colors_array: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHITE])
+
+# --- Gradient recoloring ---
+var _base_colors: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHITE])
+var _blended_colors: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHITE])
+
+@export var blender: Color = Color(1, 1, 1, 0.0):
+	set(v):
+		blender = v
+		_recolor_gradient()
+
 @export var color_a: Color = Color.WHITE:
 	set(v):
-		color_a = v; colors_array[0] = v
-		line_2d.gradient.colors = colors_array
+		color_a = v
+		_base_colors[0] = v
+		_recolor_gradient()
+
 @export var color_b: Color = Color.WHITE:
 	set(v):
-		color_b = v; colors_array[1] = v
-		line_2d.gradient.colors = colors_array
+		color_b = v
+		_base_colors[1] = v
+		_recolor_gradient()
+
+func _recolor_gradient() -> void:
+	# Result colors: Start.blend(blender), End.blend(blender)
+	_blended_colors[0] = _base_colors[0].blend(blender)
+	_blended_colors[1] = _base_colors[1].blend(blender)
+	if line_2d and line_2d.gradient:
+		line_2d.gradient.colors = _blended_colors
+# --- /Gradient recoloring ---
+
 func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
 	curve.clear_points()
 	mapping.get(keyword, default_points).call(start, end, start_dir, end_dir)
-	#line_2d.default_color = color
-	
 	line_2d.points = baked
 
 func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
-	#if keyword == &"weight":
-		#baked = PackedVector2Array([start, end])
-		##print(baked)
-		#queue_redraw()
-		#return
-	
 	if end_dir == null:
 		if !end_dir_vec:
 			end_dir_vec = -start_dir
 		end_dir = end_dir_vec
 	else:
 		end_dir_vec = end_dir
-		#print(end_dir_vec)
 	
 	var length: float = (end-start).length()
-	var size: float = clamp(length*0.1, 2, 10)-2 # the initial "crusty" part of curve will become smaller
-	curve.bake_interval = clamp(length*0.05, 1, 30) # so the small curves looked better
-	#print(curve.bake_interval)
+	var size: float = clamp(length*0.1, 2, 10) - 2
+	curve.bake_interval = clamp(length*0.05, 1, 30)
 	curve.clear_points()
 
 	var second_point = start + start_dir * size
 	var end_second_point = end + end_dir * size
-	curve.add_point(start, Vector2(),Vector2())
+	curve.add_point(start, Vector2(), Vector2())
 	curve.add_point(second_point, Vector2(), size * (second_point-start))
 	curve.add_point(end_second_point, -size * (end-end_second_point), Vector2())
 	curve.add_point(end, Vector2(), Vector2())

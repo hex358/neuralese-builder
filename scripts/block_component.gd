@@ -173,6 +173,8 @@ func contain(child: BlockComponent):
 
 var add_to_size: bool = false
 
+@export_group("Scrollbar")
+@export var scrollbar_padding: int = 21
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
 	
@@ -185,7 +187,7 @@ func initialize() -> void:
 			add_to_size = true
 	
 	if button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU:
-		scroll.size = Vector2(base_size.x - 21, expanded_size if not max_size else max_size-base_size.y-10)
+		scroll.size = Vector2(base_size.x - scrollbar_padding, expanded_size if not max_size else max_size-base_size.y-10)
 		if not dynamic_size:
 			for child in get_children():
 				if not child is BlockComponent:
@@ -273,8 +275,8 @@ func _create_scaler_wrapper() -> void:
 	#	print(scale.x)
 	
 	wrapped = true
-	wrapper.size = self.base_size
-	wrapper.custom_minimum_size = self.base_size
+	wrapper.size = self.base_size * scale
+	wrapper.custom_minimum_size = self.base_size * scale
 
 	var secondary_wrapper = Wrapper.new()
 	secondary_wrapper.position += alignment*size*scale if is_contained else alignment*size
@@ -322,6 +324,7 @@ func _sub_process(delta: float):
 	pass
 
 var current_type: int = ButtonType.BLOCK_BUTTON
+@onready var base_pos: Vector2 = global_position - graph.global_position if graph else global_position
 func _process_dropout_menu(delta: float) -> void:
 	var was_expanded = (state.expanding or state.expanded or state.tween_hide) and visible
 	if graph and ButtonType.CONTEXT_MENU == current_type:
@@ -341,10 +344,13 @@ func _process_dropout_menu(delta: float) -> void:
 			anchor.y += base_size.y * mult.y
 			modulate = config.hover_color * config.hover_mult
 			menu_show(anchor)
+			reparent(glob.follow_menus)
 			state.holding = true
 			state.expanding = true
 
 	if state.tween_hide or state.expanding:
+		if graph:
+			_wrapped_in.position = base_pos + graph.global_position
 		_process_context_menu(delta)
 
 
@@ -512,7 +518,7 @@ func update_children_reveal() -> void:
 	for c in _contained:
 		idx += 1
 		var max = size.y + 20
-		if idx == len(_contained) and len(_contained) > 1: max += 40
+		#if idx == len(_contained) and len(_contained) > 1: max += 40
 		var pos = c._wrapped_in.position.y + scroll.position.y + c.base_size.y
 		c.visible = pos < max or (max_size and max_size < expanded_size)
 		c.freedom = pos - bar.value < max and pos - bar.value > base_size.y and size.y - base_size.y > 5
@@ -628,7 +634,10 @@ func _process_context_menu(delta: float) -> void:
 
 	if glob.mouse_scroll:
 		update_children_reveal()
-
+	
+	if scroll and visible and (max_size and max_size < expanded_size):
+		scroll.size.x = base_size.x - scrollbar_padding
+	
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
 		bar.scale.x = 1.2
 		var _bar = ui.is_focus(bar) or get_global_mouse_position().x > global_position.x + (size.x-40) * scale.x * parent.scale.x
@@ -718,6 +727,7 @@ func _process_context_menu(delta: float) -> void:
 			if button_type == ButtonType.CONTEXT_MENU:
 				hide()
 			else:
+				reparent(graph)
 				current_type = ButtonType.BLOCK_BUTTON
 			scaler.scale = base_scale
 			state.tween_hide = false

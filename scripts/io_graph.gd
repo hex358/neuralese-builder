@@ -47,6 +47,7 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	dup.show()
 	dup.modulate.a = 0.0
 	appear_units[dup] = true
+#	dup.server_name = 
 	return dup
 
 var key_by_unit: Dictionary = {}

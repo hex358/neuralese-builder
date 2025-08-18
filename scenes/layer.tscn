@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dk05hn4etkckc"]
+[gd_scene load_steps=10 format=3 uid="uid://dk05hn4etkckc"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_oobeh"]
 [ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_2eb8h"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_3b4h0"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="6_j0ma4"]
 [ext_resource type="Material" uid="uid://b32bkwpidhiyp" path="res://resources/font_alphamult.tres" id="6_jkrlx"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="7_8tmeu"]
 
 [node name="Base" node_paths=PackedStringArray("unit", "line_edit") instance=ExtResource("1_oobeh")]
 script = ExtResource("2_2eb8h")
@@ -28,10 +29,12 @@ offset_top = 0.0
 offset_right = -15.0
 offset_bottom = 19.0
 color = Color(0.297, 0.9, 0.72915, 1)
-_accepted_datatypes = "layer"
+_accepted_datatypes = "layer input"
 hint = 1
+server_name = &"layer_in"
 connection_type = 0
 area_paddings = Vector4(20, 5, 20, 5)
+multiple_splines = true
 origin_offset = Vector2(-10, 0)
 unpadded_area = Vector4(20, 10, 0, 10)
 dir_vector = Vector2(-1, 0)
@@ -45,6 +48,7 @@ offset_top = -72.0
 offset_right = 9.0
 offset_bottom = -44.0
 color = Color(0, 1, 0.882353, 1)
+server_name = &"layer_config"
 connection_type = 0
 area_paddings = Vector4(20, 5, 20, 5)
 origin_offset = Vector2(0, -10)
@@ -61,8 +65,10 @@ offset_right = 31.0
 offset_bottom = 19.0
 color = Color(0.297, 0.9, 0.72915, 1)
 _accepted_datatypes = "layer"
+server_name = &"layer_out"
 connection_type = 1
 area_paddings = Vector4(20, 5, 20, 5)
+multiple_splines = true
 origin_offset = Vector2(10, 0)
 unpadded_area = Vector4(0, 10, 20, 10)
 parent_graph = NodePath("..")
@@ -87,6 +93,7 @@ offset_top = 23.0
 offset_right = -14.0
 offset_bottom = 55.0
 script = ExtResource("3_gemti")
+resize_after = 3
 
 [node name="ColorRect5" type="ColorRect" parent="unit" index="0"]
 material = ExtResource("4_3b4h0")
@@ -102,11 +109,13 @@ offset_bottom = 24.0
 [node name="Label" type="Label" parent="unit/ColorRect5" index="0"]
 material = ExtResource("6_jkrlx")
 layout_mode = 0
-offset_left = 6.0
-offset_top = 4.0
-offset_right = 46.0
-offset_bottom = 26.3333
-text = "12"
+offset_left = 4.0
+offset_top = 6.0
+offset_right = 62.0
+offset_bottom = 49.0
+scale = Vector2(0.415912, 0.415912)
+theme = ExtResource("7_8tmeu")
+text = "122"
 
 [node name="LineEdit" parent="." index="5" instance=ExtResource("5_3b4h0")]
 layout_mode = 0
@@ -116,7 +125,7 @@ offset_right = 64.0
 offset_bottom = -7.0
 scale = Vector2(0.389326, 0.389326)
 placeholder_text = "0"
-max_length = 4
+max_length = 12
 expand_to_text_length = true
 context_menu_enabled = false
 emoji_menu_enabled = false
