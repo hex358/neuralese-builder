@@ -23,6 +23,7 @@ metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="config" instance=ExtResource("1_mms1l")]
 script = ExtResource("2_g8jnw")
+server_typename = &"NeuronConfig"
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
 layout_mode = 0

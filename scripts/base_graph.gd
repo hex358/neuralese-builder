@@ -1,6 +1,7 @@
 extends Control
 class_name Graph
 
+@export var server_typename: StringName = ""
 @onready var label = $ColorRect/root/Label
 @onready var rect = $ColorRect
 @export var z_space: int = 2

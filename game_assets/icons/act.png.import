@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dt0muya35xqxx"
-path="res://.godot/imported/act.png-75fe5ed5dff8527bd3730905bfa5dc4c.ctex"
+path="res://.godot/imported/act.png-7766c26507bccffe3a183779facfc258.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/icons/act.png"
-dest_files=["res://.godot/imported/act.png-75fe5ed5dff8527bd3730905bfa5dc4c.ctex"]
+source_file="res://game_assets/icons/act.png"
+dest_files=["res://.godot/imported/act.png-7766c26507bccffe3a183779facfc258.ctex"]
 
 [params]
 

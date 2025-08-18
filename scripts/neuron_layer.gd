@@ -30,6 +30,7 @@ func _size_changed():
 	$o.position.y = (rect.size.y) / 2 + rect.position.y
 	reposition_splines()
 	last_resized = 0
+	hold_for_frame()
 
 func _dragged():
 	last_resized = 0
@@ -38,7 +39,7 @@ func _after_process(delta:float):
 	super(delta)
 	last_resized += 1
 	if last_resized < 20:
-		if len(units) > 10:
+		if len(units) > max_units:
 			var extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
 			units[-1].set_extents(extents)
 			units[0].set_extents(extents)
@@ -46,15 +47,15 @@ func _after_process(delta:float):
 			units[0].set_extents(Vector2())
 
 func _just_connected(to: Connection):
-	print("conn")
+	pass
 
 func _just_disconnected(from: Connection):
-	print("Disconn")
+	pass
 
 func _unit_modulate_updated(of: Control, fin: bool = false, diss: bool = false):
 	var extents
 	var key = key_by_unit[of]
-	if not fin or (len(units) > 9 and key == 10):
+	if not fin or (len(units) > max_units-1 and key == max_units):
 		extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
 	else:
 		extents = Vector2()
@@ -68,8 +69,10 @@ func _unit_modulate_updated(of: Control, fin: bool = false, diss: bool = false):
 	#elif units:
 		#units[0].set_extents(Vector2())
 
+@export var max_units = 20
+
 func _apply_grouping() -> void:
-	var MAX_UNITS = 11
+	var MAX_UNITS = max_units + 1
 	
 	var gs = max(1, group_size)
 	var full_groups = int(_real_amount / gs)
@@ -78,7 +81,7 @@ func _apply_grouping() -> void:
 
 	var visible_units = min(needed_units, MAX_UNITS)
 
-	if needed_units > 10:
+	if needed_units > max_units:
 		size_add = base_size_add - 15
 	else:
 		size_add = base_size_add

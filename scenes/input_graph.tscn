@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_m1bro"]
 
 [node name="Base" instance=ExtResource("1_6ucvy")]
+server_typename = &"InputNode"
 is_input = true
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]

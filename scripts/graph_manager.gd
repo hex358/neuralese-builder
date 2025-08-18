@@ -223,31 +223,37 @@ func save():
 var _input_graphs: Dictionary[Graph, bool] = {}
 func add_input(graph: Graph): 
 	_input_graphs[graph] = true
+func get_abstract(graph: Graph, emit = {}) -> Dictionary:
+	return {
+		"type": graph.server_typename,
+		"props": graph._useful_properties(),
+		"emit": emit
+	}
 
-func reg_gather(gather_into) -> Dictionary:
+func reg_gather(gather_into, expect: Dictionary) -> Dictionary:
 	var result = {}
 	for conn: Connection in gather_into:
-		#print(conn.connection_type == Connection.INPUT)
-		if !conn.outputs: continue
+		if !conn.outputs:
+			continue
 		var emit = {}
 		for node_conn: Connection in conn.parent_graph.outputs:
 			emit[node_conn.server_name] = {}
-			for i in conn.outputs:
-				var other_name = conn.outputs[i].tied_to.server_name
-				var id = conn.outputs[i].tied_to.parent_graph.graph_id
-				emit[node_conn.server_name].get_or_add(id, []).append(other_name)
-		result[conn.parent_graph.graph_id] = {
-		"props": conn.parent_graph._useful_properties(),
-		"emit": emit
-		}
+		for i in conn.outputs:
+			var tgt_conn: Connection = conn.outputs[i].tied_to
+			var tgt_name = tgt_conn.server_name
+			var tgt_id = tgt_conn.parent_graph.graph_id
+			for node_conn: Connection in conn.parent_graph.outputs:
+				emit[node_conn.server_name].get_or_add(tgt_id, []).append(tgt_name)
+			expect.get_or_add(tgt_id, {}).get_or_add(tgt_name, 0)
+			expect[tgt_id][tgt_name] += 1
+		result[conn.parent_graph.graph_id] = get_abstract(conn.parent_graph, emit)
 	return result
 
-
-func propagate_cycle(gather=null):
-	if not propagation_q: return
+func propagate_cycle(gather: Variant=null) -> void:
+	if not propagation_q:
+		return
 	var dup = propagation_q
 	propagation_q = {}
-	#tree = {}
 	for conn: Connection in dup:
 		if gather != null:
 			if gather in glob.arrays:
@@ -256,22 +262,38 @@ func propagate_cycle(gather=null):
 				gather[conn] = true
 		conn.parent_graph.propagate(dup[conn])
 
+
 func get_syntax_tree() -> Dictionary:
 	var gathered = {}
+	var expect = {}
 	var index_counter: int = 0
+
 	for i in _input_graphs:
 		i.propagate({})
-		gathered[index_counter] = reg_gather(i.outputs)
-	while propagation_q:
+		gathered[str(index_counter)] = reg_gather(i.outputs, expect)
+
+	var prev_q = {}
+	while _propagated_from:
 		index_counter += 1
 		_propagated_from.clear()
+		prev_q = propagation_q
 		propagate_cycle()
-		gathered[index_counter] = reg_gather(_propagated_from)
-	return gathered
+		gathered[str(index_counter)] = reg_gather(_propagated_from, expect)
+		if index_counter:
+			for conn in prev_q:
+				var g: Graph = conn.parent_graph
+				if not gathered[str(index_counter)].has(g.graph_id):
+					gathered[str(index_counter)][g.graph_id] = get_abstract(g)
+
+	return {
+		"pages": gathered,
+		"expect": expect
+	}
 
 func run_request():
 	save()
-	await web.post("run", compress_dict_gzip(get_syntax_tree()), true)
+	var syntax_tree = get_syntax_tree()
+	await web.post("run", compress_dict_gzip(syntax_tree), true)
 
 
 var graph_types = {
