@@ -1,14 +1,29 @@
 extends DynamicGraph
+class_name NeuronLayer
 
 func _useful_properties() -> Dictionary:
 	#assert (input_keys[0].inputs, "no config. TODO: implement error handling")
-	var conf = {}
+	var conf = {"activation": "none"}
 	if input_keys[0].inputs:
-		conf["activation"] = input_keys[0].inputs.keys()[0]
+		conf["activation"] = input_keys[0].inputs.keys()[0].origin.parent_graph.selected_activation
 	return {
 	"neuron_count": _real_amount,
-	"config": {}
+	"config": conf
 	}
+
+var neurons_fixed: bool = false:
+	set(v):
+		neurons_fixed = v
+		line_edit.editable = !v
+		line_edit.selecting_enabled = !v
+		if v:
+			line_edit.release_focus()
+		line_edit.mouse_filter = MOUSE_FILTER_IGNORE if v else MOUSE_FILTER_STOP
+
+func push_neuron_count(parsed: int):
+	_real_amount = max(0, parsed)
+	$LineEdit.text = str(parsed)
+	_apply_grouping()
 
 @export var group_size: int = 1:
 	set(value):
@@ -49,10 +64,10 @@ func _after_process(delta:float):
 		elif units:
 			units[0].set_extents(Vector2())
 
-func _just_connected(to: Connection):
+func _just_connected(who: Connection, to: Connection):
 	pass
 
-func _just_disconnected(from: Connection):
+func _just_disconnected(who: Connection, from: Connection):
 	pass
 
 func _unit_modulate_updated(of: Control, fin: bool = false, diss: bool = false):

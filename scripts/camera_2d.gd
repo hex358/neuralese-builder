@@ -93,7 +93,7 @@ func _process(delta: float) -> void:
 	rise_mult = min(mouse_range(display_mouse.x, 110, 50, glob.RIGHT)+
 							mouse_range(display_mouse.x, 110, 50, glob.LEFT)+
 							mouse_range(display_mouse.y, 30, -30, glob.UP)+
-							mouse_range(display_mouse.y, 80, 10, glob.DOWN), 1.0) if !glob.is_occupied(self,&"scroll") else 0.0
+							mouse_range(display_mouse.y, 30, -30, glob.DOWN), 1.0) if !glob.is_occupied(self,&"scroll") else 0.0
 	if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult:
 		var dir = glob.window_middle.direction_to(display_mouse)
 		drag_move_vec = drag_move_vec.lerp(

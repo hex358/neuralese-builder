@@ -12,7 +12,7 @@ func set_extents(vec: Vector2) -> void:
 	$ColorRect5.set_instance_shader_parameter("extents", vec)
 	$ColorRect5/Label.set_instance_shader_parameter("extents", vec)
 
-var units := [
+var units = [
 	["T", 1_000_000_000_000],
 	["B", 1_000_000_000],
 	["M", 1_000_000],

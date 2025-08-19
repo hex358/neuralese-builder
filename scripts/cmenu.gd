@@ -7,10 +7,12 @@ func _menu_handle_release(button: BlockComponent):
 	match button.hint:
 		"layer":
 			type = graphs.graph_types.layer
-		"config":
+		"act":
 			type = graphs.graph_types.neuron
 		"input":
 			type = graphs.graph_types.input
+		"train_input":
+			type = graphs.graph_types.train_input
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

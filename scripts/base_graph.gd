@@ -35,14 +35,14 @@ func animate(delta: float):
 func _after_ready():
 	pass
 
-func just_connected(to: Connection):
-	_just_connected(to)
+func just_connected(who: Connection, to: Connection):
+	_just_connected(who, to)
 
-func just_disconnected(from: Connection):
-	_just_disconnected(from)
+func just_disconnected(who: Connection, from: Connection):
+	_just_disconnected(who, from)
 
-func _just_connected(to: Connection):pass
-func _just_disconnected(from: Connection):pass
+func _just_connected(who: Connection, to: Connection):pass
+func _just_disconnected(who: Connection, from: Connection):pass
 
 func add_connection(conn: Connection):
 	match conn.connection_type:

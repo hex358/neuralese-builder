@@ -139,20 +139,26 @@ var state = {
 var last_mouse_pos: Vector2 = Vector2()
 var anchor_position: Vector2 = Vector2()  # For upward expansion
 
+signal child_button_hover(button: BlockComponent)
+signal child_button_hovering(button: BlockComponent)
+signal child_button_press(button: BlockComponent)
+signal child_button_pressing(button: BlockComponent)
+signal child_button_release(button: BlockComponent)
+
 func _menu_handle_hover(button: BlockComponent):
-	pass
+	child_button_hover.emit(button)
 
 func _menu_handle_hovering(button: BlockComponent):
-	pass
+	child_button_hovering.emit(button)
 
 func _menu_handle_press(button: BlockComponent):
-	pass
+	child_button_press.emit(button)
 
 func _menu_handle_pressing(button: BlockComponent):
-	pass
+	child_button_pressing.emit(button)
 
 func _menu_handle_release(button: BlockComponent):
-	pass
+	child_button_release.emit(button)
 
 var vbox: VBoxContainer
 var scroll: ScrollContainer

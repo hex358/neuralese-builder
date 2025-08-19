@@ -263,11 +263,11 @@ func propagate_cycle(gather: Variant=null) -> void:
 		conn.parent_graph.propagate(dup[conn])
 
 
-func get_syntax_tree(train: bool = false) -> Dictionary:
+func get_syntax_tree() -> Dictionary:
 	var gathered = {}
 	var expect = {}
 	var index_counter: int = 0
-	var input = _train_origin_graph if train else _input_origin_graph
+	var input = _input_origin_graph
 	if not input: return {}
 	
 	input.propagate({})
@@ -304,6 +304,7 @@ var graph_types = {
 	"base": preload("res://scenes/base_graph.tscn"),
 	"input": preload("res://scenes/input_graph.tscn"),
 	"layer": preload("res://scenes/layer.tscn"),
+	"train_input": preload("res://scenes/train_input.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

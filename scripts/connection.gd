@@ -30,6 +30,7 @@ var datatype: StringName = ""
 @export var multiple_splines: bool = false
 @export var origin_offset: Vector2 = Vector2()
 @export var unpadded_area: Vector4 = Vector4()
+@export var max_splines_by_keyword: Dictionary[StringName, int] = {}
 
 @export var dir_vector: Vector2 = Vector2.RIGHT
 
@@ -125,7 +126,7 @@ func attach_spline(id: int, target: Connection):
 	_stylize_spline(spline, true, true)
 	glob.hovered_connection = null
 	graphs.attach_edge(self, target)
-	parent_graph.just_connected(target)
+	parent_graph.just_connected(self, target)
 	end_spline(id, false)
 
 var conn_id: int = 0
@@ -138,7 +139,7 @@ func detatch_spline(spline: Spline):
 	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
 	graphs.remove_edge(spline.origin, spline.tied_to)
-	other.parent_graph.just_disconnected(self)
+	other.parent_graph.just_disconnected(other, self)
 	forget_spline(spline, other)
 
 
@@ -163,12 +164,22 @@ func _accepts(conn: Connection) -> bool:
 	if conn.keyword == "activ" and keyword == "activ": return false
 	return true
 
+const default_max_splines: int = 1
+func multiple(conn: Connection) -> bool:
+	var kw: StringName = conn.conn_count_keyword
+	var allowed: int = default_max_splines
+	if max_splines_by_keyword.has(kw):
+		allowed = int(max(1, max_splines_by_keyword[kw]))
+	var cur_arr = conn_counts.get_or_add(kw, [0])
+	var cur: int = int(cur_arr[0])
+	return cur < allowed
+
 func is_suitable(conn: Connection) -> bool:
 	#print(len(outputs))
 	return (conn and conn != self and conn.connection_type == INPUT
 		and (!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype))
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
-		and (conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or multiple_splines or conn.conn_count_keyword == &"router")
+		and multiple(conn) #conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or true or conn.conn_count_keyword == &"router"
 		and graphs.validate_acyclic_edge(self, conn)
 		and conn._accepts(self)
 		and _is_suitable(conn))

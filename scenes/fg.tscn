@@ -157,9 +157,7 @@ offset_right = 241.0
 offset_bottom = 262.0
 button_type = 2
 top = true
-base_scale_x = 0.643
 mouse_open = false
-scrollbar_padding = 21
 
 [node name="ColorRect2" parent="submenu/ColorRect2" instance=ExtResource("4_5k5he")]
 material = ExtResource("9_4033n")
@@ -175,9 +173,7 @@ offset_bottom = 46.0
 pivot_offset = Vector2(35.5, 21)
 button_type = 1
 top = true
-base_scale_x = 0.643
 text = "Add"
 base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
-scrollbar_padding = 21

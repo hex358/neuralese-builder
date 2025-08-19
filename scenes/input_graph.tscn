@@ -1,26 +1,30 @@
-[gd_scene load_steps=3 format=3 uid="uid://e3l6g3u21slb"]
+[gd_scene load_steps=5 format=3 uid="uid://e3l6g3u21slb"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_6ucvy"]
+[ext_resource type="Script" uid="uid://fnk1i461e1xi" path="res://scripts/input_graph.gd" id="2_02not"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_m1bro"]
+[ext_resource type="Script" uid="uid://cp7e4eeuykhnt" path="res://scripts/image_draw.gd" id="3_53i8k"]
 
 [node name="Base" instance=ExtResource("1_6ucvy")]
-server_typename = &"InputNode"
-is_input = true
+script = ExtResource("2_02not")
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
 offset_left = 79.0
-offset_top = -10.0
+offset_top = 17.0
 offset_right = 95.0
-offset_bottom = 11.0
+offset_bottom = 38.0
 color = Color(1, 0.988235, 0.6, 1)
 _accepted_datatypes = "input"
 server_name = &"input_out"
 connection_type = 1
-area_paddings = Vector4(20, 5, 20, 5)
+area_paddings = Vector4(20, 20, 20, 20)
 multiple_splines = true
 origin_offset = Vector2(3, 0)
 unpadded_area = Vector4(0, 0, 20, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
 parent_graph = NodePath("..")
 gradient_color = Color(1, 0.988235, 0.6, 1)
 
@@ -29,7 +33,7 @@ instance_shader_parameters/corner_radius_add = -4.0
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_top = -35.0
-offset_bottom = 33.0
+offset_bottom = 96.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 offset_left = 8.0
@@ -39,3 +43,19 @@ offset_bottom = 48.0
 scale = Vector2(0.569577, 0.569577)
 theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
 text = "Input"
+
+[node name="TextureRect" type="TextureRect" parent="." index="2"]
+texture_filter = 1
+layout_mode = 0
+offset_left = -75.0
+offset_top = -5.0
+offset_right = -35.0
+offset_bottom = 35.0
+scale = Vector2(2.36157, 2.36157)
+stretch_mode = 2
+script = ExtResource("3_53i8k")
+brush_radius = 3
+brush_hardness = 0.1
+flow_per_second = 50.0
+max_luma = 0.8
+headroom_power = 1.5
