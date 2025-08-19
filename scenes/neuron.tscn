@@ -3,18 +3,18 @@
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_mms1l"]
 [ext_resource type="Script" uid="uid://djv1yj3ii8ktb" path="res://scripts/neuron_config.gd" id="2_g8jnw"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="3_j2aws"]
-[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="4_2oyde"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="5_fqm4g"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="6_g8jnw"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_0nr7h"]
+[ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="7_fqm4g"]
 
-[sub_resource type="Resource" id="Resource_q868x"]
+[sub_resource type="Resource" id="Resource_g8jnw"]
 script = ExtResource("7_0nr7h")
-hover_color = Color(0.68, 1, 0.834667, 1)
-hover_mult = 1.4
-_hover_scale = 1.037
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.0
 press_color = Color(0.9, 0.9, 0.9, 1)
-_press_scale = 0.97
+_press_scale = 1.0
 animation_scale = 0.0
 animation_speed = 1.951
 animation_decay = 4.564
@@ -23,15 +23,18 @@ metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="config" instance=ExtResource("1_mms1l")]
 script = ExtResource("2_g8jnw")
-server_typename = &"NeuronConfig"
+server_typename = &"LayerConfig"
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
+instance_shader_parameters/corner_radius_add = 3.0
 layout_mode = 0
-offset_left = -10.0
-offset_top = 5.0
-offset_right = 9.0
-offset_bottom = 33.0
-color = Color(0, 1, 0.882353, 1)
+offset_left = -9.0
+offset_top = -4.0
+offset_right = 10.0
+offset_bottom = 24.0
+color = Color(0.298039, 0.670588, 0.901961, 1)
+_accepted_datatypes = "activation"
+server_name = &"activ_out"
 connection_type = 1
 area_paddings = Vector4(20, 5, 20, 5)
 multiple_splines = true
@@ -39,68 +42,48 @@ origin_offset = Vector2(0, 10)
 unpadded_area = Vector4(10, 0, 10, 20)
 dir_vector = Vector2(0, 1)
 parent_graph = NodePath("..")
-gradient_color = Color(0, 1, 0.882353, 1)
+gradient_color = Color(0.298039, 0.670588, 0.901961, 1)
 
 [node name="ColorRect" parent="." index="1"]
 instance_shader_parameters/corner_radius_add = -3.0
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
-offset_left = -52.0
+offset_left = -43.0
 offset_top = -38.0
-offset_right = 53.0
-offset_bottom = 24.0
+offset_right = 44.0
+offset_bottom = 15.0
+color = Color(0.9, 0.9, 0.9, 1)
 
 [node name="Label" parent="ColorRect/root" index="0"]
-offset_left = 8.0
-offset_top = 5.0
-offset_right = 219.0
-offset_bottom = 48.0
-scale = Vector2(0.340395, 0.340395)
-theme_override_colors/font_color = Color(0, 1, 0.882353, 1)
-text = "DenseLayer"
+offset_left = 7.0
+offset_top = 6.0
+offset_right = 218.0
+offset_bottom = 49.0
+scale = Vector2(0.378597, 0.378597)
+theme_override_colors/font_color = Color(0.298039, 0.670588, 0.901961, 1)
+text = "Activation"
 
-[node name="type" type="Label" parent="." index="2"]
-z_index = 1
-layout_mode = 0
-offset_left = -43.0
-offset_top = -16.0
-offset_right = 81.0
-offset_bottom = 27.0
-scale = Vector2(0.385403, 0.385403)
-theme = ExtResource("4_2oyde")
-text = "Type"
-
-[node name="activation" type="Label" parent="." index="3"]
-z_index = 1
-layout_mode = 0
-offset_left = -42.0
-offset_top = -0.999998
-offset_right = 150.0
-offset_bottom = 42.0
-scale = Vector2(0.387925, 0.387925)
-theme = ExtResource("4_2oyde")
-text = "Func"
-
-[node name="ColorRect2" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("5_fqm4g")]
+[node name="ColorRect2" parent="." index="2" node_paths=PackedStringArray("graph") instance=ExtResource("5_fqm4g")]
 instance_shader_parameters/corner_radius_add = -7.0
 layout_mode = 0
-offset_left = -9.0
-offset_top = -2.0
-offset_right = 66.0
-offset_bottom = 24.0
+offset_left = -34.0
+offset_top = -14.0
+offset_right = 61.0
+offset_bottom = 12.0
 scale = Vector2(0.733764, 0.733764)
+color = Color(0.298039, 0.670588, 0.901961, 1)
 button_type = 2
 top = true
+base_scale_x = 0.55
 resize_after = 3
 text = "None"
-base_size = Vector2(75, 26)
+base_size = Vector2(95, 26)
 expanded_size = 130
 arrangement_padding = Vector2(6, 5)
 mouse_open = false
 menu_name = &"g"
-max_size = 140
+config = SubResource("Resource_g8jnw")
 graph = NodePath("..")
-scrollbar_padding = 21
 
 [node name="ColorRect2" parent="ColorRect2" index="1" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
@@ -120,8 +103,7 @@ top = true
 text = "None"
 base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_q868x")
-scrollbar_padding = 21
+config = ExtResource("7_fqm4g")
 
 [node name="ColorRect3" parent="ColorRect2" index="2" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
@@ -141,8 +123,7 @@ top = true
 text = "RelU"
 base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_q868x")
-scrollbar_padding = 21
+config = ExtResource("7_fqm4g")
 
 [node name="ColorRect4" parent="ColorRect2" index="3" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
@@ -159,12 +140,11 @@ scale = Vector2(0.601426, 0.601426)
 pivot_offset = Vector2(49.5, 18)
 button_type = 1
 top = true
-resize_after = 6
+resize_after = 8
 text = "Sigmoid"
 base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_q868x")
-scrollbar_padding = 21
+config = ExtResource("7_fqm4g")
 
 [node name="ColorRect5" parent="ColorRect2" index="4" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
@@ -185,5 +165,46 @@ resize_after = 5
 text = "Tanh"
 base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_q868x")
-scrollbar_padding = 21
+config = ExtResource("7_fqm4g")
+
+[node name="ColorRect6" parent="ColorRect2" index="5" instance=ExtResource("5_fqm4g")]
+material = ExtResource("6_g8jnw")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+resize_after = 7
+text = "Leaky ReLU"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("7_fqm4g")
+
+[node name="ColorRect7" parent="ColorRect2" index="6" instance=ExtResource("5_fqm4g")]
+material = ExtResource("6_g8jnw")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+resize_after = 8
+text = "GeLU"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("7_fqm4g")

@@ -2,9 +2,12 @@ extends DynamicGraph
 
 func _useful_properties() -> Dictionary:
 	#assert (input_keys[0].inputs, "no config. TODO: implement error handling")
+	var conf = {}
+	if input_keys[0].inputs:
+		conf["activation"] = input_keys[0].inputs.keys()[0]
 	return {
 	"neuron_count": _real_amount,
-	"config": input_keys[0].inputs.keys()[0].origin.parent_graph._useful_properties() if input_keys[0].inputs else {}
+	"config": {}
 	}
 
 @export var group_size: int = 1:

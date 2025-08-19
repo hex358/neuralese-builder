@@ -159,6 +159,10 @@ func _is_suitable(conn: Connection) -> bool: return true # virtual
 
 @export var conn_count_keyword: String = ""
 
+func _accepts(conn: Connection) -> bool:
+	if conn.keyword == "activ" and keyword == "activ": return false
+	return true
+
 func is_suitable(conn: Connection) -> bool:
 	#print(len(outputs))
 	return (conn and conn != self and conn.connection_type == INPUT
@@ -166,6 +170,7 @@ func is_suitable(conn: Connection) -> bool:
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
 		and (conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or multiple_splines or conn.conn_count_keyword == &"router")
 		and graphs.validate_acyclic_edge(self, conn)
+		and conn._accepts(self)
 		and _is_suitable(conn))
 
 @export var gradient_color: Color = Color.WHITE

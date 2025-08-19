@@ -220,9 +220,9 @@ func compress_dict_gzip(dict: Dictionary):
 func save():
 	var compressed = compress_dict_gzip(get_deltas())
 
-var _input_graphs: Dictionary[Graph, bool] = {}
-func add_input(graph: Graph): 
-	_input_graphs[graph] = true
+var _train_origin_graph: Graph = null
+var _input_origin_graph: Graph = null
+
 func get_abstract(graph: Graph, emit = {}) -> Dictionary:
 	return {
 		"type": graph.server_typename,
@@ -263,14 +263,15 @@ func propagate_cycle(gather: Variant=null) -> void:
 		conn.parent_graph.propagate(dup[conn])
 
 
-func get_syntax_tree() -> Dictionary:
+func get_syntax_tree(train: bool = false) -> Dictionary:
 	var gathered = {}
 	var expect = {}
 	var index_counter: int = 0
-
-	for i in _input_graphs:
-		i.propagate({})
-		gathered[str(index_counter)] = reg_gather(i.outputs, expect)
+	var input = _train_origin_graph if train else _input_origin_graph
+	if not input: return {}
+	
+	input.propagate({})
+	gathered[str(index_counter)] = reg_gather(input.outputs, expect)
 
 	var prev_q = {}
 	while _propagated_from:

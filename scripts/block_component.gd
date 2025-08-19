@@ -28,6 +28,11 @@ func unblock_input() -> void: is_blocking = false
 @export var hint: StringName = &""
 
 @export_group("Text")
+@export var base_scale_x: float = 0.643:
+	set(v):
+		base_scale_x = v
+		if not is_node_ready(): await ready
+		label.scale = Vector2(v, v)
 @export var resize_after: int = 0:
 	set(v):
 		resize_after = v
@@ -389,7 +394,7 @@ func is_mouse_inside() -> bool:
 func _align_label() -> void:
 	var text_size = glob.get_label_text_size(label) * label.scale
 	label.position = (base_size - text_size) / 2 * (text_alignment + Vector2.ONE) + text_offset
-	var base_scale = 0.643
+	var base_scale = base_scale_x
 	var txt = label.text
 	var n = txt.length()
 	var font = label.get_theme_font("font")

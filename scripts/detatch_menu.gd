@@ -55,10 +55,10 @@ func _menu_handle_release(button: BlockComponent):
 	block_input()
 	var _inst = button.metadata["inst"]
 	if button.metadata["all"]:
-		var node = _inst[0].origin
-		var dup = node.outputs.duplicate()
-		for i in dup:
-			node.end_spline(i)
+		for i in _inst:
+			i.origin.end_spline(i.origin.key_by_spline[i])
+		#for i in _inst:
+		#	_inst[0].tied_to.remove_input_spline(i)
 	else:
 		var i = _inst.origin.key_by_spline[_inst]
 		_inst.origin.end_spline(i)
