@@ -8,7 +8,8 @@ func _useful_properties() -> Dictionary:
 		conf["activation"] = input_keys[0].inputs.keys()[0].origin.parent_graph.selected_activation
 	return {
 	"neuron_count": _real_amount,
-	"config": conf
+	"config": conf,
+	"cache_tag": str(graph_id)
 	}
 
 var neurons_fixed: bool = false:

@@ -285,10 +285,12 @@ func get_syntax_tree() -> Dictionary:
 				var g: Graph = conn.parent_graph
 				if not gathered[str(index_counter)].has(g.graph_id):
 					gathered[str(index_counter)][g.graph_id] = get_abstract(g)
-
+	#print(gathered["0"])
 	return {
+		#"input": _input_origin_graph._useful_properties(),
 		"pages": gathered,
-		"expect": expect
+		"expect": expect,
+		"train": 0
 	}
 
 func run_request():
@@ -305,6 +307,7 @@ var graph_types = {
 	"input": preload("res://scenes/input_graph.tscn"),
 	"layer": preload("res://scenes/layer.tscn"),
 	"train_input": preload("res://scenes/train_input.tscn"),
+	"softmax": preload("res://scenes/softmax.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

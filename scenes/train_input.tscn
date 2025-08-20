@@ -10,6 +10,7 @@ server_typename = &"TrainInput"
 area_padding = 10.0
 
 [node name="i" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
+layout_mode = 0
 offset_left = -99.0
 offset_top = 0.0
 offset_right = -81.0
@@ -21,13 +22,13 @@ connection_type = 0
 area_paddings = Vector4(20, 5, 20, 5)
 multiple_splines = true
 origin_offset = Vector2(-10, 0)
-unpadded_area = Vector4(20, 20, 20, 20)
 dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("..")
 conn_count_keyword = "train"
 gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
 
 [node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
+layout_mode = 0
 offset_left = 81.0
 offset_top = 0.0
 offset_right = 99.0
@@ -39,7 +40,6 @@ connection_type = 1
 area_paddings = Vector4(20, 5, 20, 5)
 multiple_splines = true
 origin_offset = Vector2(10, 0)
-unpadded_area = Vector4(20, 20, 20, 20)
 parent_graph = NodePath("..")
 gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
 

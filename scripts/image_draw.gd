@@ -32,6 +32,11 @@ func put_pixel(coord: Vector2i, color: Color, reassign: bool = true):
 		if reassign:
 			image_texture.update(image)
 
+func get_pixel(coord: Vector2i) -> Color:
+	if coord > Vector2i() and coord < image.get_size() - Vector2i.ONE:
+		return image.get_pixelv(coord)
+	return Color.BLACK
+
 func reassign_image():
 	image_texture.update(image)
 
@@ -123,5 +128,5 @@ func _process(delta: float) -> void:
 	else:
 		_was_drawing = false
 
-	if Input.is_action_just_pressed("ui_accept"):
+	if Input.is_action_just_pressed("ui_accept") and mouse_inside:
 		clear()

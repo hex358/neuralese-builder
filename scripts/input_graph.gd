@@ -3,6 +3,19 @@ extends Graph
 func _can_drag() -> bool:
 	return !$TextureRect.mouse_inside
 
+func get_raw_values():
+	var width: int = $TextureRect.image.get_width()
+	var total: int = $TextureRect.image.get_width() * $TextureRect.image.get_height()
+	var res = []
+	for i in total:
+		var coord = Vector2i(i % width, i / width)
+		res.append($TextureRect.get_pixel(coord).r)
+	return res
+
+func _useful_properties() -> Dictionary:
+	#print("A")
+	return {"raw_values": get_raw_values()}
+
 func _just_connected(who: Connection, to: Connection):
 	if to.parent_graph is NeuronLayer:
 		to.parent_graph.neurons_fixed = true

@@ -7,6 +7,8 @@
 
 [node name="Base" instance=ExtResource("1_6ucvy")]
 script = ExtResource("2_02not")
+server_typename = &"InputNode"
+is_input = true
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
@@ -21,7 +23,6 @@ connection_type = 1
 area_paddings = Vector4(20, 20, 20, 20)
 multiple_splines = true
 origin_offset = Vector2(3, 0)
-unpadded_area = Vector4(0, 0, 20, 0)
 max_splines_by_keyword = Dictionary[StringName, int]({
 &"train": 0
 })
@@ -54,8 +55,8 @@ offset_bottom = 35.0
 scale = Vector2(2.36157, 2.36157)
 stretch_mode = 2
 script = ExtResource("3_53i8k")
-brush_radius = 3
+brush_radius = 2
 brush_hardness = 0.1
 flow_per_second = 50.0
-max_luma = 0.8
-headroom_power = 1.5
+max_luma = 0.9
+headroom_power = 0.0

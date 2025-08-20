@@ -13,6 +13,8 @@ func _menu_handle_release(button: BlockComponent):
 			type = graphs.graph_types.input
 		"train_input":
 			type = graphs.graph_types.train_input
+		"softmax":
+			type = graphs.graph_types.softmax
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

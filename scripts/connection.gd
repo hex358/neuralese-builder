@@ -47,11 +47,14 @@ var mouse_pressed: bool = false
 
 func delete():
 	if connection_type == INPUT:
-		for i in inputs.duplicate():
+		var dup =  inputs.duplicate()
+		for i in dup:
 			detatch_spline(i)
+			i.origin.end_spline(dup[i])
 	else:
 		for i in outputs.duplicate():
 			outputs[i].tied_to.detatch_spline(outputs[i])
+			end_spline(i)
 
 func is_mouse_inside(padding:Vector4=area_paddings) -> bool:
 	# padded hit area
@@ -135,7 +138,8 @@ func _init() -> void:
 
 func detatch_spline(spline: Spline):
 	var other = spline.origin
-	if not other.outputs.has(inputs[spline]): return
+	if not other.outputs.has(inputs[spline]): 
+		return
 	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
 	graphs.remove_edge(spline.origin, spline.tied_to)
@@ -175,7 +179,6 @@ func multiple(conn: Connection) -> bool:
 	return cur < allowed
 
 func is_suitable(conn: Connection) -> bool:
-	#print(len(outputs))
 	return (conn and conn != self and conn.connection_type == INPUT
 		and (!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype))
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")

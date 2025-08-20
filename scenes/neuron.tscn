@@ -39,7 +39,6 @@ connection_type = 1
 area_paddings = Vector4(20, 5, 20, 5)
 multiple_splines = true
 origin_offset = Vector2(0, 10)
-unpadded_area = Vector4(10, 0, 10, 20)
 max_splines_by_keyword = Dictionary[StringName, int]({
 &"activ": 128
 })

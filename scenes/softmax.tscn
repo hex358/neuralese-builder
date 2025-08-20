@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3 uid="uid://bb1li7gs5rtsc"]
+
+[ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_q72yv"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_kcfqd"]
+
+[node name="Base" instance=ExtResource("1_q72yv")]
+server_typename = &"SoftmaxNode"
+
+[node name="o2" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_kcfqd")]
+offset_left = -97.0
+offset_top = -9.0
+offset_right = -81.0
+offset_bottom = 12.0
+color = Color(1, 0.988235, 0.6, 1)
+_accepted_datatypes = "layer softmaxed"
+server_name = &"layer_in"
+connection_type = 0
+area_paddings = Vector4(20, 20, 20, 20)
+origin_offset = Vector2(-3, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
+dir_vector = Vector2(-1, 0)
+parent_graph = NodePath("..")
+gradient_color = Color(1, 0.988235, 0.6, 1)
+
+[node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_kcfqd")]
+offset_left = 82.0
+offset_top = -9.0
+offset_right = 98.0
+offset_bottom = 12.0
+color = Color(1, 0.988235, 0.6, 1)
+_accepted_datatypes = "softmaxed"
+server_name = &"soft_out"
+connection_type = 1
+area_paddings = Vector4(20, 20, 20, 20)
+multiple_splines = true
+origin_offset = Vector2(3, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
+parent_graph = NodePath("..")
+gradient_color = Color(1, 0.988235, 0.6, 1)
+
+[node name="Label" parent="ColorRect/root" index="0"]
+offset_left = 29.0
+offset_top = 48.0
+offset_right = 164.0
+offset_bottom = 91.0
+scale = Vector2(0.971247, 0.971247)
+text = "Softmax"

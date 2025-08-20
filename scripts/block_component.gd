@@ -346,6 +346,8 @@ func _process_dropout_menu(delta: float) -> void:
 	else:
 		glob.un_occupy(self, "dropout_inside")
 	if ButtonType.BLOCK_BUTTON == current_type:
+		if graph:
+			base_pos = global_position - graph.global_position
 		_process_block_button(delta)
 		if (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
 			current_type = ButtonType.CONTEXT_MENU
