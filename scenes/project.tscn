@@ -1,5 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=10 format=3 uid="uid://dbgi78pifb8xh"]
 
+[ext_resource type="Script" uid="uid://drad1dm8hrqwt" path="res://scenes/project.gd" id="1_6ipd3"]
 [ext_resource type="PackedScene" uid="uid://tjiw5jmnnrgh" path="res://scenes/fg.tscn" id="1_djuk3"]
 [ext_resource type="Script" uid="uid://cycf8wrmrdnkj" path="res://scripts/gview.gd" id="2_6ipd3"]
 [ext_resource type="Script" uid="uid://cm2g043jhfcdw" path="res://scripts/storer.gd" id="3_hyn5d"]
@@ -7,8 +8,10 @@
 [ext_resource type="PackedScene" uid="uid://by1briddb0hwg" path="res://scenes/bg.tscn" id="5_sa0gx"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://scripts/camera_2d.gd" id="6_agq83"]
 [ext_resource type="Script" uid="uid://ddn84p6nhiie0" path="res://scripts/follow_menus.gd" id="7_ioxnp"]
+[ext_resource type="Script" uid="uid://dukj0sbpdo07o" path="res://scripts/sockets.gd" id="8_djuk3"]
 
 [node name="base" type="Node2D"]
+script = ExtResource("1_6ipd3")
 
 [node name="fg" parent="." instance=ExtResource("1_djuk3")]
 
@@ -33,3 +36,7 @@ drag_button = 3
 layer = 128
 follow_viewport_enabled = true
 script = ExtResource("7_ioxnp")
+
+[node name="WebSocketEasy" type="Node" parent="."]
+script = ExtResource("8_djuk3")
+metadata/_custom_type_script = "uid://dukj0sbpdo07o"

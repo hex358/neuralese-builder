@@ -1,6 +1,6 @@
 extends Node
 
-const api_url: String = "http://localhost:8100/"
+const api_url: String = "http://localhost:8000/"
 
 var _http_request: HTTPRequest
 var _headers: PackedStringArray = PackedStringArray()
