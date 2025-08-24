@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3 uid="uid://cy68aiofs1yc3"]
+
+[ext_resource type="Script" uid="uid://dm4wur1onqry5" path="res://scripts/moving_analytics.gd" id="1_1nten"]
+[ext_resource type="PackedScene" uid="uid://db45gd3qrpsew" path="res://scenes/circle.tscn" id="2_j3c5y"]
+
+[node name="MovingAnalytics" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1nten")
+move_speed = 0.2
+y_padding = 3
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_right = 108.0
+offset_bottom = 70.0
+color = Color(0.19, 0.19, 0.19, 1)
+
+[node name="Circle" parent="." instance=ExtResource("2_j3c5y")]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 8.0
+offset_bottom = 9.0

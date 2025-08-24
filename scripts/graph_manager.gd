@@ -300,7 +300,7 @@ func get_syntax_tree() -> Dictionary:
 func run_request():
 	save()
 	var syntax_tree = get_syntax_tree()
-	await web.post("run", compress_dict_gzip(syntax_tree), true)
+	await web.POST("run", compress_dict_gzip(syntax_tree), true)
 
 
 var graph_types = {

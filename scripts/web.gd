@@ -36,10 +36,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	pass
 
-func post(page: String, data, bytes: bool = false) -> Dictionary:
+func POST(page: String, data, bytes: bool = false) -> Dictionary:
 	return await _request(api_url + page, data, HTTPClient.METHOD_POST, bytes)
 
-func push_get(page: String) -> Dictionary:
+func GET(page: String) -> Dictionary:
 	return await _request(api_url + page, {}, HTTPClient.METHOD_GET, false)
 
 signal res_dict_assigned(dict: Dictionary)

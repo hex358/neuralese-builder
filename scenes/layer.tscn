@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_oobeh"]
 [ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_2eb8h"]
-[ext_resource type="Script" uid="uid://7nab6wgidrl1" path="res://scenes/unit.gd" id="3_gemti"]
+[ext_resource type="Script" uid="uid://7nab6wgidrl1" path="res://scripts/neuron_unit.gd" id="3_gemti"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="3_j0ma4"]
 [ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_3b4h0"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_3b4h0"]

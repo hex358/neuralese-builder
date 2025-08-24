@@ -21,6 +21,7 @@ glob="*res://scripts/glob.gd"
 ui="*res://scripts/ui_manager.gd"
 graphs="*res://scripts/graph_manager.gd"
 web="*res://scripts/web.gd"
+sockets="*res://scripts/sockets.gd"
 
 [gui]
 
