@@ -286,12 +286,11 @@ func get_syntax_tree() -> Dictionary:
 				if not gathered[str(index_counter)].has(g.graph_id):
 					gathered[str(index_counter)][g.graph_id] = get_abstract(g)
 	#print(gathered["0"])
-	var o = {}
-	if gathered and gathered["0"]:
-		o = gathered["0"][gathered["0"].keys()[0]].props.raw_values
+	#var o = {}
+	#if gathered and gathered["0"]:
+	#	o = gathered["0"][gathered["0"].keys()[0]].props.raw_values
 	
 	return {
-		"input_vals": o,
 		"pages": gathered,
 		"expect": expect,
 		"train": 1
@@ -300,6 +299,7 @@ func get_syntax_tree() -> Dictionary:
 func run_request():
 	save()
 	var syntax_tree = get_syntax_tree()
+	print(syntax_tree)
 	await web.POST("run", compress_dict_gzip(syntax_tree), true)
 
 

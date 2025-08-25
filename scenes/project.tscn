@@ -40,8 +40,3 @@ script = ExtResource("7_ioxnp")
 [node name="MovingAnalytics" parent="." instance=ExtResource("9_6ipd3")]
 offset_right = 100.99
 offset_bottom = 100.0
-move_speed = null
-catchup_speed = null
-y_min = null
-y_max = null
-y_padding = null

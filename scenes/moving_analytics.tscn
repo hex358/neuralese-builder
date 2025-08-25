@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://cy68aiofs1yc3"]
+[gd_scene load_steps=4 format=3 uid="uid://cy68aiofs1yc3"]
 
 [ext_resource type="Script" uid="uid://dm4wur1onqry5" path="res://scripts/moving_analytics.gd" id="1_1nten"]
 [ext_resource type="PackedScene" uid="uid://db45gd3qrpsew" path="res://scenes/circle.tscn" id="2_j3c5y"]
+[ext_resource type="Script" uid="uid://my427xf81ilj" path="res://scripts/drawer.gd" id="2_kmh4m"]
 
 [node name="MovingAnalytics" type="Control"]
 layout_mode = 3
@@ -11,14 +12,32 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_1nten")
-move_speed = 0.2
-y_padding = 3
+window_size = 13
+snapshot_every = 0.3
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 0
-offset_right = 108.0
+offset_left = -11.0
+offset_right = 136.0
 offset_bottom = 70.0
-color = Color(0.19, 0.19, 0.19, 1)
+color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="Drawer" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 109.0
+offset_bottom = 70.0
+script = ExtResource("2_kmh4m")
+origin_y = 65.0
+y_mult = 60.0
+spacing = 10.0
+width = 4.0
+offset_x = 2.5
+
+[node name="Line2D" type="Line2D" parent="Drawer"]
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
 
 [node name="Circle" parent="." instance=ExtResource("2_j3c5y")]
 layout_mode = 0

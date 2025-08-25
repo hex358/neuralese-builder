@@ -12,10 +12,10 @@ is_input = true
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
-offset_left = 79.0
-offset_top = 17.0
-offset_right = 95.0
-offset_bottom = 38.0
+offset_left = 30.0
+offset_top = 16.0
+offset_right = 46.0
+offset_bottom = 37.0
 color = Color(1, 0.988235, 0.6, 1)
 _accepted_datatypes = "input"
 server_name = &"input_out"
@@ -34,7 +34,8 @@ instance_shader_parameters/corner_radius_add = -4.0
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_top = -35.0
-offset_bottom = 96.0
+offset_right = 35.0
+offset_bottom = 101.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 offset_left = 8.0
