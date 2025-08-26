@@ -3,7 +3,7 @@ extends Graph
 func _useful_properties() -> Dictionary:
 	return {
 		"config":{ 
-			"optimizer": "adam", "target": [0.0, 0.0, 0.0, 0.0], "loss": "cross_entropy"
+			"optimizer": "adam", "target": [0.0], "loss": "cross_entropy"
 			}
 			}
 

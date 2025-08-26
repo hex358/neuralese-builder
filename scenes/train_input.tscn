@@ -1,8 +1,26 @@
-[gd_scene load_steps=4 format=3 uid="uid://cl5yhw1xp0afw"]
+[gd_scene load_steps=10 format=3 uid="uid://cl5yhw1xp0afw"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_h6r10"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_41i7g"]
 [ext_resource type="Script" uid="uid://cl0mjh40xjip4" path="res://scripts/train_input.gd" id="2_gdpv5"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="4_d1efk"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="5_10eqb"]
+[ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="6_s3o4y"]
+[ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="7_dq5jb"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="8_10eqb"]
+
+[sub_resource type="Resource" id="Resource_b41bo"]
+script = ExtResource("5_10eqb")
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.0
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 1.0
+animation_scale = 0.0
+animation_speed = 1.951
+animation_decay = 4.564
+animation_duration = 1.0
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Base" instance=ExtResource("1_h6r10")]
 script = ExtResource("2_gdpv5")
@@ -10,42 +28,112 @@ server_typename = &"TrainInput"
 
 [node name="i" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
 layout_mode = 0
-offset_left = -99.0
-offset_top = 0.0
-offset_right = -81.0
-offset_bottom = 19.0
-color = Color(0.297, 0.9, 0.72915, 1)
+offset_left = -88.0
+offset_top = -13.0
+offset_right = -70.0
+offset_bottom = 13.0
+color = Color(0.462745, 0.45098, 0.85098, 1)
 _accepted_datatypes = "layer"
 server_name = &"pred_in"
 connection_type = 0
 area_paddings = Vector4(20, 20, 20, 20)
 multiple_splines = true
-origin_offset = Vector2(-10, 0)
+origin_offset = Vector2(-3, 0)
 dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("..")
 conn_count_keyword = "train"
-gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
+gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
 
-[node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
-layout_mode = 0
-offset_left = 81.0
-offset_top = 0.0
-offset_right = 99.0
-offset_bottom = 19.0
-color = Color(0.297, 0.9, 0.72915, 1)
-_accepted_datatypes = "layer"
-server_name = &"layer_out"
-connection_type = 1
-area_paddings = Vector4(20, 20, 20, 20)
-multiple_splines = true
-origin_offset = Vector2(10, 0)
-parent_graph = NodePath("..")
-gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
+[node name="ColorRect" parent="." index="1"]
+instance_shader_parameters/corner_radius_add = 0.0
+instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
+offset_left = -78.0
+offset_top = -45.0
+offset_right = 61.0
+offset_bottom = 46.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
-offset_left = 6.0
-offset_top = 36.0
-offset_right = 199.0
-offset_bottom = 79.0
-scale = Vector2(0.814029, 0.814029)
-text = "traininput"
+offset_left = 9.0
+offset_top = 6.0
+offset_right = 202.0
+offset_bottom = 49.0
+scale = Vector2(0.463877, 0.463877)
+text = "TrainHead"
+
+[node name="ColorRect2" parent="." index="2" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+instance_shader_parameters/corner_radius_add = -7.0
+instance_shader_parameters/corner_width_add = 0.0
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = -1.0
+offset_top = -12.0
+offset_right = 69.0
+offset_bottom = 14.0
+scale = Vector2(0.733764, 0.733764)
+color = Color(0.531, 0.6294, 0.9, 1)
+button_type = 2
+top = true
+base_scale_x = 0.45
+text = "SGD"
+base_size = Vector2(70, 26)
+expanded_size = 80
+arrangement_padding = Vector2(6, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_b41bo")
+graph = NodePath("..")
+
+[node name="ColorRect2" parent="ColorRect2" index="1" instance=ExtResource("4_d1efk")]
+material = ExtResource("6_s3o4y")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+hint = &"none"
+text = "SGD"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("7_dq5jb")
+
+[node name="ColorRect3" parent="ColorRect2" index="2" instance=ExtResource("4_d1efk")]
+material = ExtResource("6_s3o4y")
+instance_shader_parameters/corner_radius_add = -1.0
+instance_shader_parameters/corner_width_add = 0.3
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.36284
+offset_top = 4.08851
+offset_right = 97.6372
+offset_bottom = 40.0885
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+hint = &"adam"
+text = "Adam"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("7_dq5jb")
+
+[node name="Label" type="Label" parent="." index="3"]
+self_modulate = Color(0.65, 0.65, 0.65, 1)
+z_index = 1
+layout_mode = 0
+offset_left = -68.0
+offset_top = -15.0
+offset_right = 125.0
+offset_bottom = 28.0
+scale = Vector2(0.365106, 0.365106)
+theme = ExtResource("8_10eqb")
+text = "Optimizer"

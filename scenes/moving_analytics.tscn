@@ -17,7 +17,7 @@ snapshot_every = 0.3
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 0
-offset_left = -11.0
+offset_left = -44.0
 offset_right = 136.0
 offset_bottom = 70.0
 color = Color(0.1, 0.1, 0.1, 1)

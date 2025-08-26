@@ -284,7 +284,9 @@ func screen_to_world(p_screen: Vector2) -> Vector2:
 
 var follow_menus: CanvasLayer
 var window_rect: Rect2 = Rect2()
+var time: float = 0.0
 func _process(delta: float) -> void:
+	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
 	

@@ -127,6 +127,7 @@ instance_shader_parameters/corner_radius_add = 0.0
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
 offset_left = 302.667
 offset_top = -258.667
 offset_right = 521.667

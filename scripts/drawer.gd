@@ -13,6 +13,7 @@ func _ready() -> void:
 
 var lines = {}
 var _points = []
+var _point_positions: PackedVector2Array = PackedVector2Array([])
 
 func reline() -> void:
 	var id: int = -1
@@ -23,6 +24,7 @@ func reline() -> void:
 			add_child(lines[id][0]);add_child(lines[id][1])
 		var x = spacing * id + spacing / 2.0 + offset_x
 		var point_diff = origin_y-_points[point]*y_mult
+		#_point_positions.append()
 		lines[id][0].points = PackedVector2Array([
 			Vector2(x,origin_y), Vector2(x,origin_y-y_mult)
 		])
@@ -36,3 +38,7 @@ func reline() -> void:
 		lines[id][1].default_color = Color.GREEN_YELLOW
 		#draw_line(Vector2(x,origin_y), Vector2(x,origin_y-y_mult), Color(0.2,0.2,0.2,1.0), width, true)
 		#draw_line(Vector2(x,origin_y), Vector2(x,point_diff), Color.GREEN_YELLOW, width, true)
+
+func _draw() -> void:
+	for i in _point_positions:
+		pass
