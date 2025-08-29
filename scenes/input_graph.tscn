@@ -17,12 +17,12 @@ offset_top = 16.0
 offset_right = 46.0
 offset_bottom = 37.0
 color = Color(1, 0.988235, 0.6, 1)
-_accepted_datatypes = "input"
+_accepted_datatypes = "layer2d"
 server_name = &"input_out"
 connection_type = 1
 area_paddings = Vector4(20, 20, 20, 20)
 multiple_splines = true
-origin_offset = Vector2(3, 0)
+origin_offset = Vector2(8, 0)
 max_splines_by_keyword = Dictionary[StringName, int]({
 &"train": 0
 })
@@ -30,7 +30,7 @@ parent_graph = NodePath("..")
 gradient_color = Color(1, 0.988235, 0.6, 1)
 
 [node name="ColorRect" parent="." index="1"]
-instance_shader_parameters/corner_radius_add = -4.0
+instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_top = -35.0

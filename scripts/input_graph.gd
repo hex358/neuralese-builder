@@ -14,7 +14,7 @@ func get_raw_values():
 
 func _useful_properties() -> Dictionary:
 	#print("A")
-	return {"raw_values": get_raw_values()}
+	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28}}
 
 func _just_connected(who: Connection, to: Connection):
 	if to.parent_graph is NeuronLayer:

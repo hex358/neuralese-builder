@@ -49,7 +49,7 @@ func _request(address: String, request_body, method: int, bytes: bool = false) -
 	request.use_threads = true
 	add_child(request)
 	if !bytes:
-		var body = JSON.stringify(request_body)
+		var body = JSON.stringify(request_body, "", true, true)
 		request.request(address, _headers, method, body)
 	else:
 		request.request_raw(address, _headers, method, request_body)

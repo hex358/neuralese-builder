@@ -16,6 +16,7 @@ expand_margin_left = 5.0
 expand_margin_top = 5.0
 expand_margin_right = 5.0
 expand_margin_bottom = 5.0
+anti_aliasing_size = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mihib"]
 bg_color = Color(0.24, 0.24, 0.24, 1)
@@ -32,6 +33,7 @@ expand_margin_left = 5.0
 expand_margin_top = 5.0
 expand_margin_right = 5.0
 expand_margin_bottom = 5.0
+anti_aliasing_size = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d4nwg"]
 bg_color = Color(0.14, 0.14, 0.14, 1)
@@ -48,6 +50,7 @@ expand_margin_left = 5.0
 expand_margin_top = 5.0
 expand_margin_right = 5.0
 expand_margin_bottom = 5.0
+anti_aliasing_size = 4.0
 
 [sub_resource type="ImageTexture" id="ImageTexture_e1x85"]
 

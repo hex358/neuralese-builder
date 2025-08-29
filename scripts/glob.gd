@@ -60,6 +60,18 @@ func gen(iterable, wrapper: Callable) -> GenArray:
 func is_occupied(node: Node, layer: StringName) -> bool: 
 	var occupied = occ_layers.get(layer, null)
 	return is_instance_valid(occupied) and occupied != node
+
+func get_occupied(layer: StringName):
+	return occ_layers.get(layer, null)
+
+func cap(value: float, decimals: int) -> float:
+	var factor = pow(10.0, decimals)
+	return floor(value * factor) / factor
+
+func is_occupator(node: Node, layer: StringName) -> bool:
+	var occupied = occ_layers.get(layer, null)
+	return is_instance_valid(occupied) and occupied == node
+
 func occupy(node: Control, layer: StringName):
 	var occupied = occ_layers.get_or_add(layer, null)
 	if not is_instance_valid(occupied):
@@ -282,7 +294,7 @@ func world_to_screen(p_world: Vector2) -> Vector2:
 func screen_to_world(p_screen: Vector2) -> Vector2:
 	return get_viewport().get_canvas_transform().affine_inverse() * p_screen
 
-var follow_menus: CanvasLayer
+var follow_menus: Node
 var window_rect: Rect2 = Rect2()
 var time: float = 0.0
 func _process(delta: float) -> void:
@@ -315,6 +327,7 @@ var splines_layer: CanvasLayer
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
+	OS.low_processor_usage_mode = true
 	splines_layer = CanvasLayer.new()
 	splines_layer.layer = 4
 	splines_layer.follow_viewport_enabled = true

@@ -162,6 +162,7 @@ func _menu_handle_release(button: BlockComponent):
 
 var vbox: VBoxContainer
 var scroll: ScrollContainer
+var button_by_hint: Dictionary[StringName, BlockComponent] = {}
 func contain(child: BlockComponent):
 	if child.placeholder: return
 	if child in _contained: return
@@ -171,6 +172,7 @@ func contain(child: BlockComponent):
 	#child.hide()
 	
 	if child.button_type == ButtonType.BLOCK_BUTTON:
+		button_by_hint[child.hint] = child
 		child.hovered.connect(_menu_handle_hover.bind(child))
 		child.hovering.connect(_menu_handle_hovering.bind(child))
 		child.pressed.connect(_menu_handle_press.bind(child))
@@ -343,27 +345,36 @@ func _process_dropout_menu(delta: float) -> void:
 	var inside = is_mouse_inside()
 	if inside:
 		glob.occupy(self, "dropout_inside")
+		#print(global_position)
 	else:
 		glob.un_occupy(self, "dropout_inside")
 	if ButtonType.BLOCK_BUTTON == current_type:
-		if graph:
-			base_pos = global_position - graph.global_position
+		#if graph:
+		#	base_pos = global_position# - graph.global_position
 		_process_block_button(delta)
-		if (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
+		#print(glob.opened_menu)
+		if not glob.opened_menu and (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
 			current_type = ButtonType.CONTEXT_MENU
 			left_activate = true
 			mouse_open = true
 			var anchor = global_position
-			anchor.y += base_size.y * mult.y
+			#anchor.y += base_size.y * mult.y
 			modulate = config.hover_color * config.hover_mult
-			menu_show(anchor)
-			reparent(glob.follow_menus)
+			prev_z_index = z_index
+			z_index = RenderingServer.CANVAS_ITEM_Z_MAX
+			menu_show(position)
+			#reparent(glob.follow_menus)
+			
+			glob.opened_menu = self
 			state.holding = true
 			state.expanding = true
 
 	if state.tween_hide or state.expanding:
-		if graph:
-			_wrapped_in.position = base_pos + graph.global_position
+		#if graph:
+			#position = base_pos# + graph.global_position
+		var a = modulate.a
+		modulate = config.hover_color * config.hover_mult
+		modulate.a = a
 		_process_context_menu(delta)
 
 
@@ -457,7 +468,8 @@ func _process_block_button(delta: float) -> void:
 	if not visible or not parent.visible or (graph and !graph.visible) or not freedom: 
 		return
 
-	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking
+	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking \
+	or (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	var frozen = is_contained and parent.is_frozen or is_frozen
 
 	#if parent.name == "add_graph" and text == "Condition":
@@ -478,7 +490,10 @@ func _process_block_button(delta: float) -> void:
 	if inside:
 		if mouse_pressed:
 			hover_scale = hover_scale.lerp(base_scale * config._press_scale, delta * 30)
-			modulate = modulate.lerp(config.press_color, delta * 50)
+			if config.as_mult: 
+				modulate = modulate.lerp(config.press_color * config.press_mult * base_modulate, delta * 50)
+			else:
+				modulate = modulate.lerp(config.press_color * config.press_mult, delta * 50)
 			state.hovering = false
 			if not state.pressing:
 				pressed.emit()
@@ -489,7 +504,10 @@ func _process_block_button(delta: float) -> void:
 			if not state.hovering:
 				hovered.emit()
 			state.hovering = true
-			modulate = modulate.lerp(config.hover_color * config.hover_mult, delta * 15)
+			if config.as_mult: 
+				modulate = modulate.lerp(config.hover_color * config.hover_mult * base_modulate, delta * 15)
+			else:
+				modulate = modulate.lerp(config.hover_color * config.hover_mult, delta * 15)
 			if state.pressing:
 				released.emit()
 				state.pressing = false
@@ -530,7 +548,7 @@ func update_children_reveal() -> void:
 	
 	for c in _contained:
 		idx += 1
-		var max = size.y + 20
+		var max = size.y + 15
 		#if idx == len(_contained) and len(_contained) > 1: max += 40
 		var pos = c._wrapped_in.position.y + scroll.position.y + c.base_size.y
 		c.visible = pos < max or (max_size and max_size < expanded_size)
@@ -551,15 +569,17 @@ func _proceed_show(at_position: Vector2) -> bool: # virtual
 func menu_show(at_position: Vector2) -> void:
 	if not _proceed_show(at_position): return
 	if glob.get_display_mouse_position().y < glob.space_begin.y: return
-	if _is_not_menu(): return
+	if button_type == ButtonType.CONTEXT_MENU and _is_not_menu(): return
+	_arm_menu_hit_tests()
 	bar.self_modulate.a = 0.0
 	state.expanded = false
 	show()
 	scrolling = false
-	if not secondary:
+	#if not secondary:
 		#if glob.opened_menu:
 		#	glob.opened_menu.menu_hide()
-		glob.opened_menu = self
+	#	glob.opened_menu = self
+		#print("A")
 		
 
 	last_mouse_pos = at_position
@@ -580,10 +600,14 @@ func menu_show(at_position: Vector2) -> void:
 	update_children_reveal()
 
 func menu_hide() -> void:
-	if glob.opened_menu == self:
-		glob.opened_menu = null
+
 	state.expanded = false
 	if state.tween_hide or not visible: return
+	if glob.opened_menu == self:
+		glob.opened_menu = null
+	if button_type == ButtonType.DROPOUT_MENU:
+		
+		z_index -= 1
 	#if name == "detatch":
 		#print(get_stack())
 
@@ -614,6 +638,31 @@ var scroll_checking: bool = false
 var target_scroll: float = 0.0
 var scroll_value_anchor: float = 0.0
 var is_in_bar: bool = false
+
+var prev_z_index: int = 0
+func reparent_hide():
+	if button_type != ButtonType.DROPOUT_MENU: return
+	z_index = prev_z_index
+	#reparent(graph)
+
+
+func _arm_menu_hit_tests() -> void:
+	if scroll:
+		scroll.visible = true
+		scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+		bar.mouse_filter = Control.MOUSE_FILTER_STOP
+		vbox.mouse_filter = Control.MOUSE_FILTER_PASS
+
+func _disarm_menu_hit_tests() -> void:
+	if scroll:
+		scroll.visible = false
+		scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for c: BlockComponent in _contained:
+		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
 
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
@@ -740,8 +789,9 @@ func _process_context_menu(delta: float) -> void:
 			if button_type == ButtonType.CONTEXT_MENU:
 				hide()
 			else:
-				reparent(graph)
+				reparent_hide()
 				current_type = ButtonType.BLOCK_BUTTON
+			_disarm_menu_hit_tests()
 			scaler.scale = base_scale
 			state.tween_hide = false
 			state.holding = false

@@ -294,8 +294,7 @@ func get_syntax_tree() -> Dictionary:
 func run_request():
 	save()
 	var syntax_tree = get_syntax_tree()
-	print(syntax_tree)
-	await web.POST("run", compress_dict_gzip(syntax_tree), true)
+	await web.POST("train", compress_dict_gzip(syntax_tree), true)
 
 
 var graph_types = {
@@ -307,6 +306,8 @@ var graph_types = {
 	"layer": preload("res://scenes/layer.tscn"),
 	"train_input": preload("res://scenes/train_input.tscn"),
 	"softmax": preload("res://scenes/softmax.tscn"),
+	"reshape2d": preload("res://scenes/reshape.tscn"),
+	"flatten": preload("res://scenes/flatten.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

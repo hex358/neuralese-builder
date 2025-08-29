@@ -61,6 +61,9 @@ var active_output_connections = {}
 func get_inputs_set() -> Dictionary[Connection, int]: return input_key_by_conn
 func get_outputs_set() -> Dictionary[Connection, int]: return output_key_by_conn
 
+func reach(call: Callable):
+	pass
+
 func conn_exit(conn: Connection):
 	match conn.connection_type:
 		Connection.INPUT: 
@@ -205,9 +208,14 @@ func _init() -> void:
 func _dragged():
 	pass
 
+func _proceed_hold() -> bool:
+	return false
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
-
+	if _proceed_hold():
+		hold_for_frame()
+	
 	animate(delta)
 #	graphs.store_delta(self)
 	if prev_size_ != rect.size:

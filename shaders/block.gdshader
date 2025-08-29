@@ -12,20 +12,17 @@ uniform vec4 color_mult: source_color = vec4(1.0);
 #include "res://shaders/smooth_extents.gdshaderinc"
 
 global uniform float _view_scale = 1.0;
-instance uniform float corner_radius_add = 0.0;
-instance uniform float corner_width_add = 0.0;
+instance uniform vec2 corner_radius_width_add = vec2(0,0);
 uniform float corner_radius: hint_range(0.0, 100.0) = 8.0;
 uniform bool blurred_background = true;
 uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
 uniform float mult = 2.0;
 instance uniform vec4 outline_color: source_color = vec4(1.0);
 
-// === Blur controls ===
-uniform float blur_level: hint_range(0.0, 7.0) = 2.5;      // исходный LOD
-uniform float gaussian_mix: hint_range(0.0, 1.0) = 1.0;     // 0=Lod only, 1=Gauss over LOD
-uniform float gaussian_step: hint_range(0.0, 8.0) = 1.0;    // множитель шага в пикселях экрана
+uniform float blur_level: hint_range(0.0, 7.0) = 2.5;
+uniform float gaussian_mix: hint_range(0.0, 1.0) = 1.0;
+uniform float gaussian_step: hint_range(0.0, 8.0) = 1.0;
 
-// Экранная текстура с мипами
 uniform sampler2D screen: hint_screen_texture, filter_linear_mipmap;
 
 varying vec2 view_scale;
@@ -71,14 +68,13 @@ vec4 gaussian9_mip(vec2 uv, float lod, vec2 step_px) {
 }
 
 void fragment() {
-	// Локальные размеры и SDF
 	vec2 size_px = vec2(1.0 / dFdx(UV).x, 1.0 / dFdy(UV).y);
 	vec2 half = size_px * 0.5;
 	vec2 p = UV * size_px - half;
 
-	float radius_added = corner_radius_add + corner_radius;
+	float radius_added = corner_radius_width_add.x + corner_radius;
 	float r = radius_added * min(view_scale.x, view_scale.y) * vert_scale.x;
-	float w = (outline_width + corner_width_add) * min(view_scale.x, view_scale.y) * vert_scale.y;
+	float w = (outline_width + corner_radius_width_add.y) * min(view_scale.x, view_scale.y) * vert_scale.y;
 
 	float sdf;
 	if (false) {
@@ -89,20 +85,16 @@ void fragment() {
 
 	float mask = smoothstep(1.0, -1.0, sdf);
 	float ol = smoothstep(w + 1.0, w - 1.0, abs(sdf));
-	if (outline_width + corner_width_add < 0.01) { ol = 0.0; }
+	if (outline_width + corner_radius_width_add.y < 0.01) { ol = 0.0; }
 
-	// === Блюр задника ===
 	vec4 col;
 	vec4 out_col = outline_color;
 
 	if (blurred_background) {
 		float lod = blur_level * _view_scale;
 
-		// Размер шага в UV экрана: завязан на реальный пиксель + масштаб от blur_level
-		// SCREEN_PIXEL_SIZE — builtin (1/viewport_size)
 		vec2 step_px = SCREEN_PIXEL_SIZE * max(gaussian_step, 0.0001) * (1.0 + blur_level);
 
-		// Дешёвый путь (только LOD) и «красивый» путь (LOD + Gaussian9)
 		vec4 bg_lod = textureLod(screen, SCREEN_UV, lod);
 		vec4 bg_gauss = gaussian9_mip(SCREEN_UV, lod, step_px);
 

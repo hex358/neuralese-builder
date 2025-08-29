@@ -3,12 +3,19 @@ extends Control
 func is_focus(control: Control):
 	return get_viewport().gui_get_focus_owner() == control
 
+var mouse_buttons: Dictionary = {1: true, 2: true, 3: true}
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index in [1,2, 3] and event.pressed:
-		var focused = get_viewport().gui_get_focus_owner()
-		if focused and focused is LineEdit:
-			var rect = focused.get_global_rect()
-			if not rect.has_point(event.position):
+	if event is InputEventMouse:
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index in mouse_buttons:
+				var focused = get_viewport().gui_get_focus_owner()
+				if focused and focused is LineEdit or focused is Slider:
+					var rect = focused.get_global_rect()
+					if not rect.has_point(event.position):
+						focused.release_focus()
+		elif not glob.mouse_pressed:
+			var focused = get_viewport().gui_get_focus_owner()
+			if focused is Slider:
 				focused.release_focus()
 
 var expanded_menu: SubMenu = null
@@ -23,6 +30,7 @@ func unreg_button(b: BlockComponent):
 
 func _process(delta: float):
 	pass
+#	print(get_viewport().gui_get_focus_owner())
 			
 
 func click_screen(pos: Vector2, button = MOUSE_BUTTON_LEFT, double_click = false) -> void:
