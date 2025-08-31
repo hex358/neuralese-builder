@@ -262,6 +262,33 @@ func propagate_cycle(gather: Variant=null) -> void:
 				gather[conn] = true
 		conn.parent_graph.propagate(dup[conn])
 
+func def_call(graph: Graph): pass
+
+func reach(from: Graph, call: Callable = def_call):
+	var gather = func(iter):
+		var page = {}
+		for i in iter:
+			page[i.parent_graph] = true
+			call.call(i.parent_graph)
+		return page
+	from.propagate({})
+	
+	var gathered = []
+	var prev_q = {}
+	var index_counter: int = 0
+	while _propagated_from:
+		_propagated_from.clear()
+		prev_q = propagation_q
+		print(prev_q)
+		propagate_cycle()
+		gathered.append(gather.call(_propagated_from))
+		#for conn in prev_q:
+			#var g: Graph = conn.parent_graph
+			#if not gathered[-1].has(g):
+				#gathered[-1][g] = true
+	gathered[-1] = gather.call(prev_q)
+	print(gathered)
+
 
 func get_syntax_tree() -> Dictionary:
 	var gathered = {}
@@ -280,11 +307,10 @@ func get_syntax_tree() -> Dictionary:
 		prev_q = propagation_q
 		propagate_cycle()
 		gathered[str(index_counter)] = reg_gather(_propagated_from, expect)
-		if index_counter:
-			for conn in prev_q:
-				var g: Graph = conn.parent_graph
-				if not gathered[str(index_counter)].has(g.graph_id):
-					gathered[str(index_counter)][g.graph_id] = get_abstract(g)
+		for conn in prev_q:
+			var g: Graph = conn.parent_graph
+			if not gathered[str(index_counter)].has(g.graph_id):
+				gathered[str(index_counter)][g.graph_id] = get_abstract(g)
 	return {
 		"pages": gathered,
 		"expect": expect,
@@ -294,7 +320,7 @@ func get_syntax_tree() -> Dictionary:
 func run_request():
 	save()
 	var syntax_tree = get_syntax_tree()
-	await web.POST("train", compress_dict_gzip(syntax_tree), true)
+	await web.POST("train", compress_dict_gzip({"train": 1, "session": "neriqward", "graph": syntax_tree}), true)
 
 
 var graph_types = {

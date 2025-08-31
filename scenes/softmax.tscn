@@ -16,7 +16,7 @@ color = Color(1, 0.890196, 0.588235, 1)
 _accepted_datatypes = "layer1d"
 server_name = &"layer_in"
 connection_type = 0
-area_paddings = Vector4(20, 20, 20, 20)
+area_paddings = Vector4(10, 10, 10, 10)
 origin_offset = Vector2(-5, 0)
 max_splines_by_keyword = Dictionary[StringName, int]({
 &"train": 0
@@ -35,7 +35,7 @@ color = Color(1, 0.890667, 0.59, 1)
 _accepted_datatypes = "layer1d"
 server_name = &"soft_out"
 connection_type = 1
-area_paddings = Vector4(20, 20, 20, 20)
+area_paddings = Vector4(10, 10, 10, 10)
 multiple_splines = true
 origin_offset = Vector2(8, 0)
 max_splines_by_keyword = Dictionary[StringName, int]({

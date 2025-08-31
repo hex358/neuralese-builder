@@ -57,11 +57,12 @@ func _can_drag() -> bool:
 	return not switch.is_mouse_inside() and not train_button.is_mouse_inside()\
 		and not ui.is_focus($sgd_tab/Label4/HSlider)
 
+@onready var optimizer = $optimizer
 func _opt_selected(opt: StringName):
 	_target_size_y = base_size + tab_size_adds.get(opt, 0.0)
 
 	current_optimizer = opt
-	$optimizer.text = $optimizer.button_by_hint[opt].text
+	optimizer.text = optimizer.button_by_hint[opt].text
 
 	for o in optimizers:
 		_set_fade_target(optimizers[o], 0.0)

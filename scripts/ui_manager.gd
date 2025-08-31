@@ -6,16 +6,19 @@ func is_focus(control: Control):
 var mouse_buttons: Dictionary = {1: true, 2: true, 3: true}
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouse:
+		var focused = get_viewport().gui_get_focus_owner()
+		#var occ = glob.is_occupied(focused, "menu_inside")
+		#print(occ)
 		if event is InputEventMouseButton and event.pressed:
+			#print(glob.is_occupied(focused, "menu_inside"))
 			if event.button_index in mouse_buttons:
-				var focused = get_viewport().gui_get_focus_owner()
-				if focused and focused is LineEdit or focused is Slider:
+				if focused and (focused is LineEdit or focused is Slider):
 					var rect = focused.get_global_rect()
 					if not rect.has_point(event.position):
 						focused.release_focus()
 		elif not glob.mouse_pressed:
-			var focused = get_viewport().gui_get_focus_owner()
 			if focused is Slider:
+				#print("fj")
 				focused.release_focus()
 
 var expanded_menu: SubMenu = null

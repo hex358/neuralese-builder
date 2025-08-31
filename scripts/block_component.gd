@@ -348,9 +348,10 @@ func _process_dropout_menu(delta: float) -> void:
 		#print(global_position)
 	else:
 		glob.un_occupy(self, "dropout_inside")
+	var ab : bool = false
 	if ButtonType.BLOCK_BUTTON == current_type:
-		#if graph:
-		#	base_pos = global_position# - graph.global_position
+		if graph:
+			base_pos = position
 		_process_block_button(delta)
 		#print(glob.opened_menu)
 		if not glob.opened_menu and (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
@@ -358,23 +359,26 @@ func _process_dropout_menu(delta: float) -> void:
 			left_activate = true
 			mouse_open = true
 			var anchor = global_position
-			#anchor.y += base_size.y * mult.y
+			anchor.y += base_size.y * mult.y
 			modulate = config.hover_color * config.hover_mult
 			prev_z_index = z_index
 			z_index = RenderingServer.CANVAS_ITEM_Z_MAX
-			menu_show(position)
-			#reparent(glob.follow_menus)
+			ab = true
+			menu_show(anchor)
+			reparent(glob.follow_menus)
 			
 			glob.opened_menu = self
 			state.holding = true
 			state.expanding = true
 
 	if state.tween_hide or state.expanding:
-		#if graph:
-			#position = base_pos# + graph.global_position
+		if graph:
+			global_position = base_pos + graph.global_position
 		var a = modulate.a
 		modulate = config.hover_color * config.hover_mult
 		modulate.a = a
+		if get_local_mouse_position().y < base_size.y and glob.mouse_just_pressed and not ab:
+			menu_hide()
 		_process_context_menu(delta)
 
 
@@ -643,7 +647,7 @@ var prev_z_index: int = 0
 func reparent_hide():
 	if button_type != ButtonType.DROPOUT_MENU: return
 	z_index = prev_z_index
-	#reparent(graph)
+	reparent(graph)
 
 
 func _arm_menu_hit_tests() -> void:
@@ -686,7 +690,7 @@ func _process_context_menu(delta: float) -> void:
 	if left_click or right_click or (mouse_open and not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
 
-	if glob.hide_menus and not state.holding:
+	if glob.hide_menus and not state.holding and button_type == ButtonType.CONTEXT_MENU:
 		left_pressed = false; right_pressed = false
 		left_click = false; right_click = false
 		menu_hide()

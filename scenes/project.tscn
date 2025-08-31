@@ -32,5 +32,6 @@ zoom_speed = 0.2
 drag_button = 3
 
 [node name="follow_menus" type="CanvasLayer" parent="."]
+layer = 127
 follow_viewport_enabled = true
 script = ExtResource("7_ioxnp")

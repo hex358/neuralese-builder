@@ -7,9 +7,11 @@ func get_raw_values():
 	var width: int = $TextureRect.image.get_width()
 	var total: int = $TextureRect.image.get_width() * $TextureRect.image.get_height()
 	var res = []
-	for i in total:
-		var coord = Vector2i(i % width, i / width)
-		res.append($TextureRect.get_pixel(coord).r)
+	for y in width:
+		var row = []
+		for x in width:
+			row.append($TextureRect.get_pixel(Vector2(x,y)).r)
+		res.append(row)
 	return res
 
 func _useful_properties() -> Dictionary:
@@ -17,9 +19,10 @@ func _useful_properties() -> Dictionary:
 	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28}}
 
 func _just_connected(who: Connection, to: Connection):
-	if to.parent_graph is NeuronLayer:
-		to.parent_graph.neurons_fixed = true
-		to.parent_graph.push_neuron_count($TextureRect.image.get_width() * $TextureRect.image.get_height())
+	(graphs.reach(self))
+	#if to.parent_graph is NeuronLayer:
+		#to.parent_graph.neurons_fixed = true
+		#to.parent_graph.push_neuron_count($TextureRect.image.get_width() * $TextureRect.image.get_height())
 
 func _just_disconnected(who: Connection, from: Connection):
 	if from.parent_graph is NeuronLayer:
