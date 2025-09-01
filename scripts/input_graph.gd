@@ -14,17 +14,14 @@ func get_raw_values():
 		res.append(row)
 	return res
 
+
+
 func _useful_properties() -> Dictionary:
 	#print("A")
 	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28}}
 
-func _just_connected(who: Connection, to: Connection):
-	(graphs.reach(self))
-	#if to.parent_graph is NeuronLayer:
-		#to.parent_graph.neurons_fixed = true
-		#to.parent_graph.push_neuron_count($TextureRect.image.get_width() * $TextureRect.image.get_height())
 
-func _just_disconnected(who: Connection, from: Connection):
-	if from.parent_graph is NeuronLayer:
-		from.parent_graph.neurons_fixed = false
-	#	to.parent_graph.push_neuron_count($TextureRect.image.size.x * $TextureRect.image.size.y)
+var image_dims = Vector2i(1,1)
+func _after_ready() -> void:
+	super()
+	image_dims = Vector2i($TextureRect.image.get_width(), $TextureRect.image.get_height())

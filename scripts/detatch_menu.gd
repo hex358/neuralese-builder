@@ -45,7 +45,7 @@ func _sub_process(delta:float):
 			spline.blender = spline.blender.lerp(Color.TRANSPARENT, delta*14.0)
 	for i in to_delete:
 		old_hovered.erase(i)
-	old_hovered.merge(_hovered)
+	old_hovered.merge(_hovered, true)
 	for spline in _hovered:
 		spline.blender = spline.blender.lerp(Color.RED, delta * 14.0)
 	_hovered = {}
@@ -56,12 +56,12 @@ func _menu_handle_release(button: BlockComponent):
 	var _inst = button.metadata["inst"]
 	if button.metadata["all"]:
 		for i in _inst:
-			i.origin.end_spline(i.origin.key_by_spline[i])
+			i.origin.end_spline(i)
 		#for i in _inst:
 		#	_inst[0].tied_to.remove_input_spline(i)
 	else:
-		var i = _inst.origin.key_by_spline[_inst]
-		_inst.origin.end_spline(i)
+		#var i = _inst.origin.key_by_spline[_inst]
+		_inst.origin.end_spline(_inst)
 	_hovered.clear()
 	menu_hide()
 	

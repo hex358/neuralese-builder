@@ -13,8 +13,18 @@ func _ready() -> void:
 func set_valid(valid: bool):
 	is_valid = valid
 
+
+
 func _process(delta: float) -> void:
 	pass
+
+@onready var base_text_color = get_theme_color(&"font_color")
+func set_text_color(color: Color):
+	add_theme_color_override(&"font_color", color)
+
+func reset_text_color():
+	add_theme_color_override(&"font_color", base_text_color)
+
 
 func _gui_input(event: InputEvent) -> void:
 	if (event is InputEventMouseButton and

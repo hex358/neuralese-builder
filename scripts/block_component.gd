@@ -667,6 +667,14 @@ func _disarm_menu_hit_tests() -> void:
 		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
+@onready var base_tuning = RenderingServer.canvas_item_get_instance_shader_parameter(get_canvas_item(), &"tuning")
+
+func set_tuning(color_: Color):
+	RenderingServer.canvas_item_set_instance_shader_parameter(get_canvas_item(), &"tuning", base_tuning)
+
+func reset_tuning():
+	RenderingServer.canvas_item_set_instance_shader_parameter(get_canvas_item(), &"tuning", base_tuning)
+
 
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:

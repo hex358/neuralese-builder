@@ -1,0 +1,136 @@
+[gd_scene load_steps=6 format=3 uid="uid://70bqejl8x5np"]
+
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_aplfx"]
+[ext_resource type="Script" uid="uid://cppor4y4glxd6" path="res://scripts/conv_2d.gd" id="2_l5edn"]
+[ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_cc8xm"]
+[ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_aplfx"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="6_51xl4"]
+
+[node name="Base" type="Control" node_paths=PackedStringArray("unit", "line_edit")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 50.0
+script = ExtResource("2_l5edn")
+grid = Vector2i(512, 512)
+offset = Vector2(-19.88, -23.515)
+size_add_vec = Vector2(48.13, 70.005)
+layer_name = "Conv2D"
+unit = NodePath("unit")
+padding = 5.0
+line_edit = NodePath("")
+unit_offset_y = -6.0
+target_size = 60.0
+min_size = 73.0
+size_add = 3.0
+server_typename = &"NeuronLayer"
+area_padding = 0.0
+base_config = Dictionary[StringName, Variant]({
+&"neuron_count": 0
+})
+
+[node name="activ" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_aplfx")]
+instance_shader_parameters/corner_radius_width_add = Vector2(3.5, 0)
+layout_mode = 0
+offset_left = 5.0
+offset_top = -72.0
+offset_right = 23.0
+offset_bottom = -53.0
+color = Color(0.297, 0.66885, 0.9, 1)
+_accepted_datatypes = "activation"
+server_name = &"activ_in"
+connection_type = 0
+area_paddings = Vector4(10, 5, 10, 5)
+multiple_splines = true
+origin_offset = Vector2(0, -6)
+dir_vector = Vector2(0, -1)
+parent_graph = NodePath("..")
+conn_count_keyword = "activ"
+gradient_color = Color(0.298039, 0.670588, 0.901961, 1)
+
+[node name="ni" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_aplfx")]
+layout_mode = 0
+offset_left = -44.0
+offset_top = -36.0
+offset_right = -26.0
+offset_bottom = -17.0
+color = Color(0.297, 0.9, 0.72915, 1)
+_accepted_datatypes = "layer2d"
+hint = 1
+server_name = &"layer_in"
+connection_type = 0
+area_paddings = Vector4(10, 5, 10, 5)
+multiple_splines = true
+origin_offset = Vector2(-5, 0)
+unpadded_area = Vector4(10, 10, 0, 10)
+dir_vector = Vector2(-1, 0)
+parent_graph = NodePath("..")
+conn_count_keyword = "layer"
+gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
+
+[node name="o" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_aplfx")]
+layout_mode = 0
+offset_left = 52.0
+offset_top = -36.0
+offset_right = 70.0
+offset_bottom = -17.0
+color = Color(0.297, 0.9, 0.72915, 1)
+_accepted_datatypes = "layer2d"
+server_name = &"layer_out"
+connection_type = 1
+area_paddings = Vector4(10, 5, 10, 5)
+multiple_splines = true
+origin_offset = Vector2(9, 0)
+unpadded_area = Vector4(0, 10, 10, 10)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"layer": 32,
+&"train": 1
+})
+parent_graph = NodePath("..")
+conn_count_keyword = "layer"
+gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = ExtResource("3_cc8xm")
+instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
+instance_shader_parameters/outline_color = Color(0.5538, 0.71, 0.665743, 1)
+instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
+layout_mode = 0
+offset_left = -36.0
+offset_top = -64.0
+offset_right = 62.0
+offset_bottom = 9.0
+
+[node name="root" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="ColorRect/root"]
+z_index = 1
+layout_mode = 0
+offset_left = 25.0
+offset_top = 5.0
+offset_right = 218.0
+offset_bottom = 48.0
+scale = Vector2(0.427587, 0.427587)
+theme = ExtResource("6_51xl4")
+text = "Conv2D"
+
+[node name="unit" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -47.0
+offset_top = 23.0
+offset_right = -22.0
+offset_bottom = 48.0
+
+[node name="ColorRect5" type="ColorRect" parent="unit"]
+material = ExtResource("4_aplfx")
+instance_shader_parameters/corner_radius_width_add = Vector2(0, 1.5)
+instance_shader_parameters/outline_color = Color(0.59, 1, 0.883833, 1)
+instance_shader_parameters/tuning = Color(0.1276, 0.44, 0.351487, 0.443137)
+layout_mode = 0
+offset_right = 30.0
+offset_bottom = 30.0
+scale = Vector2(0.820862, 0.820862)

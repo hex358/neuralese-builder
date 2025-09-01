@@ -226,7 +226,7 @@ var _input_origin_graph: Graph = null
 func get_abstract(graph: Graph, emit = {}) -> Dictionary:
 	return {
 		"type": graph.server_typename,
-		"props": graph._useful_properties(),
+		"props": graph.useful_properties(),
 		"emit": emit
 	}
 
@@ -262,32 +262,82 @@ func propagate_cycle(gather: Variant=null) -> void:
 				gather[conn] = true
 		conn.parent_graph.propagate(dup[conn])
 
-func def_call(graph: Graph): pass
 
-func reach(from: Graph, call: Callable = def_call):
+
+func _relationship():
+	pass
+
+
+func _chain(from: Connection, to: Connection, branch_cache: Dictionary):
+	var chain = branch_cache.get_or_add("chain", [])
+	chain.append(from.parent_graph)
+	to.parent_graph._chain_incoming(branch_cache)
+	#if type.server_typename == "NeuronLayer": type = type.layer_name
+	#else: type = type.server_typename
+	#var starts_input: bool = chain[0].server_typename == "InputNode"
+	#if type == "Conv2D":
+		#var broke: bool = false
+		#if len(chain) <= 1 or !starts_input:
+			#broke = true
+		#else:
+			#for i: Graph in chain:
+				#if not i.server_typename in types_2d:
+					#broke = true; break
+		#if not broke:
+			#to.parent_graph.neurons_fixed = true
+			#to.parent_graph.push_neuron_count(
+			#chain[0].image_dims.x * chain[0].image_dims.y)
+		#else:
+			#to.parent_graph.neurons_fixed = false
+
+
+
+func update_dependencies(from: Graph = null):
+	if is_instance_valid(from):
+		reach(from, _chain)
+	elif is_instance_valid(_input_origin_graph):
+		reach(_input_origin_graph, _chain)
+
+
+func def_call(from: Connection, to: Connection, branch_cache: Dictionary):
+	pass
+	#branch_cache.get_or_add("a", []).append(from.parent_graph.server_typename)
+	#print(branch_cache)
+	#print(from.parent_graph.server_typename, " ", to.parent_graph.server_typename)
+
+var reach_mode: bool = false
+
+func reach(from_graph: Graph, call: Callable = def_call):
+	reach_mode = true
+	
+	var node_caches = {}
+	node_caches[from_graph] = {}
+	from_graph._chain_incoming(node_caches[from_graph])
+	
 	var gather = func(iter):
 		var page = {}
-		for i in iter:
-			page[i.parent_graph] = true
-			call.call(i.parent_graph)
+		for me: Connection in iter:
+			if me.connection_type == Connection.OUTPUT:
+				var from_cache = node_caches.get(me.parent_graph, {})
+				for other in iter[me]:
+					var branch_cache = from_cache.duplicate(true)
+					node_caches[other.parent_graph] = branch_cache
+					call.call(me, other, branch_cache)
+			page[me.parent_graph] = true
 		return page
-	from.propagate({})
+	
+	from_graph.propagate({})
 	
 	var gathered = []
 	var prev_q = {}
-	var index_counter: int = 0
+	gathered.append(gather.call(_propagated_from))
 	while _propagated_from:
 		_propagated_from.clear()
 		prev_q = propagation_q
-		print(prev_q)
 		propagate_cycle()
 		gathered.append(gather.call(_propagated_from))
-		#for conn in prev_q:
-			#var g: Graph = conn.parent_graph
-			#if not gathered[-1].has(g):
-				#gathered[-1][g] = true
 	gathered[-1] = gather.call(prev_q)
-	print(gathered)
+	reach_mode = false
 
 
 func get_syntax_tree() -> Dictionary:
@@ -320,7 +370,7 @@ func get_syntax_tree() -> Dictionary:
 func run_request():
 	save()
 	var syntax_tree = get_syntax_tree()
-	await web.POST("train", compress_dict_gzip({"train": 1, "session": "neriqward", "graph": syntax_tree}), true)
+	await web.POST("train", compress_dict_gzip({"train": 0, "session": "neriqward", "graph": syntax_tree}), true)
 
 
 var graph_types = {
@@ -334,6 +384,7 @@ var graph_types = {
 	"softmax": preload("res://scenes/softmax.tscn"),
 	"reshape2d": preload("res://scenes/reshape.tscn"),
 	"flatten": preload("res://scenes/flatten.tscn"),
+	"conv2d": preload("res://scenes/conv2d.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
@@ -357,15 +408,17 @@ func _process(delta: float) -> void:
 	var vp = Rect2(Vector2.ZERO, glob.window_size)
 	var dc = 0
 	if Input.is_action_just_pressed("ui_accept"):
-		run_request()
+		update_dependencies()
+		#run_request()
 
 	for graph: Graph in storage.get_children():
 		var r = graph.rect
 		
 		var vis: bool = false
 		if not graph.dragging:
-			var gp = r.global_position
-			var s  = r.size
+			var rect = r.get_global_rect()
+			var gp = rect.position - Vector2(10,10)
+			var s  = rect.size + Vector2(20,20)
 
 			var p0 = glob.world_to_screen(gp)
 			var p1 = glob.world_to_screen(gp + Vector2(s.x, 0.0))

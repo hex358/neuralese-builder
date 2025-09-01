@@ -1,11 +1,139 @@
 extends Graph
 
 func _useful_properties() -> Dictionary:
-	return {"config": {"rows": 28, "columns": 28}}
+	return {"config": {"rows": cfg.rows if cfg.rows else -1, "columns": cfg.columns if cfg.columns else -1}}
 
+var dims_fixed: bool = false:
+	set(v):
+		if v:
+			ui.line_block($X)
+			ui.line_block($Y)
+		else:
+			ui.line_unblock($X)
+			ui.line_unblock($Y)
+
+func _proceed_hold() -> bool:
+	return ui.is_focus($X) or ui.is_focus($Y)
+
+func push_dims(x: int, y: int):
+	update_config({"rows": x, "columns": y})
+
+func _find_balanced_factors(n: int) -> Vector2i:
+	var sqrt_n = int(sqrt(float(n))); var steps: int = 0
+	for i in range(sqrt_n, 0, -1):
+		steps += 1
+		if n % i == 0:
+			return Vector2i(i, n / i)
+		if steps > 1000: return Vector2i(1, n)
+	return Vector2i(1, n)
+
+
+func _just_attached(who: Connection, to: Connection):
+	#print("A")
+	var cond = who.parent_graph.server_typename == "NeuronLayer" and who.parent_graph.layer_name == "Dense"
+	if who.parent_graph.server_typename in "Flatten" or cond:
+		var total:int = who.parent_graph.neuron_count
+		var rows:int = cfg.rows; var columns:int = cfg.columns
+		if rows == 0 and columns == 0:
+			var factors = _find_balanced_factors(total)
+			rows = factors.x; columns = factors.y
+		if columns == 0 and rows != 0 and total % rows == 0:
+			columns = total / rows
+		if rows == 0 and columns != 0 and total % columns == 0:
+			rows = total / columns
+		update_config({"rows": rows, "columns": columns})
+		#if cfg.rows == 0:
+			#$X.text = ""
+		#if cfg.columns == 0:
+			#$Y.text = ""
+		#push_dims(cfg.rows, cfg.columns)
+
+func _just_connected(who: Connection, to: Connection):
+	#print("A")
+	if to.parent_graph.server_typename == "Flatten":
+		to.parent_graph.set_count(cfg.rows * cfg.columns)
+
+func _config_field(field: StringName, value: Variant):
+	match field:
+		"rows":
+			if !setting:
+				$Y.text = str(value)
+			for i in get_first_descendants():
+				if i.server_typename == "Flatten":
+					i.set_count(cfg.rows * cfg.columns)
+		"columns":
+			if !setting:
+				$X.text = str(value)
+			for i in get_first_descendants():
+				if i.server_typename == "Flatten":
+					i.set_count(cfg.rows * cfg.columns)
+
+var types_2d: Dictionary[StringName, bool] = {"Reshape2D": 1, "InputNode": 1}
+var layers: Dictionary[StringName, bool] = {"Dense": 1, "Conv2D": 1}
+
+func _is_valid() -> bool:
+	var total = cfg.rows * cfg.columns
+	var ancestors = get_first_ancestors()
+	if ancestors:
+		var graph = ancestors[0]
+		match graph.server_typename:
+			"Flatten": 
+				return total == graph.display_count
+			"NeuronLayer":
+				if graph.layer_name == "Dense":
+					return total == graph.cfg.neuron_count
+				#elif graph.layer_name == "Conv2D":
+				#	return cfg.rows == 
+			"InputNode":
+				return total == 28*28
+	return true
+
+func _visualise_valid(ok: bool):
+	if ok:
+		for i in base_config:
+			match i:
+				"rows":
+					$Y.modulate = Color.WHITE
+				"columns":
+					$X.modulate = Color.WHITE
+	else:
+		for i in invalid_fields:
+			match i:
+				"rows":
+					$Y.modulate = (Color.INDIAN_RED)
+				"columns":
+					$X.modulate = (Color.INDIAN_RED)
+
+func _chain_incoming(cache: Dictionary):
+	var broke: bool = false
+	var chain = cache.get("chain", [])
+	var starts_input = len(chain) > 0 and chain[0].server_typename == "InputNode"
+	var origin_dims = Vector2i(1,1)
+	if len(chain) < 1 or !starts_input:
+		broke = true
+	else:
+		for i: Graph in chain:
+			if not i.server_typename in types_2d:
+				broke = true; break
+	if not broke:
+		dims_fixed = true
+		push_dims(chain[0].image_dims.x, chain[0].image_dims.y)
+	else:
+		dims_fixed = false
+
+
+func _just_deattached(other_conn: Connection, my_conn: Connection):
+	#dims_fixed = false
+	#await get_tree().process_frame
+	graphs.update_dependencies(self)
+
+
+var setting: bool = false
 func _on_y_text_changed(new_text: String) -> void:
-	pass # Replace with function body.
+	setting = 1
+	update_config({"rows": int(new_text)}); setting = 0
 
 
 func _on_x_text_changed(new_text: String) -> void:
-	pass # Replace with function body.
+	setting = 1;
+	update_config({"columns": int(new_text)}); setting = 0

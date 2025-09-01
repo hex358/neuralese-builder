@@ -15,6 +15,10 @@ offset_bottom = 50.0
 script = ExtResource("1_goyc0")
 server_typename = &"Reshape2D"
 area_padding = 0.0
+base_config = Dictionary[StringName, Variant]({
+&"columns": 0,
+&"rows": 0
+})
 
 [node name="o2" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_bhx80")]
 layout_mode = 0
@@ -23,11 +27,11 @@ offset_top = -14.0
 offset_right = -34.0
 offset_bottom = 7.0
 color = Color(1, 0.721569, 0.956863, 1)
-_accepted_datatypes = "layer2d layer1d"
+_accepted_datatypes = "layer1d"
 server_name = &"layer_in"
 connection_type = 0
 area_paddings = Vector4(10, 10, 10, 10)
-origin_offset = Vector2(-5, 0)
+origin_offset = Vector2(-4, 0)
 max_splines_by_keyword = Dictionary[StringName, int]({
 &"train": 0
 })
@@ -74,9 +78,9 @@ offset_bottom = 40.0
 self_modulate = Color(1, 0.721569, 0.956863, 1)
 z_index = 1
 layout_mode = 0
-offset_left = -5.0
+offset_left = -6.0
 offset_top = 4.0
-offset_right = 245.0
+offset_right = 244.0
 offset_bottom = 47.0
 scale = Vector2(0.464786, 0.464786)
 theme = ExtResource("4_nm1vw")
@@ -84,12 +88,13 @@ text = "Reshape2D"
 horizontal_alignment = 1
 
 [node name="X" parent="." instance=ExtResource("5_goyc0")]
+layout_mode = 0
 offset_left = -26.0
 offset_top = -3.0
 offset_right = 54.0
 offset_bottom = 45.0
 scale = Vector2(0.4, 0.4)
-placeholder_text = "x="
+placeholder_text = "x"
 max_length = 12
 expand_to_text_length = true
 context_menu_enabled = false
@@ -100,12 +105,13 @@ resize_after = 4
 change_always_accepted = false
 
 [node name="Y" parent="." instance=ExtResource("5_goyc0")]
+layout_mode = 0
 offset_left = 14.0
 offset_top = -3.0
 offset_right = 94.0
 offset_bottom = 45.0
 scale = Vector2(0.4, 0.4)
-placeholder_text = "y="
+placeholder_text = "y"
 max_length = 12
 expand_to_text_length = true
 context_menu_enabled = false

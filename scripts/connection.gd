@@ -78,7 +78,7 @@ func reposition_splines():
 
 func add_spline() -> int:
 	
-	var slot = len(outputs)
+	var slot = randi_range(111111,999999)
 	var spline = glob.get_spline(self)
 	spline.turn_into(keyword)
 	spline.origin = self
@@ -98,9 +98,14 @@ func start_spline(id: int):
 	graphs.conns_active[self] = true
 	active_outputs[id] = spline
 
-func end_spline(id: int, hide: bool = true):
+func end_spline(id, hide: bool = true):
 	if hide:
-		var spline = outputs[id]
+		var spline
+		if id is int:
+			if not id in outputs: return
+			spline = outputs[id]
+		else:
+			spline = id; id = key_by_spline[id]
 		var node = spline.tied_to
 		if node:
 			node.detatch_spline(spline)
@@ -111,6 +116,7 @@ func end_spline(id: int, hide: bool = true):
 		outputs.erase(id)
 	active_outputs.erase(id)
 	graphs.conns_active.erase(self)
+	parent_graph.hold_for_frame()
 
 func forget_spline(spline: Spline, from_conn: Connection):
 	inputs.erase(spline)
@@ -130,6 +136,7 @@ func attach_spline(id: int, target: Connection):
 	glob.hovered_connection = null
 	graphs.attach_edge(self, target)
 	parent_graph.just_connected(self, target)
+	target.parent_graph.just_attached(self, target)
 	end_spline(id, false)
 
 var conn_id: int = 0
@@ -138,13 +145,14 @@ func _init() -> void:
 
 func detatch_spline(spline: Spline):
 	var other = spline.origin
+	other.parent_graph.disconnecting(other, self)
 	if not other.outputs.has(inputs[spline]): 
 		return
 	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
 	graphs.remove_edge(spline.origin, spline.tied_to)
-	other.parent_graph.just_disconnected(other, self)
 	forget_spline(spline, other)
+	other.parent_graph.just_disconnected(other, self)
 
 
 var conn_counts: Dictionary = {&"": [0]}
@@ -179,6 +187,7 @@ func multiple(conn: Connection) -> bool:
 	return cur < allowed
 
 func is_suitable(conn: Connection) -> bool:
+#	print((!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype)))
 	return (conn and conn != self and conn.connection_type == INPUT
 		and (!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype))
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
@@ -248,7 +257,7 @@ func _process(delta: float) -> void:
 	#	print(glob.is_occupied(self, &"menu_inside"))
 	if connection_type == OUTPUT and inside and not occ:
 		if mouse_just_pressed:
-			if not glob.is_occupied(self, &"menu_inside"): # TODO: implement router splines
+			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active: # TODO: implement router splines
 				start_spline(add_spline())
 			#elif !multiple_splines and outputs:
 				#outputs[0].tied_to.detatch_spline(outputs[0])
@@ -296,6 +305,8 @@ func _process(delta: float) -> void:
 				glob.occupy(glob.hovered_connection, &"conn_active")
 				to_attach.append(id)
 			else:
+				if glob.hovered_connection:
+					glob.hovered_connection.parent_graph.hold_for_frame()
 				glob.un_occupy(glob.hovered_connection, &"conn_active")
 				to_end.append(id)
 		#print(spline.tied_to)

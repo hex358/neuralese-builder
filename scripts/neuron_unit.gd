@@ -12,26 +12,6 @@ func set_extents(vec: Vector2) -> void:
 	$ColorRect5.set_instance_shader_parameter("extents", vec)
 	$ColorRect5/Label.set_instance_shader_parameter("extents", vec)
 
-var units = [
-	["T", 1_000_000_000_000],
-	["B", 1_000_000_000],
-	["M", 1_000_000],
-	["K", 1_000]
-]
-
-func _compact(n: int) -> String:
-	if n < 1000:
-		return str(n)
-
-	for u in units:
-		var suf: String = u[0]
-		var val: int = u[1]
-		if n >= val:
-			var q: int = n / val
-			var rem: int = n % val
-			return str(q) + suf
-
-	return str(n)
 
 func _center_label(text_str: String, scale: float, font: Font, fs: int) -> void:
 	var parent_ctrl = label.get_parent() as Control
@@ -47,7 +27,7 @@ func set_text(text: int, last: bool = false) -> void:
 	else:
 		label.show()
 	
-	var s = _compact(text)
+	var s = glob.compact(text)
 	if last:
 		s += "+"
 		base_scale = _base_scale

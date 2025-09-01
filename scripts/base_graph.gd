@@ -27,6 +27,36 @@ func _new_animate(delta: float): # virtual
 
 func hold_for_frame(): hold_process = true
 
+@export_group("Base Config")
+@export var base_config: Dictionary[StringName, Variant] = {}
+@export_group("")
+
+func get_first_descendants() -> Array:
+	var res: Dictionary = {}
+	for i in outputs:
+		for j:int in i.outputs:
+			if is_instance_valid(i.outputs[j].tied_to.parent_graph):
+				res[i.outputs[j].tied_to.parent_graph] = true
+	return res.keys()
+
+func get_first_ancestors() -> Array:
+	var res: Dictionary = {}
+	for i in input_keys:
+		for j in input_keys[i].inputs:
+			if is_instance_valid(j.origin.parent_graph):
+				res[j.origin.parent_graph] = true
+	return res.keys()
+
+@onready var cfg: Dictionary[StringName, Variant] = base_config.duplicate()
+func update_config(update: Dictionary):
+	cfg.merge(update, true)
+	check_valid(update)
+	for field in update:
+		_config_field(field, update[field])
+
+func _config_field(field: StringName, value: Variant):
+	pass
+
 func animate(delta: float):
 	if graph_flags & Flags.NEW:
 		if exist_time < 2.0: hold_for_frame()
@@ -36,12 +66,69 @@ func _after_ready():
 	pass
 
 func just_connected(who: Connection, to: Connection):
+	graphs.update_dependencies()
 	_just_connected(who, to)
 
+func _is_valid() -> bool:
+	return true
+
+var invalid_fields: Dictionary = {}
+var cfg_snapshot: Dictionary = {}
+func check_valid(changed_fields: Dictionary) -> void:
+	var ok: bool = _is_valid()
+	if ok:
+		_visualise_valid(true)
+		invalid_fields.clear()
+		#cfg_snapshot = cfg.duplicate(true)
+		return
+	#for field in changed_fields.keys():
+	invalid_fields = changed_fields
+	#if not cfg_snapshot.is_empty():
+		#var to_remove: Array[StringName] = []
+		#for field in invalid_fields.keys():
+			#if cfg_snapshot.has(field) and cfg.get(field) == cfg_snapshot.get(field):
+				#to_remove.append(field)
+		#for f in to_remove:
+			#invalid_fields.erase(f)
+	_visualise_valid(false)
+
+func _visualise_valid(ok: bool):
+	pass
+
+func just_deattached(other_conn: Connection, my_conn: Connection):
+	_just_deattached(other_conn, my_conn)
+
+
+
+func _just_deattached(other_conn: Connection, my_conn: Connection):
+	pass
+
+func just_attached(other_conn: Connection, my_conn: Connection):
+	_just_attached(other_conn, my_conn)
+
+
+func _just_attached(other_conn: Connection, my_conn: Connection):
+	pass
+
+func deattaching(other_conn: Connection, my_conn: Connection):
+	_deattaching(other_conn, my_conn)
+
+
+func _deattaching(other_conn: Connection, my_conn: Connection):
+	pass
+
 func just_disconnected(who: Connection, from: Connection):
+	#graphs.update_dependencies(who.parent_graph)
+	from.parent_graph.just_deattached(who, from)
 	_just_disconnected(who, from)
 
+func disconnecting(who: Connection, from: Connection):
+	#graphs.update_dependencies(who.parent_graph)
+	from.parent_graph.deattaching(who, from)
+	_disconnecting(who, from)
+
 func _just_connected(who: Connection, to: Connection):pass
+func _disconnecting(who: Connection, to: Connection):pass
 func _just_disconnected(who: Connection, from: Connection):pass
 
 func add_connection(conn: Connection):
@@ -77,6 +164,13 @@ func conn_exit(conn: Connection):
 
 func _exit_tree() -> void:
 	graphs.remove(self)
+
+
+func _chain_incoming(cache: Dictionary):
+	pass
+
+func useful_properties() -> Dictionary:
+	return _useful_properties()
 
 func _useful_properties() -> Dictionary:
 	return {}
@@ -129,7 +223,7 @@ func get_info() -> Dictionary:
 	"arr": [position, rotation, scale, output_keys.keys()]
 	}
 	#print(input_keys)
-	output.merge(_get_info())
+	output.merge(_get_info(), true)
 	#var fields = graphs.FieldPack.new(output, 0<len(info_nested_fields), info_nested_fields)
 	return output
 
@@ -161,7 +255,7 @@ func propagate(input_vals: Dictionary, sequential_branching: bool = false) -> vo
 			var connection_key: int = other_node.input_key_by_conn[spline.tied_to]
 			#other_node._seq_push_input(connection_key, output_vals[out_key])
 			graphs.next_frame_from(spline.origin, spline.tied_to)
-			graphs.next_frame_propagate(spline.tied_to, connection_key, output_vals[out_key])
+			graphs.next_frame_propagate(spline.tied_to, connection_key, output_vals[out_key] if not graphs.reach_mode else spline.origin)
 			
 
 func gather():

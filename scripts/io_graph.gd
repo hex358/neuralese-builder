@@ -119,9 +119,9 @@ func _after_process(delta: float):
 
 	if bottom_attached:
 		input.position.y = lerpf(input.position.y, target_y, delta*20.0)
-	var prev_size:float = rect.size.y
+	var prev_size = rect.size
 	rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
-	if !is_equal_approx(prev_size, rect.size.y):
+	if prev_size.distance_squared_to(rect.size) > 0.02:
 		_size_changed()
 
 	var to_del = []

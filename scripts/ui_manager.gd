@@ -4,7 +4,31 @@ func is_focus(control: Control):
 	return get_viewport().gui_get_focus_owner() == control
 
 var mouse_buttons: Dictionary = {1: true, 2: true, 3: true}
+var wheel_buttons: Dictionary = {
+	MOUSE_BUTTON_WHEEL_UP: true,
+	MOUSE_BUTTON_WHEEL_DOWN: true,
+	MOUSE_BUTTON_WHEEL_LEFT: true,
+	MOUSE_BUTTON_WHEEL_RIGHT: true,
+}
+
+func line_block(line: LineEdit):
+	line.editable = false
+	line.selecting_enabled = false
+	line.release_focus()
+	line.mouse_filter = MOUSE_FILTER_IGNORE
+
+func line_unblock(line: LineEdit):
+	line.editable = true
+	line.selecting_enabled = true
+	line.mouse_filter = MOUSE_FILTER_STOP
+
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index in wheel_buttons:
+		var hovered = get_viewport().gui_get_hovered_control()
+		if hovered and hovered is Slider:
+			accept_event()
+			return
+
 	if event is InputEventMouse:
 		var focused = get_viewport().gui_get_focus_owner()
 		#var occ = glob.is_occupied(focused, "menu_inside")

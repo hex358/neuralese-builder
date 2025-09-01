@@ -203,6 +203,28 @@ TYPE_PACKED_INT32_ARRAY:true,
 TYPE_PACKED_INT64_ARRAY:true
 }
 
+var units = [
+	["T", 1_000_000_000_000],
+	["B", 1_000_000_000],
+	["M", 1_000_000],
+	["K", 1_000]
+]
+
+func compact(n: int) -> String:
+	if n < 1000:
+		return str(n)
+
+	for u in units:
+		var suf: String = u[0]
+		var val: int = u[1]
+		if n >= val:
+			var q: int = n / val
+			var rem: int = n % val
+			return str(q) + suf
+
+	return str(n)
+
+
 var iterables: Dictionary[int, bool] = arrays.merged({
 TYPE_DICTIONARY:true,})
 

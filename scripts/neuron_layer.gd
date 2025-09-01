@@ -1,5 +1,6 @@
-extends DynamicGraph
+extends BaseNeuronLayer
 class_name NeuronLayer
+
 
 func _useful_properties() -> Dictionary:
 	#assert (input_keys[0].inputs, "no config. TODO: implement error handling")
@@ -12,19 +13,15 @@ func _useful_properties() -> Dictionary:
 	"cache_tag": str(graph_id)
 	}
 
-var neurons_fixed: bool = false:
-	set(v):
-		neurons_fixed = v
-		line_edit.editable = !v
-		line_edit.selecting_enabled = !v
-		if v:
-			line_edit.release_focus()
-		line_edit.mouse_filter = MOUSE_FILTER_IGNORE if v else MOUSE_FILTER_STOP
+func _neurons_fix_set(v: bool):
+	if v:
+		ui.line_block(line_edit)
+	else:
+		ui.line_unblock(line_edit)
+
 
 func push_neuron_count(parsed: int):
-	_real_amount = max(0, parsed)
-	$LineEdit.text = str(parsed)
-	_apply_grouping()
+	update_config({"neuron_count": parsed})
 
 @export var group_size: int = 1:
 	set(value):
@@ -79,8 +76,6 @@ func _unit_modulate_updated(of: Control, fin: bool = false, diss: bool = false):
 	else:
 		extents = Vector2()
 	of.set_extents(extents)
-	#for i in 2:
-		#await get_tree().process_frame
 	#if len(units) > 10:
 		#extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
 		#units[-1].set_extents(extents)
@@ -125,8 +120,19 @@ func _apply_grouping() -> void:
 		var tail = max(0, _real_amount - covered)
 		units[MAX_UNITS - 1].set_text(tail, true)
 
+var neuron_count: int = 0
+func _config_field(field: StringName, val: Variant):
+	match field:
+		"neuron_count":
+			neuron_count = val
+			_real_amount = max(0, val)
+			_apply_grouping()
+			for i in get_first_descendants():
+				if i.server_typename == "Reshape2D":
+					i.update_config({"rows": i.cfg.rows, "columns": i.cfg.columns})
+			hold_for_frame()
+
 func _on_line_edit_changed(new_text) -> void:
 	await get_tree().process_frame
-	var parsed = int(new_text)
-	_real_amount = max(0, parsed)
-	_apply_grouping()
+	update_config({"neuron_count": int(new_text)})
+	#_apply_grouping()
