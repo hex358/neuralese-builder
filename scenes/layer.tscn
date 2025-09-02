@@ -23,6 +23,7 @@ unit_offset_y = -6.0
 target_size = 60.0
 min_size = 60.0
 size_add = 3.0
+lerp_size = true
 server_typename = &"NeuronLayer"
 base_config = Dictionary[StringName, Variant]({
 &"neuron_count": 0

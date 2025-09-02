@@ -27,10 +27,12 @@ func _find_balanced_factors(n: int) -> Vector2i:
 		if steps > 1000: return Vector2i(1, n)
 	return Vector2i(1, n)
 
+func _can_drag() -> bool:
+	return not ui.is_focus($X) and not ui.is_focus($Y)
 
 func _just_attached(who: Connection, to: Connection):
 	#print("A")
-	var cond = who.parent_graph.server_typename == "NeuronLayer" and who.parent_graph.layer_name == "Dense"
+	var cond = glob.is_layer(who.parent_graph, "Dense")
 	if who.parent_graph.server_typename in "Flatten" or cond:
 		var total:int = who.parent_graph.neuron_count
 		var rows:int = cfg.rows; var columns:int = cfg.columns
@@ -42,31 +44,32 @@ func _just_attached(who: Connection, to: Connection):
 		if rows == 0 and columns != 0 and total % columns == 0:
 			rows = total / columns
 		update_config({"rows": rows, "columns": columns})
-		#if cfg.rows == 0:
-			#$X.text = ""
-		#if cfg.columns == 0:
-			#$Y.text = ""
-		#push_dims(cfg.rows, cfg.columns)
 
 func _just_connected(who: Connection, to: Connection):
-	#print("A")
 	if to.parent_graph.server_typename == "Flatten":
 		to.parent_graph.set_count(cfg.rows * cfg.columns)
+	if glob.is_layer(to.parent_graph, "Conv2D"):
+		print(cfg.columns, cfg.rows)
+		to.parent_graph.update_grid(cfg.columns, cfg.rows)
 
 func _config_field(field: StringName, value: Variant):
 	match field:
 		"rows":
 			if !setting:
-				$Y.text = str(value)
+				$Y.set_line(str(value))
 			for i in get_first_descendants():
 				if i.server_typename == "Flatten":
 					i.set_count(cfg.rows * cfg.columns)
+				if glob.is_layer(i, "Conv2D"):
+					i.update_grid(cfg.columns, cfg.rows)
 		"columns":
 			if !setting:
-				$X.text = str(value)
+				$X.set_line(str(value))
 			for i in get_first_descendants():
 				if i.server_typename == "Flatten":
 					i.set_count(cfg.rows * cfg.columns)
+				if glob.is_layer(i, "Conv2D"):
+					i.update_grid(cfg.columns, cfg.rows)
 
 var types_2d: Dictionary[StringName, bool] = {"Reshape2D": 1, "InputNode": 1}
 var layers: Dictionary[StringName, bool] = {"Dense": 1, "Conv2D": 1}
@@ -135,5 +138,5 @@ func _on_y_text_changed(new_text: String) -> void:
 
 
 func _on_x_text_changed(new_text: String) -> void:
-	setting = 1;
+	setting = 1
 	update_config({"columns": int(new_text)}); setting = 0

@@ -12,7 +12,15 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 				set_count(other_conn.parent_graph.cfg.neuron_count)
 	count_reach = display_count
 	graphs.reach(self, call_count)
-	
+
+func _just_connected(who: Connection, to: Connection):
+	if to.parent_graph.server_typename == "NeuronLayer":
+		to.parent_graph.neurons_fixed = true
+		to.parent_graph.push_neuron_count(neuron_count)
+
+func _just_disconnected(who: Connection, from: Connection):
+	if from.parent_graph.server_typename == "NeuronLayer":
+		from.parent_graph.neurons_fixed = false
 
 var neuron_count: int = 0
 func set_count(count: int):

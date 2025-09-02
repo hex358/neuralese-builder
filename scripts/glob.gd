@@ -210,6 +210,9 @@ var units = [
 	["K", 1_000]
 ]
 
+func is_layer(g: Graph, layer: StringName):
+	return g.server_typename == "NeuronLayer" and g.layer_name == layer
+
 func compact(n: int) -> String:
 	if n < 1000:
 		return str(n)

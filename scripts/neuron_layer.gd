@@ -125,12 +125,14 @@ func _config_field(field: StringName, val: Variant):
 	match field:
 		"neuron_count":
 			neuron_count = val
+			line_edit.set_line(str(val))
 			_real_amount = max(0, val)
 			_apply_grouping()
 			for i in get_first_descendants():
 				if i.server_typename == "Reshape2D":
 					i.update_config({"rows": i.cfg.rows, "columns": i.cfg.columns})
 			hold_for_frame()
+			
 
 func _on_line_edit_changed(new_text) -> void:
 	await get_tree().process_frame

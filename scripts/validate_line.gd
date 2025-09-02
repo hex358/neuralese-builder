@@ -7,6 +7,7 @@ class_name ValidInput
 
 @export var resize_after: int = 0
 func _ready() -> void:
+	
 	text_changed.connect(_input_changed)
 	text_submitted.connect(_input_submit)
 
@@ -49,6 +50,13 @@ func _text_changed() -> void:
 
 var prev_input: String = ""
 func _input_changed(input: String):
+	set_line(input, true)
+	
+var prev_pos: int = 0
+func set_line(input: String, emit: bool = false):
+	if text != input:
+		text = input
+		caret_column = prev_pos
 	if !change_always_accepted:
 		text = _can_change_to()
 	is_valid = _is_valid(input)
@@ -56,7 +64,8 @@ func _input_changed(input: String):
 		prev_input = input
 	_text_changed()
 	_resize_label()
-	changed.emit(text)
+	if emit:
+		changed.emit(text)
 
 @onready var _font = get_theme_font("font")
 

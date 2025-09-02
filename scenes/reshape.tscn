@@ -121,5 +121,5 @@ script = ExtResource("6_nm1vw")
 resize_after = 4
 change_always_accepted = false
 
-[connection signal="text_changed" from="X" to="." method="_on_x_text_changed"]
-[connection signal="text_changed" from="Y" to="." method="_on_y_text_changed"]
+[connection signal="changed" from="X" to="." method="_on_x_text_changed"]
+[connection signal="changed" from="Y" to="." method="_on_y_text_changed"]

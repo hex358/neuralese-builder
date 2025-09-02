@@ -2,7 +2,6 @@
 extends ValidInput
 
 
-var prev_pos: int = 0
 var prev: int = 0
 func _can_change_to() -> String:
 	prev_pos = caret_column

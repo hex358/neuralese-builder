@@ -111,6 +111,8 @@ func _add_q(kw: Dictionary):
 		appear_units.erase(new_unit)
 		#_unit_modulate_updated(new_unit)
 
+@export var lerp_size: bool = true
+
 func _after_process(delta: float):
 	for i in 100:
 		if add_q.empty(): break
@@ -119,10 +121,11 @@ func _after_process(delta: float):
 
 	if bottom_attached:
 		input.position.y = lerpf(input.position.y, target_y, delta*20.0)
-	var prev_size = rect.size
-	rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
-	if prev_size.distance_squared_to(rect.size) > 0.02:
-		_size_changed()
+	if lerp_size:
+		var prev_size = rect.size
+		rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
+		if prev_size.distance_squared_to(rect.size) > 0.02:
+			_size_changed()
 
 	var to_del = []
 	for appearer in appear_units:

@@ -72,13 +72,13 @@ offset_bottom = 40.0
 self_modulate = Color(1, 0.721569, 0.956863, 1)
 z_index = 1
 layout_mode = 0
-offset_left = 8.0
+offset_left = 14.0
 offset_top = 3.0
-offset_right = 220.0
+offset_right = 226.0
 offset_bottom = 46.0
 scale = Vector2(0.419329, 0.419329)
 theme = ExtResource("4_ygxhn")
-text = "Flattened"
+text = "Flatten"
 
 [node name="display_count" type="Label" parent="."]
 self_modulate = Color(0.66, 0.66, 0.66, 1)

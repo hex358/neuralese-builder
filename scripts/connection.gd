@@ -166,7 +166,22 @@ func _exit_tree() -> void:
 		parent_graph.conn_exit(self)
 
 func get_origin() -> Vector2:
-	return global_position + (origin_offset + size / 2) * scale
+	var global_rect = get_global_rect().size
+	var dir: Vector2 = Vector2()
+	if is_zero_approx(dir_vector.x):
+		dir.x = global_rect.x / 2
+	elif dir_vector.x > 0.0:
+		dir.x = global_rect.x
+	else:
+		dir.x = 0.0
+	
+	if is_zero_approx(dir_vector.y):
+		dir.y = global_rect.y / 2
+	elif dir_vector.y > 0.0:
+		dir.y = global_rect.y
+	else:
+		dir.y = 0.0
+	return global_position + dir
 
 func _is_suitable(conn: Connection) -> bool: return true # virtual
 
