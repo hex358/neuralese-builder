@@ -121,7 +121,7 @@ func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = 
 	curve.add_point(end_second_point, -size * (end - end_second_point), Vector2())
 	curve.add_point(end, Vector2(), Vector2())
 
-	var mid_interval = clamp(length * 0.08, 2.0, 30.0)
+	var mid_interval = clamp(length * 0.05, 2.0, 30.0)
 	baked = _bake_with_end_smoothing(mid_interval, end_smooth_range_px)
 
 

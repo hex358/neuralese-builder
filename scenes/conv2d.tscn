@@ -12,10 +12,10 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_l5edn")
-group_size = 3
-grid = Vector2i(10, 10)
+group_size = 1
+grid = Vector2i(20, 10)
 offset = Vector2(-19.88, -23.515)
-size_add_vec = Vector2(46.715, 71.615)
+size_add_vec = Vector2(45.59, 71.615)
 layer_name = "Conv2D"
 unit = NodePath("unit")
 padding = 5.0
@@ -129,7 +129,7 @@ offset_bottom = 48.0
 
 [node name="ColorRect5" type="ColorRect" parent="unit"]
 material = ExtResource("4_aplfx")
-instance_shader_parameters/corner_radius_width_add = Vector2(0, 1.5)
+instance_shader_parameters/corner_radius_width_add = Vector2(-2, 1.5)
 instance_shader_parameters/outline_color = Color(0.59, 1, 0.883833, 1)
 instance_shader_parameters/tuning = Color(0.1276, 0.44, 0.351487, 0.443137)
 layout_mode = 0
