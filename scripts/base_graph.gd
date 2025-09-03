@@ -307,6 +307,9 @@ func _proceed_hold() -> bool:
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
+	if position != prev_graph_pos:
+		reposition_conns()
+
 	if _proceed_hold():
 		hold_for_frame()
 	
@@ -361,6 +364,12 @@ func _process(delta: float) -> void:
 		_dragged()
 	
 	_after_process(delta)
+	prev_graph_pos = position
+
+var prev_graph_pos: Vector2 = position
+
+func reposition_conns():
+	pass
 
 func reposition_splines():
 	for input in _inputs:

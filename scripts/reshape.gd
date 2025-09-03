@@ -32,7 +32,7 @@ func _can_drag() -> bool:
 
 func _just_attached(who: Connection, to: Connection):
 	#print("A")
-	var cond = glob.is_layer(who.parent_graph, "Dense")
+	var cond = graphs.is_layer(who.parent_graph, "Dense")
 	if who.parent_graph.server_typename in "Flatten" or cond:
 		var total:int = who.parent_graph.neuron_count
 		var rows:int = cfg.rows; var columns:int = cfg.columns
@@ -46,30 +46,30 @@ func _just_attached(who: Connection, to: Connection):
 		update_config({"rows": rows, "columns": columns})
 
 func _just_connected(who: Connection, to: Connection):
-	if to.parent_graph.server_typename == "Flatten":
-		to.parent_graph.set_count(cfg.rows * cfg.columns)
-	if glob.is_layer(to.parent_graph, "Conv2D"):
-		print(cfg.columns, cfg.rows)
-		to.parent_graph.update_grid(cfg.columns, cfg.rows)
+	#if to.parent_graph.server_typename == "Flatten":
+	#	to.parent_graph.set_count(cfg.rows * cfg.columns)
+	graphs.push_2d(cfg.columns, cfg.rows, to.parent_graph)
 
 func _config_field(field: StringName, value: Variant):
 	match field:
 		"rows":
 			if !setting:
 				$Y.set_line(str(value))
-			for i in get_first_descendants():
-				if i.server_typename == "Flatten":
-					i.set_count(cfg.rows * cfg.columns)
-				if glob.is_layer(i, "Conv2D"):
-					i.update_grid(cfg.columns, cfg.rows)
+			var desc = get_first_descendants()
+			#for i in desc:
+				#if i.server_typename == "Flatten":
+					#i.set_count(cfg.rows * cfg.columns)
+			graphs.push_2d(cfg.columns, cfg.rows, desc)
 		"columns":
 			if !setting:
 				$X.set_line(str(value))
-			for i in get_first_descendants():
-				if i.server_typename == "Flatten":
-					i.set_count(cfg.rows * cfg.columns)
-				if glob.is_layer(i, "Conv2D"):
-					i.update_grid(cfg.columns, cfg.rows)
+			var desc = get_first_descendants()
+			#for i in desc:
+				#if i.server_typename == "Flatten":
+					#i.set_count(cfg.rows * cfg.columns)
+			graphs.push_2d(cfg.columns, cfg.rows, desc)
+				#if glob.is_layer(i, "Conv2D"):
+				#	i.update_grid(cfg.columns, cfg.rows)
 
 var types_2d: Dictionary[StringName, bool] = {"Reshape2D": 1, "InputNode": 1}
 var layers: Dictionary[StringName, bool] = {"Dense": 1, "Conv2D": 1}

@@ -33,6 +33,14 @@ func get_spline(for_connection: Connection, keyword: StringName = &"default") ->
 	splines_layer.add_child(new); new.z_index = 9
 	return new
 
+func activate_spline(spline: Spline):
+	if spline.get_parent() == top_splines_layer: return
+	spline.reparent(top_splines_layer)
+
+func deactivate_spline(spline: Spline):
+	if spline.get_parent() == splines_layer: return
+	spline.reparent(splines_layer)
+
 # Occupation (some node blocks input of others)
 var occ_layers: Dictionary[StringName, Control] = {}
 
@@ -210,9 +218,6 @@ var units = [
 	["K", 1_000]
 ]
 
-func is_layer(g: Graph, layer: StringName):
-	return g.server_typename == "NeuronLayer" and g.layer_name == layer
-
 func compact(n: int) -> String:
 	if n < 1000:
 		return str(n)
@@ -230,6 +235,9 @@ func compact(n: int) -> String:
 
 var iterables: Dictionary[int, bool] = arrays.merged({
 TYPE_DICTIONARY:true,})
+
+func is_array(a) -> bool: return typeof(a) in arrays
+func is_iterable(a) -> bool: return typeof(a) in iterables
 
 func list(type: int):
 	var res = null
@@ -348,13 +356,19 @@ func _process(delta: float) -> void:
 
 var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
+var top_splines_layer: CanvasLayer
 
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
 	OS.low_processor_usage_mode = true
 	splines_layer = CanvasLayer.new()
-	splines_layer.layer = 4
+	splines_layer.layer = -124
 	splines_layer.follow_viewport_enabled = true
+
+	top_splines_layer = CanvasLayer.new()
+	top_splines_layer.layer = 4
+	top_splines_layer.follow_viewport_enabled = true
 	
 	add_child(splines_layer)
+	add_child(top_splines_layer)

@@ -26,8 +26,7 @@ extends BaseNeuronLayer
 		set_grid(grid.x, grid.y)
 
 func _just_connected(who: Connection, to: Connection):
-	if to.parent_graph.server_typename == "Flatten":
-		to.parent_graph.set_count(grid.x * grid.y)
+	graphs.push_2d(grid.x, grid.y, to.parent_graph)
 
 var current_units: Array[Control] = []
 var _pool: Array[Control] = []
@@ -93,19 +92,21 @@ func get_unit(_kw: Dictionary) -> Control:
 	_fading_in[u] = true
 	return u
 
+
 func _after_process(delta: float) -> void:
 	super(delta)
 
 	recompute_biggest_size_possible()
 
 	for u in _fading_in.keys():
-		if rect.size.x > biggest_size_possible.x-1.0:
+		if rect.size.x > biggest_size_possible.x-20.0:
 			pass
 		else:
 			u.modulate.a = 0.0; u.hide(); continue
 		var u_rect = u.get_global_rect()
 		var m = u.modulate
 		u.show()
+		hold_for_frame()
 		m.a = lerp(m.a, 1.0, delta * 5.0)
 		u.modulate = m
 		if m.a >= 0.9:
@@ -114,6 +115,7 @@ func _after_process(delta: float) -> void:
 	
 	for u in _fading_out.keys():
 		u.modulate.a = lerp(u.modulate.a, 0.0, delta * 30.0)
+		hold_for_frame()
 		if u.modulate.a <= 0.1:
 			_fading_out.erase(u)
 			u.queue_free()
@@ -127,6 +129,7 @@ func _after_process(delta: float) -> void:
 func update_grid(x: int, y: int):
 	grid.x = x
 	grid.y = y
+	graphs.push_2d(grid.x, grid.y, get_first_descendants())
 
 func set_grid(x: int, y: int) -> void:
 	if not is_node_ready():

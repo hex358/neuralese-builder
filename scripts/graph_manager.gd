@@ -387,7 +387,7 @@ var graph_types = {
 	"conv2d": preload("res://scenes/conv2d.tscn"),
 }
 
-var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
+var z_count: int = 0
 func get_graph(type = graph_types.base, flags = Graph.Flags.NONE) -> Graph:
 	var new = type.instantiate()
 	new.graph_flags = flags
@@ -403,13 +403,26 @@ func _ready():
 	pass
 	#print(await web.send_get("test"))
 
+
+func is_layer(g: Graph, layer: StringName):
+	return g.server_typename == "NeuronLayer" and g.layer_name == layer
+
+
+func push_2d(columns: int, rows: int, target):
+	if !glob.is_iterable(target): target = [target]
+	for i in target:
+		if is_layer(i, "Conv2D"):
+			i.update_grid(columns, rows)
+		if i.server_typename == "Flatten":
+			i.set_count(rows * columns)
+
 var pos_cache: Dictionary = {}
 func _process(delta: float) -> void:
 	var vp = Rect2(Vector2.ZERO, glob.window_size)
 	var dc = 0
 	if Input.is_action_just_pressed("ui_accept"):
-		update_dependencies()
-		#run_request()
+		#update_dependencies()
+		run_request()
 
 	for graph: Graph in storage.get_children():
 		var r = graph.rect

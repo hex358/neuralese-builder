@@ -273,7 +273,9 @@ func _process(delta: float) -> void:
 	if connection_type == OUTPUT and inside and not occ:
 		if mouse_just_pressed:
 			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active: # TODO: implement router splines
-				start_spline(add_spline())
+				var nspline = add_spline()
+				start_spline(nspline)
+				glob.activate_spline(outputs[nspline])
 			#elif !multiple_splines and outputs:
 				#outputs[0].tied_to.detatch_spline(outputs[0])
 		elif glob.mouse_alt_just_pressed and inside:
@@ -283,7 +285,9 @@ func _process(delta: float) -> void:
 		if glob.mouse_alt_just_pressed and inside:
 			glob.menus["detatch"].show_up(inputs, self)
 		elif mouse_just_pressed and inputs:
-			detatch_spline(inputs.keys()[-1])
+			var detatch = inputs.keys()[-1]
+			glob.activate_spline(detatch)
+			detatch_spline(detatch)
 
 	var to_end = []
 	var to_attach = []
@@ -336,6 +340,7 @@ func _process(delta: float) -> void:
 	for id in to_end:
 		end_spline(id)
 	for id in to_attach:
+		glob.deactivate_spline(outputs[id])
 		attach_spline(id, glob.hovered_connection)
 
 	hovered = false
