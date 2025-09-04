@@ -124,7 +124,7 @@ func _after_process(delta: float):
 	if lerp_size:
 		var prev_size = rect.size
 		rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
-		if prev_size.distance_squared_to(rect.size) > 0.02:
+		if prev_size.distance_squared_to(rect.size) > 0.001:
 			_size_changed()
 
 	var to_del = []

@@ -20,7 +20,6 @@ points = PackedVector2Array(0, 0, 0.34375, 0, 1.25, 0, 1.85547, 0, 2.53125, 0, 3
 width = 7.0
 gradient = SubResource("Gradient_ejf68")
 joint_mode = 2
-begin_cap_mode = 2
 end_cap_mode = 2
 sharp_limit = 0.0
 antialiased = true

@@ -387,7 +387,7 @@ var graph_types = {
 	"conv2d": preload("res://scenes/conv2d.tscn"),
 }
 
-var z_count: int = 0
+var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
 func get_graph(type = graph_types.base, flags = Graph.Flags.NONE) -> Graph:
 	var new = type.instantiate()
 	new.graph_flags = flags

@@ -92,14 +92,16 @@ func get_unit(_kw: Dictionary) -> Control:
 	_fading_in[u] = true
 	return u
 
-
+@export var max_size: Vector2 = Vector2()
 func _after_process(delta: float) -> void:
 	super(delta)
-
+	
 	recompute_biggest_size_possible()
-
+	#print(biggest_size_possible)
+	
 	for u in _fading_in.keys():
-		if rect.size.x > biggest_size_possible.x-20.0:
+		if rect.size.x > biggest_size_possible.x-grid_padding\
+		 and rect.size.y > biggest_size_possible.y-grid_padding:
 			pass
 		else:
 			u.modulate.a = 0.0; u.hide(); continue
@@ -107,23 +109,24 @@ func _after_process(delta: float) -> void:
 		var m = u.modulate
 		u.show()
 		hold_for_frame()
-		m.a = lerp(m.a, 1.0, delta * 5.0)
+		m.a = lerp(m.a, 1.0, delta * 15.0)
 		u.modulate = m
 		if m.a >= 0.9:
 			u.modulate.a = 1.0
 			_fading_in.erase(u)
 	
 	for u in _fading_out.keys():
-		u.modulate.a = lerp(u.modulate.a, 0.0, delta * 30.0)
+		u.modulate.a = lerp(u.modulate.a, 0.0, delta * 15.0)
 		hold_for_frame()
 		if u.modulate.a <= 0.1:
 			_fading_out.erase(u)
 			u.queue_free()
-
 	var target: Vector2 = target_size_vec.max(biggest_size_possible)
+	if max_size:
+		target = target.max(max_size)
 	var prev_size = rect.size
-	rect.size = rect.size.lerp(target, delta * 20.0)
-	if prev_size.distance_squared_to(rect.size) > 0.02:
+	rect.size = rect.size.lerp(target, delta * 15.0)
+	if prev_size.distance_squared_to(rect.size) > 0.001:
 		_size_changed()
 
 func update_grid(x: int, y: int):
@@ -162,32 +165,30 @@ func _remove_cell(i: int, j: int) -> void:
 
 var _index_by_unit: Dictionary = {}
 func recompute_biggest_size_possible() -> void:
-	var max_i = -1
-	var max_j = -1
-
-	for key in _cells.keys():
-		var ij: Vector2i = key
-		var u: Control = _cells[key]
-		if u:# and u.visible:
-			if ij.x > max_i: max_i = ij.x
-			if ij.y > max_j: max_j = ij.y
-
-	for u in _fading_out.keys():
-		if not u: continue
-		#if !u.visible: continue
-		if _index_by_unit.has(u):
-			var ij: Vector2i = _index_by_unit[u]
-			if ij.x > max_i: max_i = ij.x
-			if ij.y > max_j: max_j = ij.y
-
-	if max_i < 0 or max_j < 0:
+	if _cells.is_empty() and _fading_out.is_empty():
 		biggest_size_possible = Vector2.ZERO
 		return
 
 	var unit_size = _unit.size
-	var width  = (max_i + 1) * (unit_size.x + grid_padding) + offset.x + size_add_vec.x
-	var height = (max_j + 1) * (unit_size.y + grid_padding) + offset.y + size_add_vec.y
-	biggest_size_possible = Vector2(width, height)
+	var max_right = 0.0
+	var max_bottom = 0.0
+
+	for key in _cells.keys():
+		var u: Control = _cells[key]
+		if not u: continue
+		var r = u.position.x + unit_size.x + grid_padding
+		var b = u.position.y + unit_size.y + grid_padding
+		if r > max_right: max_right = r
+		if b > max_bottom: max_bottom = b
+
+	for u in _fading_out.keys():
+		if not u: continue
+		var r = u.position.x + unit_size.x + grid_padding
+		var b = u.position.y + unit_size.y + grid_padding
+		if r > max_right: max_right = r
+		if b > max_bottom: max_bottom = b
+	
+	biggest_size_possible = Vector2(max_right, max_bottom) + size_add_vec
 
 
 func visualise_grid(columns: int, rows: int) -> void:
