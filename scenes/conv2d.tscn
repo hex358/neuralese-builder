@@ -1,27 +1,46 @@
-[gd_scene load_steps=6 format=3 uid="uid://70bqejl8x5np"]
+[gd_scene load_steps=11 format=3 uid="uid://70bqejl8x5np"]
 
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_aplfx"]
 [ext_resource type="Script" uid="uid://cppor4y4glxd6" path="res://scripts/conv_2d.gd" id="2_l5edn"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_cc8xm"]
 [ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_aplfx"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="6_51xl4"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="6_gmye6"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_ha3dw"]
+[ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="8_imbvy"]
+[ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="9_qqnr4"]
 
-[node name="Base" type="Control" node_paths=PackedStringArray("unit", "line_edit")]
+[sub_resource type="Resource" id="Resource_51xl4"]
+script = ExtResource("7_ha3dw")
+as_mult = false
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.0
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 1.0
+press_mult = 1.0
+animation_scale = 0.0
+animation_speed = 1.951
+animation_decay = 4.564
+animation_duration = 1.0
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[node name="Base" type="Control" node_paths=PackedStringArray("unit")]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_l5edn")
-grid = Vector2i(64, 64)
+grid = Vector2i(28, 28)
 grid_padding = 2.0
 offset = Vector2(-24, -5)
 size_add_vec = Vector2(47, 74.645)
 max_size = Vector2(100, 0)
 outline_padding = 0.0
+kernel_size = Vector2i(2, 2)
 layer_name = "Conv2D"
 unit = NodePath("unit")
 padding = 5.0
-line_edit = NodePath("")
 unit_offset_y = -6.0
 target_size = 60.0
 min_size = 73.0
@@ -144,10 +163,91 @@ color = Color(0.73, 0.563073, 0.3723, 1)
 z_index = 1
 material = ExtResource("4_aplfx")
 instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
-instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/outline_color = Color(1, 1, 1, 0.682353)
 instance_shader_parameters/tuning = Color(1, 1, 1, 0.235294)
+layout_mode = 0
 offset_left = -23.0
 offset_top = -42.0
-offset_right = 38.0
-offset_bottom = 3.0
+offset_right = -23.0
+offset_bottom = -42.0
 scale = Vector2(0.820862, 0.820862)
+
+[node name="filter2" type="ColorRect" parent="."]
+self_modulate = Color(0.9, 0.7656, 0.612, 0.509804)
+z_index = 1
+material = ExtResource("4_aplfx")
+instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
+instance_shader_parameters/outline_color = Color(1, 1, 1, 0.686275)
+instance_shader_parameters/tuning = Color(1, 1, 1, 0.537255)
+offset_left = -23.0
+offset_top = -42.0
+offset_right = -23.0
+offset_bottom = -42.0
+scale = Vector2(0.820862, 0.820862)
+
+[node name="optimizer" parent="." node_paths=PackedStringArray("graph") instance=ExtResource("6_gmye6")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+offset_left = -9.0
+offset_top = -31.0
+offset_right = 28.0
+offset_bottom = -11.0
+scale = Vector2(0.733764, 0.733764)
+mouse_filter = 1
+color = Color(0.584314, 0.576471, 0.85098, 1)
+button_type = 2
+base_scale_x = 0.45
+resize_after = 6
+text = "1"
+base_size = Vector2(37, 20)
+expanded_size = 65
+arrangement_padding = Vector2(4, 3)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_51xl4")
+graph = NodePath("..")
+
+[node name="ColorRect2" parent="optimizer" instance=ExtResource("6_gmye6")]
+visible = false
+material = ExtResource("8_imbvy")
+instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 36.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+hint = &"1"
+resize_after = 9
+text = "1"
+base_size = Vector2(99, 32)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("9_qqnr4")
+
+[node name="ColorRect3" parent="optimizer" instance=ExtResource("6_gmye6")]
+visible = false
+material = ExtResource("8_imbvy")
+instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.36284
+offset_top = 4.08851
+offset_right = 97.6372
+offset_bottom = 36.0885
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+hint = &"2"
+resize_after = 4
+text = "2"
+base_size = Vector2(99, 32)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("9_qqnr4")

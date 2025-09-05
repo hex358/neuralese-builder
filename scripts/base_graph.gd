@@ -176,11 +176,6 @@ func _useful_properties() -> Dictionary:
 	return {}
 
 func _ready() -> void:
-	if is_input:
-		if server_typename == "TrainInput":
-			graphs._train_origin_graph = self
-		else:
-			graphs._input_origin_graph = self
 	position -= rect.position
 	animate(0)
 	graphs.add(self)

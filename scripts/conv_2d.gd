@@ -63,6 +63,8 @@ func _after_ready() -> void:
 	await get_tree().process_frame
 	set_grid(grid.x, grid.y)
 	_size_changed()
+	$filter.size = Vector2()
+	$filter2.size = Vector2()
 
 @export var label_offset: float = 25.0
 func _size_changed() -> void:
@@ -96,24 +98,48 @@ func get_unit(_kw: Dictionary) -> Control:
 @export var outline_padding: float = 1.0
 
 func recompute_filter(kernel_size: Vector2i):
-	if !grid.x or !grid.y: target_filter_size = Vector2(); return
-	var first_cell = _cells.get(Vector2i())
-	var sec_cell = _cells.get(Vector2i(2,0))
-	if (grid.x-1)/group_size-1 < kernel_size.x: kernel_size.x = (grid.x-1)/group_size
-	if (grid.y-1)/group_size < kernel_size.y: kernel_size.y = (grid.y-1)/group_size
-	if first_cell and kernel_size in _cells:
-		$filter.position = first_cell.position
-		target_filter_size = ((_cells[kernel_size].position+_cells[kernel_size].get_global_rect().size
+	if !grid.x or !grid.y: 
+		target_filter_size = Vector2()
+		target_filter2_size = Vector2()
+		return
+	var arr = get_filter_cells(Vector2i(0,0), kernel_size)
+	if arr:
+		$filter.position = arr[0].position
+		target_filter_size = ((arr[1].position+arr[1].get_global_rect().size
 		)-$filter.position+Vector2(0.5,0.5))/$filter.scale
+	arr = get_filter_cells(Vector2i(1,0), kernel_size)
+	if arr:
+		$filter2.position = arr[0].position
+		target_filter2_size = ((arr[1].position+arr[1].get_global_rect().size
+		)-$filter2.position+Vector2(0.5,0.5))/$filter2.scale
+
+
+
+func get_filter_cells(origin: Vector2i, kernel_size: Vector2i):
+	var first_cell = _cells.get(origin)
+	var kernel_end: Vector2i = origin+kernel_size
+	if (grid.x-1)/group_size < kernel_end.x: 
+		kernel_end.x = (grid.x-1)/group_size
+	if (grid.y-1)/group_size < kernel_end.y: 
+		kernel_end.y = (grid.y-1)/group_size
+	if first_cell and not first_cell in _fading_in and kernel_end in _cells:
+		return [first_cell, _cells[kernel_end]]
+	return []
+
+
 
 
 var target_filter_size: Vector2 = Vector2()
+var target_filter2_size: Vector2 = Vector2()
+@export var kernel_size: Vector2i = Vector2i()
+@export var stride: int = 2
 func _after_process(delta: float) -> void:
 	super(delta)
 	
 	recompute_biggest_size_possible()
-	recompute_filter(Vector2i(2,2))
+	recompute_filter(kernel_size)
 	$filter.size = $filter.size.lerp(target_filter_size, delta * 20.0)
+	$filter2.size = $filter2.size.lerp(target_filter2_size, delta * 20.0)
 	
 	for u in _fading_in.keys():
 		if rect.size.x > biggest_size_possible.x-grid_padding\

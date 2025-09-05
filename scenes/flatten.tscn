@@ -83,6 +83,7 @@ text = "Flatten"
 [node name="display_count" type="Label" parent="."]
 self_modulate = Color(0.66, 0.66, 0.66, 1)
 z_index = 1
+layout_mode = 0
 offset_left = -52.0
 offset_top = -1.0
 offset_right = 160.0

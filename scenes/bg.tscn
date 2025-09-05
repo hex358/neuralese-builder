@@ -1,8 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://by1briddb0hwg"]
+[gd_scene load_steps=8 format=3 uid="uid://by1briddb0hwg"]
 
+[ext_resource type="Shader" uid="uid://cxl3lwrgb4nbm" path="res://shaders/bg.gdshader" id="1_5vsr6"]
 [ext_resource type="Shader" uid="uid://wlfuetpafxe6" path="res://shaders/cells.gdshader" id="1_dpp0m"]
 [ext_resource type="Script" uid="uid://bbtx7h4t5e3gu" path="res://scripts/texture_rect.gd" id="1_qd2e1"]
 [ext_resource type="Script" uid="uid://frvf3lkymg7d" path="res://scripts/color_rect.gd" id="2_qd2e1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w68nc"]
+shader = ExtResource("1_5vsr6")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_dpp0m"]
 viewport_path = NodePath("SubViewport")
@@ -19,13 +23,10 @@ shader_parameter/aa_pixels = 1.5
 layer = -127
 
 [node name="TextureRect" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_w68nc")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -8.0
-offset_top = -11.0
-offset_right = -8.0
-offset_bottom = -11.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("ViewportTexture_dpp0m")
@@ -35,7 +36,11 @@ script = ExtResource("1_qd2e1")
 
 [node name="SubViewport" type="SubViewport" parent="."]
 disable_3d = true
-canvas_cull_mask = 4293918721
+transparent_bg = true
+handle_input_locally = false
+gui_disable_input = true
+gui_snap_controls_to_pixels = false
+canvas_cull_mask = 4293918951
 size = Vector2i(1152, 658)
 
 [node name="bg" type="CanvasLayer" parent="SubViewport"]

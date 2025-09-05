@@ -340,11 +340,10 @@ func reach(from_graph: Graph, call: Callable = def_call):
 	reach_mode = false
 
 
-func get_syntax_tree() -> Dictionary:
+func get_syntax_tree(input) -> Dictionary:
 	var gathered = {}
 	var expect = {}
 	var index_counter: int = 0
-	var input = _input_origin_graph
 	if not input: return {}
 	
 	input.propagate({})
@@ -369,7 +368,7 @@ func get_syntax_tree() -> Dictionary:
 
 func run_request():
 	save()
-	var syntax_tree = get_syntax_tree()
+	var syntax_tree = get_syntax_tree(_input_origin_graph)
 	await web.POST("train", compress_dict_gzip({"train": 0, "session": "neriqward", "graph": syntax_tree}), true)
 
 

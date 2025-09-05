@@ -151,6 +151,8 @@ context_menu_enabled = false
 emoji_menu_enabled = false
 virtual_keyboard_type = 2
 script = ExtResource("6_j0ma4")
+min_value = 0
+max_value = 0
 resize_after = 4
 change_always_accepted = false
 

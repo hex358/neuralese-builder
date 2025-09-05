@@ -14,7 +14,16 @@ func get_raw_values():
 		res.append(row)
 	return res
 
+func _just_connected(who: Connection, to: Connection):
+	#if to.parent_graph.server_typename == "Flatten":
+	#	to.parent_graph.set_count(cfg.rows * cfg.columns)
+	if graphs._input_origin_graph == null:
+		graphs._input_origin_graph = self
+	graphs.push_2d(28, 28, to.parent_graph)
 
+func _just_disconnected(who: Connection, to: Connection):
+	if graphs._input_origin_graph == self:
+		graphs._input_origin_graph = null
 
 func _useful_properties() -> Dictionary:
 	#print("A")

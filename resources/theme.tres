@@ -60,6 +60,7 @@ Label/font_sizes/font_size = 32
 Label/fonts/font = ExtResource("1_e1x85")
 LineEdit/colors/font_color = Color(1, 1, 1, 1)
 LineEdit/colors/font_uneditable_color = Color(0.81, 0.81, 0.81, 0.501961)
+LineEdit/constants/minimum_character_width = 0
 LineEdit/styles/focus = SubResource("StyleBoxFlat_vj6dk")
 LineEdit/styles/normal = SubResource("StyleBoxFlat_mihib")
 LineEdit/styles/read_only = SubResource("StyleBoxFlat_d4nwg")
