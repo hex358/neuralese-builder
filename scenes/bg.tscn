@@ -1,22 +1,49 @@
-[gd_scene load_steps=4 format=3 uid="uid://by1briddb0hwg"]
+[gd_scene load_steps=6 format=3 uid="uid://by1briddb0hwg"]
 
 [ext_resource type="Shader" uid="uid://wlfuetpafxe6" path="res://shaders/cells.gdshader" id="1_dpp0m"]
+[ext_resource type="Script" uid="uid://bbtx7h4t5e3gu" path="res://scripts/texture_rect.gd" id="1_qd2e1"]
 [ext_resource type="Script" uid="uid://frvf3lkymg7d" path="res://scripts/color_rect.gd" id="2_qd2e1"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_dpp0m"]
+viewport_path = NodePath("SubViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0m0f1"]
 shader = ExtResource("1_dpp0m")
 shader_parameter/width = 10.0
-shader_parameter/spacing = 137.143
-shader_parameter/grid_color = Color(0.3366, 0.51, 0.46087, 1)
-shader_parameter/bg_color = Color(0.32, 0.32, 0.32, 1)
-shader_parameter/aa_pixels = 2.0
+shader_parameter/spacing = 170.0
+shader_parameter/grid_color = Color(0.4131, 0.463165, 0.51, 1)
+shader_parameter/bg_color = Color(0.25, 0.25, 0.25, 1)
+shader_parameter/aa_pixels = 1.5
 
-[node name="bg" type="CanvasLayer"]
+[node name="Node" type="CanvasLayer"]
+layer = -127
+
+[node name="TextureRect" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -11.0
+offset_right = -8.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("ViewportTexture_dpp0m")
+expand_mode = 1
+stretch_mode = 2
+script = ExtResource("1_qd2e1")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+disable_3d = true
+canvas_cull_mask = 4293918721
+size = Vector2i(1152, 658)
+
+[node name="bg" type="CanvasLayer" parent="SubViewport"]
 layer = -128
 follow_viewport_enabled = true
 follow_viewport_scale = 0.7
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="SubViewport/bg" node_paths=PackedStringArray("rect")]
 z_index = -4096
 material = SubResource("ShaderMaterial_0m0f1")
 offset_left = -550.0
@@ -25,4 +52,7 @@ offset_right = 4727.0
 offset_bottom = 2686.0
 color = Color(0.45, 0.45, 0.45, 1)
 script = ExtResource("2_qd2e1")
+rect = NodePath("../../../TextureRect")
 offset_mult = 2.0
+
+[node name="Camera2D" type="Camera2D" parent="SubViewport"]

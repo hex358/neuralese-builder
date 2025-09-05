@@ -87,3 +87,7 @@ _view_scale={
 "type": "float",
 "value": 0.0
 }
+bg={
+"type": "sampler2D",
+"value": ""
+}

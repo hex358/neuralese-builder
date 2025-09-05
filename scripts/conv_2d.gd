@@ -93,11 +93,27 @@ func get_unit(_kw: Dictionary) -> Control:
 	return u
 
 @export var max_size: Vector2 = Vector2()
+@export var outline_padding: float = 1.0
+
+func recompute_filter(kernel_size: Vector2i):
+	if !grid.x or !grid.y: target_filter_size = Vector2(); return
+	var first_cell = _cells.get(Vector2i())
+	var sec_cell = _cells.get(Vector2i(2,0))
+	if (grid.x-1)/group_size-1 < kernel_size.x: kernel_size.x = (grid.x-1)/group_size
+	if (grid.y-1)/group_size < kernel_size.y: kernel_size.y = (grid.y-1)/group_size
+	if first_cell and kernel_size in _cells:
+		$filter.position = first_cell.position
+		target_filter_size = ((_cells[kernel_size].position+_cells[kernel_size].get_global_rect().size
+		)-$filter.position+Vector2(0.5,0.5))/$filter.scale
+
+
+var target_filter_size: Vector2 = Vector2()
 func _after_process(delta: float) -> void:
 	super(delta)
 	
 	recompute_biggest_size_possible()
-	#print(biggest_size_possible)
+	recompute_filter(Vector2i(2,2))
+	$filter.size = $filter.size.lerp(target_filter_size, delta * 20.0)
 	
 	for u in _fading_in.keys():
 		if rect.size.x > biggest_size_possible.x-grid_padding\
@@ -139,7 +155,7 @@ func set_grid(x: int, y: int) -> void:
 		await ready
 	var columns = int(ceil(x / float(group_size)))
 	var rows = int(ceil(y / float(group_size)))
-	visualise_grid(max(columns, 1), max(rows, 1))
+	visualise_grid(columns, rows)
 	hold_for_frame()
 
 
@@ -164,6 +180,7 @@ func _remove_cell(i: int, j: int) -> void:
 	_fading_in.erase(u)
 
 var _index_by_unit: Dictionary = {}
+
 func recompute_biggest_size_possible() -> void:
 	if _cells.is_empty() and _fading_out.is_empty():
 		biggest_size_possible = Vector2.ZERO
@@ -174,7 +191,7 @@ func recompute_biggest_size_possible() -> void:
 	var max_bottom = 0.0
 
 	for key in _cells.keys():
-		var u: Control = _cells[key]
+		var u: Control = _cells.get(key)
 		if not u: continue
 		var r = u.position.x + unit_size.x + grid_padding
 		var b = u.position.y + unit_size.y + grid_padding
@@ -194,6 +211,10 @@ func recompute_biggest_size_possible() -> void:
 func visualise_grid(columns: int, rows: int) -> void:
 	var old_x: int = grid_current.x
 	var old_y: int = grid_current.y
+	if columns == 0 or rows == 0:
+		for i in range(old_x):
+			for j in range(old_y):
+				_remove_cell(i, j)
 
 	if columns > old_x:
 		for i in range(old_x, columns):

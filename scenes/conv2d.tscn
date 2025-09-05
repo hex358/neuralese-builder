@@ -12,9 +12,12 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_l5edn")
-group_size = 1
-offset = Vector2(-12.5, -5)
-size_add_vec = Vector2(55, 74.645)
+grid = Vector2i(64, 64)
+grid_padding = 2.0
+offset = Vector2(-24, -5)
+size_add_vec = Vector2(47, 74.645)
+max_size = Vector2(100, 0)
+outline_padding = 0.0
 layer_name = "Conv2D"
 unit = NodePath("unit")
 padding = 5.0
@@ -121,18 +124,30 @@ text = "Conv2D"
 [node name="unit" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = -47.0
+offset_left = -48.0
 offset_top = 23.0
-offset_right = -22.0
-offset_bottom = 48.0
+offset_right = -33.0
+offset_bottom = 38.0
 
 [node name="ColorRect5" type="ColorRect" parent="unit"]
 material = ExtResource("4_aplfx")
-instance_shader_parameters/corner_radius_width_add = Vector2(-2, 1)
+instance_shader_parameters/corner_radius_width_add = Vector2(-4, 1)
 instance_shader_parameters/outline_color = Color(0.92, 0.92, 0.92, 1)
 instance_shader_parameters/tuning = Color(0.6, 0.6, 0.6, 0.443137)
 layout_mode = 0
-offset_right = 30.0
-offset_bottom = 30.0
+offset_right = 19.0
+offset_bottom = 19.0
 scale = Vector2(0.820862, 0.820862)
-color = Color(0.901961, 0.694118, 0.458824, 1)
+color = Color(0.73, 0.563073, 0.3723, 1)
+
+[node name="filter" type="ColorRect" parent="."]
+z_index = 1
+material = ExtResource("4_aplfx")
+instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/tuning = Color(1, 1, 1, 0.235294)
+offset_left = -23.0
+offset_top = -42.0
+offset_right = 38.0
+offset_bottom = 3.0
+scale = Vector2(0.820862, 0.820862)

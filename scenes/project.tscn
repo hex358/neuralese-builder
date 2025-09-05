@@ -22,9 +22,6 @@ script = ExtResource("3_hyn5d")
 
 [node name="menus" parent="." instance=ExtResource("4_dsnwd")]
 
-[node name="bg" parent="." instance=ExtResource("5_sa0gx")]
-follow_viewport_scale = 0.8
-
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_speed = 22.0
 script = ExtResource("6_agq83")
@@ -35,3 +32,5 @@ drag_button = 3
 layer = 125
 follow_viewport_enabled = true
 script = ExtResource("7_ioxnp")
+
+[node name="bg" parent="." instance=ExtResource("5_sa0gx")]

@@ -14,3 +14,4 @@ shader_parameter/mult = 1.7
 shader_parameter/blur_level = 2.766
 shader_parameter/gaussian_mix = 1.0
 shader_parameter/gaussian_step = 1.0
+shader_parameter/use_bg = true

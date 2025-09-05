@@ -101,7 +101,7 @@ void fragment() {
 
 		vec4 bg_lod;
 		if (use_bg){
-		bg_lod = textureLod(bg, SCREEN_UV, lod);
+		bg_lod = textureLod(bg), SCREEN_UV, lod);
 		}
 		else{
 		bg_lod = textureLod(screen, SCREEN_UV, lod);

@@ -358,6 +358,7 @@ var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
 var top_splines_layer: CanvasLayer
 
+
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
@@ -370,5 +371,5 @@ func _ready() -> void:
 	top_splines_layer.layer = 4
 	top_splines_layer.follow_viewport_enabled = true
 	
-	add_child(splines_layer)
-	add_child(top_splines_layer)
+	get_tree().get_root().get_node("base").add_child(splines_layer)
+	get_tree().get_root().get_node("base").add_child(top_splines_layer)

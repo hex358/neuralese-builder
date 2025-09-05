@@ -169,14 +169,14 @@ func get_origin() -> Vector2:
 	var global_rect = get_global_rect().size
 	var dir: Vector2 = Vector2()
 	if is_zero_approx(dir_vector.x):
-		dir.x = global_rect.x / 2
+		dir.x = global_rect.x / 2.0
 	elif dir_vector.x > 0.0:
-		dir.x = global_rect.x
+		dir.x = floor(global_rect.x - 0.02)
 	else:
 		dir.x = 0.0
 	
 	if is_zero_approx(dir_vector.y):
-		dir.y = global_rect.y / 2
+		dir.y = global_rect.y / 2.0
 	elif dir_vector.y > 0.0:
 		dir.y = global_rect.y
 	else:
