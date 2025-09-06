@@ -25,7 +25,9 @@ var hold_process: bool = false
 func _new_animate(delta: float): # virtual
 	scale = glob.spring(base_scale * 0.5, base_scale, exist_time, 3.5, 16, 0.5)
 
-func hold_for_frame(): hold_process = true
+func hold_for_frame(): 
+	#print_stack()
+	hold_process = true
 
 @export_group("Base Config")
 @export var base_config: Dictionary[StringName, Variant] = {}
@@ -289,6 +291,16 @@ func delete():
 	_stopped_processing()
 	queue_free()
 
+
+
+func _size_changed(): # virtual
+	pass
+
+var changed_size_frame: bool = true
+func size_changed():
+	changed_size_frame = true
+	_size_changed()
+
 var graph_id: int = 0
 
 func _init() -> void:
@@ -304,9 +316,6 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	if position != prev_graph_pos:
 		reposition_conns()
-
-	if _proceed_hold():
-		hold_for_frame()
 	
 	animate(delta)
 #	graphs.store_delta(self)
@@ -359,7 +368,15 @@ func _process(delta: float) -> void:
 		_dragged()
 	
 	_after_process(delta)
+	if changed_size_frame:
+		hold_for_frame()
+	changed_size_frame = false
 	prev_graph_pos = position
+	if _proceed_hold():
+		hold_for_frame()
+
+func is_valid() -> bool:
+	return false if invalid_fields else true
 
 var prev_graph_pos: Vector2 = position
 

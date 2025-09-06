@@ -358,6 +358,11 @@ var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
 var top_splines_layer: CanvasLayer
 
+func is_vec_approx(a: Vector2, b: Vector2) -> bool:
+	return a.distance_squared_to(b) < 0.001 
+
+func inst_uniform(who: CanvasItem, uniform: StringName, val):
+	RenderingServer.canvas_item_set_instance_shader_parameter(who.get_canvas_item(), uniform, val)
 
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()

@@ -178,7 +178,7 @@ func get_origin() -> Vector2:
 	if is_zero_approx(dir_vector.y):
 		dir.y = global_rect.y / 2.0
 	elif dir_vector.y > 0.0:
-		dir.y = global_rect.y
+		dir.y = floor(global_rect.y - 0.02)
 	else:
 		dir.y = 0.0
 	return global_position + dir

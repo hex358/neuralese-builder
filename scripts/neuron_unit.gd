@@ -8,7 +8,7 @@ var id: int = 0
 @onready var base_scale: float = label.scale.x
 @onready var _base_scale: float = label.scale.x
 
-func set_extents(vec: Vector2) -> void:
+func set_extents(vec: Vector4) -> void:
 	$ColorRect5.set_instance_shader_parameter("extents", vec)
 	$ColorRect5/Label.set_instance_shader_parameter("extents", vec)
 

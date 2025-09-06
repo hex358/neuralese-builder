@@ -28,7 +28,6 @@ script = ExtResource("2_g8jnw")
 server_typename = &"LayerConfig"
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("3_j2aws")]
-instance_shader_parameters/corner_radius_add = 3.0
 instance_shader_parameters/corner_radius_width_add = Vector2(3, 0)
 layout_mode = 0
 offset_left = -9.0
@@ -50,7 +49,6 @@ parent_graph = NodePath("..")
 gradient_color = Color(0.298039, 0.670588, 0.901961, 1)
 
 [node name="ColorRect" parent="." index="1"]
-instance_shader_parameters/corner_radius_add = -3.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
@@ -70,7 +68,6 @@ theme_override_colors/font_color = Color(0.298039, 0.670588, 0.901961, 1)
 text = "Activation"
 
 [node name="ColorRect2" parent="." index="2" node_paths=PackedStringArray("graph") instance=ExtResource("5_fqm4g")]
-instance_shader_parameters/corner_radius_add = -7.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 layout_mode = 0
 offset_left = -34.0
@@ -94,9 +91,7 @@ graph = NodePath("..")
 
 [node name="ColorRect2" parent="ColorRect2" index="1" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
-instance_shader_parameters/corner_radius_add = -1.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -116,9 +111,7 @@ config = ExtResource("7_fqm4g")
 
 [node name="ColorRect3" parent="ColorRect2" index="2" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
-instance_shader_parameters/corner_radius_add = -1.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -138,9 +131,7 @@ config = ExtResource("7_fqm4g")
 
 [node name="ColorRect4" parent="ColorRect2" index="3" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
-instance_shader_parameters/corner_radius_add = -1.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -161,9 +152,7 @@ config = ExtResource("7_fqm4g")
 
 [node name="ColorRect5" parent="ColorRect2" index="4" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
-instance_shader_parameters/corner_radius_add = -1.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -184,9 +173,7 @@ config = ExtResource("7_fqm4g")
 
 [node name="ColorRect7" parent="ColorRect2" index="5" instance=ExtResource("5_fqm4g")]
 material = ExtResource("6_g8jnw")
-instance_shader_parameters/corner_radius_add = -1.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0

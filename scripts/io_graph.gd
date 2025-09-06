@@ -30,7 +30,7 @@ func _after_ready():
 	
 	unit.queue_free()
 	unit_script = unit.get_script()
-	_size_changed()
+	size_changed()
 	#for i in 100:
 	#	add_unit({"text": "hif"})
 
@@ -124,8 +124,8 @@ func _after_process(delta: float):
 	if lerp_size:
 		var prev_size = rect.size
 		rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
-		if prev_size.distance_squared_to(rect.size) > 0.001:
-			_size_changed()
+		if !glob.is_vec_approx(prev_size, rect.size):
+			size_changed()
 
 	var to_del = []
 	for appearer in appear_units:
@@ -165,8 +165,6 @@ func _after_process(delta: float):
 	if ui.is_focus(line_edit):
 		hold_for_frame()
 
-func _size_changed(): # virtual
-	pass
 
 func _on_color_rect_2_pressed() -> void:
 	if line_edit.is_valid:

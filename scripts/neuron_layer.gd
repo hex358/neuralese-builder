@@ -56,11 +56,11 @@ func _after_process(delta:float):
 	last_resized += 1
 	if last_resized < 20:
 		if len(units) > max_units:
-			var extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
+			var extents = Vector4(rect.global_position.y, rect.global_position.y + rect.size.y, 0, 0)
 			units[-1].set_extents(extents)
 			units[0].set_extents(extents)
 		elif units:
-			units[0].set_extents(Vector2())
+			units[0].set_extents(Vector4())
 
 func _just_connected(who: Connection, to: Connection):
 	pass
@@ -72,16 +72,10 @@ func _unit_modulate_updated(of: Control, fin: bool = false, diss: bool = false):
 	var extents
 	var key = key_by_unit[of]
 	if not fin or (len(units) > max_units-1 and key == max_units):
-		extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
+		extents = Vector4(rect.global_position.y, rect.global_position.y + rect.size.y, 0, 0)
 	else:
-		extents = Vector2()
+		extents = Vector4()
 	of.set_extents(extents)
-	#if len(units) > 10:
-		#extents = Vector2(rect.global_position.y, rect.global_position.y + rect.size.y)
-		#units[-1].set_extents(extents)
-		#units[0].set_extents(extents)
-	#elif units:
-		#units[0].set_extents(Vector2())
 
 @export var max_units = 20
 

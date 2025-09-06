@@ -415,6 +415,12 @@ func push_2d(columns: int, rows: int, target):
 		if i.server_typename == "Flatten":
 			i.set_count(rows * columns)
 
+func unpush_2d(target):
+	if !glob.is_iterable(target): target = [target]
+	for i in target:
+		if is_layer(i, "Conv2D"):
+			i.update_grid(0, 0)
+
 var pos_cache: Dictionary = {}
 func _process(delta: float) -> void:
 	var vp = Rect2(Vector2.ZERO, glob.window_size)
@@ -452,6 +458,7 @@ func _process(delta: float) -> void:
 			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))
 			if graph.hold_process or padded_inside or graph.active_output_connections:
 				graph.process_mode = PROCESS_MODE_ALWAYS
+				#print(graph.hold_process)
 				
 				if inside:
 					force_held = true

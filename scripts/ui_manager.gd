@@ -1,7 +1,7 @@
 extends Control
 
 func is_focus(control: Control):
-	return get_viewport().gui_get_focus_owner() == control
+	return control and get_viewport().gui_get_focus_owner() == control
 
 var mouse_buttons: Dictionary = {1: true, 2: true, 3: true}
 var wheel_buttons: Dictionary = {

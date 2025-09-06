@@ -336,6 +336,7 @@ func _ready() -> void:
 func _sub_process(delta: float):
 	pass
 
+
 var current_type: int = ButtonType.BLOCK_BUTTON
 @onready var base_pos: Vector2 = global_position - graph.global_position if graph else global_position
 func _process_dropout_menu(delta: float) -> void:
@@ -354,7 +355,7 @@ func _process_dropout_menu(delta: float) -> void:
 			base_pos = position
 		_process_block_button(delta)
 		#print(glob.opened_menu)
-		if not glob.opened_menu and (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
+		if glob.mouse_just_pressed and (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
 			current_type = ButtonType.CONTEXT_MENU
 			left_activate = true
 			mouse_open = true
@@ -560,8 +561,9 @@ func update_children_reveal() -> void:
 		if not c.freedom:
 			c.modulate.a = 0.0
 		if (max_size and max_size < expanded_size):
-			var vec = Vector2(scroll.global_position.y if bar.value > 10.0 else -20.0, 
-		scroll.global_position.y+scroll.size.y*scroll.scale.y*mult.y if bar.value < bar.max_value-bar.page else 0.0)
+			var vec = Vector4(scroll.global_position.y if bar.value > 10.0 else -20.0, 
+		scroll.global_position.y+scroll.size.y*scroll.scale.y*mult.y if bar.value < bar.max_value-bar.page else 0.0,
+		0.0, 0.0)
 			c.set_instance_shader_parameter("extents", vec)
 			c.label.set_instance_shader_parameter("extents", vec)
 

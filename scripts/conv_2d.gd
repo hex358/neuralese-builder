@@ -62,7 +62,7 @@ func _after_ready() -> void:
 	super()
 	await get_tree().process_frame
 	set_grid(grid.x, grid.y)
-	_size_changed()
+	size_changed()
 	$filter.size = Vector2()
 	$filter2.size = Vector2()
 
@@ -80,10 +80,27 @@ func _size_changed() -> void:
 		rect.size.x / 2.0 - $activ.size.x / 2.0 + rect.position.x,
 		base_activ_offset.y
 	)
+	set_extents()
 	var label = $ColorRect/root/Label
 	label.position.x = rect.size.x / 2.0 - label_offset
 	reposition_splines()
 	hold_for_frame()
+
+func _dragged():
+	set_extents()
+
+func set_extents():
+	if not Vector2i() in _cells: return
+	var rect_end: Vector2 = Vector2.ONE * max_displayed * \
+	(_unit.size + grid_padding*Vector2.ONE) + _cells[Vector2i()].global_position
+	for j in _cells:
+		var i = _cells[j]
+		if j.x >= max_displayed-1 or j.y >= max_displayed-1: pass
+		else: continue
+		var unit_rect = i.get_node("ColorRect5")
+		glob.inst_uniform(unit_rect, "extents", 
+		Vector4(0.0, rect_end.y - 2.0,
+		0.0, rect_end.x- 2.0))
 
 func get_unit(_kw: Dictionary) -> Control:
 	var u: Control = _pool.pop_back() if _pool.size() > 0 else _unit.duplicate()
@@ -97,7 +114,7 @@ func get_unit(_kw: Dictionary) -> Control:
 @export var max_size: Vector2 = Vector2()
 @export var outline_padding: float = 1.0
 
-func recompute_filter(kernel_size: Vector2i):
+func recompute_filter():
 	if !grid.x or !grid.y: 
 		target_filter_size = Vector2()
 		target_filter2_size = Vector2()
@@ -107,11 +124,13 @@ func recompute_filter(kernel_size: Vector2i):
 		$filter.position = arr[0].position
 		target_filter_size = ((arr[1].position+arr[1].get_global_rect().size
 		)-$filter.position+Vector2(0.5,0.5))/$filter.scale
-	arr = get_filter_cells(Vector2i(1,0), kernel_size)
+	arr = get_filter_cells(Vector2i(stride,0), kernel_size)
 	if arr:
-		$filter2.position = arr[0].position
+		target_filter2_pos = arr[0].position
 		target_filter2_size = ((arr[1].position+arr[1].get_global_rect().size
-		)-$filter2.position+Vector2(0.5,0.5))/$filter2.scale
+		)-arr[0].position+Vector2(0.5,0.5))/$filter2.scale
+	elif ceil(grid.x/group_size) < 1:
+		target_filter2_size = Vector2()
 
 
 
@@ -122,24 +141,39 @@ func get_filter_cells(origin: Vector2i, kernel_size: Vector2i):
 		kernel_end.x = (grid.x-1)/group_size
 	if (grid.y-1)/group_size < kernel_end.y: 
 		kernel_end.y = (grid.y-1)/group_size
-	if first_cell and not first_cell in _fading_in and kernel_end in _cells:
+	if first_cell and not first_cell in _fading_in and kernel_end in _cells and not _cells[kernel_end] in _fading_in:
 		return [first_cell, _cells[kernel_end]]
 	return []
 
+func _can_drag() -> bool:
+	return not ui.is_focus($LineEdit)
 
-
+var prev_kernel: Vector2i = kernel_size
+func _proceed_hold() -> bool:
+	var a = !glob.is_vec_approx($filter.size, target_filter_size) \
+	or !glob.is_vec_approx($filter2.position, target_filter2_pos)
+	return a
 
 var target_filter_size: Vector2 = Vector2()
 var target_filter2_size: Vector2 = Vector2()
-@export var kernel_size: Vector2i = Vector2i()
-@export var stride: int = 2
+var target_filter2_pos: Vector2 = Vector2()
+@export var kernel_size: Vector2i = Vector2i():
+	set(v):
+		kernel_size = v
+		hold_for_frame()
+@export var stride: int = 2:
+	set(v):
+		stride = v
+		hold_for_frame()
 func _after_process(delta: float) -> void:
 	super(delta)
 	
 	recompute_biggest_size_possible()
-	recompute_filter(kernel_size)
+	recompute_filter()
+	
 	$filter.size = $filter.size.lerp(target_filter_size, delta * 20.0)
 	$filter2.size = $filter2.size.lerp(target_filter2_size, delta * 20.0)
+	$filter2.position = $filter2.position.lerp(target_filter2_pos, delta * 20.0)
 	
 	for u in _fading_in.keys():
 		if rect.size.x > biggest_size_possible.x-grid_padding\
@@ -162,25 +196,29 @@ func _after_process(delta: float) -> void:
 		hold_for_frame()
 		if u.modulate.a <= 0.1:
 			_fading_out.erase(u)
+			_cells.erase(u.get_meta("coord"))
 			u.queue_free()
 	var target: Vector2 = target_size_vec.max(biggest_size_possible)
 	if max_size:
 		target = target.max(max_size)
 	var prev_size = rect.size
 	rect.size = rect.size.lerp(target, delta * 15.0)
-	if prev_size.distance_squared_to(rect.size) > 0.001:
-		_size_changed()
+	if !glob.is_vec_approx(prev_size,rect.size):
+		size_changed()
 
 func update_grid(x: int, y: int):
 	grid.x = x
 	grid.y = y
 	graphs.push_2d(grid.x, grid.y, get_first_descendants())
 
+@export var max_displayed: int = 4
 func set_grid(x: int, y: int) -> void:
 	if not is_node_ready():
 		await ready
 	var columns = int(ceil(x / float(group_size)))
 	var rows = int(ceil(y / float(group_size)))
+	if columns > max_displayed: columns = max_displayed
+	if rows > max_displayed: rows = max_displayed
 	visualise_grid(columns, rows)
 	hold_for_frame()
 
@@ -192,16 +230,17 @@ func _add_cell(i: int, j: int) -> void:
 	var u = get_unit({})
 	u.modulate.a = 0.0
 	_cells[key] = u
+	u.set_meta("coord", Vector2i(i, j))
 	_index_by_unit[u] = key
 	_fading_in[u] = true
 	_fading_out.erase(u)
 
 func _remove_cell(i: int, j: int) -> void:
 	var key = Vector2i(i, j)
-	if not _cells.has(key):
-		return
+	#if not _cells.has(key):
+		#return
 	var u: Control = _cells[key]
-	_cells.erase(key)
+	#_cells.erase(key)
 	_fading_out[u] = true
 	_fading_in.erase(u)
 
@@ -277,4 +316,4 @@ func visualise_grid(columns: int, rows: int) -> void:
 
 	target_size_vec.y = rows * (unit_size.y + grid_padding) + size_add_vec.y + offset.y
 	target_size_vec.x = columns * (unit_size.x + grid_padding) + size_add_vec.x + offset.x
-	_size_changed()
+	size_changed()

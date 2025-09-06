@@ -47,7 +47,7 @@ func _input(event: InputEvent) -> void:
 			
 			match event.button_index:
 				MOUSE_BUTTON_WHEEL_DOWN:
-					target_zoom = max(0.6, zoom.x - factor)
+					target_zoom = max(0.5, zoom.x - factor)
 				MOUSE_BUTTON_WHEEL_UP:
 					target_zoom = min(2, zoom.x + factor)
 			if target_zoom != prev_zoom:

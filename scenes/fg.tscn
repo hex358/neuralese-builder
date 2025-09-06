@@ -89,7 +89,7 @@ offset_right = 289.0
 offset_bottom = 57.0
 scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("3_xwiyo")
-text = "Perzeptron01"
+text = "ТестовыйПроект"
 
 [node name="ColorRect3" type="ColorRect" parent="ColorRect"]
 layout_mode = 0

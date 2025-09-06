@@ -24,6 +24,7 @@ func _just_connected(who: Connection, to: Connection):
 func _just_disconnected(who: Connection, to: Connection):
 	if graphs._input_origin_graph == self:
 		graphs._input_origin_graph = null
+	graphs.unpush_2d(to.parent_graph)
 
 func _useful_properties() -> Dictionary:
 	#print("A")

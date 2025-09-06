@@ -11,7 +11,7 @@ func _can_change_to() -> String:
 		text = text.trim_prefix("0")
 	if text.is_valid_int(): 
 		prev = clamp(int(text), min_value, max_value if max_value > 0 else int(text))
-		return str(prev)
+		return str(prev) if prev > min_value or min_value else ""
 	if !text: 
 		prev = min_value
 		return "" if !min_value else str(min_value)

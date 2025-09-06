@@ -48,7 +48,12 @@ func _just_attached(who: Connection, to: Connection):
 func _just_connected(who: Connection, to: Connection):
 	#if to.parent_graph.server_typename == "Flatten":
 	#	to.parent_graph.set_count(cfg.rows * cfg.columns)
-	graphs.push_2d(cfg.columns, cfg.rows, to.parent_graph)
+	if is_valid():
+		graphs.push_2d(cfg.columns, cfg.rows, to.parent_graph)
+	
+	#graphs.unpush_2d(self)
+func _just_disconnected(who: Connection, to: Connection):
+	graphs.unpush_2d(to.parent_graph)
 
 func _config_field(field: StringName, value: Variant):
 	match field:
@@ -59,7 +64,8 @@ func _config_field(field: StringName, value: Variant):
 			#for i in desc:
 				#if i.server_typename == "Flatten":
 					#i.set_count(cfg.rows * cfg.columns)
-			graphs.push_2d(cfg.columns, cfg.rows, desc)
+			if is_valid():
+				graphs.push_2d(cfg.columns, cfg.rows, desc)
 		"columns":
 			if !setting:
 				$X.set_line(str(value))
@@ -67,7 +73,8 @@ func _config_field(field: StringName, value: Variant):
 			#for i in desc:
 				#if i.server_typename == "Flatten":
 					#i.set_count(cfg.rows * cfg.columns)
-			graphs.push_2d(cfg.columns, cfg.rows, desc)
+			if is_valid():
+				graphs.push_2d(cfg.columns, cfg.rows, desc)
 				#if glob.is_layer(i, "Conv2D"):
 				#	i.update_grid(cfg.columns, cfg.rows)
 
