@@ -1,11 +1,12 @@
 extends BaseNeuronLayer
+class_name Conv2D
 
 @export var group_size: int = 5:
 	set(v):
 		group_size = v
 		set_grid(grid.x, grid.y)
 
-@export var grid: Vector2i = Vector2i(1, 1):
+@export var grid: Vector2i = Vector2i(0, 0):
 	set(v):
 		grid = v
 		set_grid(grid.x, grid.y)
@@ -30,8 +31,8 @@ func _just_connected(who: Connection, to: Connection):
 
 var current_units: Array[Control] = []
 var _pool: Array[Control] = []
-var _fading_in: Dictionary[Control, bool] = {}
-var _fading_out: Dictionary[Control, bool] = {}
+var _fading_in: Dictionary = {}
+var _fading_out: Dictionary = {}
 
 var grid_current: Vector2i = Vector2i.ZERO
 var _cells: Dictionary = {}
@@ -61,10 +62,11 @@ func useful_properties() -> Dictionary:
 func _after_ready() -> void:
 	super()
 	await get_tree().process_frame
-	set_grid(grid.x, grid.y)
+	set_grid(0, 0)
 	size_changed()
-	$filter.size = Vector2()
-	$filter2.size = Vector2()
+	if layer_name == "Conv2D":
+		$filter.size = Vector2()
+		$filter2.size = Vector2()
 
 @export var label_offset: float = 25.0
 func _size_changed() -> void:
@@ -108,7 +110,6 @@ func get_unit(_kw: Dictionary) -> Control:
 	u.modulate.a = 0.0
 	if u.get_parent() == null:
 		add_child(u)
-	_fading_in[u] = true
 	return u
 
 @export var max_size: Vector2 = Vector2()
@@ -132,8 +133,6 @@ func recompute_filter():
 	elif ceil(grid.x/group_size) < 1:
 		target_filter2_size = Vector2()
 
-
-
 func get_filter_cells(origin: Vector2i, kernel_size: Vector2i):
 	var first_cell = _cells.get(origin)
 	var kernel_end: Vector2i = origin+kernel_size
@@ -141,16 +140,18 @@ func get_filter_cells(origin: Vector2i, kernel_size: Vector2i):
 		kernel_end.x = (grid.x-1)/group_size
 	if (grid.y-1)/group_size < kernel_end.y: 
 		kernel_end.y = (grid.y-1)/group_size
-	if first_cell and not first_cell in _fading_in and kernel_end in _cells and not _cells[kernel_end] in _fading_in:
+	if first_cell and not _fading_in.has(origin) and kernel_end in _cells and not _fading_in.has(kernel_end):
 		return [first_cell, _cells[kernel_end]]
 	return []
 
 func _can_drag() -> bool:
-	return not ui.is_focus($LineEdit)
+	return not ui.is_focus($Label/HSlider) and not ui.is_focus($Label2/HSlider2)
 
 var prev_kernel: Vector2i = kernel_size
 func _proceed_hold() -> bool:
 	var a = !glob.is_vec_approx($filter.size, target_filter_size) \
+	or !glob.is_vec_approx($filter2.size, target_filter2_size) \
+	or ui.is_focus($Y) \
 	or !glob.is_vec_approx($filter2.position, target_filter2_pos)
 	return a
 
@@ -165,45 +166,56 @@ var target_filter2_pos: Vector2 = Vector2()
 	set(v):
 		stride = v
 		hold_for_frame()
+
 func _after_process(delta: float) -> void:
 	super(delta)
 	
-	recompute_biggest_size_possible()
-	recompute_filter()
-	
-	$filter.size = $filter.size.lerp(target_filter_size, delta * 20.0)
-	$filter2.size = $filter2.size.lerp(target_filter2_size, delta * 20.0)
-	$filter2.position = $filter2.position.lerp(target_filter2_pos, delta * 20.0)
-	
-	for u in _fading_in.keys():
-		if rect.size.x > biggest_size_possible.x-grid_padding\
-		 and rect.size.y > biggest_size_possible.y-grid_padding:
+	if layer_name == "Conv2D":
+		recompute_biggest_size_possible()
+		recompute_filter()
+		
+		$filter.size = $filter.size.lerp(target_filter_size, delta * 20.0)
+		$filter2.size = $filter2.size.lerp(target_filter2_size, delta * 20.0)
+		$filter2.position = $filter2.position.lerp(target_filter2_pos, delta * 20.0)
+		fade_process(delta)
+
+func fade_process(delta: float):
+	# fading in
+	for key in _fading_in.keys():
+		var u: Control = _cells.get(key)
+		if not u: continue
+		if rect.size.x > biggest_size_possible.x - grid_padding \
+		and rect.size.y > biggest_size_possible.y - grid_padding:
 			pass
 		else:
 			u.modulate.a = 0.0; u.hide(); continue
-		var u_rect = u.get_global_rect()
 		var m = u.modulate
 		u.show()
 		hold_for_frame()
-		m.a = lerp(m.a, 1.0, delta * 15.0)
+		m.a = lerp(m.a, _fading_in[key], delta * 15.0)
 		u.modulate = m
-		if m.a >= 0.9:
-			u.modulate.a = 1.0
-			_fading_in.erase(u)
-	
-	for u in _fading_out.keys():
+		if m.a >= _fading_in[key]-0.07:
+			u.modulate.a = _fading_in[key]
+			_fading_in.erase(key)
+	# fading out
+	for key in _fading_out.keys():
+		var u: Control = _cells.get(key)
+		if not u: continue
 		u.modulate.a = lerp(u.modulate.a, 0.0, delta * 15.0)
+		_fading_out[key] = lerp(_fading_out[key], 0.0, delta * 15)
 		hold_for_frame()
-		if u.modulate.a <= 0.1:
-			_fading_out.erase(u)
-			_cells.erase(u.get_meta("coord"))
+		if _fading_out[key] <= 0.07:
+			_fading_out.erase(key)
+			_cells.erase(key)
 			u.queue_free()
+	
+	# size lerp
 	var target: Vector2 = target_size_vec.max(biggest_size_possible)
 	if max_size:
 		target = target.max(max_size)
 	var prev_size = rect.size
 	rect.size = rect.size.lerp(target, delta * 15.0)
-	if !glob.is_vec_approx(prev_size,rect.size):
+	if !glob.is_vec_approx(prev_size, rect.size):
 		size_changed()
 
 func update_grid(x: int, y: int):
@@ -215,36 +227,42 @@ func update_grid(x: int, y: int):
 func set_grid(x: int, y: int) -> void:
 	if not is_node_ready():
 		await ready
-	var columns = int(ceil(x / float(group_size)))
-	var rows = int(ceil(y / float(group_size)))
+	var columns = int(ceil(x / float(group_size))) if x else 0
+	var rows = int(ceil(y / float(group_size))) if y else 0
 	if columns > max_displayed: columns = max_displayed
 	if rows > max_displayed: rows = max_displayed
 	visualise_grid(columns, rows)
 	hold_for_frame()
 
-
-func _add_cell(i: int, j: int) -> void:
+func add_cell(i: int, j: int) -> void:
 	var key = Vector2i(i, j)
-	if _cells.has(key):
+	if _cells.has(key) and not _fading_out.has(key):
 		return
 	var u = get_unit({})
 	u.modulate.a = 0.0
+	if key in _cells:
+		u.modulate.a = _cells[key].modulate.a
+	if key in _fading_out:
+		_cells[key].queue_free()
+		_fading_out.erase(key)
 	_cells[key] = u
-	u.set_meta("coord", Vector2i(i, j))
-	_index_by_unit[u] = key
-	_fading_in[u] = true
-	_fading_out.erase(u)
+	u.set_meta("coord", key)
+	_fading_in[key] = 1.0
+	_cell_added(i, j)
 
-func _remove_cell(i: int, j: int) -> void:
+func _cell_added(i: int, j: int):
+	pass
+
+func _cell_removing(i: int, j: int):
+	pass
+
+func remove_cell(i: int, j: int) -> void:
 	var key = Vector2i(i, j)
-	#if not _cells.has(key):
-		#return
-	var u: Control = _cells[key]
-	#_cells.erase(key)
-	_fading_out[u] = true
-	_fading_in.erase(u)
-
-var _index_by_unit: Dictionary = {}
+	if not _cells.has(key):
+		return
+	_fading_out[key] = 1.0
+	_cell_removing(i, j)
+	_fading_in.erase(key)
 
 func recompute_biggest_size_possible() -> void:
 	if _cells.is_empty() and _fading_out.is_empty():
@@ -263,7 +281,8 @@ func recompute_biggest_size_possible() -> void:
 		if r > max_right: max_right = r
 		if b > max_bottom: max_bottom = b
 
-	for u in _fading_out.keys():
+	for key in _fading_out.keys():
+		var u: Control = _cells.get(key)
 		if not u: continue
 		var r = u.position.x + unit_size.x + grid_padding
 		var b = u.position.y + unit_size.y + grid_padding
@@ -272,36 +291,39 @@ func recompute_biggest_size_possible() -> void:
 	
 	biggest_size_possible = Vector2(max_right, max_bottom) + size_add_vec
 
+func _grid_visualised(columns: int, rows: int):
+	pass
+
 
 func visualise_grid(columns: int, rows: int) -> void:
+	_grid_visualised(columns, rows)
 	var old_x: int = grid_current.x
 	var old_y: int = grid_current.y
-	if columns == 0 or rows == 0:
-		for i in range(old_x):
-			for j in range(old_y):
-				_remove_cell(i, j)
+	if (columns == 0 or rows == 0):
+		for cell in _cells:
+			remove_cell(cell.x, cell.y)
+	else:
+		if columns > old_x:
+			for i in range(old_x, columns):
+				for j in range(0, rows):
+					add_cell(i, j)
 
-	if columns > old_x:
-		for i in range(old_x, columns):
-			for j in range(0, rows):
-				_add_cell(i, j)
+		if rows > old_y:
+			var max_old_cols = min(old_x, columns)
+			for j in range(old_y, rows):
+				for i in range(0, max_old_cols):
+					add_cell(i, j)
 
-	if rows > old_y:
-		var max_old_cols = min(old_x, columns)
-		for j in range(old_y, rows):
-			for i in range(0, max_old_cols):
-				_add_cell(i, j)
+		if columns < old_x:
+			for i in range(columns, old_x):
+				for j in range(0, old_y):
+					remove_cell(i, j)
 
-	if columns < old_x:
-		for i in range(columns, old_x):
-			for j in range(0, old_y):
-				_remove_cell(i, j)
-
-	if rows < old_y:
-		var max_new_cols = min(columns, old_x)
-		for j in range(rows, old_y):
-			for i in range(0, max_new_cols):
-				_remove_cell(i, j)
+		if rows < old_y:
+			var max_new_cols = min(columns, old_x)
+			for j in range(rows, old_y):
+				for i in range(0, max_new_cols):
+					remove_cell(i, j)
 
 	grid_current = Vector2i(columns, rows)
 
@@ -317,3 +339,21 @@ func visualise_grid(columns: int, rows: int) -> void:
 	target_size_vec.y = rows * (unit_size.y + grid_padding) + size_add_vec.y + offset.y
 	target_size_vec.x = columns * (unit_size.x + grid_padding) + size_add_vec.x + offset.x
 	size_changed()
+
+
+func _on_h_slider_value_changed(value: float) -> void:
+	var a: int = value
+	$Label/n.text = str(a)
+	$Label/HSlider.value = value
+	kernel_size = Vector2i.ONE * a / 2
+
+
+func _on_h_slider_2_value_changed(value: float) -> void:
+	var a: int = value
+	$Label2/n.text = str(a)
+	$Label2/HSlider2.value = value
+	stride = a / 2
+
+
+func _on_y_text_submitted(new_text: String) -> void:
+	pass # Replace with function body.

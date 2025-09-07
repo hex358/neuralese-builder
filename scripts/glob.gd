@@ -33,11 +33,14 @@ func get_spline(for_connection: Connection, keyword: StringName = &"default") ->
 	splines_layer.add_child(new); new.z_index = 9
 	return new
 
+var splines_active = {}
 func activate_spline(spline: Spline):
+	splines_active[spline] = true
 	if spline.get_parent() == top_splines_layer: return
 	spline.reparent(top_splines_layer)
 
 func deactivate_spline(spline: Spline):
+	splines_active.erase(spline)
 	if spline.get_parent() == splines_layer: return
 	spline.reparent(splines_layer)
 

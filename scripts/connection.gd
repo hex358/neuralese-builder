@@ -260,7 +260,7 @@ func _process(delta: float) -> void:
 	mouse_pressed = glob.mouse_pressed
 	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	mouse_just_pressed = glob.mouse_just_pressed and not_occ
-	var unpadded = is_mouse_inside(unpadded_area)
+	var unpadded = is_mouse_inside(Vector4())
 	
 	if unpadded:
 		glob.set_menu_type(self, "detatch", low)
@@ -278,11 +278,11 @@ func _process(delta: float) -> void:
 				glob.activate_spline(outputs[nspline])
 			#elif !multiple_splines and outputs:
 				#outputs[0].tied_to.detatch_spline(outputs[0])
-		elif glob.mouse_alt_just_pressed and inside:
+		elif glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(outputs, self)
 
 	if connection_type == INPUT and inside and not occ:
-		if glob.mouse_alt_just_pressed and inside:
+		if glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(inputs, self)
 		elif mouse_just_pressed and inputs:
 			var detatch = inputs.keys()[-1]

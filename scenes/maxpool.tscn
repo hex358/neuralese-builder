@@ -1,0 +1,149 @@
+[gd_scene load_steps=7 format=3 uid="uid://ctesghfdkge1l"]
+
+[ext_resource type="Script" uid="uid://brb3n24vuk204" path="res://scripts/maxpool.gd" id="1_1np84"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_lwm0g"]
+[ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_fyq0i"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="4_pkr15"]
+[ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="5_a4o7u"]
+[ext_resource type="Script" uid="uid://kv1oxn7kpjfq" path="res://scripts/adraw.gd" id="6_bncok"]
+
+[node name="Base" type="Control" node_paths=PackedStringArray("unit")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 50.0
+script = ExtResource("1_1np84")
+group_size = 2
+grid_padding = 2.0
+offset = Vector2(-24, 8)
+size_add_vec = Vector2(47, 74.645)
+label_offset = 32.0
+max_size = Vector2(100, 0)
+outline_padding = 0.0
+kernel_size = Vector2i(1, 1)
+stride = 1
+max_displayed = 20
+layer_name = "MaxPool2D"
+unit = NodePath("unit")
+padding = 5.0
+unit_offset_y = -6.0
+target_size = 60.0
+min_size = 73.0
+size_add = 3.0
+lerp_size = false
+server_typename = &"NeuronLayer"
+area_padding = 0.0
+
+[node name="activ" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_lwm0g")]
+instance_shader_parameters/corner_radius_width_add = Vector2(3.5, 0)
+layout_mode = 0
+offset_left = 5.0
+offset_top = -72.0
+offset_right = 23.0
+offset_bottom = -53.0
+color = Color(0.297, 0.66885, 0.9, 1)
+_accepted_datatypes = "activation"
+server_name = &"activ_in"
+connection_type = 0
+area_paddings = Vector4(10, 5, 10, 5)
+multiple_splines = true
+origin_offset = Vector2(0, -6)
+dir_vector = Vector2(0, -1)
+parent_graph = NodePath("..")
+conn_count_keyword = "activ"
+gradient_color = Color(0.298039, 0.670588, 0.901961, 1)
+
+[node name="ni" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_lwm0g")]
+layout_mode = 0
+offset_left = -44.0
+offset_top = -36.0
+offset_right = -26.0
+offset_bottom = -17.0
+color = Color(0.901961, 0.694118, 0.458824, 1)
+_accepted_datatypes = "layer2d"
+hint = 1
+server_name = &"layer_in"
+connection_type = 0
+area_paddings = Vector4(10, 5, 10, 5)
+multiple_splines = true
+origin_offset = Vector2(-5, 0)
+unpadded_area = Vector4(10, 10, 0, 10)
+dir_vector = Vector2(-1, 0)
+parent_graph = NodePath("..")
+conn_count_keyword = "layer"
+gradient_color = Color(0.901961, 0.694118, 0.458824, 1)
+
+[node name="o" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_lwm0g")]
+layout_mode = 0
+offset_left = 52.0
+offset_top = -36.0
+offset_right = 70.0
+offset_bottom = -17.0
+color = Color(0.9, 0.6942, 0.459, 1)
+_accepted_datatypes = "layer2d"
+server_name = &"layer_out"
+connection_type = 1
+area_paddings = Vector4(10, 5, 10, 5)
+multiple_splines = true
+origin_offset = Vector2(9, 0)
+unpadded_area = Vector4(0, 10, 10, 10)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"layer": 32,
+&"train": 1
+})
+parent_graph = NodePath("..")
+conn_count_keyword = "layer"
+gradient_color = Color(0.901961, 0.694118, 0.458824, 1)
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = ExtResource("3_fyq0i")
+instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
+instance_shader_parameters/outline_color = Color(0.772833, 0.53, 1, 1)
+instance_shader_parameters/tuning = Color(0.255267, 0.154, 0.35, 0.596078)
+layout_mode = 0
+offset_left = -36.0
+offset_top = -64.0
+offset_right = 62.0
+offset_bottom = 9.0
+
+[node name="root" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="ColorRect/root"]
+z_index = 1
+layout_mode = 0
+offset_left = 15.0
+offset_top = 4.0
+offset_right = 208.0
+offset_bottom = 47.0
+scale = Vector2(0.374766, 0.374766)
+theme = ExtResource("4_pkr15")
+text = "MaxPool2D"
+
+[node name="unit" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -48.0
+offset_top = 23.0
+offset_right = -33.0
+offset_bottom = 38.0
+
+[node name="ColorRect5" type="ColorRect" parent="unit"]
+material = ExtResource("5_a4o7u")
+instance_shader_parameters/corner_radius_width_add = Vector2(-3.5, 1)
+instance_shader_parameters/outline_color = Color(0.92, 0.92, 0.92, 1)
+instance_shader_parameters/tuning = Color(0.6, 0.6, 0.6, 0.443137)
+layout_mode = 0
+offset_right = 19.0
+offset_bottom = 19.0
+scale = Vector2(0.820862, 0.820862)
+color = Color(0.73, 0.563073, 0.3723, 1)
+
+[node name="Control" type="Control" parent="."]
+z_index = 1
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("6_bncok")

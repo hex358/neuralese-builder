@@ -15,6 +15,11 @@ func set_valid(valid: bool):
 	is_valid = valid
 
 
+func get_value():
+	return _get_value()
+
+func _get_value():
+	return ""
 
 func _process(delta: float) -> void:
 	pass

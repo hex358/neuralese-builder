@@ -511,7 +511,7 @@ offset_bottom = 40.0
 
 [connection signal="child_button_release" from="optimizer" to="." method="_on_optimizer_child_button_release"]
 [connection signal="child_button_release" from="loss" to="." method="_on_loss_child_button_release"]
-[connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
+[connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="released" from="switch" to="." method="_on_switch_released"]
 [connection signal="released" from="train" to="." method="_on_train_released"]

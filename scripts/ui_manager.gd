@@ -40,10 +40,13 @@ func _input(event: InputEvent) -> void:
 					var rect = focused.get_global_rect()
 					if not rect.has_point(event.position):
 						focused.release_focus()
+						#if focused is ValidInput:
+						focused.focus_exited.emit()
 		elif not glob.mouse_pressed:
 			if focused is Slider:
 				#print("fj")
 				focused.release_focus()
+				focused.focus_exited.emit()
 
 var expanded_menu: SubMenu = null
 var _buttons = []

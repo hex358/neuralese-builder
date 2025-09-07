@@ -384,6 +384,7 @@ var graph_types = {
 	"reshape2d": preload("res://scenes/reshape.tscn"),
 	"flatten": preload("res://scenes/flatten.tscn"),
 	"conv2d": preload("res://scenes/conv2d.tscn"),
+	"maxpool": preload("res://scenes/maxpool.tscn")
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
@@ -412,6 +413,8 @@ func push_2d(columns: int, rows: int, target):
 	for i in target:
 		if is_layer(i, "Conv2D"):
 			i.update_grid(columns, rows)
+		if is_layer(i, "MaxPool2D"):
+			i.update_grid(columns, rows)
 		if i.server_typename == "Flatten":
 			i.set_count(rows * columns)
 
@@ -419,6 +422,8 @@ func unpush_2d(target):
 	if !glob.is_iterable(target): target = [target]
 	for i in target:
 		if is_layer(i, "Conv2D"):
+			i.update_grid(0, 0)
+		if is_layer(i, "MaxPool2D"):
 			i.update_grid(0, 0)
 
 var pos_cache: Dictionary = {}

@@ -186,13 +186,13 @@ func _ready() -> void:
 	#graphs.collider(rect)
 
 
-func is_mouse_inside() -> bool:
+func is_mouse_inside(rectangle: float = area_padding) -> bool:
 	# padded hit area
 	#if glob.is_consumed(self, "mouse"): return false
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x: return false
-	var top_left = rect.global_position - Vector2.ONE*area_padding
-	var padded_size = rect.size + Vector2(area_padding, area_padding)*2
+	var top_left = rect.global_position - Vector2.ONE*rectangle
+	var padded_size = rect.size + Vector2(rectangle, rectangle)*2
 	var bounds = Rect2(top_left, padded_size)
 	var has: bool = bounds.has_point(get_global_mouse_position())
 	if has:
@@ -342,20 +342,22 @@ func _process(delta: float) -> void:
 	if conn_active_layer:
 		if !conn_active_layer.active_outputs:
 			glob.un_occupy(conn_active_layer, "conn_active")
-		
+	
+	var unp_inside = is_mouse_inside(0)
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not glob.is_occupied(self, &"graph") and 
 		not glob.is_occupied(self, &"menu_inside") and 
 		not glob.is_occupied(self, &"conn_active") and
+		(not glob.splines_active or unp_inside) and
 		not glob.is_occupied(self, &"dropout_inside") and
 		conn_free) and not dragging:
 		graphs.drag(self)
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
-
+	
 	if dragging:
 		hold_for_frame()
-		if not glob.mouse_pressed:
+		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
 			dragging = false
 			graphs.stop_drag(self)
 		else:

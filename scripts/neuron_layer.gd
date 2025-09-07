@@ -130,5 +130,5 @@ func _config_field(field: StringName, val: Variant):
 
 func _on_line_edit_changed(new_text) -> void:
 	await get_tree().process_frame
-	update_config({"neuron_count": int(new_text)})
+	update_config({"neuron_count": int($LineEdit.get_value())})
 	#_apply_grouping()

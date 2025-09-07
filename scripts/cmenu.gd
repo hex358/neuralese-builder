@@ -21,6 +21,8 @@ func _menu_handle_release(button: BlockComponent):
 			type = graphs.graph_types.flatten
 		"conv2d":
 			type = graphs.graph_types.conv2d
+		"maxpool":
+			type = graphs.graph_types.maxpool
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()
