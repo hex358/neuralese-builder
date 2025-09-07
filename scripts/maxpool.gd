@@ -22,7 +22,8 @@ func _grid_visualised(columns: int, rows: int):
 	cr = Vector2i(columns, rows)
 
 
-
+func _just_connected(who: Connection, to: Connection):
+	graphs.push_2d(grid.x/3, grid.y/3, to.parent_graph)
 
 func _proceed_hold() -> bool:
 	return true

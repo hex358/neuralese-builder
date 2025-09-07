@@ -22,9 +22,10 @@ func _just_connected(who: Connection, to: Connection):
 	graphs.push_2d(28, 28, to.parent_graph)
 
 func _just_disconnected(who: Connection, to: Connection):
+	pass
 	if graphs._input_origin_graph == self:
 		graphs._input_origin_graph = null
-	graphs.unpush_2d(to.parent_graph)
+	#graphs.unpush_2d(to.parent_graph)
 
 func _useful_properties() -> Dictionary:
 	#print("A")

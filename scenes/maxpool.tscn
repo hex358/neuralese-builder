@@ -13,7 +13,7 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_1np84")
-group_size = 2
+group_size = 3
 grid_padding = 2.0
 offset = Vector2(-24, 8)
 size_add_vec = Vector2(47, 74.645)
@@ -142,6 +142,7 @@ scale = Vector2(0.820862, 0.820862)
 color = Color(0.73, 0.563073, 0.3723, 1)
 
 [node name="Control" type="Control" parent="."]
+modulate = Color(0.56, 0.56, 0.56, 1)
 z_index = 1
 anchors_preset = 0
 offset_right = 40.0
