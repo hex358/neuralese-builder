@@ -70,13 +70,14 @@ func _opt_selected(opt: StringName):
 
 	if opt == "sgd" or opt == "adam":
 		var idx: int = -1
-		for i in $lr._contained:
+		for i in lr._contained:
 			idx += 1
 			i.text = learning_rates[opt][idx]
-		$lr.text = $lr.button_by_hint["1"].text
+		lr.text = lr.button_by_hint["1"].text
 
+@onready var lr = $lr
 func select_lr(index: int):
-	$lr.text = learning_rates[current_optimizer][index]
+	lr.text = learning_rates[current_optimizer][index]
 
 @onready var optimizers = {"sgd": $sgd_tab, "adam": $adam_tab}
 var current_optimizer: StringName = "adam"

@@ -106,6 +106,7 @@ func end_spline(id, hide: bool = true):
 			spline = outputs[id]
 		else:
 			spline = id; id = key_by_spline[id]
+		glob.deactivate_spline(spline)
 		var node = spline.tied_to
 		if node:
 			node.detatch_spline(spline)
@@ -114,6 +115,7 @@ func end_spline(id, hide: bool = true):
 		if is_instance_valid(node):
 			node.forget_spline(spline, self)
 		outputs.erase(id)
+	glob.deactivate_spline(active_outputs[id])
 	active_outputs.erase(id)
 	graphs.conns_active.erase(self)
 	parent_graph.hold_for_frame()
@@ -340,7 +342,6 @@ func _process(delta: float) -> void:
 	for id in to_end:
 		end_spline(id)
 	for id in to_attach:
-		glob.deactivate_spline(outputs[id])
 		attach_spline(id, glob.hovered_connection)
 
 	hovered = false

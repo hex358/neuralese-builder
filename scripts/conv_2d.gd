@@ -57,8 +57,9 @@ func useful_properties() -> Dictionary:
 
 @onready var base_output_offset = $o.position - rect.size
 @onready var base_input_offset = $ni.position
-@onready var base_activ_offset = $activ.position
+@onready var base_activ_offset = $activ.position if get_node_or_null("activ") else null
 
+var unfree_mode: bool = false
 func _after_ready() -> void:
 	super()
 	await get_tree().process_frame
@@ -78,10 +79,11 @@ func _size_changed() -> void:
 		base_input_offset.x,
 		rect.size.y / 2.0 + rect.position.y - $ni.size.y / 2.0
 	)
-	$activ.position = Vector2(
-		rect.size.x / 2.0 - $activ.size.x / 2.0 + rect.position.x,
-		base_activ_offset.y
-	)
+	if get_node_or_null("activ"):
+		$activ.position = Vector2(
+			rect.size.x / 2.0 - $activ.size.x / 2.0 + rect.position.x,
+			base_activ_offset.y
+		)
 	set_extents()
 	var label = $ColorRect/root/Label
 	label.position.x = rect.size.x / 2.0 - label_offset
@@ -167,6 +169,27 @@ var target_filter2_pos: Vector2 = Vector2()
 		stride = v
 		hold_for_frame()
 
+func recompute_visible_grid() -> void:
+	var max_x = -1
+	var max_y = -1
+	
+	for key in _cells:
+		max_x = max(max_x, key.x)
+		max_y = max(max_y, key.y)
+	
+	for key in _fading_in:
+		max_x = max(max_x, key.x)
+		max_y = max(max_y, key.y)
+	
+	for key in _fading_out:
+		max_x = max(max_x, key.x)
+		max_y = max(max_y, key.y)
+	
+	if max_x >= 0 and max_y >= 0:
+		visible_grid = Vector2i(max_x + 1, max_y + 1)
+	else:
+		visible_grid = Vector2i.ZERO
+
 func _after_process(delta: float) -> void:
 	super(delta)
 	
@@ -179,6 +202,7 @@ func _after_process(delta: float) -> void:
 		$filter2.position = $filter2.position.lerp(target_filter2_pos, delta * 20.0)
 		fade_process(delta)
 
+var visible_grid: Vector2i = Vector2i()
 func fade_process(delta: float):
 	# fading in
 	for key in _fading_in.keys():
@@ -238,12 +262,14 @@ func add_cell(i: int, j: int) -> void:
 	var key = Vector2i(i, j)
 	if _cells.has(key) and not _fading_out.has(key):
 		return
-	var u = get_unit({})
-	u.modulate.a = 0.0
+	var u = get_unit({}) if not key in _cells else _cells[key]
 	if key in _cells:
 		u.modulate.a = _cells[key].modulate.a
+	else:
+		u.modulate.a = 0.0
+		
 	if key in _fading_out:
-		_cells[key].queue_free()
+		#_cells[key].queue_free()
 		_fading_out.erase(key)
 	_cells[key] = u
 	u.set_meta("coord", key)
@@ -291,11 +317,13 @@ func recompute_biggest_size_possible() -> void:
 	
 	biggest_size_possible = Vector2(max_right, max_bottom) + size_add_vec
 
+var shrinked_grid: Vector2i = Vector2i()
 func _grid_visualised(columns: int, rows: int):
 	pass
 
 
 func visualise_grid(columns: int, rows: int) -> void:
+	shrinked_grid = Vector2i(columns, rows)
 	_grid_visualised(columns, rows)
 	var old_x: int = grid_current.x
 	var old_y: int = grid_current.y
