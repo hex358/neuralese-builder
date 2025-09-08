@@ -28,21 +28,21 @@ func _draw() -> void:
 		if x % group != 0:
 			continue
 		var xpx = x * cw - 0.25
-		draw_line(Vector2(xpx, -0.75), Vector2(xpx, vis_h), c, 1.5)
+		draw_line(Vector2(xpx, -1), Vector2(xpx, vis_h), c, 1.5)
 	# trailing vertical edge at the animated boundary
 	if vis_w > 0.0 and int(floor(vis_w / cw)) <= max_displayed:
 		var xedge = vis_w - 0.25
-		draw_line(Vector2(xedge, -0.75), Vector2(xedge, vis_h), c, 1.5)
+		draw_line(Vector2(xedge, -1), Vector2(xedge, vis_h), c, 1.5)
 	
 	for y in range(0, rows + 1):
 		if y % group != 0:
 			continue
 		var ypx = y * ch - 0.25
-		draw_line(Vector2(-0.75, ypx), Vector2(vis_w, ypx), c, 1.5)
+		draw_line(Vector2(-1, ypx), Vector2(vis_w, ypx), c, 1.5)
 	# trailing horizontal edge
 	if vis_h > 0.0 and int(floor(vis_h / ch)) <= max_displayed:
 		var yedge = vis_h - 0.25
-		draw_line(Vector2(-0.75, yedge), Vector2(vis_w, yedge), c, 1.5)
+		draw_line(Vector2(-1, yedge), Vector2(vis_w, yedge), c, 1.5)
 
 func _process(delta: float) -> void:
 	queue_redraw()

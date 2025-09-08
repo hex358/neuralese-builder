@@ -19,15 +19,15 @@ func _grid_visualised(columns: int, rows: int):
 	repush(columns, rows)
 	
 func repush(columns: int, rows: int):
-	recompute_visible_grid()
+	#recompute_visible_grid()
 	if columns != -1:
 		$Control.target_grid = shrinked_grid
-	columns = visible_grid.x
-	rows = visible_grid.y
+	#columns = grid_current.x
+	#rows = grid_current.y
 	$Control.position = offset
 	$Control.grid_padding = grid_padding
 	$Control.group = group
-	$Control.grid = visible_grid
+	$Control.grid = Vector2i(columns, rows)
 	$Control._unit = _unit
 	#$Control.queue_redraw()
 	cr = Vector2i(columns, rows)
@@ -42,7 +42,7 @@ func repush(columns: int, rows: int):
 		grid.y = old_grid.y
 		
 func _just_connected(who: Connection, to: Connection):
-	graphs.push_2d(grid.x/3, grid.y/3, to.parent_graph)
+	graphs.push_2d(grid.x/group, grid.y/group, to.parent_graph)
 
 func _proceed_hold() -> bool:
 	return true
@@ -68,3 +68,27 @@ func _cell_added(x: int, y: int):
 		_fading_in[Vector2i(x,y)] = 1.0
 	else:
 		_fading_in[Vector2i(x,y)] = 0.3
+
+func _config_field(field: StringName, val: Variant):
+	match field:
+		"group":
+			#$Label/n.text = str(int(val))
+			group = int(val)
+			hold_for_frame()
+			#print(int(grid.x/group*1.5))
+			graphs.push_2d(int(1+grid.x/group), int(1+grid.y/group), get_first_descendants())
+
+func _can_drag() -> bool:
+	return not ui.is_focus($YY)
+
+
+func _on_yy_submitted(new_text: String) -> void:
+
+	update_config({"group": int($YY.get_value())})
+
+
+func _on_yy_changed() -> void:
+	var val = int($YY.get_value())
+	if not $YY.is_valid_input():
+		return
+	update_config({"group": val})

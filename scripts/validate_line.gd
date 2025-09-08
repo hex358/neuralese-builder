@@ -70,7 +70,7 @@ func set_line(input: String, emit: bool = false):
 	_text_changed()
 	_resize_label()
 	if emit:
-		changed.emit(text)
+		changed.emit()
 
 @onready var _font = get_theme_font("font")
 

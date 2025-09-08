@@ -38,7 +38,7 @@ func _input(event: InputEvent) -> void:
 			if event.button_index in mouse_buttons:
 				if focused and (focused is LineEdit or focused is Slider):
 					var rect = focused.get_global_rect()
-					if not rect.has_point(event.position):
+					if not rect.has_point(get_global_mouse_position()):
 						focused.release_focus()
 						#if focused is ValidInput:
 						focused.focus_exited.emit()

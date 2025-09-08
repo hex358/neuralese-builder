@@ -14,10 +14,10 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_l5edn")
-group_size = 3
+group_size = 2
 grid_padding = 2.0
 offset = Vector2(-24, 8)
-size_add_vec = Vector2(47.6, 74.645)
+size_add_vec = Vector2(47, 74.645)
 max_size = Vector2(100, 0)
 outline_padding = 0.0
 kernel_size = Vector2i(1, 1)
@@ -194,7 +194,6 @@ focus_mode = 1
 mouse_force_pass_scroll_events = false
 min_value = 1.0
 max_value = 11.0
-step = 2.0
 value = 1.0
 
 [node name="n" type="Label" parent="Label"]
@@ -245,6 +244,7 @@ theme = ExtResource("6_51xl4")
 text = "1"
 
 [node name="Y" parent="." instance=ExtResource("6_aplfx")]
+layout_mode = 0
 offset_left = 15.0
 offset_top = -11.0
 offset_right = 95.0
@@ -264,6 +264,7 @@ change_always_accepted = false
 
 [node name="Label3" type="Label" parent="."]
 self_modulate = Color(0.811765, 0.811765, 0.811765, 1)
+layout_mode = 0
 offset_left = -28.0
 offset_top = -11.0
 offset_right = 88.0

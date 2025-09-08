@@ -109,7 +109,7 @@ func set_extents():
 func get_unit(_kw: Dictionary) -> Control:
 	var u: Control = _pool.pop_back() if _pool.size() > 0 else _unit.duplicate()
 	u.visible = true
-	u.modulate.a = 0.0
+	u.modulate.a = 1.0
 	if u.get_parent() == null:
 		add_child(u)
 	return u
@@ -137,12 +137,14 @@ func recompute_filter():
 
 func get_filter_cells(origin: Vector2i, kernel_size: Vector2i):
 	var first_cell = _cells.get(origin)
+	recompute_visible_grid()
 	var kernel_end: Vector2i = origin+kernel_size
 	if (grid.x-1)/group_size < kernel_end.x: 
 		kernel_end.x = (grid.x-1)/group_size
 	if (grid.y-1)/group_size < kernel_end.y: 
 		kernel_end.y = (grid.y-1)/group_size
-	if first_cell and not _fading_in.has(origin) and kernel_end in _cells and not _fading_in.has(kernel_end):
+	if first_cell and not _fading_in.has(origin) and kernel_end in _cells and \
+	(kernel_end.x < visible_grid.x):
 		return [first_cell, _cells[kernel_end]]
 	return []
 
@@ -208,11 +210,12 @@ func fade_process(delta: float):
 	for key in _fading_in.keys():
 		var u: Control = _cells.get(key)
 		if not u: continue
-		if rect.size.x > biggest_size_possible.x - grid_padding \
-		and rect.size.y > biggest_size_possible.y - grid_padding:
+		var rect_end = u.get_global_rect().size + u.global_position
+		if rect.get_global_rect().has_point(rect_end):
 			pass
 		else:
-			u.modulate.a = 0.0; u.hide(); continue
+			u.hide(); u.modulate.a = 0; continue
+			#continue
 		var m = u.modulate
 		u.show()
 		hold_for_frame()
@@ -225,8 +228,13 @@ func fade_process(delta: float):
 	for key in _fading_out.keys():
 		var u: Control = _cells.get(key)
 		if not u: continue
-		u.modulate.a = lerp(u.modulate.a, 0.0, delta * 15.0)
-		_fading_out[key] = lerp(_fading_out[key], 0.0, delta * 15)
+		var rect_end = u.get_global_rect().size + u.global_position
+		if !rect.get_global_rect().has_point(rect_end):
+			u.modulate.a = 0.0
+			_fading_out[key] = 0.0
+		else:
+			u.modulate.a = lerp(u.modulate.a, 0.0, delta * 15.0)
+			_fading_out[key] = lerp(_fading_out[key], 0.0, delta * 15)
 		hold_for_frame()
 		if _fading_out[key] <= 0.07:
 			_fading_out.erase(key)
@@ -260,20 +268,24 @@ func set_grid(x: int, y: int) -> void:
 
 func add_cell(i: int, j: int) -> void:
 	var key = Vector2i(i, j)
+	var u: Control
 	if _cells.has(key) and not _fading_out.has(key):
 		return
-	var u = get_unit({}) if not key in _cells else _cells[key]
-	if key in _cells:
-		u.modulate.a = _cells[key].modulate.a
-	else:
-		u.modulate.a = 0.0
-		
-	if key in _fading_out:
-		#_cells[key].queue_free()
+	if _fading_out.has(key):
 		_fading_out.erase(key)
-	_cells[key] = u
+
+	if not _cells.has(key):
+		u = get_unit({})
+		u.modulate.a = 0.0
+		_cells[key] = u
+	else:
+		u = _cells[key]
+
 	u.set_meta("coord", key)
-	_fading_in[key] = 1.0
+
+	if not _fading_in.has(key):
+		_fading_in[key] = 1.0
+
 	_cell_added(i, j)
 
 func _cell_added(i: int, j: int):
@@ -295,27 +307,28 @@ func recompute_biggest_size_possible() -> void:
 		biggest_size_possible = Vector2.ZERO
 		return
 
-	var unit_size = _unit.size
-	var max_right = 0.0
-	var max_bottom = 0.0
+	#var unit_size = _unit.size
+	#var max_right = 0.0
+	#var max_bottom = 0.0
+#
+	#for key in _cells.keys():
+		#var u: Control = _cells.get(key)
+		#if not u or key in _fading_out: continue
+		#var r = u.position.x + unit_size.x + grid_padding
+		#var b = u.position.y + unit_size.y + grid_padding
+		#if r > max_right: max_right = r
+		#if b > max_bottom: max_bottom = b
 
-	for key in _cells.keys():
-		var u: Control = _cells.get(key)
-		if not u: continue
-		var r = u.position.x + unit_size.x + grid_padding
-		var b = u.position.y + unit_size.y + grid_padding
-		if r > max_right: max_right = r
-		if b > max_bottom: max_bottom = b
-
-	for key in _fading_out.keys():
-		var u: Control = _cells.get(key)
-		if not u: continue
-		var r = u.position.x + unit_size.x + grid_padding
-		var b = u.position.y + unit_size.y + grid_padding
-		if r > max_right: max_right = r
-		if b > max_bottom: max_bottom = b
+	#for key in _fading_out.keys():
+		#var u: Control = _cells.get(key)
+		#if not u: continue
+		#var r = u.position.x + unit_size.x + grid_padding
+		#var b = u.position.y + unit_size.y + grid_padding
+		#if r > max_right: max_right = r
+		#if b > max_bottom: max_bottom = b
 	
-	biggest_size_possible = Vector2(max_right, max_bottom) + size_add_vec
+	if not grid_current-Vector2i.ONE in _cells: return
+	biggest_size_possible = _cells[grid_current-Vector2i.ONE].position + _unit.size + size_add_vec
 
 var shrinked_grid: Vector2i = Vector2i()
 func _grid_visualised(columns: int, rows: int):
@@ -331,6 +344,7 @@ func visualise_grid(columns: int, rows: int) -> void:
 		for cell in _cells:
 			remove_cell(cell.x, cell.y)
 	else:
+
 		if columns > old_x:
 			for i in range(old_x, columns):
 				for j in range(0, rows):
@@ -373,14 +387,14 @@ func _on_h_slider_value_changed(value: float) -> void:
 	var a: int = value
 	$Label/n.text = str(a)
 	$Label/HSlider.value = value
-	kernel_size = Vector2i.ONE * a / 2
+	kernel_size = Vector2i.ONE * a - Vector2i.ONE
 
 
 func _on_h_slider_2_value_changed(value: float) -> void:
 	var a: int = value
 	$Label2/n.text = str(a)
 	$Label2/HSlider2.value = value
-	stride = a / 2
+	stride = a
 
 
 func _on_y_text_submitted(new_text: String) -> void:

@@ -361,8 +361,8 @@ var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
 var top_splines_layer: CanvasLayer
 
-func is_vec_approx(a: Vector2, b: Vector2) -> bool:
-	return a.distance_squared_to(b) < 0.001 
+func is_vec_approx(a: Vector2, b: Vector2, eps: float = 0.01) -> bool:
+	return abs(a.x-b.x) < eps and abs(a.y-b.y) < eps
 
 func inst_uniform(who: CanvasItem, uniform: StringName, val):
 	RenderingServer.canvas_item_set_instance_shader_parameter(who.get_canvas_item(), uniform, val)
