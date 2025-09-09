@@ -7,6 +7,22 @@ func _after_ready():
 	super()
 	rng.seed = randi()
 
+func _useful_properties() -> Dictionary:
+	var conf = get_config_dict()
+	conf["activation"] = "none"
+	conf["type"] = layer_name
+	if 0 in input_keys:
+		var ik = input_keys[0]
+		if ik and ik.inputs and ik.inputs.size() > 0:
+			var first_key = ik.inputs.keys()[0]
+			if first_key and first_key.origin and first_key.origin.parent_graph:
+				conf["activation"] = first_key.origin.parent_graph.selected_activation
+
+	return {
+		"config": conf,
+		"cache_tag": str(graph_id)
+	}
+
 
 func _after_process(delta: float):
 	super(delta)
@@ -81,6 +97,10 @@ func _config_field(field: StringName, val: Variant):
 func _can_drag() -> bool:
 	return not ui.is_focus($YY)
 
+func update_grid(x: int, y: int):
+	grid.x = x
+	grid.y = y
+	graphs.push_2d(int(1+grid.x/group), int(1+grid.y/group), get_first_descendants())
 
 func _on_yy_submitted(new_text: String) -> void:
 

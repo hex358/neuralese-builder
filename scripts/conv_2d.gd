@@ -41,8 +41,10 @@ var _cells: Dictionary = {}
 var biggest_size_possible: Vector2 = Vector2()
 @onready var target_size_vec: Vector2 = rect.size
 
-func useful_properties() -> Dictionary:
-	var conf = {"activation": "none"}
+func _useful_properties() -> Dictionary:
+	var conf = get_config_dict()
+	conf["activation"] = "none"
+	conf["type"] = layer_name
 	if 0 in input_keys:
 		var ik = input_keys[0]
 		if ik and ik.inputs and ik.inputs.size() > 0:
@@ -68,6 +70,7 @@ func _after_ready() -> void:
 	if layer_name == "Conv2D":
 		$filter.size = Vector2()
 		$filter2.size = Vector2()
+	update_config(base_config.duplicate())
 
 @export var label_offset: float = 25.0
 func _size_changed() -> void:
@@ -387,6 +390,7 @@ func _on_h_slider_value_changed(value: float) -> void:
 	var a: int = value
 	update_config({"window": a})
 
+
 func _config_field(field: StringName, val: Variant):
 	match field:
 		"window":
@@ -398,7 +402,8 @@ func _config_field(field: StringName, val: Variant):
 			$Label2/HSlider2.value = float(val)
 			stride = int(val)
 		"filters":
-			$Y.text = str(val)
+			if not (val == $Y.min_value and $Y.text == ""):
+				$Y.text = str(val)
 			filter_number = int(val)
 
 var filter_number: int = 1

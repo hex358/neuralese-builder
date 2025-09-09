@@ -56,6 +56,9 @@ func update_config(update: Dictionary):
 	for field in update:
 		_config_field(field, update[field])
 
+func get_config_dict() -> Dictionary:
+	return cfg.duplicate()
+
 func _config_field(field: StringName, value: Variant):
 	pass
 
