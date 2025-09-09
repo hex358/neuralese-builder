@@ -14,13 +14,13 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("2_l5edn")
-group_size = 2
+group_size = 3
 grid_padding = 2.0
 offset = Vector2(-24, 8)
 size_add_vec = Vector2(47, 74.645)
 max_size = Vector2(100, 0)
 outline_padding = 0.0
-kernel_size = Vector2i(1, 1)
+kernel_size = Vector2i(2, 2)
 stride = 1
 max_displayed = 20
 layer_name = "Conv2D"
@@ -34,7 +34,9 @@ lerp_size = false
 server_typename = &"NeuronLayer"
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
-&"neuron_count": 0
+&"filters": 2,
+&"stride": 1,
+&"window": 2
 })
 
 [node name="activ" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_aplfx")]

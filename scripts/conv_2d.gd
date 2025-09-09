@@ -385,16 +385,29 @@ func visualise_grid(columns: int, rows: int) -> void:
 
 func _on_h_slider_value_changed(value: float) -> void:
 	var a: int = value
-	$Label/n.text = str(a)
-	$Label/HSlider.value = value
-	kernel_size = Vector2i.ONE * a - Vector2i.ONE
+	update_config({"window": a})
 
+func _config_field(field: StringName, val: Variant):
+	match field:
+		"window":
+			$Label/n.text = str(val)
+			$Label/HSlider.value = float(val)
+			kernel_size = Vector2i.ONE * int(val) - Vector2i.ONE
+		"stride":
+			$Label2/n.text = str(val)
+			$Label2/HSlider2.value = float(val)
+			stride = int(val)
+		"filters":
+			$Y.text = str(val)
+			filter_number = int(val)
 
+var filter_number: int = 1
 func _on_h_slider_2_value_changed(value: float) -> void:
 	var a: int = value
-	$Label2/n.text = str(a)
-	$Label2/HSlider2.value = value
-	stride = a
+	update_config({"stride": a})
+	#$Label2/n.text = str(a)
+	#$Label2/HSlider2.value = value
+	#stride = a
 
 
 func _on_y_text_submitted(new_text: String) -> void:

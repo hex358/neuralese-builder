@@ -42,7 +42,7 @@ func repush(columns: int, rows: int):
 		grid.y = old_grid.y
 		
 func _just_connected(who: Connection, to: Connection):
-	graphs.push_2d(grid.x/group, grid.y/group, to.parent_graph)
+	graphs.push_2d(int(1+grid.x/group), int(1+grid.y/group), get_first_descendants())
 
 func _proceed_hold() -> bool:
 	return true

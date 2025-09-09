@@ -128,7 +128,8 @@ func _config_field(field: StringName, val: Variant):
 			hold_for_frame()
 			
 
-func _on_line_edit_changed(new_text) -> void:
+func _on_line_edit_changed() -> void:
 	await get_tree().process_frame
+	print("fkfk")
 	update_config({"neuron_count": int($LineEdit.get_value())})
 	#_apply_grouping()
