@@ -152,7 +152,8 @@ func get_filter_cells(origin: Vector2i, kernel_size: Vector2i):
 	return []
 
 func _can_drag() -> bool:
-	return not ui.is_focus($Label/HSlider) and not ui.is_focus($Label2/HSlider2)
+	return not ui.is_focus($Label/HSlider) and not ui.is_focus($Label2/HSlider2) \
+	 and not ui.is_focus($Y)
 
 var prev_kernel: Vector2i = kernel_size
 func _proceed_hold() -> bool:
@@ -416,4 +417,4 @@ func _on_h_slider_2_value_changed(value: float) -> void:
 
 
 func _on_y_text_submitted(new_text: String) -> void:
-	pass # Replace with function body.
+	update_config({"filters": int(new_text)})

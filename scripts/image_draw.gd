@@ -115,6 +115,8 @@ func _draw_segment(prev_img: Vector2, curr_img: Vector2, dt: float) -> void:
 		_accumulate_circle_at(p, dt_per_step)
 
 func _process(delta: float) -> void:
+	if graphs.dragged: return
+	
 	var local = get_local_mouse_position()
 	var img_pos = _local_to_img_coords(local)
 

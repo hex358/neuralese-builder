@@ -15,6 +15,7 @@ func _exit_tree() -> void:
 
 func _after_ready():
 	super()
+	graphs._training_head = self
 	for k in optimizers:
 		var n: CanvasItem = optimizers[k]
 		_set_alpha(n, 0.0)
@@ -41,7 +42,7 @@ func _after_process(delta: float):
 	$ColorRect.size = sz
 
 	$ColorRect2/time_passed.text = str(glob.cap($ColorRect2.get_time(), 1)) + "s"
-	$ColorRect2/acc.text = str(glob.cap($ColorRect2.get_last_value(), 1)) + "%"
+	$ColorRect2/acc.text = str(glob.cap($ColorRect2.get_last_value()*100, 1)) + "%"
 
 @onready var train_button = $train
 var learning_rates = {"adam": ["1e-2", "1e-3", "1e-4"], "sgd": ["1e-1","1e-2","1e-3"]}
@@ -90,6 +91,10 @@ func _on_optimizer_child_button_release(button: BlockComponent) -> void:
 
 func _on_loss_child_button_release(button: BlockComponent) -> void:
 	pass
+
+func push_acceptance(acc: float, time: float):
+	print(acc)
+	$ColorRect2.push_input(time, acc, $ColorRect2._window_end)
 
 func _on_lr_child_button_release(button: BlockComponent) -> void:
 	select_lr(int(button.hint))

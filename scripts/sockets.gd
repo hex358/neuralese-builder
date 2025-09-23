@@ -1,6 +1,7 @@
 extends Node
 
 var _conns: Dictionary = {}	# { SocketConnection: true }
+const connection_prefix: String = "ws://localhost:8000/"
 
 func _process(_dt: float) -> void:
 	var to_del: Array = []
@@ -17,7 +18,7 @@ func _process(_dt: float) -> void:
 		_conns.erase(c)
 
 func connect_to(url: String, on_packet: Callable = Callable()) -> SocketConnection:
-	var c = SocketConnection.new(url)
+	var c = SocketConnection.new(connection_prefix+ url)
 	_conns[c] = true
 	if on_packet.is_valid():
 		c.packet.connect(on_packet)

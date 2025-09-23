@@ -275,12 +275,38 @@ func set_info(name: String, value: Variant):
 
 @onready var prev_size_: Vector2 = rect.size
 var inside: bool = false
+
+var take_offset_y: float = 0.0
+var shadow: GraphShadow = null
+func drag_start():
+	if shadow:
+		put_back()
+	putting_back = 0.0
+	take_offset_y = 0.0
+	graphs.drag(self)
+	shadow = graphs.shadow_rect.instantiate()
+	add_child(shadow)
+	shadow.position = rect.position + Vector2(0,14)
+	shadow.outline = true
+	shadow.extents = rect.size
+	shadow.modulate.a = 0.0
+	move_child(shadow, 0)
+
+func drag_ended():
+	putting_back_anchor = global_position.y
+	if shadow:
+		putting_back = 1.0
+		hold_for_frame()
+	graphs.stop_drag(self)
+	#shadow_rect
+
+
 func _stopped_processing():
 	if glob.hovered_connection in input_key_by_conn:
 		glob.hovered_connection = null
 	glob.reset_menu_type(self, &"edit_graph")
 	glob.un_occupy(self, &"graph")
-	graphs.stop_drag(self)
+	drag_ended()
 	if glob._menu_type_occupator in output_key_by_conn:
 		glob.reset_menu_type(glob._menu_type_occupator, "detatch")
 	if glob.is_occupied(self, "conn_active"):
@@ -315,8 +341,18 @@ func _dragged():
 func _proceed_hold() -> bool:
 	return false
 
+var exist_ticks: int = 0
+var putting_back: float = 0.0
+var putting_back_anchor: float = 0.0
+func put_back():
+	if is_instance_valid(shadow):
+		shadow.queue_free()
+	putting_back = 0.0; global_position.y = putting_back_anchor - take_offset_y
+
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
+	exist_ticks += 1
 	if position != prev_graph_pos:
 		reposition_conns()
 	
@@ -345,6 +381,16 @@ func _process(delta: float) -> void:
 	if conn_active_layer:
 		if !conn_active_layer.active_outputs:
 			glob.un_occupy(conn_active_layer, "conn_active")
+	if putting_back > 0.1: 
+		hold_for_frame()
+		putting_back = lerp(putting_back, 0.0, delta * 15.0)
+		shadow.modulate.a = putting_back
+		reposition_splines()
+		if putting_back < 0.1: 
+			put_back()
+			reposition_splines()
+		else:
+			global_position.y = lerp(putting_back_anchor - take_offset_y, putting_back_anchor, putting_back)
 	
 	var unp_inside = is_mouse_inside(0)
 	if inside and glob.mouse_just_pressed and _can_drag() and (
@@ -355,19 +401,21 @@ func _process(delta: float) -> void:
 		(not glob.splines_active or unp_inside) and
 		not glob.is_occupied(self, &"dropout_inside") and
 		conn_free) and not dragging:
-		graphs.drag(self)
+		drag_start()
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 	
 	if dragging:
 		hold_for_frame()
 		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
 			dragging = false
-			graphs.stop_drag(self)
+			drag_ended()
 		else:
-			var vec = get_global_mouse_position() + attachement_position - global_position
+			var vec = get_global_mouse_position() + attachement_position + Vector2(0, take_offset_y)
+			take_offset_y = lerpf(take_offset_y, -5.0, delta*15.0)
+			shadow.modulate.a = take_offset_y/ -5
 			#graphs.mark_rect(self)
 			#vec = graphs.can_move(self, vec)
-			global_position += vec
+			global_position = global_position.lerp(vec, delta*40.0)
 			#graphs.collider(rect)
 		reposition_splines()
 		_dragged()

@@ -90,7 +90,7 @@ layout_mode = 0
 offset_left = -36.0
 offset_top = -64.0
 offset_right = 62.0
-offset_bottom = 9.0
+offset_bottom = -3.0
 
 [node name="root" type="Control" parent="ColorRect"]
 anchors_preset = 0
@@ -109,7 +109,6 @@ theme = ExtResource("4_pkr15")
 text = "MaxPool2D"
 
 [node name="unit" type="Control" parent="."]
-layout_mode = 3
 anchors_preset = 0
 offset_left = -48.0
 offset_top = 23.0
@@ -133,11 +132,14 @@ z_index = 1
 material = ExtResource("6_1np84")
 instance_shader_parameters/extents = Vector4(0, 0, -100, -100)
 anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 1.0
+offset_top = -4.0
+offset_right = 41.0
+offset_bottom = 36.0
 script = ExtResource("6_bncok")
 
 [node name="YY" parent="." instance=ExtResource("6_jq4kv")]
+layout_mode = 0
 offset_left = 6.0
 offset_top = -42.0
 offset_right = 75.0
@@ -157,6 +159,7 @@ change_always_accepted = false
 
 [node name="Label" type="Label" parent="."]
 self_modulate = Color(0.811765, 0.811765, 0.811765, 1)
+layout_mode = 0
 offset_left = -27.0
 offset_top = -41.0
 offset_right = 89.0

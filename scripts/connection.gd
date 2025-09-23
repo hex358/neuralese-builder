@@ -56,9 +56,10 @@ func delete():
 			outputs[i].tied_to.detatch_spline(outputs[i])
 			end_spline(i)
 
-func is_mouse_inside(padding:Vector4=area_paddings) -> bool:
+func is_mouse_inside(padding:Vector4=area_paddings*1.5) -> bool:
 	# padded hit area
 	#if glob.is_consumed(self, "conn_mouse_inside"): return false
+
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x: return false
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale

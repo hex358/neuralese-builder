@@ -104,4 +104,4 @@ func _process(delta: float) -> void:
 		drag_move_vec = drag_move_vec.lerp(Vector2(), delta * 10.0)
 	target_position += drag_move_vec
 	target_position += zoom_move_vec * move_intensity
-	position = position.lerp(target_position, 30.0*delta)
+	position = position.lerp(target_position, 20.0*delta)

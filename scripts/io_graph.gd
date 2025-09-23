@@ -118,14 +118,21 @@ func _after_process(delta: float):
 		if add_q.empty(): break
 		var popped = add_q.pop()
 		popped.call()
-
-	if bottom_attached:
-		input.position.y = lerpf(input.position.y, target_y, delta*20.0)
-	if lerp_size:
-		var prev_size = rect.size
-		rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
-		if !glob.is_vec_approx(prev_size, rect.size):
+	
+	if exist_ticks < 5:
+		if bottom_attached:
+			input.position.y = target_y
+		if lerp_size:
+			rect.size.y = max(min_size, target_size + size_add)
 			size_changed()
+	else:
+		if bottom_attached:
+			input.position.y = lerpf(input.position.y, target_y, delta*20.0)
+		if lerp_size:
+			var prev_size = rect.size
+			rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
+			if !glob.is_vec_approx(prev_size, rect.size):
+				size_changed()
 
 	var to_del = []
 	for appearer in appear_units:

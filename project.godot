@@ -12,7 +12,7 @@ config_version=5
 
 config/name="nnets"
 run/main_scene="uid://dbgi78pifb8xh"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://game_assets/icons/icon.svg"
 
 [autoload]
@@ -22,6 +22,10 @@ ui="*res://scripts/ui_manager.gd"
 graphs="*res://scripts/graph_manager.gd"
 web="*res://scripts/web.gd"
 sockets="*res://scripts/sockets.gd"
+
+[display]
+
+window/vsync/vsync_mode=2
 
 [gui]
 

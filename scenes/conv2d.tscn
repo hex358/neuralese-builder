@@ -128,7 +128,6 @@ theme = ExtResource("6_51xl4")
 text = "Conv2D"
 
 [node name="unit" type="Control" parent="."]
-layout_mode = 3
 anchors_preset = 0
 offset_left = -48.0
 offset_top = 23.0

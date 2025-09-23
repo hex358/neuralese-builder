@@ -51,6 +51,7 @@ func drag(graph: Graph) -> void:
 	graph.z_index = carry
 	storage.move_child(graph, -1)
 
+var shadow_rect = preload("res://scenes/graph_shadow.tscn")
 
 func stop_drag(graph: Graph) -> void:
 	dragged.erase(graph)
@@ -202,6 +203,7 @@ func add(graph: Graph):
 func remove(graph: Graph):
 	_graphs.erase(graph.graph_id)
 	_graphs_ids.erase(graph.graph_id)
+	stop_drag(graph)
 
 func attach_edge(from_conn: Connection, to_conn: Connection):
 	pass
@@ -212,14 +214,11 @@ func remove_edge(from_conn: Connection, to_conn: Connection):
 func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
 	return true
 
-func compress_dict_gzip(dict: Dictionary):
-	var jsonified = JSON.new().stringify(dict)
-	var bytes = jsonified.to_ascii_buffer()
-	return bytes.compress(FileAccess.CompressionMode.COMPRESSION_GZIP)
-
 func save():
-	var compressed = compress_dict_gzip(get_deltas())
+	pass
+	#var compressed = compress_dict_gzip(get_deltas())
 
+var _training_head: Graph = null
 var _train_origin_graph: Graph = null
 var _input_origin_graph: Graph = null
 
@@ -366,10 +365,12 @@ func get_syntax_tree(input) -> Dictionary:
 		"train": 1
 	}
 
-func run_request():
-	save()
-	var syntax_tree = get_syntax_tree(_input_origin_graph)
-	await web.POST("train", compress_dict_gzip({"train": 0, "session": "neriqward", "graph": syntax_tree}), true)
+#func run_request():
+	#save()
+	#var syntax_tree = get_syntax_tree(_input_origin_graph)
+	#await web.POST("train", compress_dict_gzip({"train": 0, 
+	#"session": "neriqward", 
+	#"graph": syntax_tree}), true)
 
 
 var graph_types = {
@@ -430,9 +431,6 @@ var pos_cache: Dictionary = {}
 func _process(delta: float) -> void:
 	var vp = Rect2(Vector2.ZERO, glob.window_size)
 	var dc = 0
-	if Input.is_action_just_pressed("ui_accept"):
-		#update_dependencies()
-		run_request()
 
 	for graph: Graph in storage.get_children():
 		var r = graph.rect

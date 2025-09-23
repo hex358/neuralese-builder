@@ -40,17 +40,13 @@ shader_parameter/use_bg = true
 
 [sub_resource type="Resource" id="Resource_thedb"]
 script = ExtResource("10_5i506")
-as_mult = false
 hover_color = Color(0.68, 1, 0.834667, 1)
 hover_mult = 1.4
 _hover_scale = 1.037
 press_color = Color(0.9, 0.9, 0.9, 1)
 _press_scale = 0.97
-press_mult = 1.0
-animation_scale = 0.0
 animation_speed = 1.951
 animation_decay = 4.564
-animation_duration = 1.0
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="fg" type="CanvasLayer"]
@@ -59,7 +55,7 @@ layer = 128
 [node name="ColorRect" type="ColorRect" parent="." node_paths=PackedStringArray("menus")]
 material = ExtResource("1_s7ao5")
 instance_shader_parameters/outline_color = Color(0.47, 0.47, 0.47, 0.521569)
-instance_shader_parameters/tuning = Color(0.44, 0.44, 0.44, 0.756863)
+instance_shader_parameters/tuning = Color(0.3, 0.3, 0.3, 0.64705884)
 offset_left = -1.0
 offset_top = -3.0
 offset_right = 1155.0
@@ -71,7 +67,7 @@ menus = {
 
 [node name="TextureRect" type="TextureRect" parent="ColorRect"]
 modulate = Color(0.4088, 0.53728, 0.73, 1)
-self_modulate = Color(1, 1, 1, 0.403922)
+self_modulate = Color(1, 1, 1, 0.2627451)
 layout_mode = 0
 offset_left = 2.0
 offset_top = -8.0

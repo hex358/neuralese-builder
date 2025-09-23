@@ -357,6 +357,12 @@ func _process(delta: float) -> void:
 
 	input_poll()
 
+func compress_dict_gzip(dict: Dictionary):
+	var jsonified = JSON.new().stringify(dict)
+	var bytes = jsonified.to_ascii_buffer()
+	return bytes.compress(FileAccess.CompressionMode.COMPRESSION_GZIP)
+
+
 var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
 var top_splines_layer: CanvasLayer
