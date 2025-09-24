@@ -12,10 +12,10 @@ is_input = true
 
 [node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
-offset_left = 66.0
-offset_top = 38.0
-offset_right = 82.0
-offset_bottom = 59.0
+offset_left = 42.0
+offset_top = 29.0
+offset_right = 58.0
+offset_bottom = 50.0
 color = Color(1, 0.988235, 0.6, 1)
 _accepted_datatypes = "layer2d"
 server_name = &"input_out"
@@ -34,8 +34,8 @@ instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_top = -35.0
-offset_right = 73.0
-offset_bottom = 142.0
+offset_right = 48.0
+offset_bottom = 114.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 offset_left = 8.0
@@ -49,11 +49,11 @@ text = "Input"
 [node name="TextureRect" type="TextureRect" parent="." index="2"]
 texture_filter = 1
 layout_mode = 0
-offset_left = -77.0
-offset_top = -4.0
-offset_right = -36.21437
-offset_bottom = 35.628593
-scale = Vector2(3.4571, 3.4571)
+offset_left = -76.0
+offset_top = -5.0
+offset_right = -38.055813
+offset_bottom = 31.867764
+scale = Vector2(2.9293885, 2.9293885)
 stretch_mode = 2
 script = ExtResource("3_53i8k")
 brush_radius = 2

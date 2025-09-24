@@ -214,6 +214,9 @@ func remove_edge(from_conn: Connection, to_conn: Connection):
 func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
 	return true
 
+func train(train_input: Graph):
+	pass
+
 func save():
 	pass
 	#var compressed = compress_dict_gzip(get_deltas())

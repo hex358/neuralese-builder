@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cl5yhw1xp0afw"]
+[gd_scene load_steps=12 format=3 uid="uid://cl5yhw1xp0afw"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_h6r10"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_41i7g"]
@@ -31,20 +31,6 @@ press_color = Color(0.72, 0.72, 0.72, 1)
 _press_scale = 0.96
 animation_speed = 1.951
 animation_decay = 4.564
-metadata/_custom_type_script = "uid://dx40hpbce8w60"
-
-[sub_resource type="Resource" id="Resource_s3o4y"]
-script = ExtResource("5_10eqb")
-as_mult = true
-hover_color = Color(1.1, 1.1, 1.1, 1)
-hover_mult = 1.3
-_hover_scale = 1.05
-press_color = Color(0.72, 0.72, 0.72, 1)
-_press_scale = 0.98
-animation_scale = 19.697
-animation_speed = 3.473
-animation_decay = 6.0
-animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Base" instance=ExtResource("1_h6r10")]
@@ -401,7 +387,6 @@ offset_left = 49.0
 offset_top = -15.0
 offset_right = 162.0
 offset_bottom = 54.0
-alive = true
 tweener = true
 origin_y = 63.0
 y_mult = 47.0
@@ -430,34 +415,7 @@ scale = Vector2(0.2, 0.2)
 theme = ExtResource("8_10eqb")
 text = "0.0s"
 
-[node name="train" parent="." index="8" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
-instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
-instance_shader_parameters/extents = Vector2(0, 0)
-layout_mode = 0
-offset_left = 75.0
-offset_top = 54.0
-offset_right = 137.0
-offset_bottom = 79.0
-scale = Vector2(0.733764, 0.733764)
-pivot_offset = Vector2(31, 12.5)
-mouse_filter = 1
-color = Color(0.6045, 0.93, 0.631625, 1)
-button_type = 1
-top = true
-base_scale_x = 0.45
-resize_after = 6
-text = "Train!"
-base_size = Vector2(62, 25)
-alignment = Vector2(0.5, 0.5)
-expanded_size = 98
-arrangement_padding = Vector2(5, 5)
-mouse_open = false
-menu_name = &"g"
-max_size = 170
-config = SubResource("Resource_s3o4y")
-graph = NodePath("..")
-
-[node name="sgd_tab" type="Control" parent="." index="9"]
+[node name="sgd_tab" type="Control" parent="." index="8"]
 visible = false
 anchors_preset = 0
 offset_right = 40.0
@@ -497,7 +455,7 @@ scale = Vector2(0.355093, 0.355093)
 theme = ExtResource("8_10eqb")
 text = "SGD"
 
-[node name="adam_tab" type="Control" parent="." index="10"]
+[node name="adam_tab" type="Control" parent="." index="9"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -507,4 +465,3 @@ offset_bottom = 40.0
 [connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="released" from="switch" to="." method="_on_switch_released"]
-[connection signal="released" from="train" to="." method="_on_train_released"]

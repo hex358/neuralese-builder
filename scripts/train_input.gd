@@ -113,7 +113,8 @@ func _on_switch_released() -> void:
 	set_weight_dec(switch.text != "I")
 
 func _on_train_released() -> void:
-	pass
+	$ColorRect2.alive = true
+	graphs.train()
 
 var _fade_targets: Dictionary = {}
 var _target_size_y: float = 0.0
