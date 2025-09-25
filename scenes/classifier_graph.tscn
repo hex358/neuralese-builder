@@ -123,11 +123,12 @@ end_cap_mode = 2
 antialiased = true
 
 [node name="Label2" type="Label" parent="connection"]
+modulate = Color(0.73, 0.73, 0.73, 1)
 z_index = 1
 layout_mode = 0
-offset_left = 118.0
+offset_left = 116.0
 offset_top = 14.0
-offset_right = 254.53384
+offset_right = 252.53384
 offset_bottom = 57.0
 scale = Vector2(0.2633309, 0.2633309)
 theme = ExtResource("3_7qyfr")

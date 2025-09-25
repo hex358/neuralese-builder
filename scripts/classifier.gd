@@ -5,7 +5,7 @@ func push_values(values: Array):
 	
 	for unit in len(values):
 		units[unit].set_weight((values[unit] - minimal) / float(maximal - minimal), 
-		str(values[unit]))
+		str(glob.cap(values[unit], 1)))
 
 
 func _after_process(delta: float):
