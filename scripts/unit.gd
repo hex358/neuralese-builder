@@ -9,15 +9,21 @@ var connect_position: float = 0.0
 var low = {"edit_graph": true}
 
 
+func set_weight(weight: float, text: String):
+	var points = $actual.points
+	points[1] = Vector2(lerp($backline.points[0].x, $backline.points[1].x, weight), points[0].y)
+	$actual.points = points
+	$Label2.text = text
+
 func _process(delta: float) -> void:
 	var loc = get_local_mouse_position()
 	var inside: bool = Rect2(0,0,size.x,size.y).has_point(loc)
 	#print(inside)
-	if graphs.conns_active.has($o) or Rect2(0,0,for_conn_size.x,for_conn_size.y).has_point(loc):
-		$o.process_mode = Node.PROCESS_MODE_INHERIT
-		get_parent().hold_for_frame()
-	else:
-		$o.process_mode = Node.PROCESS_MODE_DISABLED
+	#if graphs.conns_active.has($o) or Rect2(0,0,for_conn_size.x,for_conn_size.y).has_point(loc):
+	#	$o.process_mode = Node.PROCESS_MODE_INHERIT
+	#	get_parent().hold_for_frame()
+	#else:
+	#	$o.process_mode = Node.PROCESS_MODE_DISABLED
 	if inside:
 		glob.set_menu_type(self, &"delete_i", low)
 		if glob.mouse_alt_just_pressed:

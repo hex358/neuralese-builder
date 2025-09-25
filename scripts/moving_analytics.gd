@@ -38,8 +38,9 @@ var t: float = 0.0
 var killed: bool = true
 @export var max_value: float = 1.0
 
+var timing_offset: float = 0.0
 func get_time() -> float:
-	return (sliding_origin - 1) * dot_represents + t_last_frame
+	return (sliding_origin - 1) * dot_represents + t_last_frame + timing_offset
 
 func _ready() -> void:
 	for i in window_size:
@@ -153,6 +154,7 @@ func _reline_columns() -> void:
 
 		var x = spacing * id + spacing / 2.0 + offset_x + _draw_offset_x
 		var point_diff = origin_y - _points[point] * y_mult
+		if point_diff > origin_y: point_diff = origin_y
 
 		lines[id][0].points = PackedVector2Array([
 			Vector2(x, origin_y), Vector2(x, origin_y - y_mult)

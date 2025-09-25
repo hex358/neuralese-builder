@@ -196,6 +196,7 @@ func _accepts(conn: Connection) -> bool:
 
 const default_max_splines: int = 1
 func multiple(conn: Connection) -> bool:
+	
 	var kw: StringName = conn.conn_count_keyword
 	var allowed: int = default_max_splines
 	if max_splines_by_keyword.has(kw):

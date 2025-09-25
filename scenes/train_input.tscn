@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cl5yhw1xp0afw"]
+[gd_scene load_steps=15 format=3 uid="uid://cl5yhw1xp0afw"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_h6r10"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_41i7g"]
@@ -9,6 +9,8 @@
 [ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="7_dq5jb"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="8_10eqb"]
 [ext_resource type="PackedScene" uid="uid://cy68aiofs1yc3" path="res://scenes/moving_analytics.tscn" id="9_s3o4y"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="10_b41bo"]
+[ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="11_wnw3a"]
 
 [sub_resource type="Resource" id="Resource_b41bo"]
 script = ExtResource("5_10eqb")
@@ -31,6 +33,20 @@ press_color = Color(0.72, 0.72, 0.72, 1)
 _press_scale = 0.96
 animation_speed = 1.951
 animation_decay = 4.564
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_s3o4y"]
+script = ExtResource("5_10eqb")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Base" instance=ExtResource("1_h6r10")]
@@ -460,8 +476,54 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="train" parent="." index="10" instance=ExtResource("4_d1efk")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 58.0
+offset_top = 54.000004
+offset_right = 120.00001
+offset_bottom = 79.0
+scale = Vector2(0.733764, 0.733764)
+pivot_offset = Vector2(31, 12.5)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 1)
+button_type = 1
+top = true
+base_scale_x = 0.45
+resize_after = 6
+text = "Train!"
+base_size = Vector2(62.000008, 24.999996)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_s3o4y")
+
+[node name="YY" parent="." index="11" instance=ExtResource("10_b41bo")]
+layout_mode = 0
+offset_left = 117.0
+offset_top = 59.0
+offset_right = 186.0
+offset_bottom = 107.0
+scale = Vector2(0.320293, 0.320293)
+placeholder_text = "1"
+max_length = 3
+expand_to_text_length = true
+context_menu_enabled = false
+emoji_menu_enabled = false
+virtual_keyboard_type = 2
+script = ExtResource("11_wnw3a")
+min_value = 1
+max_value = 50
+resize_after = 4
+change_always_accepted = false
+
 [connection signal="child_button_release" from="optimizer" to="." method="_on_optimizer_child_button_release"]
 [connection signal="child_button_release" from="loss" to="." method="_on_loss_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="released" from="switch" to="." method="_on_switch_released"]
+[connection signal="released" from="train" to="." method="_on_train_released"]

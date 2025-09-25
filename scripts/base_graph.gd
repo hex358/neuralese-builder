@@ -286,7 +286,7 @@ func drag_start():
 	graphs.drag(self)
 	shadow = graphs.shadow_rect.instantiate()
 	add_child(shadow)
-	shadow.position = rect.position + Vector2(0,14)
+	shadow.position = rect.position + Vector2(0,12)
 	shadow.outline = true
 	shadow.extents = rect.size
 	shadow.modulate.a = 0.0
@@ -406,13 +406,13 @@ func _process(delta: float) -> void:
 	
 	if dragging:
 		hold_for_frame()
-		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
+		if not glob.mouse_pressed or (not unp_inside and glob.splines_active) or not _can_drag():
 			dragging = false
 			drag_ended()
 		else:
 			var vec = get_global_mouse_position() + attachement_position + Vector2(0, take_offset_y)
-			take_offset_y = lerpf(take_offset_y, -5.0, delta*15.0)
-			shadow.modulate.a = take_offset_y/ -5
+			take_offset_y = lerpf(take_offset_y, -4.0, delta*15.0)
+			shadow.modulate.a = take_offset_y/ -4
 			#graphs.mark_rect(self)
 			#vec = graphs.can_move(self, vec)
 			global_position = global_position.lerp(vec, delta*40.0)

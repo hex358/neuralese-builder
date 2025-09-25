@@ -107,7 +107,6 @@ scale = Vector2(0.427587, 0.427587)
 text = "Dense"
 
 [node name="unit" type="Control" parent="." index="4"]
-layout_mode = 3
 anchors_preset = 0
 offset_left = -47.0
 offset_top = 23.0

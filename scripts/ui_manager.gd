@@ -41,12 +41,12 @@ func _input(event: InputEvent) -> void:
 			if event.button_index in mouse_buttons:
 				if focused and (focused is LineEdit or focused is Slider):
 					var rect = focused.get_global_rect()
-					if not rect.has_point(get_global_mouse_position()):
+					if not rect.has_point(get_global_mouse_position()) and not event.has_meta("_emulated"):
 						focused.release_focus()
 						#if focused is ValidInput:
 						focused.focus_exited.emit()
 		elif not glob.mouse_pressed:
-			if focused is Slider:
+			if focused is Slider and not event.has_meta("_emulated"):
 				#print("fj")
 				focused.release_focus()
 				focused.focus_exited.emit()
@@ -66,6 +66,7 @@ func _process(delta: float):
 #	print(get_viewport().gui_get_focus_owner())
 			
 
+var selecting_box: bool = false
 func click_screen(pos: Vector2, button = MOUSE_BUTTON_LEFT, double_click = false) -> void:
 	var vp = get_viewport()
 
@@ -75,6 +76,7 @@ func click_screen(pos: Vector2, button = MOUSE_BUTTON_LEFT, double_click = false
 	down.double_click = double_click
 	down.position = pos
 	down.global_position = pos
+	down.set_meta("_emulated", true)
 	vp.push_input(down)
 
 	var up = InputEventMouseButton.new()
@@ -83,4 +85,5 @@ func click_screen(pos: Vector2, button = MOUSE_BUTTON_LEFT, double_click = false
 	up.double_click = false
 	up.position = pos
 	up.global_position = pos
+	up.set_meta("_emulated", true)
 	vp.push_input(up)

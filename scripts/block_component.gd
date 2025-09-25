@@ -707,9 +707,6 @@ func _process_context_menu(delta: float) -> void:
 		
 	var i_occupied: bool = false
 	var inside: bool = is_mouse_inside()
-
-	if glob.mouse_scroll:
-		update_children_reveal()
 	
 	if scroll and visible and (max_size and max_size < expanded_size):
 		scroll.size.x = base_size.x - scrollbar_padding
@@ -747,6 +744,10 @@ func _process_context_menu(delta: float) -> void:
 	else:
 		scroll_checking = false
 		glob.un_occupy(self, &"scroll")
+
+
+	if glob.mouse_scroll or (is_in_bar and glob.mouse_pressed) or scrolling:
+		update_children_reveal()
 	
 	var do_reset: bool = (reset_menu and (right_click or (left_click and left_activate)) )
 	if left_activate and not mouse_open and do_reset:

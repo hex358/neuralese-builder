@@ -6,16 +6,22 @@ class_name ValidNumber
 
 var prev: int = min_value
 
-func _can_change_to() -> String:
-	var before = prev
+@onready var bef = text
+func _can_change_to(emit: bool) -> String:
+	var before = prev; 
+	var prev_text = text
 	var o = inte()
 	if int(text) < min_value and before > min_value and len(text) > 1:
 		o = str(min_value); prev = min_value
+	if min_value == 0 and o == str(min_value):
+		o = ""
 	#if prev == 0: prev = min_value
 	if prev < min_value or prev > max_value:
 		set_text_color(Color(1.0,0.5,0.5,1.0))
 	else:
 		reset_text_color()
+	if emit:
+		bef = o
 	return o
 
 func _get_value():

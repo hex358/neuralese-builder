@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=17 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="4_5k5he"]
 [ext_resource type="Script" uid="uid://b8ehbcul6kgbc" path="res://scripts/submenu_neuron.gd" id="5_m4erh"]
 [ext_resource type="Script" uid="uid://bdl80c5ge01pa" path="res://scripts/graphic.gd" id="6_5i506"]
-[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="6_m4erh"]
+[ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="7_5i506"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_x5ox8"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_4033n"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
@@ -49,6 +49,20 @@ animation_speed = 1.951
 animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
+[sub_resource type="Resource" id="Resource_5i506"]
+script = ExtResource("10_5i506")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.1
+_hover_scale = 1.02
+press_color = Color(0.84, 0.84, 0.84, 1)
+_press_scale = 0.98
+animation_scale = 19.697
+animation_speed = 2.657
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
 [node name="fg" type="CanvasLayer"]
 layer = 128
 
@@ -79,9 +93,9 @@ expand_mode = 1
 
 [node name="Label" type="Label" parent="ColorRect"]
 layout_mode = 0
-offset_left = 59.0
+offset_left = 64.99999
 offset_top = 14.0
-offset_right = 289.0
+offset_right = 310.0
 offset_bottom = 57.0
 scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("3_xwiyo")
@@ -89,9 +103,9 @@ text = "ТестовыйПроект"
 
 [node name="ColorRect3" type="ColorRect" parent="ColorRect"]
 layout_mode = 0
-offset_left = 14.0
+offset_left = 19.999998
 offset_top = 12.0
-offset_right = 54.0
+offset_right = 60.0
 offset_bottom = 52.0
 scale = Vector2(0.764192, 0.764192)
 
@@ -137,7 +151,7 @@ offset_top = 152.0
 offset_right = 296.0
 offset_bottom = 200.0
 scale = Vector2(0.725194, 0.725194)
-theme = ExtResource("6_m4erh")
+theme = ExtResource("7_5i506")
 theme_override_font_sizes/font_size = 30
 placeholder_text = " Bias"
 max_length = 17
@@ -170,3 +184,57 @@ text = "Add"
 base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
+
+[node name="1" parent="." instance=ExtResource("4_5k5he")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+offset_left = 340.0
+offset_top = 6.0
+offset_right = 425.495
+offset_bottom = 42.0
+scale = Vector2(0.8889408, 0.8889408)
+color = Color(0.76, 1, 0.78, 1)
+button_type = 1
+top = true
+hint = &"layer"
+text = "Save"
+base_size = Vector2(85.494995, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_5i506")
+
+[node name="2" parent="." instance=ExtResource("4_5k5he")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+offset_left = 449.00003
+offset_top = 6.0000005
+offset_right = 534.495
+offset_bottom = 42.0
+scale = Vector2(0.8889408, 0.8889408)
+color = Color(0.76, 1, 0.78, 1)
+button_type = 1
+top = true
+hint = &"layer"
+text = "Share"
+base_size = Vector2(85.494965, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_5i506")
+
+[node name="3" parent="." instance=ExtResource("4_5k5he")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+offset_left = 550.0
+offset_top = 6.0
+offset_right = 635.495
+offset_bottom = 42.0
+scale = Vector2(0.8889408, 0.8889408)
+color = Color(0.76, 1, 0.78, 1)
+button_type = 1
+top = true
+hint = &"layer"
+text = "Run"
+base_size = Vector2(85.494995, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_5i506")

@@ -13,9 +13,11 @@ func _ready() -> void:
 	target_size = size
 
 func _process(delta: float) -> void:
-	if glob.mouse_just_pressed and not graphs.dragged and not graphs.conns_active and not ui.get_focus():
+	if glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
+	and not graphs.dragged and not graphs.conns_active and not ui.get_focus():
 		select_origin = get_global_mouse_position()
 		selecting = true
+		ui.selecting_box = true
 		show()
 		position = select_origin
 		size = Vector2.ZERO
@@ -24,6 +26,7 @@ func _process(delta: float) -> void:
 		if not glob.mouse_pressed:
 			selecting = false
 			hide()
+			ui.selecting_box = false
 			return
 
 		var curr = get_global_mouse_position()

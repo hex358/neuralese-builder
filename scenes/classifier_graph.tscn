@@ -1,0 +1,196 @@
+[gd_scene load_steps=13 format=3 uid="uid://de6mgawywaidj"]
+
+[ext_resource type="Script" uid="uid://itl55srlcsih" path="res://scripts/classifier.gd" id="1_eb5hl"]
+[ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_pa8wt"]
+[ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="3_7qyfr"]
+[ext_resource type="Script" uid="uid://7mf5v1esvqbs" path="res://scripts/unit.gd" id="4_n00y3"]
+[ext_resource type="Material" uid="uid://blkv556akjllh" path="res://resources/panel.tres" id="5_lukgp"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="6_m7mi5"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="7_e0fxs"]
+[ext_resource type="Theme" uid="uid://6b4rxqrmq3yb" path="res://resources/theme_no_aa.tres" id="7_eb5hl"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_lckd6"]
+[ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_2xc02"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_giqb5"]
+
+[sub_resource type="Resource" id="Resource_jeojw"]
+script = ExtResource("10_giqb5")
+hover_color = Color(0.68, 1, 0.834667, 1)
+hover_mult = 1.4
+_hover_scale = 1.037
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 0.97
+animation_speed = 1.951
+animation_decay = 4.564
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[node name="Base" type="Control" node_paths=PackedStringArray("unit", "add_button", "input", "line_edit")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 50.0
+mouse_filter = 2
+script = ExtResource("1_eb5hl")
+bottom_attached = true
+unit = NodePath("connection")
+add_button = NodePath("input/ColorRect2")
+input = NodePath("input")
+padding = -7.0
+line_edit = NodePath("input/LineEdit")
+unit_offset_y = 2.0
+target_size = 96.0
+input_y_add = 3.0
+server_typename = &"ClassifierNode"
+z_space = 1
+area_padding = 0.0
+
+[node name="ColorRect" type="ColorRect" parent="."]
+z_index = 1
+material = ExtResource("2_pa8wt")
+instance_shader_parameters/corner_radius_width_add = Vector2(-2, 0)
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/tuning = Color(0.05, 0.05, 0.05, 0.541176)
+layout_mode = 0
+offset_left = -87.0
+offset_top = -64.0
+offset_right = 82.0
+offset_bottom = 30.0
+mouse_filter = 2
+
+[node name="root" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="ColorRect/root"]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 6.0
+offset_right = 204.0
+offset_bottom = 49.0
+scale = Vector2(0.414803, 0.414803)
+theme = ExtResource("3_7qyfr")
+theme_override_colors/font_color = Color(0, 1, 0.716667, 1)
+text = "FieldTypes"
+
+[node name="connection" type="Control" parent="."]
+anchors_preset = 0
+offset_left = -85.0
+offset_top = -32.0
+offset_right = 97.0
+offset_bottom = 20.0
+script = ExtResource("4_n00y3")
+for_conn_size = Vector2(202, 60)
+
+[node name="ColorRect" type="ColorRect" parent="connection"]
+z_index = 1
+material = ExtResource("5_lukgp")
+instance_shader_parameters/outline_color = Color(0.501961, 0.501961, 0.501961, 0.490196)
+instance_shader_parameters/tuning = Color(0.5, 0.5, 0.5, 0.490196)
+layout_mode = 0
+offset_left = 7.0
+offset_top = 8.0
+offset_right = 158.0
+offset_bottom = 45.0
+
+[node name="Label" type="Label" parent="connection"]
+z_index = 1
+layout_mode = 0
+offset_left = 14.0
+offset_top = 11.0
+offset_right = 335.0
+offset_bottom = 54.0
+scale = Vector2(0.37028307, 0.37028307)
+theme = ExtResource("3_7qyfr")
+text = "Variable name"
+
+[node name="backline" type="Line2D" parent="connection"]
+z_index = 1
+position = Vector2(34, 34)
+points = PackedVector2Array(-14, 0, 112, 0)
+default_color = Color(0.42, 0.42, 0.42, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="actual" type="Line2D" parent="connection"]
+z_index = 1
+position = Vector2(34, 34)
+points = PackedVector2Array(-14, 0, 50, 0)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Label2" type="Label" parent="connection"]
+z_index = 1
+layout_mode = 0
+offset_left = 118.0
+offset_top = 14.0
+offset_right = 254.53384
+offset_bottom = 57.0
+scale = Vector2(0.2633309, 0.2633309)
+theme = ExtResource("3_7qyfr")
+text = "100%"
+horizontal_alignment = 2
+
+[node name="input" type="Control" parent="."]
+z_index = 1
+anchors_preset = 0
+offset_left = -78.0
+offset_top = 39.0
+offset_right = -38.0
+offset_bottom = 79.0
+
+[node name="LineEdit" parent="input" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_e0fxs")]
+layout_mode = 0
+offset_left = 3.0000045
+offset_top = -37.0
+offset_right = 308.1963
+offset_bottom = 11.0
+theme = ExtResource("7_eb5hl")
+placeholder_text = "Type name"
+max_length = 16
+context_menu_enabled = false
+selecting_enabled = false
+accept_button = NodePath("../ColorRect2")
+
+[node name="ColorRect2" parent="input" node_paths=PackedStringArray("graph") instance=ExtResource("8_lckd6")]
+material = ExtResource("9_2xc02")
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = 82.0
+offset_top = -14.0
+offset_right = 170.0
+offset_bottom = 28.0
+scale = Vector2(0.583319, 0.583319)
+pivot_offset = Vector2(44, 21)
+button_type = 1
+text = "Add +"
+base_size = Vector2(88, 42)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_jeojw")
+graph = NodePath("../..")
+
+[node name="ni" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("6_m7mi5")]
+layout_mode = 0
+offset_left = -95.0
+offset_top = -40.0
+offset_right = -77.0
+offset_bottom = -21.0
+color = Color(0.297, 0.9, 0.72915, 1)
+_accepted_datatypes = "layer1d"
+hint = 1
+server_name = &"layer_in"
+connection_type = 0
+area_paddings = Vector4(10, 5, 10, 5)
+multiple_splines = true
+origin_offset = Vector2(-5, 0)
+unpadded_area = Vector4(10, 10, 0, 10)
+dir_vector = Vector2(-1, 0)
+parent_graph = NodePath("..")
+conn_count_keyword = "classifier"
+gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
+
+[connection signal="pressed" from="input/ColorRect2" to="." method="_on_color_rect_2_pressed"]

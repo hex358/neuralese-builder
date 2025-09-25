@@ -357,6 +357,13 @@ func _process(delta: float) -> void:
 
 	input_poll()
 
+func is_graph_inside() -> bool: return is_occupied(self, "graph")
+
+func byte(x) -> PackedByteArray:
+	if x is Dictionary:
+		return JSON.stringify(x).to_utf8_buffer()
+	return PackedByteArray()
+
 func compress_dict_gzip(dict: Dictionary):
 	var jsonified = JSON.new().stringify(dict)
 	var bytes = jsonified.to_ascii_buffer()

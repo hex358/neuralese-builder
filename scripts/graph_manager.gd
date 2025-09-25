@@ -214,8 +214,21 @@ func remove_edge(from_conn: Connection, to_conn: Connection):
 func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
 	return true
 
-func train(train_input: Graph):
-	pass
+func _reach_input(from: Graph):
+	var next_frame = {from: true}
+	while true:
+		var new_frame = {}
+		for i: Graph in next_frame:
+			if i.server_typename == "InputNode": return i
+			for conn in i._inputs:
+				for spline in conn.inputs:
+					new_frame[spline.origin.parent_graph] = true
+		if new_frame.is_empty(): break
+		next_frame = new_frame
+	return null
+
+var key_to_graph = {}
+var graph_to_key = {}
 
 func save():
 	pass
@@ -388,7 +401,8 @@ var graph_types = {
 	"reshape2d": preload("res://scenes/reshape.tscn"),
 	"flatten": preload("res://scenes/flatten.tscn"),
 	"conv2d": preload("res://scenes/conv2d.tscn"),
-	"maxpool": preload("res://scenes/maxpool.tscn")
+	"maxpool": preload("res://scenes/maxpool.tscn"),
+	"classifier": preload("res://scenes/classifier_graph.tscn")
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

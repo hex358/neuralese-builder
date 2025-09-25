@@ -40,9 +40,10 @@ func _after_process(delta: float):
 	var sz = $ColorRect.size
 	sz.y = lerp(sz.y, _target_size_y, delta * size_lerp_speed)
 	$ColorRect.size = sz
-
-	$ColorRect2/time_passed.text = str(glob.cap($ColorRect2.get_time(), 1)) + "s"
-	$ColorRect2/acc.text = str(glob.cap($ColorRect2.get_last_value()*100, 1)) + "%"
+	
+	if $ColorRect2.alive:
+		$ColorRect2/time_passed.text = str(glob.cap($ColorRect2.get_time() + timing_offset, 1)) + "s"
+		$ColorRect2/acc.text = str(glob.cap($ColorRect2.get_last_value()*100, 1)) + "%"
 
 @onready var train_button = $train
 var learning_rates = {"adam": ["1e-2", "1e-3", "1e-4"], "sgd": ["1e-1","1e-2","1e-3"]}
@@ -93,7 +94,6 @@ func _on_loss_child_button_release(button: BlockComponent) -> void:
 	pass
 
 func push_acceptance(acc: float, time: float):
-	print(acc)
 	$ColorRect2.push_input(time, acc, $ColorRect2._window_end)
 
 func _on_lr_child_button_release(button: BlockComponent) -> void:
@@ -112,9 +112,29 @@ func set_weight_dec(on: bool):
 func _on_switch_released() -> void:
 	set_weight_dec(switch.text != "I")
 
-func _on_train_released() -> void:
+func additional_call(x):
+	pass
+
+func train_stop():
+	$ColorRect2.alive = false
+	train.text = "Train!"
+	nn.stop_train(self)
+
+func train_start():
+	timing_offset = -$ColorRect2.get_time()
 	$ColorRect2.alive = true
-	graphs.train()
+	$ColorRect2/time_passed.text = "0.0s"
+	train.text = "Stop"
+	nn.start_train(self, {"additional_call": additional_call})
+
+var timing_offset: float = 0.0
+@onready var train = $train
+func _on_train_released() -> void:
+	if $ColorRect2.alive:
+		train_stop()
+	else:
+		train_start()
+	#graphs.train()
 
 var _fade_targets: Dictionary = {}
 var _target_size_y: float = 0.0

@@ -47,7 +47,7 @@ func _is_valid(input: String) -> bool:
 	return len(input) > 0
 
 @export var change_always_accepted: bool = true
-func _can_change_to() -> String:
+func _can_change_to(emit: bool) -> String:
 	return text
 
 func _text_changed() -> void:
@@ -58,12 +58,15 @@ func _input_changed(input: String):
 	set_line(input, true)
 	
 var prev_pos: int = 0
+
+@onready var before_text = text
 func set_line(input: String, emit: bool = false):
+	if before_text == input: return
 	if text != input:
 		text = input
 		caret_column = prev_pos
 	if !change_always_accepted:
-		text = _can_change_to()
+		text = _can_change_to(emit)
 	is_valid = _is_valid(input)
 	if !change_always_accepted:
 		prev_input = input
@@ -71,6 +74,7 @@ func set_line(input: String, emit: bool = false):
 	_resize_label()
 	if emit:
 		changed.emit()
+	before_text = text
 
 @onready var _font = get_theme_font("font")
 
@@ -102,9 +106,12 @@ func _resize_label():
 func _input_submit(input: String):
 	pass
 
+
+
 signal changed
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.keycode == KEY_ENTER and ui.is_focus(self):
 		if accept_button:
 			accept_button.press(0.1)
+		grab_focus()
 		ui.click_screen(global_position + Vector2(10,10))
