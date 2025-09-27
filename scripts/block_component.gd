@@ -66,6 +66,7 @@ func unblock_input() -> void: is_blocking = false
 			pivot_offset = Vector2()
 
 @export_group("Context Menu")
+@export var static_mode: bool = false
 @export var left_activate: bool = false
 @export var size_add: float = 0.0
 @export var _scroll_container = null:
@@ -200,7 +201,7 @@ func initialize() -> void:
 			add_to_size = true
 	
 	if button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU:
-		scroll.size = Vector2(base_size.x - scrollbar_padding, expanded_size if not max_size else max_size-base_size.y-10)
+		scroll.size = Vector2(base_size.x - scrollbar_padding, expanded_size if not max_size else max_size - base_size.y - 10)
 		if not dynamic_size:
 			for child in get_children():
 				if not child is BlockComponent:
@@ -210,13 +211,16 @@ func initialize() -> void:
 			_unclamped_expanded_size = expanded_size
 		
 		if button_type == ButtonType.CONTEXT_MENU:
-			hide()
+			if not static_mode:
+				hide()
 
 		if dynamic_size:
 			expanded_size = 4.0 + base_size.y
 			for child in _contained:
 				expanded_size += child.size.y + arrangement_padding.y
 			_unclamped_expanded_size = expanded_size
+
+
 
 
 func dynamic_child_exit(child: BlockComponent):
@@ -237,6 +241,20 @@ func dynamic_child_enter(child: BlockComponent):
 
 	contain(child)
 
+func set_menu_size(x: float, y: float):
+	for i in 2:
+		base_size.x = x
+		size.x = x
+		scroll.size.x = base_size.x - scroll.position.x * 2
+		size.y = y
+		if max_size:
+			max_size = y
+		else:
+			expanded_size = y
+		scroll.size.y = expanded_size if not max_size else max_size - base_size.y - 10
+	arrange()
+
+
 func resize(_size: Vector2) -> void:
 	_size = _size.floor()
 	base_size = _size; size = _size; text = text
@@ -251,6 +269,8 @@ func resize(_size: Vector2) -> void:
 		position = -alignment*size
 
 var wrapped: bool = false
+
+
 func arrange():
 	# Arrange children above or below based on expand_upwards
 	vbox.add_theme_constant_override("separation", arrangement_padding.y)
@@ -322,7 +342,6 @@ var auto_wrap: bool = true
 
 func _ready() -> void:
 	if not auto_ready: return
-	
 	initialize()
 	size = base_size
 	text = text  # Trigger setter
@@ -378,7 +397,7 @@ func _process_dropout_menu(delta: float) -> void:
 		var a = modulate.a
 		modulate = config.hover_color * config.hover_mult
 		modulate.a = a
-		if get_local_mouse_position().y < base_size.y and glob.mouse_just_pressed and not ab:
+		if !static_mode and get_local_mouse_position().y < base_size.y and glob.mouse_just_pressed and not ab:
 			menu_hide()
 		_process_context_menu(delta)
 
@@ -504,6 +523,7 @@ func _process_block_button(delta: float) -> void:
 				pressed.emit()
 				state.pressing = true
 				state.tween_progress = 0.0
+			pressing.emit()
 		else:
 			hovering.emit()
 			if not state.hovering:
@@ -573,6 +593,10 @@ func _proceed_show(at_position: Vector2) -> bool: # virtual
 	return true
 
 func menu_show(at_position: Vector2) -> void:
+	if static_mode:
+		unroll()
+		return
+	if graphs.conns_active: return
 	if not _proceed_show(at_position): return
 	if glob.get_display_mouse_position().y < glob.space_begin.y: return
 	if button_type == ButtonType.CONTEXT_MENU and _is_not_menu(): return
@@ -581,12 +605,6 @@ func menu_show(at_position: Vector2) -> void:
 	state.expanded = false
 	show()
 	scrolling = false
-	#if not secondary:
-		#if glob.opened_menu:
-		#	glob.opened_menu.menu_hide()
-	#	glob.opened_menu = self
-		#print("A")
-		
 
 	last_mouse_pos = at_position
 	show_request = true
@@ -606,7 +624,8 @@ func menu_show(at_position: Vector2) -> void:
 	update_children_reveal()
 
 func menu_hide() -> void:
-
+	if static_mode:
+		return
 	state.expanded = false
 	if state.tween_hide or not visible: return
 	if glob.opened_menu == self:
@@ -678,10 +697,34 @@ func reset_tuning():
 	RenderingServer.canvas_item_set_instance_shader_parameter(get_canvas_item(), &"tuning", base_tuning)
 
 
+func unroll():
+	show()
+	_arm_menu_hit_tests()
+	state.expanded = true
+	state.holding = false
+	state.tween_hide = false
+	state.expanding = false
+	var target = (min(max_size, expanded_size) if max_size else expanded_size) + size_add
+	size.y = target
+	bar.self_modulate.a = 1.0
+	update_children_reveal()
+	glob.occupy(self, &"menu")
+	if is_mouse_inside():
+		glob.occupy(self, "menu_inside")
+	else:
+		glob.un_occupy(self, "menu_inside")
+
+
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
-	# click belongs to another menu
-	var reset_menu = _is_not_menu()
+	if static_mode:
+		if is_visible_in_tree():
+			update_children_reveal()
+		#unroll()
+		return
+
+
+	var reset_menu = not static_mode and _is_not_menu()
 	if not is_visible_in_tree() and reset_menu:
 		glob.un_occupy(self, &"menu")
 		glob.un_occupy(self, "menu_inside")
@@ -693,6 +736,10 @@ func _process_context_menu(delta: float) -> void:
 	var left_click = glob.mouse_just_pressed if !left_activate else glob.mouse_alt_just_pressed
 	var right_click = glob.mouse_alt_just_pressed if !left_activate else glob.mouse_just_pressed
 	
+	if graphs.conns_active:
+		left_click = false
+		right_click = false
+	
 	if not mouse_open and not reset_menu:
 		right_pressed = false
 		right_click = false
@@ -700,7 +747,7 @@ func _process_context_menu(delta: float) -> void:
 	if left_click or right_click or (mouse_open and not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
 
-	if glob.hide_menus and not state.holding and button_type == ButtonType.CONTEXT_MENU:
+	if !static_mode and glob.hide_menus and not state.holding and button_type == ButtonType.CONTEXT_MENU:
 		left_pressed = false; right_pressed = false
 		left_click = false; right_click = false
 		menu_hide()
@@ -752,7 +799,6 @@ func _process_context_menu(delta: float) -> void:
 	var do_reset: bool = (reset_menu and (right_click or (left_click and left_activate)) )
 	if left_activate and not mouse_open and do_reset:
 		state.holding = false
-
 	if show_request or right_click or left_click or is_instance_valid(timer) or do_reset:
 		var inside_self_click = glob.mouse_pressed and inside and state.expanding and not state.tween_hide
 		if inside_self_click and visible and not state.tween_hide:
@@ -767,7 +813,7 @@ func _process_context_menu(delta: float) -> void:
 			if (show_request or right_click) and not do_reset and not left_click:
 				scrolling = false
 				menu_show(pos)
-			elif visible:
+			elif visible and !static_mode:
 				scrolling = false
 				menu_hide()
 	else:

@@ -192,7 +192,13 @@ func store_delta(graph: Graph):
 
 		deltas.snapshot = cur_iterable.duplicate()
 	
-	return [result_adds, result_deletes]
+	var pathed_adds = {}; var pathed_deletes = {}
+	for i in result_adds:
+		pathed_adds["/".join(i)] = Marshalls.raw_to_base64(var_to_bytes(result_adds[i]))
+	for i in result_deletes:
+		pathed_deletes["/".join(i)] = Marshalls.raw_to_base64(var_to_bytes(result_deletes[i]))
+	
+	return [pathed_adds, pathed_deletes]
 
 var _graphs_ids: Dictionary[int, bool] = {}
 var _graphs: Dictionary[int, Graph] = {}
@@ -204,6 +210,9 @@ func remove(graph: Graph):
 	_graphs.erase(graph.graph_id)
 	_graphs_ids.erase(graph.graph_id)
 	stop_drag(graph)
+
+func get_by_id(graph_id: int) -> Graph:
+	return _graphs.get(graph_id)
 
 func attach_edge(from_conn: Connection, to_conn: Connection):
 	pass
@@ -231,8 +240,9 @@ var key_to_graph = {}
 var graph_to_key = {}
 
 func save():
-	pass
-	#var compressed = compress_dict_gzip(get_deltas())
+	var deltas = get_deltas()
+	print(deltas)
+	var compressed = glob.compress_dict_gzip(get_deltas())
 
 var _training_head: Graph = null
 var _train_origin_graph: Graph = null
@@ -445,15 +455,23 @@ func unpush_2d(target):
 			i.update_grid(0, 0)
 
 var pos_cache: Dictionary = {}
+var last_frame_visible: bool = true
 func _process(delta: float) -> void:
+	#if Input.is_action_just_pressed("ui_accept"):
+		#save()
+	
+	if not last_frame_visible: 
+		last_frame_visible = visible; return
+	last_frame_visible = visible
+	
 	var vp = Rect2(Vector2.ZERO, glob.window_size)
 	var dc = 0
 
 	for graph: Graph in storage.get_children():
 		var r = graph.rect
 		
-		var vis: bool = false
-		if not graph.dragging:
+		var vis: bool = visible
+		if not graph.dragging and visible:
 			var rect = r.get_global_rect()
 			var gp = rect.position - Vector2(10,10)
 			var s  = rect.size + Vector2(20,20)
@@ -472,14 +490,13 @@ func _process(delta: float) -> void:
 			vis = rect_screen.intersects(vp)
 		
 		var force_held: bool = false
-		if vis or graph.hold_process or graph.dragging or graph.active_output_connections:
+		if visible and (vis or graph.hold_process or graph.dragging or graph.active_output_connections):
 			var inside = graph.is_mouse_inside()
 			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
 			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))
 			if graph.hold_process or padded_inside or graph.active_output_connections:
 				graph.process_mode = PROCESS_MODE_ALWAYS
 				#print(graph.hold_process)
-				
 				if inside:
 					force_held = true
 					graph.hold_for_frame()

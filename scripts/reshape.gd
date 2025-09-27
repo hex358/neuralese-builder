@@ -139,11 +139,12 @@ func _just_deattached(other_conn: Connection, my_conn: Connection):
 
 
 var setting: bool = false
-func _on_y_text_changed(new_text: String) -> void:
-	setting = 1
-	update_config({"rows": int($Y.get_value())}); setting = 0
 
-
-func _on_x_text_changed(new_text: String) -> void:
+func _on_x_changed() -> void:
 	setting = 1
 	update_config({"columns": int($X.get_value())}); setting = 0
+
+
+func _on_y_changed() -> void:
+	setting = 1
+	update_config({"rows": int($Y.get_value())}); setting = 0

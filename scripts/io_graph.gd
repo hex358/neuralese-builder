@@ -83,6 +83,9 @@ func add_unit(kw: Dictionary = {}, instant=false):
 @export var size_add: float = 0.0
 
 var add_q: Queue = Queue.new()
+func _unit_just_added() -> void: # virtual
+	pass
+	
 func _add_q(kw: Dictionary):
 	var new_unit = _get_unit(kw)
 	appear_units[new_unit] = true
@@ -110,6 +113,7 @@ func _add_q(kw: Dictionary):
 		new_unit.modulate.a = 1.0
 		appear_units.erase(new_unit)
 		#_unit_modulate_updated(new_unit)
+	_unit_just_added()
 
 @export var lerp_size: bool = true
 @export var input_y_add: float = 0.0

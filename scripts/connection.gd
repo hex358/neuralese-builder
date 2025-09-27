@@ -128,6 +128,7 @@ func forget_spline(spline: Spline, from_conn: Connection):
 var last_connected: Spline = null
 func attach_spline(id: int, target: Connection):
 	var spline = active_outputs[id]
+	parent_graph.connecting(self, target)
 	spline.tied_to = target
 	target.connected[self] = true
 	conn_counts.get_or_add(target.conn_count_keyword, [0])[0] += 1
@@ -145,6 +146,8 @@ func attach_spline(id: int, target: Connection):
 var conn_id: int = 0
 func _init() -> void:
 	conn_id = randi_range(0,99999999)
+	if custom_expression:
+		custom_expression.parse(suitable_custom_check, ["target"])
 
 func detatch_spline(spline: Spline):
 	var other = spline.origin
@@ -205,15 +208,30 @@ func multiple(conn: Connection) -> bool:
 	var cur: int = int(cur_arr[0])
 	return cur < allowed
 
+@export_custom(PROPERTY_HINT_EXPRESSION, "") var suitable_custom_check: String = ""
+
+var custom_expression: Expression = null if \
+!suitable_custom_check else Expression.new()
+
+
 func is_suitable(conn: Connection) -> bool:
 #	print((!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype)))
-	return (conn and conn != self and conn.connection_type == INPUT
+	#print(custom_expression.get_error_text())
+	var cond_1: bool = (conn and conn != self and conn.connection_type == INPUT
 		and (!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype))
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
 		and multiple(conn) #conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or true or conn.conn_count_keyword == &"router"
 		and graphs.validate_acyclic_edge(self, conn)
 		and conn._accepts(self)
-		and _is_suitable(conn))
+		and _is_suitable(conn)
+		and (custom_expression == null or custom_expression.execute([conn], self)))
+	
+	if cond_1:
+		var my_input = graphs._reach_input(self.parent_graph)
+		var other_input = graphs._reach_input(conn.parent_graph)
+		cond_1 = cond_1 and (not is_instance_valid(my_input) or not is_instance_valid(other_input) or my_input == other_input)
+	
+	return cond_1
 
 @export var gradient_color: Color = Color.WHITE
 
@@ -311,9 +329,10 @@ func _process(delta: float) -> void:
 	
 	var suit
 	if active_outputs:
-		suit = is_suitable(glob.hovered_connection)
-		#if glob.hovered_connection:
-			#print(suit)
+		if glob.hovered_connection != _last_hovered_conn:
+			_last_hovered_conn = glob.hovered_connection
+			_last_suit = is_suitable(_last_hovered_conn)
+		suit = _last_suit
 		parent_graph.active_output_connections[self] = true
 		parent_graph.hold_for_frame()
 	else:
@@ -347,3 +366,6 @@ func _process(delta: float) -> void:
 		attach_spline(id, glob.hovered_connection)
 
 	hovered = false
+
+var _last_hovered_conn: Connection = null
+var _last_suit: bool = false

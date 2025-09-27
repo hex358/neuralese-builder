@@ -50,6 +50,15 @@ func _sub_process(delta:float):
 		spline.blender = spline.blender.lerp(Color.RED, delta * 14.0)
 	_hovered = {}
 
+func _menu_handle_pressing(button: BlockComponent):
+	var _inst = button.metadata["inst"]
+	if button.metadata["all"]:
+		for inst in _inst:
+			_hovered[inst] = [0.0, inst.blender]
+	else:
+		_hovered[_inst] = [0.0, _inst.blender]
+
+
 func _menu_handle_release(button: BlockComponent):
 	
 	block_input()

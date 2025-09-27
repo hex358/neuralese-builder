@@ -59,7 +59,26 @@ tab_size_adds = Dictionary[StringName, float]({
 })
 server_typename = &"TrainInput"
 
-[node name="labels" type="Control" parent="." index="0"]
+[node name="i2" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
+instance_shader_parameters/corner_radius_width_add = Vector2(6.485, 0)
+layout_mode = 0
+offset_left = 39.0
+offset_top = -53.0
+offset_right = 63.0
+offset_bottom = -27.0
+color = Color(0.462745, 0.45098, 0.85098, 1)
+_accepted_datatypes = "dataset"
+server_name = &"dataset_in"
+connection_type = 0
+area_paddings = Vector4(20, 20, 20, 20)
+multiple_splines = true
+origin_offset = Vector2(-4, 0)
+dir_vector = Vector2(-1, 0)
+parent_graph = NodePath("..")
+conn_count_keyword = "train"
+gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
+
+[node name="labels" type="Control" parent="." index="1"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -112,7 +131,7 @@ scale = Vector2(0.311, 0.311)
 theme = ExtResource("8_10eqb")
 text = "WeightDec"
 
-[node name="i" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
+[node name="i" parent="." index="2" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
 layout_mode = 0
 offset_left = -88.0
 offset_top = 4.0
@@ -130,7 +149,7 @@ parent_graph = NodePath("..")
 conn_count_keyword = "train"
 gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
 
-[node name="ColorRect" parent="." index="2"]
+[node name="ColorRect" parent="." index="3"]
 instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
 offset_left = -78.0
 offset_top = -45.0
@@ -145,7 +164,7 @@ offset_bottom = 49.0
 scale = Vector2(0.463877, 0.463877)
 text = "TrainHead"
 
-[node name="optimizer" parent="." index="3" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+[node name="optimizer" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -213,7 +232,7 @@ base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("7_dq5jb")
 
-[node name="loss" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+[node name="loss" parent="." index="5" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -281,7 +300,7 @@ base_size = Vector2(120, 36)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("7_dq5jb")
 
-[node name="lr" parent="." index="5" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+[node name="lr" parent="." index="6" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -370,7 +389,7 @@ base_size = Vector2(120, 36)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("7_dq5jb")
 
-[node name="switch" parent="." index="6" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+[node name="switch" parent="." index="7" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -397,7 +416,7 @@ max_size = 170
 config = SubResource("Resource_10eqb")
 graph = NodePath("..")
 
-[node name="ColorRect2" parent="." index="7" instance=ExtResource("9_s3o4y")]
+[node name="ColorRect2" parent="." index="8" instance=ExtResource("9_s3o4y")]
 layout_mode = 0
 offset_left = 49.0
 offset_top = -15.0
@@ -431,7 +450,7 @@ scale = Vector2(0.2, 0.2)
 theme = ExtResource("8_10eqb")
 text = "0.0s"
 
-[node name="sgd_tab" type="Control" parent="." index="8"]
+[node name="sgd_tab" type="Control" parent="." index="9"]
 visible = false
 anchors_preset = 0
 offset_right = 40.0
@@ -471,12 +490,12 @@ scale = Vector2(0.355093, 0.355093)
 theme = ExtResource("8_10eqb")
 text = "SGD"
 
-[node name="adam_tab" type="Control" parent="." index="9"]
+[node name="adam_tab" type="Control" parent="." index="10"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="train" parent="." index="10" instance=ExtResource("4_d1efk")]
+[node name="train" parent="." index="11" instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -485,7 +504,7 @@ offset_top = 54.000004
 offset_right = 120.00001
 offset_bottom = 79.0
 scale = Vector2(0.733764, 0.733764)
-pivot_offset = Vector2(31, 12.5)
+pivot_offset = Vector2(31.000004, 12.499998)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
@@ -502,7 +521,7 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_s3o4y")
 
-[node name="YY" parent="." index="11" instance=ExtResource("10_b41bo")]
+[node name="YY" parent="." index="12" instance=ExtResource("10_b41bo")]
 layout_mode = 0
 offset_left = 117.0
 offset_top = 59.0
@@ -523,7 +542,7 @@ change_always_accepted = false
 
 [connection signal="child_button_release" from="optimizer" to="." method="_on_optimizer_child_button_release"]
 [connection signal="child_button_release" from="loss" to="." method="_on_loss_child_button_release"]
-[connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
+[connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
 [connection signal="released" from="switch" to="." method="_on_switch_released"]
 [connection signal="released" from="train" to="." method="_on_train_released"]

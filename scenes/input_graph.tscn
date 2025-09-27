@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://e3l6g3u21slb"]
+[gd_scene load_steps=6 format=3 uid="uid://e3l6g3u21slb"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_6ucvy"]
 [ext_resource type="Script" uid="uid://fnk1i461e1xi" path="res://scripts/input_graph.gd" id="2_02not"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_m1bro"]
 [ext_resource type="Script" uid="uid://cp7e4eeuykhnt" path="res://scripts/image_draw.gd" id="3_53i8k"]
+[ext_resource type="Material" uid="uid://dxhlqb1yd1my2" path="res://resources/rounded_corners.tres" id="4_h273u"]
 
 [node name="Base" instance=ExtResource("1_6ucvy")]
 script = ExtResource("2_02not")
@@ -35,29 +36,30 @@ instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_top = -35.0
 offset_right = 48.0
-offset_bottom = 114.0
+offset_bottom = 116.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 offset_left = 8.0
-offset_top = 5.0
-offset_right = 104.0
-offset_bottom = 48.0
+offset_top = 4.000002
+offset_right = 105.0
+offset_bottom = 47.0
 scale = Vector2(0.569577, 0.569577)
 theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
 text = "Input"
 
 [node name="TextureRect" type="TextureRect" parent="." index="2"]
 texture_filter = 1
+material = ExtResource("4_h273u")
 layout_mode = 0
 offset_left = -76.0
-offset_top = -5.0
+offset_top = -4.0
 offset_right = -38.055813
-offset_bottom = 31.867764
+offset_bottom = 32.867764
 scale = Vector2(2.9293885, 2.9293885)
 stretch_mode = 2
 script = ExtResource("3_53i8k")
-brush_radius = 2
-brush_hardness = 0.1
+brush_radius = 1
+brush_hardness = 0.5
 flow_per_second = 50.0
-max_luma = 0.9
-headroom_power = 0.0
+max_luma = 2.0
+headroom_power = 1.0

@@ -13,11 +13,11 @@ viewport_path = NodePath("SubViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0m0f1"]
 shader = ExtResource("1_dpp0m")
-shader_parameter/width = 10.0
-shader_parameter/spacing = 170.0
-shader_parameter/grid_color = Color(0.4131, 0.463165, 0.51, 1)
+shader_parameter/width = 7.98
+shader_parameter/spacing = 110.0
+shader_parameter/grid_color = Color(0.34, 0.34, 0.34, 1)
 shader_parameter/bg_color = Color(0.25, 0.25, 0.25, 1)
-shader_parameter/aa_pixels = 1.5
+shader_parameter/aa_pixels = 1.0
 
 [node name="Node" type="CanvasLayer"]
 layer = -127

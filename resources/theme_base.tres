@@ -1,6 +1,9 @@
-[gd_resource type="Theme" load_steps=6 format=3 uid="uid://cx365ld2mgjne"]
+[gd_resource type="Theme" load_steps=7 format=3 uid="uid://cx365ld2mgjne"]
 
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="1_67ehd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_67ehd"]
+bg_color = Color(0.08, 0.08, 0.08, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vj6dk"]
 bg_color = Color(0.3, 0.3, 0.3, 1)
@@ -56,6 +59,8 @@ anti_aliasing_size = 4.0
 
 [resource]
 default_font = ExtResource("1_67ehd")
+CodeEdit/colors/selection_color = Color(0.1892, 0.33132, 0.44, 1)
+CodeEdit/styles/normal = SubResource("StyleBoxFlat_67ehd")
 Label/font_sizes/font_size = 32
 Label/fonts/font = ExtResource("1_67ehd")
 LineEdit/colors/font_color = Color(1, 1, 1, 1)

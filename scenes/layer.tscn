@@ -24,6 +24,7 @@ target_size = 60.0
 min_size = 60.0
 size_add = 3.0
 lerp_size = true
+input_y_add = 0.0
 server_typename = &"NeuronLayer"
 base_config = Dictionary[StringName, Variant]({
 &"neuron_count": 0

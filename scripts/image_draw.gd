@@ -72,8 +72,8 @@ func _accumulate_circle_at(img_center: Vector2, dt: float) -> void:
 		for x in range(min_x, max_x + 1):
 			var dx = (float(x) + 0.5) - img_center.x
 			var dy = (float(y) + 0.5) - img_center.y
-			var dist = sqrt(dx * dx + dy * dy)
-			if dist > r:
+			var dist = dx * dx + dy * dy
+			if dist > r + 1:
 				continue
 			var nd = clamp(dist / r, 0.0, 1.0)
 			var strength = pow(1.0 - nd, 2.0 - brush_hardness * 1.5)
@@ -116,6 +116,7 @@ func _draw_segment(prev_img: Vector2, curr_img: Vector2, dt: float) -> void:
 
 func _process(delta: float) -> void:
 	if graphs.dragged: return
+	if ui.selecting_box: return
 	
 	var local = get_local_mouse_position()
 	var img_pos = _local_to_img_coords(local)

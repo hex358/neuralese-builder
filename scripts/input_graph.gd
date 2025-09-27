@@ -14,6 +14,11 @@ func get_raw_values():
 		res.append(row)
 	return res
 
+
+#func _connecting(who: Connection, to: Connection):
+	#if graphs._reach_input(to.parent_graph):
+		#
+
 func _just_connected(who: Connection, to: Connection):
 	#if to.parent_graph.server_typename == "Flatten":
 	#	to.parent_graph.set_count(cfg.rows * cfg.columns)

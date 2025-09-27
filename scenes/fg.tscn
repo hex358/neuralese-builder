@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=23 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
@@ -8,9 +8,14 @@
 [ext_resource type="Script" uid="uid://b8ehbcul6kgbc" path="res://scripts/submenu_neuron.gd" id="5_m4erh"]
 [ext_resource type="Script" uid="uid://bdl80c5ge01pa" path="res://scripts/graphic.gd" id="6_5i506"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="7_5i506"]
+[ext_resource type="Texture2D" uid="uid://0qcq7cu4b3kl" path="res://game_assets/icons/download.png" id="7_frmgw"]
+[ext_resource type="Texture2D" uid="uid://kdt71jk5swyh" path="res://game_assets/icons/user.png" id="7_gbf2a"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_x5ox8"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_4033n"]
+[ext_resource type="Texture2D" uid="uid://djv0q0o525mww" path="res://game_assets/icons/game.png" id="9_gbf2a"]
+[ext_resource type="Texture2D" uid="uid://da35wdaqy728m" path="res://game_assets/icons/save.png" id="10_4mxf5"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
+[ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="12_thedb"]
 
 [sub_resource type="Gradient" id="Gradient_5k5he"]
 interpolation_mode = 2
@@ -23,6 +28,32 @@ gradient = SubResource("Gradient_5k5he")
 width = 400
 height = 40
 fill_from = Vector2(0, 0.00828157)
+
+[sub_resource type="Resource" id="Resource_5i506"]
+script = ExtResource("10_5i506")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.1
+_hover_scale = 1.02
+press_color = Color(0.84, 0.84, 0.84, 1)
+_press_scale = 0.98
+animation_speed = 2.657
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_gbf2a"]
+script = ExtResource("10_5i506")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.2
+_hover_scale = 1.05
+press_color = Color(0.84, 0.84, 0.84, 1)
+_press_scale = 0.98
+animation_speed = 2.657
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nwut5"]
 shader = ExtResource("1_5k5he")
@@ -47,20 +78,6 @@ press_color = Color(0.9, 0.9, 0.9, 1)
 _press_scale = 0.97
 animation_speed = 1.951
 animation_decay = 4.564
-metadata/_custom_type_script = "uid://dx40hpbce8w60"
-
-[sub_resource type="Resource" id="Resource_5i506"]
-script = ExtResource("10_5i506")
-as_mult = true
-hover_color = Color(1.1, 1.1, 1.1, 1)
-hover_mult = 1.1
-_hover_scale = 1.02
-press_color = Color(0.84, 0.84, 0.84, 1)
-_press_scale = 0.98
-animation_scale = 19.697
-animation_speed = 2.657
-animation_decay = 6.0
-animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="fg" type="CanvasLayer"]
@@ -108,6 +125,132 @@ offset_top = 12.0
 offset_right = 60.0
 offset_bottom = 52.0
 scale = Vector2(0.764192, 0.764192)
+
+[node name="Control" type="Control" parent="ColorRect"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -391.0
+offset_top = 3.0
+offset_right = -118.0
+offset_bottom = 52.0
+grow_horizontal = 0
+
+[node name="login" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
+material = ExtResource("12_thedb")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 278.00003
+offset_top = 7.0000005
+offset_right = 386.2349
+offset_bottom = 43.0
+scale = Vector2(0.8889408, 0.8889408)
+pivot_offset = Vector2(54.11743, 18)
+color = Color(0.49019608, 0.627451, 0.83137256, 1)
+button_type = 1
+top = true
+hint = &"layer"
+text = "  Login"
+base_size = Vector2(108.23486, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_5i506")
+
+[node name="i" type="Sprite2D" parent="ColorRect/Control/login"]
+position = Vector2(20.670837, 17.999998)
+scale = Vector2(1.1249341, 1.1249341)
+texture = ExtResource("7_gbf2a")
+
+[node name="export" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
+material = ExtResource("12_thedb")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 165.00003
+offset_top = 7.0000005
+offset_right = 284.23148
+offset_bottom = 43.0
+scale = Vector2(0.8889408, 0.8889408)
+pivot_offset = Vector2(59.615723, 18)
+color = Color(0.49019608, 0.627451, 0.83137256, 1)
+button_type = 1
+top = true
+hint = &"layer"
+text = "  Export"
+base_size = Vector2(119.231445, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_5i506")
+
+[node name="i" type="Sprite2D" parent="ColorRect/Control/export"]
+position = Vector2(20.670837, 17.999998)
+scale = Vector2(1.1249341, 1.1249341)
+texture = ExtResource("7_frmgw")
+
+[node name="play" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
+material = ExtResource("12_thedb")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 71.000046
+offset_top = 7.0000005
+offset_right = 168.85771
+offset_bottom = 43.0
+scale = Vector2(0.8889408, 0.8889408)
+pivot_offset = Vector2(48.928833, 18)
+color = Color(0.49019608, 0.627451, 0.83137256, 1)
+button_type = 1
+top = true
+hint = &"play_tab"
+text = "  Test"
+base_size = Vector2(97.857666, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_5i506")
+
+[node name="i" type="Sprite2D" parent="ColorRect/Control/play"]
+position = Vector2(20.670837, 17.999998)
+scale = Vector2(1.1249341, 1.1249341)
+texture = ExtResource("9_gbf2a")
+
+[node name="9" parent="ColorRect" instance=ExtResource("4_5k5he")]
+self_modulate = Color(1, 1, 1, 0)
+material = ExtResource("12_thedb")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 255.0
+offset_top = 10.999999
+offset_right = 289.80444
+offset_bottom = 43.624138
+scale = Vector2(0.6480339, 0.6480339)
+pivot_offset = Vector2(17.402222, 16.312069)
+color = Color(0.49019608, 0.627451, 0.83137256, 1)
+button_type = 1
+top = true
+hint = &"layer"
+base_size = Vector2(34.804443, 32.624138)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_gbf2a")
+
+[node name="i" type="TextureRect" parent="ColorRect/9"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -16.345783
+offset_top = -14.06115
+offset_right = 7.654217
+offset_bottom = 9.93885
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.3652097, 1.3652097)
+texture = ExtResource("10_4mxf5")
 
 [node name="submenu" type="ColorRect" parent="." node_paths=PackedStringArray("top")]
 visible = false
@@ -185,56 +328,4 @@ base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
 
-[node name="1" parent="." instance=ExtResource("4_5k5he")]
-instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
-offset_left = 340.0
-offset_top = 6.0
-offset_right = 425.495
-offset_bottom = 42.0
-scale = Vector2(0.8889408, 0.8889408)
-color = Color(0.76, 1, 0.78, 1)
-button_type = 1
-top = true
-hint = &"layer"
-text = "Save"
-base_size = Vector2(85.494995, 36)
-alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_5i506")
-
-[node name="2" parent="." instance=ExtResource("4_5k5he")]
-instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
-offset_left = 449.00003
-offset_top = 6.0000005
-offset_right = 534.495
-offset_bottom = 42.0
-scale = Vector2(0.8889408, 0.8889408)
-color = Color(0.76, 1, 0.78, 1)
-button_type = 1
-top = true
-hint = &"layer"
-text = "Share"
-base_size = Vector2(85.494965, 36)
-alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_5i506")
-
-[node name="3" parent="." instance=ExtResource("4_5k5he")]
-instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
-offset_left = 550.0
-offset_top = 6.0
-offset_right = 635.495
-offset_bottom = 42.0
-scale = Vector2(0.8889408, 0.8889408)
-color = Color(0.76, 1, 0.78, 1)
-button_type = 1
-top = true
-hint = &"layer"
-text = "Run"
-base_size = Vector2(85.494995, 36)
-alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_5i506")
+[connection signal="released" from="ColorRect/Control/play" to="ColorRect" method="_on_play_released"]

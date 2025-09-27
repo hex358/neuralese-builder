@@ -95,9 +95,9 @@ offset_bottom = 45.0
 [node name="Label" type="Label" parent="connection"]
 z_index = 1
 layout_mode = 0
-offset_left = 14.0
+offset_left = 15.0
 offset_top = 11.0
-offset_right = 335.0
+offset_right = 336.0
 offset_bottom = 54.0
 scale = Vector2(0.37028307, 0.37028307)
 theme = ExtResource("3_7qyfr")
@@ -105,8 +105,8 @@ text = "Variable name"
 
 [node name="backline" type="Line2D" parent="connection"]
 z_index = 1
-position = Vector2(34, 34)
-points = PackedVector2Array(-14, 0, 112, 0)
+position = Vector2(33, 34)
+points = PackedVector2Array(-14, 0, 113, 0)
 default_color = Color(0.42, 0.42, 0.42, 1)
 joint_mode = 2
 begin_cap_mode = 2
@@ -115,7 +115,7 @@ antialiased = true
 
 [node name="actual" type="Line2D" parent="connection"]
 z_index = 1
-position = Vector2(34, 34)
+position = Vector2(33, 34)
 points = PackedVector2Array(-14, 0, 50, 0)
 joint_mode = 2
 begin_cap_mode = 2
@@ -126,9 +126,9 @@ antialiased = true
 modulate = Color(0.73, 0.73, 0.73, 1)
 z_index = 1
 layout_mode = 0
-offset_left = 116.0
+offset_left = 115.0
 offset_top = 14.0
-offset_right = 252.53384
+offset_right = 251.53384
 offset_bottom = 57.0
 scale = Vector2(0.2633309, 0.2633309)
 theme = ExtResource("3_7qyfr")
@@ -186,7 +186,6 @@ hint = 1
 server_name = &"layer_in"
 connection_type = 0
 area_paddings = Vector4(10, 5, 10, 5)
-multiple_splines = true
 origin_offset = Vector2(-5, 0)
 unpadded_area = Vector4(10, 10, 0, 10)
 dir_vector = Vector2(-1, 0)

@@ -75,6 +75,31 @@ func is_occupied(node: Node, layer: StringName) -> bool:
 func get_occupied(layer: StringName):
 	return occ_layers.get(layer, null)
 
+func loaded(string: String) -> int:
+	var inst = load(string).instantiate()
+	inst.window_hide()
+	add_child(inst); return 0
+
+var fg: ColorRect = null
+var tree_windows: Dictionary[String, TabWindow] = {}
+@onready var _load_window_scenes = {
+	"graph": $"../base/WIN_GRAPH",
+	"env": loaded("res://scenes/env_tab.tscn"),
+}
+var curr_window = ""
+func go_window(window_name: String):
+	if curr_window == window_name: return
+	if curr_window in tree_windows:
+		tree_windows[curr_window].window_hide()
+	if window_name in tree_windows:
+		tree_windows[window_name].window_show()
+		curr_window = window_name
+	
+
+
+
+
+
 func cap(value: float, decimals: int) -> float:
 	var factor = pow(10.0, decimals)
 	return floor(value * factor) / factor
@@ -130,10 +155,10 @@ func get_global_z_index(init_node: CanvasItem) -> int:
 		node = node.get_parent()
 	return z
 
-func get_label_text_size(lbl: Control) -> Vector2:
+func get_label_text_size(lbl: Control, use_scale: float = 1.0) -> Vector2:
 	# Measure label text size
 	var font = lbl.get_theme_font("font")
-	var size = lbl.get_theme_font_size("font_size")
+	var size = lbl.get_theme_font_size("font_size") * use_scale
 	return font.get_string_size(lbl.text, 0, -1, size)
 
 func layer_to_global(layer: CanvasLayer, point: Vector2):
@@ -392,5 +417,9 @@ func _ready() -> void:
 	top_splines_layer.layer = 4
 	top_splines_layer.follow_viewport_enabled = true
 	
-	get_tree().get_root().get_node("base").add_child(splines_layer)
-	get_tree().get_root().get_node("base").add_child(top_splines_layer)
+	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(splines_layer)
+	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(top_splines_layer)
+	
+	go_window("graph")
+	
+	

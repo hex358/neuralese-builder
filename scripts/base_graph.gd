@@ -70,6 +70,10 @@ func animate(delta: float):
 func _after_ready():
 	pass
 
+
+func is_branch_merge_allowed(who: Connection, to: Connection) -> bool:
+	return true
+
 func just_connected(who: Connection, to: Connection):
 	graphs.update_dependencies()
 	_just_connected(who, to)
@@ -108,6 +112,7 @@ func just_deattached(other_conn: Connection, my_conn: Connection):
 func _just_deattached(other_conn: Connection, my_conn: Connection):
 	pass
 
+
 func just_attached(other_conn: Connection, my_conn: Connection):
 	_just_attached(other_conn, my_conn)
 
@@ -117,6 +122,11 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 
 func deattaching(other_conn: Connection, my_conn: Connection):
 	_deattaching(other_conn, my_conn)
+
+func connecting(my_conn: Connection, other_conn: Connection):
+	_connecting(my_conn, other_conn)
+
+
 
 
 func _deattaching(other_conn: Connection, my_conn: Connection):
@@ -134,6 +144,7 @@ func disconnecting(who: Connection, from: Connection):
 
 func _just_connected(who: Connection, to: Connection):pass
 func _disconnecting(who: Connection, to: Connection):pass
+func _connecting(who: Connection, to: Connection):pass
 func _just_disconnected(who: Connection, from: Connection):pass
 
 func add_connection(conn: Connection):
@@ -227,6 +238,17 @@ func get_info() -> Dictionary:
 	#var fields = graphs.FieldPack.new(output, 0<len(info_nested_fields), info_nested_fields)
 	return output
 
+func map_properties(pack: Dictionary):
+	pass
+	#for i in pack:
+		
+
+func map_property():
+	pass
+
+func _map_property():
+	pass
+
 var info_nested_fields: Array = []
 func _get_info() -> Dictionary:
 	return {}
@@ -318,6 +340,15 @@ func _stopped_processing():
 
 func delete():
 	_stopped_processing()
+	for conn in output_key_by_conn:
+		for i in conn.outputs.duplicate():
+			conn.outputs[i].tied_to.detatch_spline(conn.outputs[i])
+			conn.end_spline(i)
+	for conn in input_key_by_conn:
+		var dup =  conn.inputs.duplicate()
+		for i in dup:
+			conn.detatch_spline(i)
+			i.origin.end_spline(dup[i])
 	queue_free()
 
 

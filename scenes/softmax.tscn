@@ -8,10 +8,10 @@ server_typename = &"SoftmaxNode"
 
 [node name="o2" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_kcfqd")]
 layout_mode = 0
-offset_left = -76.0
-offset_top = -14.0
-offset_right = -60.0
-offset_bottom = 7.0
+offset_left = -75.0
+offset_top = -12.0
+offset_right = -59.0
+offset_bottom = 5.0
 color = Color(1, 0.890196, 0.588235, 1)
 _accepted_datatypes = "layer1d"
 server_name = &"layer_in"
@@ -27,10 +27,10 @@ gradient_color = Color(1, 0.890196, 0.588235, 1)
 
 [node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_kcfqd")]
 layout_mode = 0
-offset_left = 18.0
-offset_top = -14.0
-offset_right = 34.0
-offset_bottom = 7.0
+offset_left = 17.0
+offset_top = -12.0
+offset_right = 33.0
+offset_bottom = 5.0
 color = Color(1, 0.890667, 0.59, 1)
 _accepted_datatypes = "layer1d"
 server_name = &"soft_out"
@@ -54,9 +54,9 @@ offset_bottom = 18.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 self_modulate = Color(1, 0.890196, 0.588235, 1)
-offset_left = 16.000008
+offset_left = 15.000008
 offset_top = 12.0
-offset_right = 151.0
+offset_right = 150.0
 offset_bottom = 55.0
 scale = Vector2(0.464786, 0.464786)
 text = "Softmax"
