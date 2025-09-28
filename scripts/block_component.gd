@@ -189,6 +189,8 @@ var add_to_size: bool = false
 
 @export_group("Scrollbar")
 @export var scrollbar_padding: int = 21
+@export var bar_scale_x: float = 1.2
+
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
 	
@@ -196,6 +198,9 @@ func initialize() -> void:
 		if not scroll:
 			default_scroll()
 		bar = scroll.get_v_scroll_bar()
+		bar.scale.x = bar_scale_x
+		bar.z_index = 2
+
 		if expanded_size == 0 and !dynamic_size:
 			expanded_size = base_size.y
 			add_to_size = true
@@ -242,18 +247,26 @@ func dynamic_child_enter(child: BlockComponent):
 	contain(child)
 
 func set_menu_size(x: float, y: float):
-	for i in 2:
-		base_size.x = x
-		size.x = x
-		scroll.size.x = base_size.x - scroll.position.x * 2
-		size.y = y
-		if max_size:
-			max_size = y
-		else:
-			expanded_size = y
-		scroll.size.y = expanded_size if not max_size else max_size - base_size.y - 10
+	base_size.x = x
+	size.x = x
+	scroll.size.x = base_size.x - scroll.position.x * 2
+	size.y = y
+	if max_size:
+		max_size = y
+	else:
+		expanded_size = y
+	scroll.size.y = expanded_size if not max_size else max_size - base_size.y - 10
 	arrange()
-
+	base_size.x = x
+	size.x = x
+	scroll.size.x = base_size.x - scroll.position.x * 2
+	size.y = y
+	if max_size:
+		max_size = y
+	else:
+		expanded_size = y
+	scroll.size.y = expanded_size if not max_size else max_size - base_size.y - 10
+	update_children_reveal.call_deferred()
 
 func resize(_size: Vector2) -> void:
 	_size = _size.floor()
@@ -349,6 +362,7 @@ func _ready() -> void:
 		_create_scaler_wrapper.call_deferred()
 	if button_type == ButtonType.DROPOUT_MENU:
 		update_children_reveal()
+
 
 	
 
@@ -567,25 +581,71 @@ var freedom: bool = true
 var bar: VScrollBar
 
 func update_children_reveal() -> void:
-	if not _contained: return
-	if not visible: return
-	var idx: int = 0
-	
-	for c in _contained:
-		idx += 1
-		var max = size.y + 15
-		#if idx == len(_contained) and len(_contained) > 1: max += 40
-		var pos = c._wrapped_in.position.y + scroll.position.y + c.base_size.y
-		c.visible = pos < max or (max_size and max_size < expanded_size)
-		c.freedom = pos - bar.value < max and pos - bar.value > base_size.y and size.y - base_size.y > 5
-		if not c.freedom:
-			c.modulate.a = 0.0
-		if (max_size and max_size < expanded_size):
-			var vec = Vector4(scroll.global_position.y if bar.value > 10.0 else -20.0, 
-		scroll.global_position.y+scroll.size.y*scroll.scale.y*mult.y if bar.value < bar.max_value-bar.page else 0.0,
-		0.0, 0.0)
-			c.set_instance_shader_parameter("extents", vec)
-			c.label.set_instance_shader_parameter("extents", vec)
+	if _contained.is_empty():
+		return
+	if not is_visible_in_tree():
+		return
+	if scroll == null or bar == null:
+		return
+
+	var has_shrink: bool = (max_size != 0 and max_size < expanded_size)
+	var size_diff_ok: bool = (size.y - base_size.y) > 5.0
+	var max_y = size.y + 15.0
+	var base_y: float = base_size.y
+	var s_pos_y: float = scroll.position.y
+	var s_glob_y: float = scroll.global_position.y
+	var bar_value: float = bar.value
+	var bar_max: float = bar.max_value
+	var bar_page: float = bar.page
+	var mul_y: float = mult.y
+
+	var extents = Vector4(0.0, 0.0, 0.0, 0.0)
+	if has_shrink:
+		var top_edge = s_glob_y if (bar_value > 10.0) else -20.0
+		var bottom_edge = (s_glob_y + scroll.size.y * scroll.scale.y * mul_y) if (bar_value < (bar_max - bar_page)) else 0.0
+		extents = Vector4(top_edge, bottom_edge, 0.0, 0.0)
+
+	var i = 0
+	var n = _contained.size()
+	while i < n:
+		var c: BlockComponent = _contained[i]
+		var pos = c._wrapped_in.position.y + s_pos_y + c.base_size.y
+		var new_visible = has_shrink or (pos < max_y)
+		if c.visible != new_visible:
+			c.visible = new_visible
+		var free = false
+		if new_visible:
+			var rel = pos - bar_value
+			free = size_diff_ok and (rel < max_y) and (rel > base_y)
+		if c.freedom != free:
+			c.freedom = free
+
+		if not free:
+			if c.modulate.a != 0.0:
+				var m = c.modulate
+				m.a = 0.0
+				c.modulate = m
+		elif free and has_shrink:
+			c.set_instance_shader_parameter("extents", extents)
+			c.label.set_instance_shader_parameter("extents", extents)
+
+		if (not has_shrink) and (pos >= max_y):
+			i += 1
+			while i < n:
+				var cc: BlockComponent = _contained[i]
+				if cc.visible:
+					cc.visible = false
+				if cc.freedom:
+					cc.freedom = false
+				if cc.modulate.a != 0.0:
+					var mm = cc.modulate
+					mm.a = 0.0
+					cc.modulate = mm
+				i += 1
+			return
+
+		i += 1
+
 
 var show_request:bool = false
 
@@ -717,13 +777,6 @@ func unroll():
 
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
-	if static_mode:
-		if is_visible_in_tree():
-			update_children_reveal()
-		#unroll()
-		return
-
-
 	var reset_menu = not static_mode and _is_not_menu()
 	if not is_visible_in_tree() and reset_menu:
 		glob.un_occupy(self, &"menu")
@@ -757,9 +810,9 @@ func _process_context_menu(delta: float) -> void:
 	
 	if scroll and visible and (max_size and max_size < expanded_size):
 		scroll.size.x = base_size.x - scrollbar_padding
-	
+
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
-		bar.scale.x = 1.2
+		bar.scale.x = bar_scale_x
 		var _bar = ui.is_focus(bar) or get_global_mouse_position().x > global_position.x + (size.x-40) * scale.x * parent.scale.x
 		if glob.mouse_just_pressed:
 			is_in_bar = _bar
@@ -784,7 +837,7 @@ func _process_context_menu(delta: float) -> void:
 					scroll_checking = false
 			elif !is_in_bar: 
 				update_children_reveal()
-				scroll.scroll_vertical = -get_global_mouse_position().y + scroll_anchor.y + scroll_value_anchor
+				scroll.scroll_vertical = (-get_global_mouse_position().y + scroll_anchor.y + scroll_value_anchor) / scale.y
 		else:
 			scroll_checking = false
 			scrolling = false
@@ -795,7 +848,10 @@ func _process_context_menu(delta: float) -> void:
 
 	if glob.mouse_scroll or (is_in_bar and glob.mouse_pressed) or scrolling:
 		update_children_reveal()
-	
+
+	if static_mode:
+		return
+
 	var do_reset: bool = (reset_menu and (right_click or (left_click and left_activate)) )
 	if left_activate and not mouse_open and do_reset:
 		state.holding = false

@@ -424,6 +424,7 @@ func _process(delta: float) -> void:
 			global_position.y = lerp(putting_back_anchor - take_offset_y, putting_back_anchor, putting_back)
 	
 	var unp_inside = is_mouse_inside(0)
+	#print( glob.get_occupied(&"menu"))
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not glob.is_occupied(self, &"graph") and 

@@ -68,6 +68,7 @@ offset_right = 63.0
 offset_bottom = -27.0
 color = Color(0.462745, 0.45098, 0.85098, 1)
 _accepted_datatypes = "dataset"
+hint = 1
 server_name = &"dataset_in"
 connection_type = 0
 area_paddings = Vector4(20, 20, 20, 20)
