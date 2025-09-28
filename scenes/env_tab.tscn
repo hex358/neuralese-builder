@@ -162,7 +162,6 @@ reset()
 print(\"Reset value: \" .. value)
 "
 context_menu_enabled = false
-scroll_smooth = true
 scroll_v_scroll_speed = 60.0
 minimap_draw = true
 minimap_width = 60
