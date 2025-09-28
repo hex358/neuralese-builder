@@ -655,6 +655,8 @@ func _proceed_show(at_position: Vector2) -> bool: # virtual
 func menu_show(at_position: Vector2) -> void:
 	if static_mode:
 		unroll()
+		await get_tree().process_frame
+		update_children_reveal()
 		return
 	if graphs.conns_active: return
 	if not _proceed_show(at_position): return
