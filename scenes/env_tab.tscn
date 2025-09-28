@@ -162,17 +162,23 @@ reset()
 print(\"Reset value: \" .. value)
 "
 context_menu_enabled = false
+scroll_smooth = true
+scroll_v_scroll_speed = 60.0
+minimap_draw = true
+minimap_width = 60
+caret_blink = true
+caret_mid_grapheme = true
 syntax_highlighter = SubResource("CodeHighlighter_vmr6c")
 gutters_draw_executing_lines = true
 gutters_draw_line_numbers = true
-code_completion_enabled = true
 indent_automatic = true
 auto_brace_completion_enabled = true
 
 [node name="scenes" type="ColorRect" parent="Control"]
 material = SubResource("ShaderMaterial_epnia")
+instance_shader_parameters/corner_radius_width_add = Vector2(10, 0.3)
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.39, 1, 0.766167, 1)
+instance_shader_parameters/outline_color = Color(0.7882353, 0.7882353, 0.7882353, 1)
 instance_shader_parameters/tuning = Color(0.4, 0.4, 0.4, 1)
 layout_mode = 1
 anchors_preset = 9
@@ -240,8 +246,9 @@ metadata/_custom_type_script = "uid://cppqde4187p8n"
 
 [node name="view" type="ColorRect" parent="Control"]
 material = SubResource("ShaderMaterial_epnia")
+instance_shader_parameters/corner_radius_width_add = Vector2(10, 0.3)
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.39, 1, 0.766167, 1)
+instance_shader_parameters/outline_color = Color(0.79, 0.79, 0.79, 1)
 instance_shader_parameters/tuning = Color(0.4, 0.4, 0.4, 1)
 layout_mode = 1
 anchors_preset = 11
@@ -285,10 +292,16 @@ scale = Vector2(0.77, 0.55)
 texture = ExtResource("12_5x1c3")
 
 [node name="TextureRect" type="TextureRect" parent="Control/view"]
-layout_mode = 0
-offset_top = 204.0
-offset_right = 240.0
-offset_bottom = 384.181
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 2.0
+offset_top = -90.090515
+offset_right = 242.0
+offset_bottom = 90.090515
+grow_vertical = 2
+pivot_offset = Vector2(0, 90)
 texture = SubResource("ViewportTexture_pw54c")
 
 [node name="Camera2D" type="Camera2D" parent="."]

@@ -8,6 +8,25 @@ func _ready() -> void:
 	$CanvasLayer.hide()
 	glob.un_occupy(list, &"menu")
 	glob.un_occupy(list, "menu_inside")
+	border_rect_1 = ColorRect.new()
+	border_rect_1.color.a = 0; border_rect_1.mouse_default_cursor_shape = Control.CURSOR_HSIZE
+	add_child(border_rect_1)
+	border_rect_2 = ColorRect.new()
+	border_rect_2.color.a = 0; border_rect_2.mouse_default_cursor_shape = Control.CURSOR_HSIZE
+	add_child(border_rect_2)
+	
+	repos()
+
+func repos():
+	border_rect_1.position = Vector2($Control/scenes.size.x - border_hit, 
+	$Control/scenes.global_position.y)
+	border_rect_1.size = Vector2(border_hit*2, $Control/scenes.size.y)
+	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, 
+	$Control/scenes.global_position.y)
+	border_rect_2.size = Vector2(border_hit, $Control/scenes.size.y)
+
+var border_rect_1: ColorRect
+var border_rect_2: ColorRect
 
 func _window_hide():
 	process_mode = Node.PROCESS_MODE_DISABLED
@@ -38,6 +57,10 @@ var max_scenes_size: float = 300.0
 var min_game_size: float = 150.0
 var max_game_size: float = 500.0
 var prev_win: Vector2 = Vector2()
+var border_hit = 10.0
+var _dragging: int = -1
+var _drag_anchor: float = 0.0
+
 func tick() -> void:
 	if not visible:
 		return
@@ -72,15 +95,13 @@ func tick() -> void:
 		$Control/view.position.x = scenes_w + codeedit_w
 		$Control/view.size.x = game_w
 
-		# Keep existing scaling logic (safe-guard against zero)
 		$Control/view/Label.resize()
 		var rect = $Control/view/TextureRect
 		if rect.size.x > 0.0:
-			rect.scale = Vector2.ONE * (game_w / float(rect.size.x))
+			rect.scale = Vector2.ONE * ((game_w-4) / float(rect.size.x))
 		else:
 			rect.scale = Vector2.ONE
 
-		# menu sizing for the scenes list stays consistent
 		var scenes_size_y = $Control/scenes.size.y
 		list.set_menu_size(
 			($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
@@ -88,6 +109,11 @@ func tick() -> void:
 		)
 
 		prev_win = glob.window_size
+		repos()
+
+
+
+
 
 
 func handle_division_drag() -> void:
@@ -98,69 +124,50 @@ func handle_division_drag() -> void:
 	if win <= 0.0:
 		return
 
-	# Current “proposed” widths, respecting clamps (same logic style as your layout)
 	var scenes_w = $Control/scenes.size.x
-	#print(scenes_w)
 	var code_target = win * division_ratio[1]
 	var game_w = clamp(win - scenes_w - code_target, min_game_size, max_game_size)
 	var code_w = max(0.0, win - scenes_w - game_w)
 
-	var border1 = scenes_w                   # x of scenes↔code border
-	var border2 = scenes_w + code_w          # x of code↔game border
+	var border1 = scenes_w
+	var border2 = scenes_w + code_w
 
-	# Mouse state
 	var mp = get_global_mouse_position()
 	var ctrl = $Control
 	var in_y = mp.y >= ctrl.position.y and mp.y <= (ctrl.position.y + ctrl.size.y)
+	
 
-	# Begin drag?
+
 	if glob.mouse_just_pressed and in_y:
-		if abs(mp.x - border1) <= BORDER_HIT:
+		if abs(mp.x - border1) <= border_hit:
 			_dragging = 0
 			_drag_anchor = border1 - mp.x
-		elif abs(mp.x - border2) <= BORDER_HIT:
+		elif mp.x - border2 <= border_hit and mp.x > border2:
 			_dragging = 1
 			_drag_anchor = border2 - mp.x
 
-	# Dragging
 	if glob.mouse_pressed and _dragging != -1:
 		var new_x = clamp(mp.x + _drag_anchor, 0.0, win)
 
 		if _dragging == 0:
-			# Move scenes border; try to keep the right border where it is
 			var new_scenes = clamp(new_x, min_scenes_size, max_scenes_size)
 			var desired_code = max(0.0, border2 - new_scenes)
 
-			# Enforce game clamps by adjusting code width
 			var new_game = clamp(win - new_scenes - desired_code, min_game_size, max_game_size)
 			var new_code = max(0.0, win - new_scenes - new_game)
 
-			# Update ratios
 			division_ratio[0] = new_scenes / win
 			division_ratio[1] = new_code / win
 
 		elif _dragging == 1:
-			# Move right border; scenes width fixed
 			var desired_code = max(0.0, new_x - scenes_w)
 
-			# Enforce game clamps by adjusting code width
 			var new_game = clamp(win - scenes_w - desired_code, min_game_size, max_game_size)
 			var new_code = max(0.0, win - scenes_w - new_game)
 
-			# Update ratios
 			division_ratio[0] = scenes_w / win
 			division_ratio[1] = new_code / win
 
-	# End drag
 	if not glob.mouse_pressed and _dragging != -1:
 		_dragging = -1
 		_drag_anchor = 0.0
-
-
-
-const BORDER_HIT = 6.0  # px, clickable width around borders
-
-var _dragging: int = -1  # -1 none, 0 = left border (scenes↔code), 1 = right border (code↔game)
-var _drag_anchor: float = 0.0  # mouse-to-border offset to avoid snapping
-
-		
