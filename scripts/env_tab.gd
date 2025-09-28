@@ -47,6 +47,9 @@ func _window_show():
 	$Control/scenes/list.menu_show($Control/scenes/list.global_position)
 	prev_win = Vector2()
 	tick()
+	for i in 5:
+		await get_tree().process_frame
+	$Control/scenes/list.update_children_reveal()
 
 func _process(delta: float) -> void:
 	tick()
