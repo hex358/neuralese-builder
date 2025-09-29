@@ -341,6 +341,11 @@ var menu_canvas: CanvasLayer = null
 func get_display_mouse_position():
 	return menu_canvas.root.get_global_mouse_position()
 
+func twine(a: float, b: float, factor: float):
+	pass
+	#return lerp(a, b, 1.0 - exp(-speed * delta))
+
+
 var window_size: Vector2 = Vector2.ONE
 var window_middle: Vector2 = Vector2.ONE
 

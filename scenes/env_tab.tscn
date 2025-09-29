@@ -1,8 +1,9 @@
-[gd_scene load_steps=17 format=3 uid="uid://cn053wastjqhs"]
+[gd_scene load_steps=18 format=3 uid="uid://cn053wastjqhs"]
 
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="1_r7hpq"]
 [ext_resource type="Script" uid="uid://dypdiu1layg61" path="res://scripts/env_tab.gd" id="1_waelc"]
 [ext_resource type="Script" uid="uid://cq08akbnuqpp8" path="res://scripts/lua_highliter.gd" id="2_waelc"]
+[ext_resource type="Script" uid="uid://ccj76bxg1fb4t" path="res://scripts/code_edit.gd" id="4_c5gg0"]
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="4_rw6ys"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="5_d4rvk"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="6_d4rvk"]
@@ -13,7 +14,7 @@
 [ext_resource type="Script" uid="uid://xegaq4ui6oi1" path="res://scenes/other_procnodes.gd" id="11_5xxu1"]
 [ext_resource type="Texture2D" uid="uid://ukxnlbmbabr" path="res://game_assets/icons/icon.svg" id="12_5x1c3"]
 
-[sub_resource type="CodeHighlighter" id="CodeHighlighter_vmr6c"]
+[sub_resource type="CodeHighlighter" id="CodeHighlighter_c5gg0"]
 number_color = Color(0.827451, 0.21176471, 0.50980395, 1)
 symbol_color = Color(0.8627451, 0.8627451, 0.8627451, 1)
 function_color = Color(0.70980394, 0.5372549, 0, 1)
@@ -21,10 +22,7 @@ member_variable_color = Color(0.42352942, 0.44313726, 0.76862746, 1)
 keyword_colors = {
 "and": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "break": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"coroutine": Color(0.16470589, 0.6313726, 0.59607846, 1),
-"debug": Color(0.16470589, 0.6313726, 0.59607846, 1),
 "do": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"dofile": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "else": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "elseif": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "end": Color(0.8627451, 0.19607843, 0.18431373, 1),
@@ -32,31 +30,19 @@ keyword_colors = {
 "false": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "for": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "function": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"getmetatable": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "goto": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "if": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "in": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "ipairs": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"load": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"loadfile": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "local": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "math": Color(0.16470589, 0.6313726, 0.59607846, 1),
 "next": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "nil": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "not": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "or": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"os": Color(0.16470589, 0.6313726, 0.59607846, 1),
 "pairs": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"pcall": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"print": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"rawequal": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"rawget": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"rawset": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "repeat": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"require": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "return": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"select": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"setmetatable": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "string": Color(0.16470589, 0.6313726, 0.59607846, 1),
 "table": Color(0.16470589, 0.6313726, 0.59607846, 1),
 "then": Color(0.8627451, 0.19607843, 0.18431373, 1),
@@ -65,16 +51,14 @@ keyword_colors = {
 "true": Color(0.8627451, 0.19607843, 0.18431373, 1),
 "type": Color(0.14901961, 0.54509807, 0.8235294, 1),
 "until": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"utf8": Color(0.16470589, 0.6313726, 0.59607846, 1),
-"while": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"xpcall": Color(0.14901961, 0.54509807, 0.8235294, 1)
+"while": Color(0.8627451, 0.19607843, 0.18431373, 1)
 }
 color_regions = {
-"\" \"": Color(0.80784315, 0.5686275, 0.47058824, 1),
-"' '": Color(0.80784315, 0.5686275, 0.47058824, 1),
-"--": Color(0.41568628, 0.6, 0.33333334, 1),
-"--[[ ]]": Color(0.41568628, 0.6, 0.33333334, 1),
-"[[ ]]": Color(0.80784315, 0.5686275, 0.47058824, 1)
+"\" \"": Color(0.52156866, 0.6, 0, 1),
+"' '": Color(0.52156866, 0.6, 0, 1),
+"--": Color(0.34509805, 0.43137255, 0.45882353, 1),
+"--[[ ]]": Color(0.34509805, 0.43137255, 0.45882353, 1),
+"[[ ]]": Color(0.52156866, 0.6, 0, 1)
 }
 script = ExtResource("2_waelc")
 metadata/_custom_type_script = "uid://cq08akbnuqpp8"
@@ -93,9 +77,10 @@ shader_parameter/gaussian_mix = 1.0
 shader_parameter/gaussian_step = 1.0
 shader_parameter/use_bg = true
 
-[sub_resource type="Resource" id="Resource_n8ca6"]
+[sub_resource type="Resource" id="Resource_5x1c3"]
 script = ExtResource("8_81s2i")
 hover_color = Color(1.3, 1.1, 1.1, 1)
+hover_mult = 1.3
 press_color = Color(1.1, 0.9, 0.9, 1)
 _press_scale = 0.97
 animation_speed = 1.951
@@ -167,11 +152,13 @@ minimap_draw = true
 minimap_width = 60
 caret_blink = true
 caret_mid_grapheme = true
-syntax_highlighter = SubResource("CodeHighlighter_vmr6c")
+syntax_highlighter = SubResource("CodeHighlighter_c5gg0")
 gutters_draw_executing_lines = true
 gutters_draw_line_numbers = true
+code_completion_enabled = true
 indent_automatic = true
 auto_brace_completion_enabled = true
+script = ExtResource("4_c5gg0")
 
 [node name="scenes" type="ColorRect" parent="Control"]
 material = SubResource("ShaderMaterial_epnia")
@@ -222,8 +209,8 @@ max_size = 210
 [node name="name" parent="Control/scenes/list" instance=ExtResource("6_o688u")]
 z_index = 2
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
-instance_shader_parameters/tuning = Color(0.44, 0.2244, 0.2244, 0.639216)
+instance_shader_parameters/outline_color = Color(0.3372549, 0.72156864, 0.8392157, 1)
+instance_shader_parameters/tuning = Color(0.2106, 0.46314007, 0.54, 0.6392157)
 layout_mode = 0
 offset_left = 200.0
 offset_top = 221.333
@@ -236,7 +223,7 @@ text = "Hello!!"
 base_size = Vector2(236, 41.000015)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
-config = SubResource("Resource_n8ca6")
+config = SubResource("Resource_5x1c3")
 
 [node name="ProceduralNodes" type="Node" parent="Control/scenes/list" node_paths=PackedStringArray("instance")]
 script = ExtResource("11_5xxu1")
@@ -278,12 +265,7 @@ size = Vector2i(240, 180)
 [node name="CanvasLayer" type="CanvasLayer" parent="Control/view/game"]
 layer = -128
 
-[node name="ColorRect" type="ColorRect" parent="Control/view/game/CanvasLayer"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="drawer" type="Node2D" parent="Control/view/game/CanvasLayer"]
 
 [node name="Sprite2D" type="Sprite2D" parent="Control/view/game"]
 position = Vector2(67.91, 82.295)

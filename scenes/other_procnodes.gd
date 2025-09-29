@@ -11,7 +11,7 @@ func _get_nodes(args, kwargs = {}) -> Array[Node]:
 		i += 1
 		var new: BlockComponent = frozen_duplicate.duplicate()
 		new.placeholder = false
-		new.text = "Spline %s"%i
+		new.text = "Scene_test_%s"%i
 		output.append(new)
 	
 	return output

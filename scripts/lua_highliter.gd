@@ -2,7 +2,6 @@
 class_name LuaHighlighter
 extends CodeHighlighter
 
-# Lua-ish palette
 const C_KW     := Color8(220, 50, 47)    # crimson keywords
 const C_BUILTIN:= Color8(38, 139, 210)   # blue builtins
 const C_TYPES  := Color8(42, 161, 152)   # cyan/teal libs
@@ -29,14 +28,12 @@ func _init() -> void:
 
 	# Builtins
 	_add_keywords_color([
-		"print","pairs","ipairs","next","type","tonumber","tostring","error",
-		"pcall","xpcall","select","require","dofile","load","loadfile","rawget",
-		"rawset","rawequal","setmetatable","getmetatable"
+		"pairs","ipairs","next","type","tonumber","tostring","error",
 	], C_BUILTIN)
 
 	# Standard libs
 	_add_keywords_color([
-		"math","table","string","utf8","os","debug","coroutine"
+		"math","table","string"
 	], C_TYPES)
 
 	# Comments

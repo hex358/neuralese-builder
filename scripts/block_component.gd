@@ -581,11 +581,11 @@ var freedom: bool = true
 var bar: VScrollBar
 
 func update_children_reveal() -> void:
-	if _contained.is_empty():
+	if _contained.is_empty(): 
+		_reveal_dirty = false
 		return
-	if not is_visible_in_tree():
-		return
-	if scroll == null or bar == null:
+	if not is_visible_in_tree() or scroll == null or bar == null:
+		_reveal_dirty = false
 		return
 
 	var has_shrink: bool = (max_size != 0 and max_size < expanded_size)
@@ -605,29 +605,40 @@ func update_children_reveal() -> void:
 		var bottom_edge = (s_glob_y + scroll.size.y * scroll.scale.y * mul_y) if (bar_value < (bar_max - bar_page)) else 0.0
 		extents = Vector4(top_edge, bottom_edge, 0.0, 0.0)
 
-	var i = 0
-	var n = _contained.size()
+	var i: int = 0
+	var n: int = _contained.size()
+	var stay_hot: bool = false
+
 	while i < n:
 		var c: BlockComponent = _contained[i]
 		var pos = c._wrapped_in.position.y + s_pos_y + c.base_size.y
 		var new_visible = has_shrink or (pos < max_y)
 		if c.visible != new_visible:
 			c.visible = new_visible
-		var free = false
+			stay_hot = true
+
+		var free := false
 		if new_visible:
 			var rel = pos - bar_value
 			free = size_diff_ok and (rel < max_y) and (rel > base_y)
+
 		if c.freedom != free:
 			c.freedom = free
+			stay_hot = true
 
 		if not free:
-			if c.modulate.a != 0.0:
+			# target alpha = 0
+			if c.modulate.a > _A0:
 				var m = c.modulate
 				m.a = 0.0
 				c.modulate = m
-		elif free and has_shrink:
-			c.set_instance_shader_parameter("extents", extents)
-			c.label.set_instance_shader_parameter("extents", extents)
+				stay_hot = true
+		else:
+			if c.modulate.a < _A1:
+				stay_hot = true
+			if has_shrink:
+				c.set_instance_shader_parameter("extents", extents)
+				c.label.set_instance_shader_parameter("extents", extents)
 
 		if (not has_shrink) and (pos >= max_y):
 			i += 1
@@ -635,17 +646,27 @@ func update_children_reveal() -> void:
 				var cc: BlockComponent = _contained[i]
 				if cc.visible:
 					cc.visible = false
+					stay_hot = true
 				if cc.freedom:
 					cc.freedom = false
-				if cc.modulate.a != 0.0:
+					stay_hot = true
+				if cc.modulate.a > _A0:
 					var mm = cc.modulate
 					mm.a = 0.0
 					cc.modulate = mm
+					stay_hot = true
 				i += 1
+			_reveal_dirty = stay_hot
 			return
 
 		i += 1
 
+	_reveal_dirty = stay_hot
+
+
+var _reveal_dirty: bool = false
+const _A0 := 0.001
+const _A1 := 0.95
 
 var show_request:bool = false
 
@@ -847,8 +868,7 @@ func _process_context_menu(delta: float) -> void:
 		scroll_checking = false
 		glob.un_occupy(self, &"scroll")
 
-
-	if glob.mouse_scroll or (is_in_bar and glob.mouse_pressed) or scrolling:
+	if glob.mouse_scroll or (is_in_bar and glob.mouse_pressed) or scrolling or _reveal_dirty:
 		update_children_reveal()
 
 	if static_mode:
