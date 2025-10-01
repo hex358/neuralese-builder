@@ -202,7 +202,10 @@ func _accepts(conn: Connection) -> bool:
 
 const default_max_splines: int = 1
 func multiple(conn: Connection) -> bool:
-	
+	# If multiple_splines is disabled → hard-limit to one spline total
+	if not multiple_splines:
+		return outputs.size() == 0 or active_outputs.keys()[0] == outputs.keys()[0]
+
 	var kw: StringName = conn.conn_count_keyword
 	var allowed: int = default_max_splines
 	if max_splines_by_keyword.has(kw):
@@ -298,7 +301,7 @@ func _process(delta: float) -> void:
 	#	print(glob.is_occupied(self, &"menu_inside"))
 	if connection_type == OUTPUT and inside and not occ:
 		if mouse_just_pressed:
-			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active: # TODO: implement router splines
+			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active and (!multiple_splines or outputs.size() == 0): # TODO: implement router splines
 				var nspline = add_spline()
 				start_spline(nspline)
 				glob.activate_spline(outputs[nspline])

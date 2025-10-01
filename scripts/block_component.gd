@@ -937,7 +937,7 @@ func _process_context_menu(delta: float) -> void:
 	var left_click = glob.mouse_just_pressed if !left_activate else glob.mouse_alt_just_pressed
 	var right_click = glob.mouse_alt_just_pressed if !left_activate else glob.mouse_just_pressed
 	
-	if graphs.conns_active:
+	if graphs.conns_active and button_type == ButtonType.DROPOUT_MENU:
 		left_click = false
 		right_click = false
 	

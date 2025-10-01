@@ -45,7 +45,6 @@ _accepted_datatypes = "data"
 server_name = &"train_out"
 connection_type = 1
 area_paddings = Vector4(20, 20, 20, 20)
-multiple_splines = true
 origin_offset = Vector2(-4, 0)
 parent_graph = NodePath("..")
 conn_count_keyword = "train"
@@ -76,3 +75,14 @@ offset_bottom = 49.0
 scale = Vector2(0.463877, 0.463877)
 theme = ExtResource("4_twvuy")
 text = "TrainBegin"
+
+[node name="Label2" type="Label" parent="ColorRect/root"]
+z_index = 1
+layout_mode = 0
+offset_left = 9.0
+offset_top = 25.000002
+offset_right = 202.0
+offset_bottom = 68.0
+scale = Vector2(0.463877, 0.463877)
+theme = ExtResource("4_twvuy")
+text = "Dataset"
