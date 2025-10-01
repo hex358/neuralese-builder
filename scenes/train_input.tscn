@@ -55,31 +55,11 @@ fade_speed = 20.0
 size_lerp_speed = 20.0
 tab_size_adds = Dictionary[StringName, float]({
 &"adam": 0.0,
-&"sgd": 10.0
+&"sgd": 0.0
 })
 server_typename = &"TrainInput"
 
-[node name="i2" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
-instance_shader_parameters/corner_radius_width_add = Vector2(6.485, 0)
-layout_mode = 0
-offset_left = 39.0
-offset_top = -53.0
-offset_right = 63.0
-offset_bottom = -27.0
-color = Color(0.462745, 0.45098, 0.85098, 1)
-_accepted_datatypes = "dataset"
-hint = 1
-server_name = &"dataset_in"
-connection_type = 0
-area_paddings = Vector4(20, 20, 20, 20)
-multiple_splines = true
-origin_offset = Vector2(-4, 0)
-dir_vector = Vector2(-1, 0)
-parent_graph = NodePath("..")
-conn_count_keyword = "train"
-gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
-
-[node name="labels" type="Control" parent="." index="1"]
+[node name="labels" type="Control" parent="." index="0"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -96,50 +76,38 @@ scale = Vector2(0.311419, 0.311419)
 theme = ExtResource("8_10eqb")
 text = "Optimizer"
 
-[node name="Label2" type="Label" parent="labels" index="1"]
+[node name="Label3" type="Label" parent="labels" index="1"]
 self_modulate = Color(0.65, 0.65, 0.65, 1)
 z_index = 1
 layout_mode = 0
 offset_left = -68.0
-offset_top = 4.0
+offset_top = 4.000002
 offset_right = 125.0
-offset_bottom = 51.0
-scale = Vector2(0.311, 0.311)
-theme = ExtResource("8_10eqb")
-text = "ErrorFunc"
-
-[node name="Label3" type="Label" parent="labels" index="2"]
-self_modulate = Color(0.65, 0.65, 0.65, 1)
-z_index = 1
-layout_mode = 0
-offset_left = -68.0
-offset_top = 21.0
-offset_right = 125.0
-offset_bottom = 65.0
+offset_bottom = 48.0
 scale = Vector2(0.311, 0.311)
 theme = ExtResource("8_10eqb")
 text = "LearnRate "
 
-[node name="Label4" type="Label" parent="labels" index="3"]
+[node name="Label4" type="Label" parent="labels" index="2"]
 self_modulate = Color(0.65, 0.65, 0.65, 1)
 z_index = 1
 layout_mode = 0
 offset_left = -68.0
-offset_top = 38.0
+offset_top = 22.337639
 offset_right = 125.0
-offset_bottom = 82.0
+offset_bottom = 66.33764
 scale = Vector2(0.311, 0.311)
 theme = ExtResource("8_10eqb")
 text = "WeightDec"
 
-[node name="i" parent="." index="2" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
+[node name="i" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
 layout_mode = 0
-offset_left = -88.0
-offset_top = 4.0
-offset_right = -70.0
-offset_bottom = 30.0
+offset_left = -87.0
+offset_top = 7.0
+offset_right = -69.0
+offset_bottom = 27.0
 color = Color(0.462745, 0.45098, 0.85098, 1)
-_accepted_datatypes = "model_output data"
+_accepted_datatypes = "model_output"
 server_name = &"pred_in"
 connection_type = 0
 area_paddings = Vector4(20, 20, 20, 20)
@@ -150,7 +118,7 @@ parent_graph = NodePath("..")
 conn_count_keyword = "train"
 gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
 
-[node name="ColorRect" parent="." index="3"]
+[node name="ColorRect" parent="." index="2"]
 instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
 offset_left = -78.0
 offset_top = -45.0
@@ -165,7 +133,7 @@ offset_bottom = 49.0
 scale = Vector2(0.463877, 0.463877)
 text = "TrainHead"
 
-[node name="optimizer" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+[node name="optimizer" parent="." index="3" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -233,82 +201,14 @@ base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("7_dq5jb")
 
-[node name="loss" parent="." index="5" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+[node name="lr" parent="." index="4" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
 offset_left = -9.0
-offset_top = 4.0
+offset_top = 3.9999976
 offset_right = 58.0
-offset_bottom = 24.0
-scale = Vector2(0.733764, 0.733764)
-mouse_filter = 1
-color = Color(0.584314, 0.576471, 0.85098, 1)
-button_type = 2
-base_scale_x = 0.45
-resize_after = 6
-text = "MSE"
-base_size = Vector2(67, 20)
-expanded_size = 72
-arrangement_padding = Vector2(5, 5)
-mouse_open = false
-menu_name = &"g"
-max_size = 170
-config = SubResource("Resource_b41bo")
-graph = NodePath("..")
-
-[node name="ColorRect2" parent="loss" index="1" instance=ExtResource("4_d1efk")]
-visible = false
-material = ExtResource("6_s3o4y")
-instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
-instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
-layout_mode = 0
-offset_left = -1.0
-offset_top = 4.0
-offset_right = 98.0
-offset_bottom = 40.0
-scale = Vector2(0.601426, 0.601426)
-pivot_offset = Vector2(49.5, 18)
-button_type = 1
-top = true
-hint = &"mse"
-resize_after = 4
-text = "MSE"
-base_size = Vector2(99, 36)
-alignment = Vector2(0.5, 0.5)
-config = ExtResource("7_dq5jb")
-
-[node name="ColorRect3" parent="loss" index="2" instance=ExtResource("4_d1efk")]
-visible = false
-material = ExtResource("6_s3o4y")
-instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
-instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
-layout_mode = 0
-offset_left = -14.0
-offset_top = 4.0
-offset_right = 106.0
-offset_bottom = 40.0
-scale = Vector2(0.601426, 0.601426)
-pivot_offset = Vector2(60, 18)
-button_type = 1
-top = true
-hint = &"cross_entropy"
-resize_after = 5
-text = "CrossE"
-base_size = Vector2(120, 36)
-alignment = Vector2(0.5, 0.5)
-config = ExtResource("7_dq5jb")
-
-[node name="lr" parent="." index="6" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
-instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
-instance_shader_parameters/extents = Vector2(0, 0)
-layout_mode = 0
-offset_left = -9.0
-offset_top = 21.0
-offset_right = 58.0
-offset_bottom = 41.0
+offset_bottom = 23.999998
 scale = Vector2(0.733764, 0.733764)
 mouse_filter = 1
 color = Color(0.584314, 0.576471, 0.85098, 1)
@@ -390,14 +290,14 @@ base_size = Vector2(120, 36)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("7_dq5jb")
 
-[node name="switch" parent="." index="7" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
+[node name="switch" parent="." index="5" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
 offset_left = -12.0
-offset_top = 35.0
+offset_top = 19.337637
 offset_right = 8.0
-offset_bottom = 55.0
+offset_bottom = 39.33764
 scale = Vector2(0.733764, 0.733764)
 pivot_offset = Vector2(10, 10)
 mouse_filter = 1
@@ -407,7 +307,7 @@ top = true
 base_scale_x = 0.45
 resize_after = 6
 text = "I"
-base_size = Vector2(20, 20)
+base_size = Vector2(20, 20.000002)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -417,7 +317,7 @@ max_size = 170
 config = SubResource("Resource_10eqb")
 graph = NodePath("..")
 
-[node name="ColorRect2" parent="." index="8" instance=ExtResource("9_s3o4y")]
+[node name="ColorRect2" parent="." index="6" instance=ExtResource("9_s3o4y")]
 layout_mode = 0
 offset_left = 49.0
 offset_top = -15.0
@@ -451,11 +351,11 @@ scale = Vector2(0.2, 0.2)
 theme = ExtResource("8_10eqb")
 text = "0.0s"
 
-[node name="sgd_tab" type="Control" parent="." index="9"]
-visible = false
+[node name="sgd_tab" type="Control" parent="." index="7"]
 anchors_preset = 0
+offset_top = -16.0
 offset_right = 40.0
-offset_bottom = 40.0
+offset_bottom = 24.0
 
 [node name="Label4" type="Label" parent="sgd_tab" index="0"]
 self_modulate = Color(0.65, 0.65, 0.65, 1)
@@ -491,12 +391,12 @@ scale = Vector2(0.355093, 0.355093)
 theme = ExtResource("8_10eqb")
 text = "SGD"
 
-[node name="adam_tab" type="Control" parent="." index="10"]
+[node name="adam_tab" type="Control" parent="." index="8"]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="train" parent="." index="11" instance=ExtResource("4_d1efk")]
+[node name="train" parent="." index="9" instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -522,7 +422,7 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_s3o4y")
 
-[node name="YY" parent="." index="12" instance=ExtResource("10_b41bo")]
+[node name="YY" parent="." index="10" instance=ExtResource("10_b41bo")]
 layout_mode = 0
 offset_left = 117.0
 offset_top = 59.0
@@ -542,7 +442,6 @@ resize_after = 4
 change_always_accepted = false
 
 [connection signal="child_button_release" from="optimizer" to="." method="_on_optimizer_child_button_release"]
-[connection signal="child_button_release" from="loss" to="." method="_on_loss_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
 [connection signal="released" from="switch" to="." method="_on_switch_released"]

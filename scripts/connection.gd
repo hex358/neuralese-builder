@@ -59,7 +59,7 @@ func delete():
 func is_mouse_inside(padding:Vector4=area_paddings*1.5) -> bool:
 	# padded hit area
 	#if glob.is_consumed(self, "conn_mouse_inside"): return false
-
+	padding = Vector4()
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x: return false
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale
@@ -164,6 +164,8 @@ func detatch_spline(spline: Spline):
 
 var conn_counts: Dictionary = {&"": [0]}
 func _ready() -> void:
+	if !Engine.is_editor_hint() and !is_instance_valid(parent_graph):
+		parent_graph = get_parent()
 	if !Engine.is_editor_hint() and parent_graph:
 		parent_graph.add_connection(self)
 
@@ -299,9 +301,9 @@ func _process(delta: float) -> void:
 	var occ = glob.is_occupied(self, "conn_active")
 	#if connection_type == OUTPUT:
 	#	print(glob.is_occupied(self, &"menu_inside"))
-	if connection_type == OUTPUT and inside and not occ:
+	if connection_type == OUTPUT and inside and not occ and not glob.is_consumed(self, "mouse_press"):
 		if mouse_just_pressed:
-			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active and (!multiple_splines or outputs.size() == 0): # TODO: implement router splines
+			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active and (multiple_splines or outputs.size() == 0): # TODO: implement router splines
 				var nspline = add_spline()
 				start_spline(nspline)
 				glob.activate_spline(outputs[nspline])

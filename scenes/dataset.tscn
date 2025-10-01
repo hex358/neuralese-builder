@@ -1,0 +1,77 @@
+[gd_scene load_steps=6 format=3 uid="uid://dkx7jmpcdb0sw"]
+
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_14mbi"]
+[ext_resource type="Script" uid="uid://ckswduxqerno3" path="res://scripts/dataset_node.gd" id="2_jap0d"]
+[ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_0wvvd"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="4_yjs75"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_7c80c"]
+
+[node name="Base" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 50.0
+script = ExtResource("2_jap0d")
+server_typename = &"DatasetName"
+area_padding = 0.0
+
+[node name="o3" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_14mbi")]
+instance_shader_parameters/corner_radius_width_add = Vector2(2, 0)
+layout_mode = 0
+offset_left = -11.0
+offset_top = 10.0
+offset_right = 9.0
+offset_bottom = 31.0
+color = Color(0.765, 0.53, 1, 1)
+_accepted_datatypes = "dataset_type"
+server_name = &"netname"
+connection_type = 1
+area_paddings = Vector4(20, 20, 20, 20)
+origin_offset = Vector2(8, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
+dir_vector = Vector2(0, 1)
+parent_graph = NodePath("..")
+conn_count_keyword = "netname"
+gradient_color = Color(0.7019608, 0.4, 1, 1)
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = ExtResource("3_0wvvd")
+instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
+instance_shader_parameters/outline_color = Color(0.9369999, 0.73, 1, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.639216)
+layout_mode = 0
+offset_left = -56.0
+offset_top = -24.0
+offset_right = 56.0
+offset_bottom = 22.0
+
+[node name="root" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="ColorRect/root"]
+z_index = 1
+layout_mode = 0
+offset_left = 26.0
+offset_top = 2.0
+offset_right = 238.0
+offset_bottom = 45.0
+scale = Vector2(0.419329, 0.419329)
+theme = ExtResource("4_yjs75")
+text = "Dataset"
+
+[node name="LineEdit" parent="." instance=ExtResource("5_7c80c")]
+layout_mode = 0
+offset_left = -48.000004
+offset_top = -2.0
+offset_right = 261.9465
+offset_bottom = 46.0
+scale = Vector2(0.3097309, 0.3097309)
+placeholder_text = "Dataset name"
+max_length = 40
+expand_to_text_length = true
+context_menu_enabled = false
+resize_after = 16

@@ -12,22 +12,42 @@ func train_state_received(bytes: PackedByteArray):
 		var loss = data["val_loss"]
 		graphs._training_head.push_acceptance(1.0 - loss, 0.0)
 
+	#var chain = branch_cache.get_or_add("chain", [])
+	#if  (chain and chain[-1].server_typename in block_types): return
+	#chain.append(from.parent_graph)
+	#
+	#if to.parent_graph.server_typename == "Flatten":
+		#to.parent_graph.set_count(count_reach)
+#
+#func _just_deattached(other_conn: Connection, my_conn: Connection):
+	#set_count(0)
+	#graphs.update_dependencies(self)
+	#count_reach = 0
+	#graphs.reach(self, call_count)
 
 var training_sockets := {}
 func start_train(train_input: Graph, args: Dictionary = {}):
-	var input = graphs._reach_input(train_input)
-	if is_instance_valid(input):
-		var compressed = glob.compress_dict_gzip({
-			"train": 1,
-			"session": "neriqward",
-			"graph": graphs.get_syntax_tree(input)
-		})
-		var a = sockets.connect_to("ws/train", train_state_received)
-		training_sockets[train_input] = a
-		a.connected.connect(func():
-			a.send(compressed))
-		a.closed.connect(func(...x):
-			train_input.train_stop())
+	var train_input_origin = graphs._reach_input(train_input, "TrainBegin")
+	var execute_input_origin = null
+	var cachify = func(from: Connection, to: Connection, branch_cache: Dictionary):
+		if to.parent_graph.server_typename == "RunModel":
+			assert(not execute_input_origin, "compile failed, run_model node >1 times banned")
+			execute_input_origin = to.parent_graph
+	#var all = 
+	if !is_instance_valid(train_input_origin) or !execute_input_origin: return
+	graphs.reach(train_input_origin, cachify)
+	print(execute_input_origin, train_input_origin)
+	var compressed = glob.compress_dict_gzip({
+		"session": "neriqward",
+		"graph": graphs.get_syntax_tree(execute_input_origin),
+		"train_graph": graphs.get_syntax_tree(train_input_origin),
+	})
+	var a = sockets.connect_to("ws/train", train_state_received)
+	training_sockets[train_input] = a
+	a.connected.connect(func():
+		a.send(compressed))
+	a.closed.connect(func(...x):
+		train_input.train_stop())
 
 func stop_train(train_input: Graph):
 	if not train_input in training_sockets:

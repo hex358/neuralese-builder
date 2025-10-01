@@ -31,6 +31,10 @@ func _menu_handle_release(button: BlockComponent):
 			type = graphs.graph_types.augmenter
 		"run_model":
 			type = graphs.graph_types.run_model
+		"model_name":
+			type = graphs.graph_types.model_name
+		"dataset":
+			type = graphs.graph_types.dataset
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

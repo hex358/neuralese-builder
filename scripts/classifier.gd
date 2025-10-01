@@ -9,7 +9,6 @@ func push_values(values: Array, percent: bool = false):
 	var minimal = values.min()
 	var maximal = values.max()
 	var add = "%" if percent else ""
-	
 	for unit in len(values):
 		var value = (values[unit] - minimal) / float(maximal - minimal)
 		var capped = glob.cap(values[unit], 2) if !percent else round(values[unit]*100.0)
@@ -30,6 +29,8 @@ func _unit_just_added() -> void:
 			push_values(value_cache, true)
 		else:
 			push_values(value_cache, false)
+	else:
+		push_values(value_cache, false)
 	
 func _deattaching(other_conn: Connection, my_conn: Connection):
 	var ancestor = get_first_ancestors()

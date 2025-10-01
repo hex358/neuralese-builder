@@ -223,7 +223,7 @@ func remove_edge(from_conn: Connection, to_conn: Connection):
 func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
 	return true
 
-func _reach_input(from: Graph):
+func _reach_input(from: Graph, custom: String = "InputNode"):
 	var next_frame = {from: true}
 	while true:
 		var new_frame = {}
@@ -332,6 +332,21 @@ func def_call(from: Connection, to: Connection, branch_cache: Dictionary):
 
 var reach_mode: bool = false
 
+var graph_map: Dictionary[String, Graph] = {}
+var graph_unmap: Dictionary[Graph, String] = {}
+func set_graph_name(who, name_: String):
+	if who in graph_unmap:
+		graph_map.erase(graph_unmap[who])
+	graph_map[name_] = who
+	graph_unmap[who] = name_
+
+func reset_graph_name(who: Graph):
+	graph_map.erase(graph_unmap[who])
+	graph_unmap.erase(who)
+
+func graph_by_name(name_: String):
+	return graph_map.get(name_)
+
 func reach(from_graph: Graph, call: Callable = def_call):
 	reach_mode = true
 	
@@ -414,6 +429,9 @@ var graph_types = {
 	"maxpool": preload("res://scenes/maxpool.tscn"),
 	"classifier": preload("res://scenes/classifier_graph.tscn"),
 	"train_begin": preload("res://scenes/train_begin.tscn"),
+	"model_name": preload("res://scenes/netname.tscn"),
+	"dataset": preload("res://scenes/dataset.tscn"),
+	"run_model": preload("res://scenes/run_model.tscn")
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

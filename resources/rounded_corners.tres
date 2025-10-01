@@ -5,4 +5,4 @@
 [resource]
 shader = ExtResource("1_e7qa7")
 shader_parameter/corner_radius = 2.000000095
-shader_parameter/rect_size = Vector2(240, 180)
+shader_parameter/rect_size = Vector2(28, 28)

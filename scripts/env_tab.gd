@@ -109,7 +109,6 @@ func tick(force: bool = false) -> void:
 		$Control/view.position.x = scenes_w + codeedit_w
 		$Control/view.size.x = game_w
 
-		$Control/view/Label.resize()
 		var rect = $Control/view/TextureRect
 		var game_window = $Control/view
 		if rect.size.x > 0.0:
@@ -137,6 +136,7 @@ func tick(force: bool = false) -> void:
 		prev_win = glob.window_size
 		repos()
 
+		$Control/view/Label.resize()
 
 
 

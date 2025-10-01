@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://e3l6g3u21slb"]
+[gd_scene load_steps=7 format=3 uid="uid://e3l6g3u21slb"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_6ucvy"]
 [ext_resource type="Script" uid="uid://fnk1i461e1xi" path="res://scripts/input_graph.gd" id="2_02not"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_m1bro"]
 [ext_resource type="Script" uid="uid://cp7e4eeuykhnt" path="res://scripts/image_draw.gd" id="3_53i8k"]
 [ext_resource type="Material" uid="uid://dxhlqb1yd1my2" path="res://resources/rounded_corners.tres" id="4_h273u"]
+[ext_resource type="Texture2D" uid="uid://cdhqb8st7rvlg" path="res://game_assets/icons/rect.png" id="6_6o5ig"]
 
 [node name="Base" instance=ExtResource("1_6ucvy")]
 script = ExtResource("2_02not")
@@ -14,22 +15,23 @@ is_input = true
 [node name="o2" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 instance_shader_parameters/corner_radius_width_add = Vector2(4.5, 0)
 layout_mode = 0
-offset_left = -28.0
+offset_left = -29.0
 offset_top = -43.0
-offset_right = -8.0
+offset_right = -9.0
 offset_bottom = -22.0
-color = Color(0.5176471, 0.5019608, 1, 1)
+color = Color(0.7019608, 0.4, 1, 1)
 _accepted_datatypes = "netname"
 server_name = &"netname"
 connection_type = 0
 area_paddings = Vector4(20, 20, 20, 20)
-multiple_splines = true
 origin_offset = Vector2(8, 0)
 max_splines_by_keyword = Dictionary[StringName, int]({
 &"train": 0
 })
+dir_vector = Vector2(0, -1)
 parent_graph = NodePath("..")
-gradient_color = Color(0.5176471, 0.5019608, 1, 1)
+conn_count_keyword = "netname"
+gradient_color = Color(0.7019608, 0.4, 1, 1)
 
 [node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
@@ -52,7 +54,7 @@ gradient_color = Color(1, 0.988235, 0.6, 1)
 
 [node name="ColorRect" parent="." index="2"]
 instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
-instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/outline_color = Color(0.89, 0.88703334, 0.80099994, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_top = -35.0
 offset_right = 48.0
@@ -76,6 +78,7 @@ offset_top = -4.0
 offset_right = -38.055813
 offset_bottom = 32.867764
 scale = Vector2(2.9293885, 2.9293885)
+texture = ExtResource("6_6o5ig")
 stretch_mode = 2
 script = ExtResource("3_53i8k")
 brush_radius = 1

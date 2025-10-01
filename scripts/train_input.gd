@@ -57,7 +57,7 @@ func _proceed_hold() -> bool:
 
 func _can_drag() -> bool:
 	return not switch.is_mouse_inside() and not train_button.is_mouse_inside()\
-		and not ui.is_focus($sgd_tab/Label4/HSlider)
+		and not ui.is_focus($sgd_tab/Label4/HSlider) and not ui.is_focus($YY)
 
 @onready var optimizer = $optimizer
 func _opt_selected(opt: StringName):

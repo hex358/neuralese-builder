@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://cn053wastjqhs"]
+[gd_scene load_steps=23 format=3 uid="uid://cn053wastjqhs"]
 
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="1_r7hpq"]
 [ext_resource type="Script" uid="uid://dypdiu1layg61" path="res://scripts/env_tab.gd" id="1_waelc"]
@@ -13,47 +13,48 @@
 [ext_resource type="Script" uid="uid://c8207sv1hbg2e" path="res://scripts/unr.gd" id="9_5x1c3"]
 [ext_resource type="Script" uid="uid://xegaq4ui6oi1" path="res://scenes/other_procnodes.gd" id="11_5xxu1"]
 [ext_resource type="Material" uid="uid://xv1yxheu5sfq" path="res://resources/another_corners.tres" id="14_n8ca6"]
+[ext_resource type="Texture2D" uid="uid://bhoh7goms7dw2" path="res://game_assets/icons/flag.png" id="15_ngk34"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="15_wmv5u"]
 [ext_resource type="Texture2D" uid="uid://cc0gwf51gfory" path="res://game_assets/icons/hide.png" id="16_ngk34"]
 
 [sub_resource type="CodeHighlighter" id="CodeHighlighter_c5gg0"]
-number_color = Color(0.78431374, 0.47058824, 1, 1)
-symbol_color = Color(0.8235294, 0.8235294, 0.9019608, 1)
-function_color = Color(0.6666667, 0.54901963, 1, 1)
-member_variable_color = Color(0.43137255, 0.5882353, 0.9019608, 1)
+number_color = Color(0.78431374, 0.39215687, 0.8627451, 1)
+symbol_color = Color(0.8235294, 0.84313726, 0.9019608, 1)
+function_color = Color(0.7058824, 0.50980395, 1, 1)
+member_variable_color = Color(0.39215687, 0.627451, 0.9019608, 1)
 keyword_colors = {
-"and": Color(0.47058824, 0.5882353, 1, 1),
-"break": Color(0.47058824, 0.5882353, 1, 1),
-"do": Color(0.47058824, 0.5882353, 1, 1),
-"else": Color(0.47058824, 0.5882353, 1, 1),
-"elseif": Color(0.47058824, 0.5882353, 1, 1),
-"end": Color(0.47058824, 0.5882353, 1, 1),
-"error": Color(0.3529412, 0.7058824, 1, 1),
-"false": Color(0.47058824, 0.5882353, 1, 1),
-"for": Color(0.47058824, 0.5882353, 1, 1),
-"function": Color(0.47058824, 0.5882353, 1, 1),
-"goto": Color(0.47058824, 0.5882353, 1, 1),
-"if": Color(0.47058824, 0.5882353, 1, 1),
-"in": Color(0.47058824, 0.5882353, 1, 1),
-"ipairs": Color(0.3529412, 0.7058824, 1, 1),
-"local": Color(0.47058824, 0.5882353, 1, 1),
-"math": Color(0.5882353, 0.50980395, 1, 1),
-"next": Color(0.3529412, 0.7058824, 1, 1),
-"nil": Color(0.47058824, 0.5882353, 1, 1),
-"not": Color(0.47058824, 0.5882353, 1, 1),
-"or": Color(0.47058824, 0.5882353, 1, 1),
-"pairs": Color(0.3529412, 0.7058824, 1, 1),
-"repeat": Color(0.47058824, 0.5882353, 1, 1),
-"return": Color(0.47058824, 0.5882353, 1, 1),
-"string": Color(0.5882353, 0.50980395, 1, 1),
-"table": Color(0.5882353, 0.50980395, 1, 1),
-"then": Color(0.47058824, 0.5882353, 1, 1),
-"tonumber": Color(0.3529412, 0.7058824, 1, 1),
-"tostring": Color(0.3529412, 0.7058824, 1, 1),
-"true": Color(0.47058824, 0.5882353, 1, 1),
-"type": Color(0.3529412, 0.7058824, 1, 1),
-"until": Color(0.47058824, 0.5882353, 1, 1),
-"while": Color(0.47058824, 0.5882353, 1, 1)
+"and": Color(0.47058824, 0.6666667, 1, 1),
+"break": Color(0.47058824, 0.6666667, 1, 1),
+"do": Color(0.47058824, 0.6666667, 1, 1),
+"else": Color(0.47058824, 0.6666667, 1, 1),
+"elseif": Color(0.47058824, 0.6666667, 1, 1),
+"end": Color(0.47058824, 0.6666667, 1, 1),
+"error": Color(0.3529412, 0.54901963, 1, 1),
+"false": Color(0.47058824, 0.6666667, 1, 1),
+"for": Color(0.47058824, 0.6666667, 1, 1),
+"function": Color(0.47058824, 0.6666667, 1, 1),
+"goto": Color(0.47058824, 0.6666667, 1, 1),
+"if": Color(0.47058824, 0.6666667, 1, 1),
+"in": Color(0.47058824, 0.6666667, 1, 1),
+"ipairs": Color(0.3529412, 0.54901963, 1, 1),
+"local": Color(0.47058824, 0.6666667, 1, 1),
+"math": Color(0.5882353, 0.78431374, 1, 1),
+"next": Color(0.3529412, 0.54901963, 1, 1),
+"nil": Color(0.47058824, 0.6666667, 1, 1),
+"not": Color(0.47058824, 0.6666667, 1, 1),
+"or": Color(0.47058824, 0.6666667, 1, 1),
+"pairs": Color(0.3529412, 0.54901963, 1, 1),
+"repeat": Color(0.47058824, 0.6666667, 1, 1),
+"return": Color(0.47058824, 0.6666667, 1, 1),
+"string": Color(0.5882353, 0.78431374, 1, 1),
+"table": Color(0.5882353, 0.78431374, 1, 1),
+"then": Color(0.47058824, 0.6666667, 1, 1),
+"tonumber": Color(0.3529412, 0.54901963, 1, 1),
+"tostring": Color(0.3529412, 0.54901963, 1, 1),
+"true": Color(0.47058824, 0.6666667, 1, 1),
+"type": Color(0.3529412, 0.54901963, 1, 1),
+"until": Color(0.47058824, 0.6666667, 1, 1),
+"while": Color(0.47058824, 0.6666667, 1, 1)
 }
 color_regions = {
 "\" \"": Color(0.52156866, 0.6, 0, 1),
@@ -328,9 +329,9 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -62.0
+offset_left = -53.247925
 offset_top = 13.0
-offset_right = -17.052002
+offset_right = -15.030029
 offset_bottom = 38.0
 grow_horizontal = 0
 scale = Vector2(1.3004386, 1.3004386)
@@ -341,8 +342,7 @@ button_type = 1
 top = true
 base_scale_x = 0.45
 resize_after = 6
-text = "Run"
-base_size = Vector2(44.947998, 25)
+base_size = Vector2(38.217896, 25)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -350,6 +350,15 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_n8ca6")
+
+[node name="TextureRect" type="TextureRect" parent="Control/view/run"]
+layout_mode = 0
+offset_left = 6.920746
+offset_top = -0.18802595
+offset_right = 46.920746
+offset_bottom = 39.811974
+scale = Vector2(0.63134646, 0.63134646)
+texture = ExtResource("15_ngk34")
 
 [node name="Label" type="Label" parent="Control/view"]
 self_modulate = Color(0.45, 0.45, 0.45, 1)
@@ -362,7 +371,7 @@ scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("1_r7hpq")
 text = "Game name"
 script = ExtResource("6_d4rvk")
-padding = Vector2(60, 4)
+padding = Vector2(50, 4)
 
 [node name="game" type="SubViewport" parent="Control/view"]
 size = Vector2i(240, 180)

@@ -84,6 +84,7 @@ var _scroll_original: String = ""
 @export var _scroll_container = null:
 	set(v):
 		if !Engine.is_editor_hint():
+			if button_type == ButtonType.BLOCK_BUTTON: return
 			if not v:
 				v = glob.scroll_container.instantiate()
 				add_child(v)
@@ -125,7 +126,8 @@ func _init() -> void:
 
 @export_group("Button")
 @export var config: ButtonConfig
-@export var graph: Graph
+@export var graph: Control
+@export var graph_root: Graph
 
 signal hovered
 signal hovering
@@ -414,11 +416,13 @@ var _wrapped_in = self
 
 var _contained = []
 var scaler: Control = self
-var auto_ready: bool = true
+@export var auto_ready: bool = true
 var auto_wrap: bool = true
 
 func _ready() -> void:
 	if not auto_ready: return
+	#if graph == null and get_parent() is Control and button_type in [ButtonType.CONTEXT_MENU, ButtonType.DROPOUT_MENU]: 
+		#graph = get_parent()
 	initialize()
 	size = base_size
 	text = text  # Trigger setter
@@ -439,7 +443,10 @@ var current_type: int = ButtonType.BLOCK_BUTTON
 func _process_dropout_menu(delta: float) -> void:
 	var was_expanded = (state.expanding or state.expanded or state.tween_hide) and visible
 	if graph and ButtonType.CONTEXT_MENU == current_type:
-		graph.hold_for_frame()
+		if graph is Graph:
+			graph.hold_for_frame()
+	if graph_root and ButtonType.CONTEXT_MENU == current_type and graph_root is Graph:
+		graph_root.hold_for_frame()
 	var inside = is_mouse_inside()
 	if inside:
 		glob.occupy(self, "dropout_inside")
@@ -452,6 +459,7 @@ func _process_dropout_menu(delta: float) -> void:
 			base_pos = position
 		_process_block_button(delta)
 		#print(glob.opened_menu)
+		var graph = graph if graph and graph is Graph else graph_root
 		if glob.mouse_just_pressed and (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
 			current_type = ButtonType.CONTEXT_MENU
 			left_activate = true
@@ -476,6 +484,7 @@ func _process_dropout_menu(delta: float) -> void:
 		modulate = config.hover_color * config.hover_mult
 		modulate.a = a
 		if !static_mode and get_local_mouse_position().y < base_size.y and glob.mouse_just_pressed and not ab:
+			glob.consume_input(self, "mouse_press")
 			menu_hide()
 		_process_context_menu(delta)
 
@@ -500,6 +509,7 @@ func _process(delta: float) -> void:
 	_sub_process(delta)
 
 func is_mouse_inside() -> bool:
+	var graph = graph if graph and graph is Graph else graph_root
 	if graph:
 		var cons = glob.get_consumed("mouse")
 		if cons and graph != cons: return false
@@ -698,8 +708,11 @@ func _process_block_button(delta: float) -> void:
 	scaler.scale = hover_scale * bounce_scale
 	#if button_type == ButtonType.BLOCK_BUTTON:
 	#	print(scaler.scale)
-	if graph and (!is_equal_approx(scaler.scale.x, base_scale.x) or !base_modulate.is_equal_approx(modulate)):
-		graph.hold_for_frame()
+	if (!is_equal_approx(scaler.scale.x, base_scale.x) or !base_modulate.is_equal_approx(modulate)):
+		if graph and graph is Graph:
+			graph.hold_for_frame()
+		if graph_root and graph_root is Graph:
+			graph_root.hold_for_frame()
 	_update_scroll_text(delta)
 
 var freedom: bool = true

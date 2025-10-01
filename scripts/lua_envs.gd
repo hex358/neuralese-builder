@@ -25,10 +25,10 @@ end
 
 function newFrame(dt)
     -- player movement
-    if get_key("left") then
+	if get_key("left") then
         move(player, -100 * dt, 0) -- slower because smaller screen
     end
-    if get_key("right") then
+	if get_key("right") then
         move(player, 100 * dt, 0)
     end
 
