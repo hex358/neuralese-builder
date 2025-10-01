@@ -1,5 +1,10 @@
 extends DynamicGraph
 
+var name_graph: String = ""
+
+func set_name_graph(st: String):
+	name_graph = st
+
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
 	dup.get_node("loss").graph = dup

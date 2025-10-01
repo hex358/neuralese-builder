@@ -12,7 +12,7 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_3yi81")
-server_typename = &"Netname"
+server_typename = &"ModelName"
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
 &"name": ""

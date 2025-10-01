@@ -32,11 +32,10 @@ func start_train(train_input: Graph, args: Dictionary = {}):
 	var cachify = func(from: Connection, to: Connection, branch_cache: Dictionary):
 		if to.parent_graph.server_typename == "RunModel":
 			assert(not execute_input_origin, "compile failed, run_model node >1 times banned")
-			execute_input_origin = to.parent_graph
+			execute_input_origin = to.parent_graph.name_graph
 	#var all = 
 	if !is_instance_valid(train_input_origin) or !execute_input_origin: return
 	graphs.reach(train_input_origin, cachify)
-	print(execute_input_origin, train_input_origin)
 	var compressed = glob.compress_dict_gzip({
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(execute_input_origin),
