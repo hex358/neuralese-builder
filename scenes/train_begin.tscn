@@ -1,0 +1,78 @@
+[gd_scene load_steps=5 format=3 uid="uid://274a5p56vhfv"]
+
+[ext_resource type="Script" uid="uid://dp2qwk0p8iuhy" path="res://scripts/base_graph.gd" id="1_nfqqs"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_oiu5h"]
+[ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_rbfmr"]
+[ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="4_twvuy"]
+
+[node name="Base" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 50.0
+script = ExtResource("1_nfqqs")
+server_typename = &"TrainBegin"
+area_padding = 0.0
+
+[node name="o2" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_oiu5h")]
+instance_shader_parameters/corner_radius_width_add = Vector2(4.5, 0)
+layout_mode = 0
+offset_left = -10.0
+offset_top = -76.0
+offset_right = 10.0
+offset_bottom = -55.0
+color = Color(0.51666665, 0.5, 1, 1)
+_accepted_datatypes = "netname"
+server_name = &"netname"
+connection_type = 0
+area_paddings = Vector4(20, 20, 20, 20)
+multiple_splines = true
+origin_offset = Vector2(8, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
+parent_graph = NodePath("..")
+gradient_color = Color(0.5176471, 0.5019608, 1, 1)
+
+[node name="i" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_oiu5h")]
+layout_mode = 0
+offset_left = 46.0
+offset_top = -20.0
+offset_right = 64.0
+offset_bottom = 6.0
+color = Color(0.462745, 0.45098, 0.85098, 1)
+_accepted_datatypes = "data"
+server_name = &"train_out"
+connection_type = 1
+area_paddings = Vector4(20, 20, 20, 20)
+multiple_splines = true
+origin_offset = Vector2(-4, 0)
+parent_graph = NodePath("..")
+conn_count_keyword = "train"
+gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = ExtResource("3_rbfmr")
+instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.639216)
+layout_mode = 0
+offset_left = -58.0
+offset_top = -68.0
+offset_right = 52.0
+offset_bottom = 61.0
+
+[node name="root" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="ColorRect/root"]
+z_index = 1
+layout_mode = 0
+offset_left = 9.0
+offset_top = 6.0
+offset_right = 202.0
+offset_bottom = 49.0
+scale = Vector2(0.463877, 0.463877)
+theme = ExtResource("4_twvuy")
+text = "TrainBegin"

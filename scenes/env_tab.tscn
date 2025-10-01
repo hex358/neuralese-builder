@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://cn053wastjqhs"]
+[gd_scene load_steps=22 format=3 uid="uid://cn053wastjqhs"]
 
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="1_r7hpq"]
 [ext_resource type="Script" uid="uid://dypdiu1layg61" path="res://scripts/env_tab.gd" id="1_waelc"]
@@ -12,46 +12,48 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="8_81s2i"]
 [ext_resource type="Script" uid="uid://c8207sv1hbg2e" path="res://scripts/unr.gd" id="9_5x1c3"]
 [ext_resource type="Script" uid="uid://xegaq4ui6oi1" path="res://scenes/other_procnodes.gd" id="11_5xxu1"]
-[ext_resource type="Texture2D" uid="uid://ukxnlbmbabr" path="res://game_assets/icons/icon.svg" id="12_5x1c3"]
+[ext_resource type="Material" uid="uid://xv1yxheu5sfq" path="res://resources/another_corners.tres" id="14_n8ca6"]
+[ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="15_wmv5u"]
+[ext_resource type="Texture2D" uid="uid://cc0gwf51gfory" path="res://game_assets/icons/hide.png" id="16_ngk34"]
 
 [sub_resource type="CodeHighlighter" id="CodeHighlighter_c5gg0"]
-number_color = Color(0.827451, 0.21176471, 0.50980395, 1)
-symbol_color = Color(0.8627451, 0.8627451, 0.8627451, 1)
-function_color = Color(0.70980394, 0.5372549, 0, 1)
-member_variable_color = Color(0.42352942, 0.44313726, 0.76862746, 1)
+number_color = Color(0.78431374, 0.47058824, 1, 1)
+symbol_color = Color(0.8235294, 0.8235294, 0.9019608, 1)
+function_color = Color(0.6666667, 0.54901963, 1, 1)
+member_variable_color = Color(0.43137255, 0.5882353, 0.9019608, 1)
 keyword_colors = {
-"and": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"break": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"do": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"else": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"elseif": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"end": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"error": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"false": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"for": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"function": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"goto": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"if": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"in": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"ipairs": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"local": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"math": Color(0.16470589, 0.6313726, 0.59607846, 1),
-"next": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"nil": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"not": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"or": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"pairs": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"repeat": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"return": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"string": Color(0.16470589, 0.6313726, 0.59607846, 1),
-"table": Color(0.16470589, 0.6313726, 0.59607846, 1),
-"then": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"tonumber": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"tostring": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"true": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"type": Color(0.14901961, 0.54509807, 0.8235294, 1),
-"until": Color(0.8627451, 0.19607843, 0.18431373, 1),
-"while": Color(0.8627451, 0.19607843, 0.18431373, 1)
+"and": Color(0.47058824, 0.5882353, 1, 1),
+"break": Color(0.47058824, 0.5882353, 1, 1),
+"do": Color(0.47058824, 0.5882353, 1, 1),
+"else": Color(0.47058824, 0.5882353, 1, 1),
+"elseif": Color(0.47058824, 0.5882353, 1, 1),
+"end": Color(0.47058824, 0.5882353, 1, 1),
+"error": Color(0.3529412, 0.7058824, 1, 1),
+"false": Color(0.47058824, 0.5882353, 1, 1),
+"for": Color(0.47058824, 0.5882353, 1, 1),
+"function": Color(0.47058824, 0.5882353, 1, 1),
+"goto": Color(0.47058824, 0.5882353, 1, 1),
+"if": Color(0.47058824, 0.5882353, 1, 1),
+"in": Color(0.47058824, 0.5882353, 1, 1),
+"ipairs": Color(0.3529412, 0.7058824, 1, 1),
+"local": Color(0.47058824, 0.5882353, 1, 1),
+"math": Color(0.5882353, 0.50980395, 1, 1),
+"next": Color(0.3529412, 0.7058824, 1, 1),
+"nil": Color(0.47058824, 0.5882353, 1, 1),
+"not": Color(0.47058824, 0.5882353, 1, 1),
+"or": Color(0.47058824, 0.5882353, 1, 1),
+"pairs": Color(0.3529412, 0.7058824, 1, 1),
+"repeat": Color(0.47058824, 0.5882353, 1, 1),
+"return": Color(0.47058824, 0.5882353, 1, 1),
+"string": Color(0.5882353, 0.50980395, 1, 1),
+"table": Color(0.5882353, 0.50980395, 1, 1),
+"then": Color(0.47058824, 0.5882353, 1, 1),
+"tonumber": Color(0.3529412, 0.7058824, 1, 1),
+"tostring": Color(0.3529412, 0.7058824, 1, 1),
+"true": Color(0.47058824, 0.5882353, 1, 1),
+"type": Color(0.3529412, 0.7058824, 1, 1),
+"until": Color(0.47058824, 0.5882353, 1, 1),
+"while": Color(0.47058824, 0.5882353, 1, 1)
 }
 color_regions = {
 "\" \"": Color(0.52156866, 0.6, 0, 1),
@@ -85,6 +87,33 @@ press_color = Color(1.1, 0.9, 0.9, 1)
 _press_scale = 0.97
 animation_speed = 1.951
 animation_decay = 4.564
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_uce8f"]
+script = ExtResource("8_81s2i")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.2
+_hover_scale = 1.05
+press_color = Color(0.84, 0.84, 0.84, 1)
+_press_scale = 0.98
+animation_speed = 2.657
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_n8ca6"]
+script = ExtResource("8_81s2i")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_pw54c"]
@@ -148,7 +177,6 @@ print(\"Reset value: \" .. value)
 "
 context_menu_enabled = false
 scroll_v_scroll_speed = 60.0
-minimap_draw = true
 minimap_width = 60
 caret_blink = true
 caret_mid_grapheme = true
@@ -190,27 +218,40 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(1, 1, 1, 0)
 instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
 layout_mode = 0
-offset_left = 4.999999
+offset_left = 5.0
 offset_top = 38.0
 offset_right = 362.7778
 offset_bottom = 47.333332
 scale = Vector2(0.9, 0.9)
 color = Color(1, 1, 1, 0)
 script = ExtResource("9_5x1c3")
+auto_trim_text = null
+base_scale_x = false
+resize_after = 0.0
+text = Object(Label,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":2,"auto_translate_mode":0,"editor_description":"","visible":true,"modulate":Color(0, 0, 0, 1),"self_modulate":Color(1, 1, 1, 1),"show_behind_parent":false,"top_level":false,"clip_children":0,"light_mask":1,"visibility_layer":1,"z_index":0,"z_as_relative":true,"y_sort_enabled":false,"texture_filter":0,"texture_repeat":0,"material":Resource("res://resources/font_alphamult.tres"),"use_parent_material":false,"clip_contents":false,"custom_minimum_size":Vector2(0, 0),"layout_direction":0,"layout_mode":0,"anchors_preset":0,"anchor_left":0.0,"anchor_top":0.0,"anchor_right":0.0,"anchor_bottom":0.0,"offset_left":178.8889,"offset_top":4.666666,"offset_right":408.88892,"offset_bottom":47.666664,"grow_horizontal":1,"grow_vertical":1,"rotation":0.0,"scale":Vector2(1e-05, 1e-05),"pivot_offset":Vector2(0, 0),"size_flags_horizontal":1,"size_flags_vertical":4,"size_flags_stretch_ratio":1.0,"localize_numeral_system":true,"tooltip_text":"","tooltip_auto_translate_mode":0,"focus_neighbor_left":NodePath(""),"focus_neighbor_top":NodePath(""),"focus_neighbor_right":NodePath(""),"focus_neighbor_bottom":NodePath(""),"focus_next":NodePath(""),"focus_previous":NodePath(""),"focus_mode":0,"focus_behavior_recursive":0,"mouse_filter":2,"mouse_behavior_recursive":0,"mouse_force_pass_scroll_events":true,"mouse_default_cursor_shape":0,"shortcut_context":null,"accessibility_name":"","accessibility_description":"","accessibility_live":0,"accessibility_controls_nodes":Array[NodePath]([]),"accessibility_described_by_nodes":Array[NodePath]([]),"accessibility_labeled_by_nodes":Array[NodePath]([]),"accessibility_flow_to_nodes":Array[NodePath]([]),"theme":Resource("res://resources/theme.tres"),"theme_type_variation":&"","text":"","label_settings":null,"horizontal_alignment":0,"vertical_alignment":0,"autowrap_mode":0,"autowrap_trim_flags":192,"justification_flags":163,"paragraph_separator":"\\n","clip_text":false,"text_overrun_behavior":0,"ellipsis_char":"…","uppercase":false,"tab_stops":PackedFloat32Array(),"lines_skipped":0,"max_lines_visible":-1,"visible_characters":-1,"visible_characters_behavior":0,"visible_ratio":1.0,"text_direction":0,"language":"","structured_text_bidi_override":0,"structured_text_bidi_override_options":[],"script":null)
+
+text_color = ""
+text_alignment = Color(0, 0, 0, 1)
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(357.7778, 9.333332)
+alignment = 0
 static_mode = true
-_scroll_container = 0.0
+_scroll_container = false
 arrangement_padding = Vector2(11, 5)
 mouse_open = false
 menu_name = &"list"
 dynamic_size = true
 max_size = 210
+expand_upwards = 0
+scrollbar_padding = Vector2(0.9, 0.9)
 
 [node name="name" parent="Control/scenes/list" instance=ExtResource("6_o688u")]
 z_index = 2
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.3372549, 0.72156864, 0.8392157, 1)
-instance_shader_parameters/tuning = Color(0.2106, 0.46314007, 0.54, 0.6392157)
+instance_shader_parameters/outline_color = Color(0.43137255, 0.5882353, 0.9019608, 1)
+instance_shader_parameters/tuning = Color(0.26400003, 0.3593334, 0.55, 0.5647059)
 layout_mode = 0
 offset_left = 200.0
 offset_top = 221.333
@@ -219,6 +260,7 @@ offset_bottom = 262.333
 pivot_offset = Vector2(118, 20.500008)
 button_type = 1
 placeholder = true
+auto_trim_text = true
 text = "Hello!!"
 base_size = Vector2(236, 41.000015)
 alignment = Vector2(0.5, 0.5)
@@ -229,6 +271,38 @@ config = SubResource("Resource_5x1c3")
 script = ExtResource("11_5xxu1")
 instance = NodePath("../name")
 metadata/_custom_type_script = "uid://cppqde4187p8n"
+
+[node name="9" parent="Control/scenes" instance=ExtResource("6_o688u")]
+self_modulate = Color(1, 1, 1, 0)
+material = ExtResource("15_wmv5u")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -37.0
+offset_top = 11.0
+offset_right = -2.1955566
+offset_bottom = 43.624138
+grow_horizontal = 0
+scale = Vector2(0.798255, 0.798255)
+pivot_offset = Vector2(17.402222, 16.312069)
+color = Color(0.49019608, 0.627451, 0.83137256, 1)
+button_type = 1
+top = true
+hint = &"layer"
+base_size = Vector2(34.804443, 32.624138)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_uce8f")
+
+[node name="i" type="TextureRect" parent="Control/scenes/9"]
+layout_mode = 0
+offset_right = 24.0
+offset_bottom = 24.000002
+scale = Vector2(1.3652097, 1.3652097)
+texture = ExtResource("16_ngk34")
 
 [node name="view" type="ColorRect" parent="Control"]
 material = SubResource("ShaderMaterial_epnia")
@@ -246,18 +320,49 @@ offset_right = 71.0
 grow_horizontal = 0
 grow_vertical = 2
 
+[node name="run" parent="Control/view" instance=ExtResource("6_o688u")]
+z_index = 9
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -62.0
+offset_top = 13.0
+offset_right = -17.052002
+offset_bottom = 38.0
+grow_horizontal = 0
+scale = Vector2(1.3004386, 1.3004386)
+pivot_offset = Vector2(22.473999, 12.5)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 1)
+button_type = 1
+top = true
+base_scale_x = 0.45
+resize_after = 6
+text = "Run"
+base_size = Vector2(44.947998, 25)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_n8ca6")
+
 [node name="Label" type="Label" parent="Control/view"]
 self_modulate = Color(0.45, 0.45, 0.45, 1)
 layout_mode = 0
-offset_left = 14.0
-offset_top = 12.000001
-offset_right = 244.0
-offset_bottom = 55.0
+offset_left = 12.0
+offset_top = 11.0
+offset_right = 242.0
+offset_bottom = 54.0
 scale = Vector2(0.77261, 0.77261)
-theme = ExtResource("5_d4rvk")
+theme = ExtResource("1_r7hpq")
 text = "Game name"
 script = ExtResource("6_d4rvk")
-padding = Vector2(20, 4)
+padding = Vector2(60, 4)
 
 [node name="game" type="SubViewport" parent="Control/view"]
 size = Vector2i(240, 180)
@@ -267,24 +372,18 @@ layer = -128
 
 [node name="drawer" type="Node2D" parent="Control/view/game/CanvasLayer"]
 
-[node name="Sprite2D" type="Sprite2D" parent="Control/view/game"]
-position = Vector2(67.91, 82.295)
-scale = Vector2(0.77, 0.55)
-texture = ExtResource("12_5x1c3")
-
 [node name="TextureRect" type="TextureRect" parent="Control/view"]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 2.0
-offset_top = -90.090515
-offset_right = 242.0
-offset_bottom = 90.090515
-grow_vertical = 2
-pivot_offset = Vector2(0, 90)
+material = ExtResource("14_n8ca6")
+layout_mode = 0
+offset_top = 190.0
+offset_right = 240.0
+offset_bottom = 370.18103
+scale = Vector2(1.84, 1.84)
 texture = SubResource("ViewportTexture_pw54c")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 scale = Vector2(2.1270475, 2.1270475)
 anchor_mode = 0
+
+[connection signal="released" from="Control/scenes/9" to="." method="_on__released"]
+[connection signal="released" from="Control/view/run" to="." method="_on_run_released"]

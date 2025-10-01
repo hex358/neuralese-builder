@@ -8,7 +8,7 @@ extends BlockComponent
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		super()
-		show_up(range(100), null)
+		show_up(range(1), null)
 
 func show_up(iter, node):
 	#if visible: return=

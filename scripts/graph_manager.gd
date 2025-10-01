@@ -412,7 +412,8 @@ var graph_types = {
 	"flatten": preload("res://scenes/flatten.tscn"),
 	"conv2d": preload("res://scenes/conv2d.tscn"),
 	"maxpool": preload("res://scenes/maxpool.tscn"),
-	"classifier": preload("res://scenes/classifier_graph.tscn")
+	"classifier": preload("res://scenes/classifier_graph.tscn"),
+	"train_begin": preload("res://scenes/train_begin.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

@@ -28,6 +28,7 @@ func unblock_input() -> void: is_blocking = false
 @export var hint: StringName = &""
 
 @export_group("Text")
+@export var auto_trim_text: bool = false
 @export var base_scale_x: float = 0.643:
 	set(v):
 		base_scale_x = v
@@ -39,12 +40,14 @@ func unblock_input() -> void: is_blocking = false
 		if not Engine.is_editor_hint():
 			text = text
 @onready var label = $Label
+
+
 @export var text: String = "":
 	set(value):
 		text = value
 		if not is_node_ready():
 			await ready
-		label.text = value
+		label.text = _wrap_text(value)
 		_align_label()
 @export var text_color: Color = Color.WHITE:
 	set(v):
@@ -53,6 +56,15 @@ func unblock_input() -> void: is_blocking = false
 		text_color = v; label.modulate = text_color
 @export var text_alignment: Vector2 = Vector2()
 @export var text_offset: Vector2 = Vector2()
+
+@export_group("Marquee")
+var _scroll_index: int = 0
+var _scroll_timer: float = 0.0
+@export var _scroll_delay: float = 0.2   # seconds between shifts
+@export var _scroll_pause: float = 0.7   # pause at full cycle
+@export var scroll_padding_spaces: int = 3
+var _scrolling: bool = false
+var _scroll_original: String = ""
 
 
 @export_group("Rect")
@@ -268,6 +280,23 @@ func set_menu_size(x: float, y: float):
 	scroll.size.y = expanded_size if not max_size else max_size - base_size.y - 10
 	update_children_reveal.call_deferred()
 
+
+var trimmed: bool = false
+func _wrap_text(txt: String) -> String:
+	if !auto_trim_text: 
+		trimmed = false
+		return txt
+	label.text = txt
+	var size_x = glob.get_label_text_size(label, label.scale.x).x + 20
+	if size_x > size.x:
+		var one = float(size_x) / len(txt)
+		var right = (size_x - size.x) / one
+		txt = txt.left(len(txt)-ceil(right)-2) + ".."
+		trimmed = true
+	else:
+		trimmed = false
+	return txt
+
 func resize(_size: Vector2) -> void:
 	_size = _size.floor()
 	base_size = _size; size = _size; text = text
@@ -280,6 +309,7 @@ func resize(_size: Vector2) -> void:
 	if button_type == ButtonType.BLOCK_BUTTON or button_type == ButtonType.DROPOUT_MENU:
 		scaler.position = alignment*size
 		position = -alignment*size
+
 
 var wrapped: bool = false
 
@@ -314,28 +344,60 @@ func _enter_tree() -> void:
 
 
 func _create_scaler_wrapper() -> void:
-	#parent.remove_child(self)
 	var wrapper = Wrapper.new()
 	wrapper.position = self.position
-	#if scale.x != 1.0:
-	#	print(scale.x)
-	
 	wrapped = true
 	wrapper.size = self.base_size * scale
 	wrapper.custom_minimum_size = self.base_size * scale
 
+	# Decide if we should copy anchors or raw position
+	var uses_anchors := not (is_equal_approx(anchor_left, 0.0)
+		and is_equal_approx(anchor_top, 0.0)
+		and is_equal_approx(anchor_right, 0.0)
+		and is_equal_approx(anchor_bottom, 0.0))
+
+	if uses_anchors:
+		# Transfer anchors & margins to wrapper
+		wrapper.anchor_left = anchor_left
+		wrapper.anchor_top = anchor_top
+		wrapper.anchor_right = anchor_right
+		wrapper.anchor_bottom = anchor_bottom
+		wrapper.offset_left = offset_left
+		wrapper.offset_top = offset_top
+		wrapper.offset_right = offset_right
+		wrapper.offset_bottom = offset_bottom
+
+		# Reset this node’s anchors to neutral
+		anchor_left = 0
+		anchor_top = 0
+		anchor_right = 0
+		anchor_bottom = 0
+		offset_left = 0
+		offset_top = 0
+		offset_right = 0
+		offset_bottom = 0
+		#print(name, alignment)
+		size = base_size
+		custom_minimum_size = base_size
+		
+	else:
+		# Pure position mode: just keep wrapper in same parent space
+		wrapper.position = position
+		# Reset local position so child sits at (0,0) in wrapper
+		position = Vector2.ZERO
+
 	var secondary_wrapper = Wrapper.new()
-	secondary_wrapper.position += alignment*size*scale if is_contained else alignment*size
+	secondary_wrapper.position += alignment * base_size * scale if is_contained else alignment * base_size
 	wrapper.add_child(secondary_wrapper)
-	
+
 	reparent(secondary_wrapper)
-	position = -alignment*size
-	
+	position = -alignment * base_size
+
 	scaler = secondary_wrapper
-	scaler.scale = self.scale
+	scaler.scale = scale
 	scale = Vector2.ONE
 	_wrapped_in = wrapper
-	
+
 	wrapper.wrapping_target = self
 	secondary_wrapper.wrapping_target = self
 
@@ -343,6 +405,8 @@ func _create_scaler_wrapper() -> void:
 		parent.vbox.add_child(wrapper)
 	else:
 		parent.add_child(wrapper)
+
+
 	
 
 	
@@ -446,6 +510,7 @@ func is_mouse_inside() -> bool:
 	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
 	bounds.size *= mult
 	bounds.position += global_position - Vector2.ONE*area_padding*mult
+	if bounds.size.x < 0 or bounds.size.y < 0: return false
 	return bounds.has_point(last_mouse_pos)
 
 func _align_label() -> void:
@@ -502,6 +567,47 @@ func press(press_time: float = 0.0):
 		await glob.wait(press_time)
 		press_request = false
 
+
+func _update_scroll_text(delta: float) -> void:
+	if not trimmed or not _scrolling:
+		return
+
+	_scroll_timer -= delta
+	if _scroll_timer > 0.0:
+		return
+
+	var visible_len = label.text.length()
+	var full_text = _scroll_original
+	if visible_len >= full_text.length():
+		return
+
+	# Padded text with user-controlled spaces
+	var padded = full_text + " ".repeat(scroll_padding_spaces)
+	var cycle_len = padded.length()
+
+	# Advance index
+	_scroll_index = (_scroll_index + 1) % cycle_len
+
+	# Always build a full window of length `visible_len`
+	var next = ""
+	for i in range(visible_len):
+		var idx = (_scroll_index + i) % cycle_len
+		next += padded[idx]
+
+	label.text = next
+	_align_label()
+
+	# Pause when we complete a full loop
+	if _scroll_index == 0:
+		_scroll_timer = _scroll_pause
+	else:
+		_scroll_timer = _scroll_delay
+
+
+
+
+
+
 func _process_block_button(delta: float) -> void:
 	if not visible or not parent.visible or (graph and !graph.visible) or not freedom: 
 		return
@@ -539,6 +645,20 @@ func _process_block_button(delta: float) -> void:
 				state.tween_progress = 0.0
 			pressing.emit()
 		else:
+			if trimmed:
+				if not _scrolling:
+					_scrolling = true
+					_scroll_original = text  # full text
+					_scroll_index = 0
+					_scroll_timer = _scroll_pause
+			else:
+				if _scrolling:
+					# restore original text when hover stops
+					_scrolling = false
+					label.text = _wrap_text(text)
+					_align_label()
+
+
 			hovering.emit()
 			if not state.hovering:
 				hovered.emit()
@@ -554,6 +674,10 @@ func _process_block_button(delta: float) -> void:
 				state.tween_progress = delta
 			hover_scale = hover_scale.lerp(base_scale * config._hover_scale, delta * 30)
 	else:
+		if _scrolling:
+			_scrolling = false
+			label.text = _wrap_text(text)   # restore trimmed text
+			_align_label()
 		state.hovering = false
 		hover_scale = hover_scale.lerp(base_scale, delta * 15)
 		modulate = modulate.lerp(base_modulate, delta * 17)
@@ -576,6 +700,7 @@ func _process_block_button(delta: float) -> void:
 	#	print(scaler.scale)
 	if graph and (!is_equal_approx(scaler.scale.x, base_scale.x) or !base_modulate.is_equal_approx(modulate)):
 		graph.hold_for_frame()
+	_update_scroll_text(delta)
 
 var freedom: bool = true
 var bar: VScrollBar
@@ -617,7 +742,7 @@ func update_children_reveal() -> void:
 			c.visible = new_visible
 			stay_hot = true
 
-		var free := false
+		var free = false
 		if new_visible:
 			var rel = pos - bar_value
 			free = size_diff_ok and (rel < max_y) and (rel > base_y)
@@ -665,8 +790,8 @@ func update_children_reveal() -> void:
 
 
 var _reveal_dirty: bool = false
-const _A0 := 0.001
-const _A1 := 0.95
+const _A0 = 0.001
+const _A1 = 0.95
 
 var show_request:bool = false
 
@@ -860,7 +985,7 @@ func _process_context_menu(delta: float) -> void:
 					scroll_checking = false
 			elif !is_in_bar: 
 				update_children_reveal()
-				scroll.scroll_vertical = (-get_global_mouse_position().y + scroll_anchor.y + scroll_value_anchor) / scale.y
+				scroll.scroll_vertical = (-get_global_mouse_position().y  / scale.y + scroll_anchor.y  / scale.y + scroll_value_anchor)
 		else:
 			scroll_checking = false
 			scrolling = false

@@ -1,12 +1,10 @@
-# LuaEnv.gd
-class_name LuaEnv
+
 extends Node
 
 var processes: Dictionary = {}
 
 func _ready() -> void:
-	create_process(
-		"test1",
+	pass
 """
 -- Player rect
 local player
@@ -14,13 +12,13 @@ local blocks = {}
 local spawn_timer = 0
 
 function createScene()
-    player = Rectangle(200, 50, 40, 20)
+    player = Rectangle(140, 20, 28, 12) -- centered bottom
     set_color(player, 0, 0, 1)  -- blue
 end
 
 function spawn_block()
-    local x = math.random(20, 380)
-    local b = Rectangle(x, 300, 20, 20)
+    local x = math.random(10, 270)
+    local b = Rectangle(x, 180, 14, 14) -- small square block
     set_color(b, 1, 0, 0) -- red
     table.insert(blocks, b)
 end
@@ -28,10 +26,16 @@ end
 function newFrame(dt)
     -- player movement
     if get_key("left") then
-        move(player, -200 * dt, 0)
+        move(player, -100 * dt, 0) -- slower because smaller screen
     end
     if get_key("right") then
-        move(player, 200 * dt, 0)
+        move(player, 100 * dt, 0)
+    end
+
+    -- clamp player inside screen
+    if get_x(player) < 0 then set_pos(player, 0, get_y(player)) end
+    if get_x(player) > 280 - get_width(player) then
+        set_pos(player, 280 - get_width(player), get_y(player))
     end
 
     -- spawn blocks
@@ -44,7 +48,7 @@ function newFrame(dt)
     -- move blocks downward
     local alive = {}
     for i, b in ipairs(blocks) do
-        move(b, 0, -100 * dt)
+        move(b, 0, -60 * dt) -- slower fall
         if get_y(b) > -20 then
             table.insert(alive, b) -- still visible
         else
@@ -55,18 +59,25 @@ function newFrame(dt)
 end
 
 """
-	)
 
 func create_process(name: String, code: String) -> LuaProcess:
+	remove_process(name)
 	var proc = LuaProcess.new(name, code)
-	add_child(proc)
 	processes[name] = proc
 	return proc
 
 func remove_process(name: String) -> void:
-	processes.erase(name)
+	if processes.has(name):
+		var proc: LuaProcess = processes[name]
+		proc.stop()
+		processes.erase(name)
 
+var _accum_time: float = 0.0
 func _process(delta: float) -> void:
-	for p in processes.values():
-		p.update(delta)
-		p.queue_redraw()
+	_accum_time += delta
+	var frame_step: float = 1 / 30.0
+	while _accum_time >= frame_step:
+		for p in processes.values():
+			p.update(frame_step)
+			p.queue_redraw()
+		_accum_time -= frame_step

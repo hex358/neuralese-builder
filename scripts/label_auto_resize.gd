@@ -14,7 +14,7 @@ func resize() -> void:
 		return
 	var parent_size: Vector2 = parent_ctrl.size
 	var available: Vector2 = parent_size - position
-	var text_size: Vector2 = glob.get_label_text_size(self, base_scale) + padding
+	var text_size: Vector2 = glob.get_label_text_size(self, base_scale) + padding / scale
 	
 	if text_size.x <= 0.0 or text_size.y <= 0.0:
 		return

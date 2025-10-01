@@ -53,6 +53,18 @@ func _input(event: InputEvent) -> void:
 
 var expanded_menu: SubMenu = null
 var _buttons = []
+
+func move_mouse(pos: Vector2) -> void:
+	var vp = get_viewport()
+	var motion = InputEventMouseMotion.new()
+	motion.global_position = pos
+	motion.position = pos
+	motion.relative = Vector2.ZERO
+	motion.set_meta("_emulated", true)
+
+	vp.push_input(motion)
+
+
 #var _parent_graphs = {}
 func reg_button(b: BlockComponent):
 	pass

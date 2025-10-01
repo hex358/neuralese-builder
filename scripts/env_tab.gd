@@ -64,34 +64,45 @@ var border_hit = 10.0
 var _dragging: int = -1
 var _drag_anchor: float = 0.0
 
-func tick() -> void:
+var code_hidden: bool = false
+var max_game_size_ncode: float = 1800.0
+
+func set_code_hidden(hidden: bool) -> void:
+	code_hidden = hidden
+	$Control/CodeEdit.visible = not hidden
+	tick(true)
+	ui.move_mouse(get_global_mouse_position())
+
+
+func tick(force: bool = false) -> void:
+	
 	if not visible:
 		return
 	handle_division_drag()
 
 	var win: float = glob.window_size.x
-	if prev_win != glob.window_size or _dragging != -1:
+	if prev_win != glob.window_size or _dragging != -1 or force:
 		$Control.position.y = glob.space_begin.y
 		$Control.size.y = glob.window_size.y - $Control.position.y
 
 		var scenes_w = clamp(win * division_ratio[0], min_scenes_size, max_scenes_size)
 
 		var codeedit_target = win * division_ratio[1]
+		var codeedit_w = 0.0 if code_hidden else codeedit_target
 
-		var game_w = win - scenes_w - codeedit_target
-		game_w = clamp(game_w, min_game_size, max_game_size)
+		var game_w = win - scenes_w - codeedit_w
+		game_w = clamp(game_w, min_game_size, max_game_size_ncode if code_hidden else max_game_size)
 
-		var codeedit_w = win - scenes_w - game_w
-
-		if codeedit_w < 0.0:
-			var deficit = -codeedit_w
-			game_w = max(min_game_size, game_w - deficit)
-			codeedit_w = max(0.0, win - scenes_w - game_w)
+		if not code_hidden:
 			if codeedit_w < 0.0:
-				codeedit_w = 0.0
-				game_w = max(0.0, win - scenes_w)
-		$Control/scenes.size.x = scenes_w
+				var deficit = -codeedit_w
+				game_w = max(min_game_size, game_w - deficit)
+				codeedit_w = max(0.0, win - scenes_w - game_w)
+				if codeedit_w < 0.0:
+					codeedit_w = 0.0
+					game_w = max(0.0, win - scenes_w)
 
+		$Control/scenes.size.x = scenes_w
 		$Control/CodeEdit.position.x = scenes_w
 		$Control/CodeEdit.size.x = codeedit_w
 
@@ -100,19 +111,32 @@ func tick() -> void:
 
 		$Control/view/Label.resize()
 		var rect = $Control/view/TextureRect
+		var game_window = $Control/view
 		if rect.size.x > 0.0:
 			rect.scale = Vector2.ONE * ((game_w-4) / float(rect.size.x))
 		else:
 			rect.scale = Vector2.ONE
+		var max_y = game_window.size.y - 0.14 * glob.window_size.y
+		var x = 2
+		var y = 0
+		if rect.size.y * rect.scale.y > max_y:
+			rect.scale = Vector2.ONE * max_y / rect.size.y
+			x += game_w / 2 - rect.scale.x * rect.size.x / 2
+			y += 0.04 * glob.window_size.y-2
+		rect.position = Vector2(x, game_window.size.y / 2 - rect.scale.y * rect.size.y / 2 + y)
+
 
 		var scenes_size_y = $Control/scenes.size.y
 		list.set_menu_size(
 			($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
 			(scenes_size_y - list.position.y - 10) / list.scale.y
 		)
-
+		
+		if code_hidden:
+			$Control/scenes.size.x += 2
 		prev_win = glob.window_size
 		repos()
+
 
 
 
@@ -174,3 +198,22 @@ func handle_division_drag() -> void:
 	if not glob.mouse_pressed and _dragging != -1:
 		_dragging = -1
 		_drag_anchor = 0.0
+
+
+func _on__released() -> void:
+	set_code_hidden(!code_hidden)
+
+
+func get_current_game_name() -> String:
+	return "Lua_process_1"
+
+
+func get_current_game_code() -> String:
+	return $Control/CodeEdit.text
+
+
+func _on_run_released() -> void:
+	var viewport = $Control/view/game
+	var process = luas.create_process(get_current_game_name(), get_current_game_code())
+	viewport.add_child(process)
+	process.position.y = viewport.size.y

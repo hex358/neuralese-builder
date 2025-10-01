@@ -116,6 +116,7 @@ func _draw_segment(prev_img: Vector2, curr_img: Vector2, dt: float) -> void:
 
 func _process(delta: float) -> void:
 	if graphs.dragged: return
+	if graphs.conns_active: return
 	if ui.selecting_box: return
 	
 	var local = get_local_mouse_position()

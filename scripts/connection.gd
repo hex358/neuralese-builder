@@ -136,6 +136,7 @@ func attach_spline(id: int, target: Connection):
 	target.last_connected = spline
 	spline.update_points(spline.origin.get_origin(), target.get_origin(), dir_vector, target.dir_vector)
 	glob.hovered_connection = target
+	glob.hovered_connection_changed = true
 	_stylize_spline(spline, true, true)
 	glob.hovered_connection = null
 	graphs.attach_edge(self, target)
@@ -170,6 +171,8 @@ func _exit_tree() -> void:
 	delete()
 	if !Engine.is_editor_hint() and parent_graph:
 		parent_graph.conn_exit(self)
+	if glob.hovered_connection == self:
+		glob.hovered_connection = null
 
 func get_origin() -> Vector2:
 	var global_rect = get_global_rect().size
@@ -236,7 +239,7 @@ func is_suitable(conn: Connection) -> bool:
 @export var gradient_color: Color = Color.WHITE
 
 func _stylize_spline(spline: Spline, hovered_suitable: bool, finalize: bool = false):
-	
+	hovered_suitable = hovered_suitable and is_instance_valid(glob.hovered_connection)
 	if hovered_suitable:
 		spline.modulate = Color(1.1, 1.1, 1.1)
 		spline.turn_into(keyword, glob.hovered_connection.keyword)
@@ -271,6 +274,7 @@ func _process(delta: float) -> void:
 		if inside:
 			parent_graph.hold_for_frame()
 			if not is_instance_valid(glob.hovered_connection):
+				glob.hovered_connection_changed = true
 				glob.hovered_connection = self
 		elif glob.hovered_connection == self:
 			glob.hovered_connection = null
@@ -327,11 +331,14 @@ func _process(delta: float) -> void:
 		if prog < 0.95: modulate = modulate.lerp(base_modulate, delta * 23.0)
 		else: modulate = base_modulate
 	
-	var suit
+	var suit = false
 	if active_outputs:
 		if glob.hovered_connection != _last_hovered_conn:
 			_last_hovered_conn = glob.hovered_connection
-			_last_suit = is_suitable(_last_hovered_conn)
+			if _last_hovered_conn:
+				_last_suit = is_suitable(_last_hovered_conn)
+			else:
+				_last_suit = false
 		suit = _last_suit
 		parent_graph.active_output_connections[self] = true
 		parent_graph.hold_for_frame()
@@ -356,14 +363,14 @@ func _process(delta: float) -> void:
 	
 	#if connection_type == OUTPUT and !active_outputs.is_empty():
 		#print(suit)
-	if suit and active_outputs:
-		glob.hovered_connection.hover()
-	
-
+	if glob.hovered_connection:
+		if suit and active_outputs:
+			glob.hovered_connection.hover()
 	for id in to_end:
 		end_spline(id)
-	for id in to_attach:
-		attach_spline(id, glob.hovered_connection)
+	if glob.hovered_connection:
+		for id in to_attach:
+			attach_spline(id, glob.hovered_connection)
 
 	hovered = false
 

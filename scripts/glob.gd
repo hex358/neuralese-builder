@@ -199,6 +199,7 @@ func wait(wait_time: float, frames: bool = false):
 func _after_process(delta: float) -> void:
 	hide_menus = false
 	consumed_input.clear()
+	hovered_connection_changed = false
 	#print(menu_type)
 
 var opened_menu = null
@@ -363,7 +364,12 @@ func screen_to_world(p_screen: Vector2) -> Vector2:
 var follow_menus: Node
 var window_rect: Rect2 = Rect2()
 var time: float = 0.0
+var space_pressed: bool = false
+var space_just_pressed: bool = false
+
 func _process(delta: float) -> void:
+	space_just_pressed = Input.is_action_just_pressed("ui_accept")
+	space_pressed = Input.is_action_pressed("ui_accept")
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
@@ -386,6 +392,10 @@ func _process(delta: float) -> void:
 		i.free.call_deferred()
 
 	input_poll()
+
+
+
+var hovered_connection_changed: bool = false
 
 func is_graph_inside() -> bool: return is_occupied(self, "graph")
 

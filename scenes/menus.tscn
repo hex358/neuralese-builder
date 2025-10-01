@@ -48,17 +48,18 @@ instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216
 offset_right = 239.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("4_rgbxd")
+auto_trim_text = null
 text = "Add node        +"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(239, 50)
-static_mode = null
 size_add = 4.0
 expanded_size = 0
 scale_anim = true
 arrangement_padding = Vector2(10, 8)
 menu_name = &"add_graph"
 max_size = 250
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="5" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -73,13 +74,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(1, 0.996, 0.76, 1)
 button_type = 1
 hint = &"input"
+auto_trim_text = null
 text = "NodeInput"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="2" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -94,13 +96,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.513, 0.75165, 0.9, 1)
 button_type = 1
 hint = &"act"
+auto_trim_text = null
 text = "ActivationFunc"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="1" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -115,13 +118,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.76, 1, 0.78, 1)
 button_type = 1
 hint = &"layer"
+auto_trim_text = null
 text = "DenseLayer"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="6" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -136,13 +140,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.463817, 0.4505, 0.85, 1)
 button_type = 1
 hint = &"train_input"
+auto_trim_text = null
 text = "TrainInput"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="7" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -157,13 +162,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.463817, 0.4505, 0.85, 1)
 button_type = 1
 hint = &"softmax"
+auto_trim_text = null
 text = "SoftmaxTensor"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="8" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -178,13 +184,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.463817, 0.4505, 0.85, 1)
 button_type = 1
 hint = &"reshape2d"
+auto_trim_text = null
 text = "ReshapeTo2D"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="9" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -199,13 +206,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.463817, 0.4505, 0.85, 1)
 button_type = 1
 hint = &"flatten"
+auto_trim_text = null
 text = "FlattenTo1D"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="10" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -220,13 +228,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.463817, 0.4505, 0.85, 1)
 button_type = 1
 hint = &"conv2d"
+auto_trim_text = null
 text = "Conv2DLayer"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="11" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -241,13 +250,14 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.463817, 0.4505, 0.85, 1)
 button_type = 1
 hint = &"maxpool"
+auto_trim_text = null
 text = "MaxPoolLayer"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="12" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -262,13 +272,32 @@ pivot_offset = Vector2(109.5, 20.5)
 color = Color(0.463817, 0.4505, 0.85, 1)
 button_type = 1
 hint = &"classifier"
+auto_trim_text = null
 text = "OutClassifier"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
+
+[node name="13" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 302.667
+offset_top = -258.667
+offset_right = 521.667
+offset_bottom = -217.66699
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.463817, 0.4505, 0.85, 1)
+button_type = 1
+hint = &"train_begin"
+text = "TrainBegin"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
 
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
 material = ExtResource("3_gygdu")
@@ -280,18 +309,19 @@ offset_right = 168.0
 offset_bottom = 96.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("6_r44s1")
+auto_trim_text = null
 text = "Detatch   -"
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(169, 50)
-static_mode = null
 scale_anim = true
 mouse_open = false
 menu_name = &"detatch"
 dynamic_size = true
 max_size = 210
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="delete" parent="detatch" instance=ExtResource("2_rnbi1")]
 z_index = 2
@@ -306,14 +336,15 @@ offset_bottom = 262.333
 pivot_offset = Vector2(118, 20.500008)
 button_type = 1
 placeholder = true
+auto_trim_text = null
 text = "Hello!!"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(236, 41.000015)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 mouse_open = false
 config = SubResource("Resource_77dp3")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="ProceduralNodes" type="Node" parent="detatch" node_paths=PackedStringArray("instance")]
 script = ExtResource("8_6how5")
@@ -330,17 +361,18 @@ offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("9_rxqxn")
 placeholder = true
+auto_trim_text = null
 text = "Edit node  .."
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(184, 46)
-static_mode = null
 expanded_size = 240
 scale_anim = true
 mouse_open = false
 menu_name = &"edit_graph"
 max_size = 0
 config = null
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="neuron" parent="edit_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -354,13 +386,14 @@ offset_bottom = -27.571404
 pivot_offset = Vector2(109.5, 20.5)
 button_type = 1
 hint = &"1"
+auto_trim_text = null
 text = "Neuron"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 config = ExtResource("5_0ypn7")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="delete_i" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
@@ -371,19 +404,20 @@ offset_right = 159.0
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("9_rxqxn")
+auto_trim_text = null
 text = "Variable .."
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(17, 0)
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(159, 46)
-static_mode = null
 expanded_size = 96
 scale_anim = true
 mouse_open = false
 menu_name = &"delete_i"
 max_size = 0
 config = null
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="delete" parent="delete_i" instance=ExtResource("2_rnbi1")]
 z_index = 2
@@ -397,14 +431,15 @@ offset_right = 105.0
 offset_bottom = 74.0
 pivot_offset = Vector2(50.5, 20.5)
 button_type = 1
+auto_trim_text = null
 text = "Delete"
+_scroll_delay = null
+_scroll_pause = null
+scroll_padding_spaces = null
 base_size = Vector2(101, 41)
 alignment = Vector2(0.5, 0.5)
-static_mode = null
 mouse_open = false
 config = SubResource("Resource_77dp3")
-bar_scale_x = null
-cull_outside_albedo = null
 
 [node name="SelectorBox" parent="." instance=ExtResource("2_rnbi1")]
 material = SubResource("ShaderMaterial_gygdu")

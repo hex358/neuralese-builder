@@ -25,6 +25,12 @@ func _menu_handle_release(button: BlockComponent):
 			type = graphs.graph_types.maxpool
 		"classifier":
 			type = graphs.graph_types.classifier
+		"train_begin":
+			type = graphs.graph_types.train_begin
+		"augmenter":
+			type = graphs.graph_types.augmenter
+		"run_model":
+			type = graphs.graph_types.run_model
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

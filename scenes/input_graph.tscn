@@ -11,7 +11,27 @@ script = ExtResource("2_02not")
 server_typename = &"InputNode"
 is_input = true
 
-[node name="o" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
+[node name="o2" parent="." index="0" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
+instance_shader_parameters/corner_radius_width_add = Vector2(4.5, 0)
+layout_mode = 0
+offset_left = -28.0
+offset_top = -43.0
+offset_right = -8.0
+offset_bottom = -22.0
+color = Color(0.5176471, 0.5019608, 1, 1)
+_accepted_datatypes = "netname"
+server_name = &"netname"
+connection_type = 0
+area_paddings = Vector4(20, 20, 20, 20)
+multiple_splines = true
+origin_offset = Vector2(8, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
+parent_graph = NodePath("..")
+gradient_color = Color(0.5176471, 0.5019608, 1, 1)
+
+[node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
 offset_left = 42.0
 offset_top = 29.0
@@ -30,7 +50,7 @@ max_splines_by_keyword = Dictionary[StringName, int]({
 parent_graph = NodePath("..")
 gradient_color = Color(1, 0.988235, 0.6, 1)
 
-[node name="ColorRect" parent="." index="1"]
+[node name="ColorRect" parent="." index="2"]
 instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
@@ -47,7 +67,7 @@ scale = Vector2(0.569577, 0.569577)
 theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
 text = "Input"
 
-[node name="TextureRect" type="TextureRect" parent="." index="2"]
+[node name="TextureRect" type="TextureRect" parent="." index="3"]
 texture_filter = 1
 material = ExtResource("4_h273u")
 layout_mode = 0

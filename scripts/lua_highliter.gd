@@ -2,16 +2,17 @@
 class_name LuaHighlighter
 extends CodeHighlighter
 
-const C_KW     := Color8(220, 50, 47)    # crimson keywords
-const C_BUILTIN:= Color8(38, 139, 210)   # blue builtins
-const C_TYPES  := Color8(42, 161, 152)   # cyan/teal libs
-const C_NUM    := Color8(211, 54, 130)   # magenta numbers
-const C_STR    := Color8(133, 153, 0)    # green strings
-const C_COMM   := Color8(88, 110, 117)   # grey comments
-const C_SYM    := Color8(220, 220, 220)  # light grey symbols
-const C_TEXT   := Color8(240, 240, 240)  # default text
-const C_FUNC   := Color8(181, 137, 0)    # yellow functions
-const C_MEMBER := Color8(108, 113, 196)  # violet table members
+# Balanced blue–purple palette with stronger separation
+const C_KW     := Color8(120, 170, 255)   # soft sky-blue keywords
+const C_BUILTIN:= Color8(90, 140, 255)    # deep cobalt builtins
+const C_TYPES  := Color8(150, 200, 255)   # icy blue libs
+const C_NUM    := Color8(200, 100, 220)   # violet numbers
+const C_STR    := Color8(100, 220, 200)   # teal strings (contrast!)
+const C_COMM   := Color8(120, 130, 150)   # muted grey-blue comments
+const C_SYM    := Color8(210, 215, 230)   # cool grey symbols
+const C_TEXT   := Color8(235, 240, 245)   # default slightly blue text
+const C_FUNC   := Color8(180, 130, 255)   # purple functions
+const C_MEMBER := Color8(100, 160, 230)   # blue-violet members
 
 func _init() -> void:
 	number_color = C_NUM
