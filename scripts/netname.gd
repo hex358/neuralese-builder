@@ -25,9 +25,13 @@ func _config_field(field: StringName, value: Variant):
 		var desc = get_first_descendants()
 		for dess in desc: #deltarune
 			if dess.server_typename == "InputNode":
-				graphs.set_graph_name(graphs._reach_input(dess), cfg["name"])
-			else:
-				dess.set_name_graph(cfg["name"])
+				if field:
+					graphs.set_graph_name(graphs._reach_input(dess), value)
+				else:
+					graphs.reset_graph_name(graphs._reach_input(dess))
+		for dess in desc: #deltarune
+			if dess.server_typename != "InputNode":
+				dess.set_name_graph(value)
 
 var upd: bool = false
 func _on_line_edit_changed() -> void:

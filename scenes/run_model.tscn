@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bajnadkdpiu3h"]
+[gd_scene load_steps=14 format=3 uid="uid://bajnadkdpiu3h"]
 
 [ext_resource type="Script" uid="uid://delar2xa8xe6x" path="res://scripts/run_m.gd" id="2_20d1g"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_cs7cw"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://dth7a328aa7op" path="res://scripts/conn.gd" id="5_sbclw"]
 [ext_resource type="Material" uid="uid://blkv556akjllh" path="res://resources/panel.tres" id="5_udj8x"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="7_2rdp7"]
+[ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="7_cs7cw"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_fwn3v"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_norah"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_7rg2c"]
@@ -123,7 +124,7 @@ anchors_preset = 0
 offset_left = -57.0
 offset_top = 7.0
 offset_right = 53.0
-offset_bottom = 34.0
+offset_bottom = 47.5
 script = ExtResource("5_sbclw")
 
 [node name="ColorRect" type="ColorRect" parent="connection"]
@@ -135,18 +136,29 @@ layout_mode = 0
 offset_left = 7.0
 offset_top = 1.0
 offset_right = 101.0
+offset_bottom = 33.5
+
+[node name="Control" type="Control" parent="connection"]
+anchors_preset = 0
+offset_left = 10.0
+offset_right = 57.0
 offset_bottom = 20.0
 
-[node name="Label" type="Label" parent="connection"]
+[node name="Label" type="Label" parent="connection/Control"]
 z_index = 1
 layout_mode = 0
-offset_left = 11.0
 offset_top = 4.0
-offset_right = 204.76787
+offset_right = 169.1065
 offset_bottom = 47.0
 scale = Vector2(0.2838448, 0.2838448)
 theme = ExtResource("3_4mecg")
 text = "0"
+script = ExtResource("7_cs7cw")
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(169.107, 43)
+metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="loss" parent="connection" node_paths=PackedStringArray("graph_root") instance=ExtResource("8_fwn3v")]
 z_index = 1
@@ -220,14 +232,86 @@ alignment = Vector2(0.5, 0.5)
 config = ExtResource("11_cs7cw")
 auto_ready = false
 
+[node name="imp" parent="connection" node_paths=PackedStringArray("graph_root") instance=ExtResource("8_fwn3v")]
+z_index = 1
+instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 62.0
+offset_top = 18.0
+offset_right = 119.40246
+offset_bottom = 38.0
+scale = Vector2(0.62715083, 0.62715083)
+mouse_filter = 1
+color = Color(0.584314, 0.576471, 0.85098, 1)
+button_type = 2
+base_scale_x = 0.45
+resize_after = 6
+text = "MSE"
+base_size = Vector2(57.40246, 20)
+expanded_size = 72
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_4mecg")
+graph_root = NodePath("../..")
+auto_ready = false
+
+[node name="ColorRect2" parent="connection/imp" instance=ExtResource("8_fwn3v")]
+visible = false
+material = ExtResource("9_norah")
+instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -1.0
+offset_top = 4.0
+offset_right = 98.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(49.5, 18)
+button_type = 1
+top = true
+hint = &"mse"
+resize_after = 4
+text = "MSE"
+base_size = Vector2(99, 36)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("11_cs7cw")
+auto_ready = false
+
+[node name="ColorRect3" parent="connection/imp" instance=ExtResource("8_fwn3v")]
+visible = false
+material = ExtResource("9_norah")
+instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = -14.0
+offset_top = 4.0
+offset_right = 106.0
+offset_bottom = 40.0
+scale = Vector2(0.601426, 0.601426)
+pivot_offset = Vector2(60, 18)
+button_type = 1
+top = true
+hint = &"cross_entropy"
+resize_after = 5
+text = "CrossE"
+base_size = Vector2(120, 36)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("11_cs7cw")
+auto_ready = false
+
 [node name="Label2" type="Label" parent="."]
 self_modulate = Color(0.65, 0.65, 0.65, 1)
 z_index = 1
 layout_mode = 0
 offset_left = 14.000002
-offset_top = -1.9999993
+offset_top = -2.999999
 offset_right = 207.0
-offset_bottom = 45.0
+offset_bottom = 44.0
 scale = Vector2(0.2211043, 0.2211043)
 theme = ExtResource("7_2rdp7")
 text = "Loss"

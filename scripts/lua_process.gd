@@ -11,8 +11,6 @@ var methods = []
 var physics_world: World2D
 
 func _init(name: String, code: String):
-	physics_world = get_world_2d()
-
 	if not code:
 		methods = _get_exposed_function_names()
 		return
@@ -72,24 +70,40 @@ func _draw() -> void:
 	if stopped: return
 	for shape in shapes:
 		if shape == null: continue
-		#print(shape["y"])
+		var pos = Vector2(shape["x"], -shape["y"])
+		var rot = float(shape.get("rotation", 0.0))
+		draw_set_transform(pos, -rot, Vector2.ONE)
 		if shape["type"] == "circle":
-			draw_circle(Vector2(shape["x"], -shape["y"]), shape["r"], shape["color"])
+			draw_circle(Vector2.ZERO, shape["r"], shape["color"])
 		elif shape["type"] == "rect":
-			draw_rect(Rect2(shape["x"], -shape["y"], shape["w"], shape["h"]), shape["color"])
-
+			draw_rect(Rect2(-shape["w"]/2, -shape["h"]/2, shape["w"], shape["h"]), shape["color"])
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 # -------------------------
 # Lua API: creation
 # -------------------------
 func lua_Circle(x: float, y: float, r: float) -> int:
 	var id = shapes.size()
-	var shape = { "type": "circle", "x": x, "y": y, "r": r, "color": Color(1,1,1), "physics_enabled": false }
+	var shape = {
+		"type": "circle",
+		"x": x, "y": y,
+		"r": r,
+		"rotation": 0.0,
+		"color": Color(1,1,1),
+		"physics_enabled": false
+	}
 	shapes.append(shape)
 	return id
 
 func lua_Rectangle(x: float, y: float, w: float, h: float) -> int:
 	var id = shapes.size()
-	var shape = { "type": "rect", "x": x, "y": y, "w": w, "h": h, "color": Color(1,1,1), "physics_enabled": false }
+	var shape = {
+		"type": "rect",
+		"x": x, "y": y,
+		"w": w, "h": h,
+		"rotation": 0.0,
+		"color": Color(1,1,1),
+		"physics_enabled": false
+	}
 	shapes.append(shape)
 	return id
 
@@ -148,6 +162,7 @@ var point_params: PhysicsPointQueryParameters2D
 @onready var space_state = get_world_2d().direct_space_state
 
 func _ready():
+	physics_world = get_world_2d()
 	point_params = PhysicsPointQueryParameters2D.new()
 	ray_params = PhysicsRayQueryParameters2D.new()
 
@@ -297,6 +312,26 @@ func stop() -> void:
 	shapes.clear()
 
 	queue_free()
+
+func lua_set_rotation(id: int, angle: float) -> void:
+	var s = _get_shape(id)
+	if s.is_empty(): return
+	if s.get("physics_enabled", false) and s.has("body"):
+		s["body"].rotation = angle
+	else:
+		s["rotation"] = angle
+
+func lua_get_rotation(id: int) -> float:
+	var s = _get_shape(id)
+	return float(s.get("rotation", 0.0)) if not s.is_empty() else 0.0
+
+func lua_rotate(id: int, angle: float) -> void:
+	var s = _get_shape(id)
+	if s.is_empty(): return
+	if s.get("physics_enabled", false) and s.has("body"):
+		s["body"].rotation += angle
+	else:
+		s["rotation"] = float(s.get("rotation", 0.0)) + angle
 
 
 # -------------------------

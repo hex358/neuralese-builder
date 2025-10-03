@@ -224,11 +224,12 @@ func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
 	return true
 
 func _reach_input(from: Graph, custom: String = "InputNode"):
+	if from.server_typename == custom: return from
 	var next_frame = {from: true}
 	while true:
 		var new_frame = {}
 		for i: Graph in next_frame:
-			if i.server_typename == "InputNode": return i
+			if i.server_typename == custom: return i
 			for conn in i._inputs:
 				for spline in conn.inputs:
 					new_frame[spline.origin.parent_graph] = true
@@ -346,6 +347,11 @@ func reset_graph_name(who: Graph):
 
 func graph_by_name(name_: String):
 	return graph_map.get(name_)
+
+
+signal spline_connected(from_conn: Connection, to_conn: Connection)
+signal spline_disconnected(from_conn: Connection, to_conn: Connection)
+
 
 func reach(from_graph: Graph, call: Callable = def_call):
 	reach_mode = true

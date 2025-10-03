@@ -125,6 +125,8 @@ func _after_process(delta: float):
 		if add_q.empty(): break
 		var popped = add_q.pop()
 		popped.call()
+	if offset_units or !add_q.empty() or appear_units or dissapear_units:
+		hold_for_frame()
 	
 	if exist_ticks < 5:
 		if bottom_attached:
@@ -165,9 +167,11 @@ func _after_process(delta: float):
 	for unit in to_del:
 		dissapear_units.erase(unit)
 		key_by_unit.erase(unit)
+		offset_units.erase(unit)
 	to_del = []
 	for unit in offset_units:
 		var target = offset_units[unit]
+		if not is_instance_valid(unit): to_del.append(unit); continue
 		unit.position.y = lerpf(unit.position.y, target, delta*20.0)
 		if abs(target - unit.position.y) < 1:
 			unit.position.y = target

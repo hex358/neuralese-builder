@@ -22,20 +22,32 @@ func train_state_received(bytes: PackedByteArray):
 #func _just_deattached(other_conn: Connection, my_conn: Connection):
 	#set_count(0)
 	#graphs.update_dependencies(self)
+	#graphs.update_dependencies(self)
 	#count_reach = 0
 	#graphs.reach(self, call_count)
 
-var training_sockets := {}
+func request_save():
+	for g in graphs._graphs:
+		graphs._graphs[g].request_save()
+
+var training_sockets = {}
 func start_train(train_input: Graph, args: Dictionary = {}):
 	var train_input_origin = graphs._reach_input(train_input, "TrainBegin")
 	var execute_input_origin = null
+	var _d = {}
 	var cachify = func(from: Connection, to: Connection, branch_cache: Dictionary):
 		if to.parent_graph.server_typename == "RunModel":
-			assert(not execute_input_origin, "compile failed, run_model node >1 times banned")
-			execute_input_origin = to.parent_graph.name_graph
+			assert(not _d.get("input"), "compile failed, run_model node >1 times banned")
+			
+			_d["input"] = graphs.graph_by_name(to.parent_graph.name_graph)
 	#var all = 
-	if !is_instance_valid(train_input_origin) or !execute_input_origin: return
+	#print(train_input_origin)
 	graphs.reach(train_input_origin, cachify)
+	execute_input_origin = _d["input"]
+	if !is_instance_valid(train_input_origin) or !execute_input_origin: return
+	#print(execute_input_origin.server_typename)
+	#print(train_input_origin.server_typename)
+	request_save()
 	var compressed = glob.compress_dict_gzip({
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(execute_input_origin),
@@ -73,6 +85,7 @@ func is_infer_channel(input: Graph) -> bool:
 func open_infer_channel(input: Graph) -> void:
 	if input in inference_sockets and is_instance_valid(inference_sockets[input]):
 		return # already open
+	request_save()
 	var init_payload = {
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(input)

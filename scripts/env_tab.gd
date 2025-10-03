@@ -81,6 +81,10 @@ func tick(force: bool = false) -> void:
 	handle_division_drag()
 
 	var win: float = glob.window_size.x
+	if get_global_mouse_position().x > $Control/view.position.x:
+		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_DISABLED
+	else:
+		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_INHERIT
 	if prev_win != glob.window_size or _dragging != -1 or force:
 		$Control.position.y = glob.space_begin.y
 		$Control.size.y = glob.window_size.y - $Control.position.y
@@ -136,7 +140,7 @@ func tick(force: bool = false) -> void:
 		prev_win = glob.window_size
 		repos()
 
-		$Control/view/Label.resize()
+	$Control/view/Label.resize()
 
 
 

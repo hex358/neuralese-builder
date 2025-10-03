@@ -49,6 +49,12 @@ func get_first_ancestors() -> Array:
 				res[j.origin.parent_graph] = true
 	return res.keys()
 
+func request_save():
+	_request_save()
+
+func _request_save(): # virtual
+	pass
+
 @onready var cfg: Dictionary[StringName, Variant] = base_config.duplicate()
 func update_config(update: Dictionary):
 	cfg.merge(update, true)
@@ -77,6 +83,7 @@ func is_branch_merge_allowed(who: Connection, to: Connection) -> bool:
 func just_connected(who: Connection, to: Connection):
 	graphs.update_dependencies()
 	_just_connected(who, to)
+	graphs.spline_connected.emit(who, to)
 
 func _is_valid() -> bool:
 	return true
@@ -138,6 +145,7 @@ func just_disconnected(who: Connection, from: Connection):
 	_just_disconnected(who, from)
 
 func disconnecting(who: Connection, from: Connection):
+	graphs.spline_disconnected.emit(who, from)
 	#graphs.update_dependencies(who.parent_graph)
 	from.parent_graph.deattaching(who, from)
 	_disconnecting(who, from)
