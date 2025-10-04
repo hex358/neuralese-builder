@@ -233,6 +233,7 @@ config = ExtResource("11_cs7cw")
 auto_ready = false
 
 [node name="imp" parent="connection" node_paths=PackedStringArray("graph_root") instance=ExtResource("8_fwn3v")]
+visible = false
 z_index = 1
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 instance_shader_parameters/extents = Vector2(0, 0)

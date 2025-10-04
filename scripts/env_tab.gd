@@ -81,7 +81,7 @@ func tick(force: bool = false) -> void:
 	handle_division_drag()
 
 	var win: float = glob.window_size.x
-	if get_global_mouse_position().x > $Control/view.position.x:
+	if get_global_mouse_position().x > border_rect_2.position.x:
 		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_DISABLED
 	else:
 		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_INHERIT
@@ -119,13 +119,15 @@ func tick(force: bool = false) -> void:
 			rect.scale = Vector2.ONE * ((game_w-4) / float(rect.size.x))
 		else:
 			rect.scale = Vector2.ONE
-		var max_y = game_window.size.y - 0.14 * glob.window_size.y
+		var max_y = game_window.size.y - 0.2 * (glob.window_size.y + 60)
 		var x = 2
 		var y = 0
 		if rect.size.y * rect.scale.y > max_y:
 			rect.scale = Vector2.ONE * max_y / rect.size.y
 			x += game_w / 2 - rect.scale.x * rect.size.x / 2
-			y += 0.04 * glob.window_size.y-2
+			y += 15
+			y -= glob.window_size.y * 0.02
+		y += 15
 		rect.position = Vector2(x, game_window.size.y / 2 - rect.scale.y * rect.size.y / 2 + y)
 
 

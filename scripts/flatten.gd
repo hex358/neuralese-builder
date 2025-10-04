@@ -26,7 +26,16 @@ var neuron_count: int = 0
 func set_count(count: int):
 	display_count = count; neuron_count = count
 	$display_count.text = str(count)
-
+	#await get_tree().process_frame
+	var dess = get_descendant()
+	if dess:
+		if get_ancestor():
+			if dess.server_typename == "NeuronLayer":
+				dess.push_neuron_count(neuron_count)
+				dess.neurons_fixed = true
+		else:
+			dess.neurons_fixed = false
+	
 var block_types: Dictionary[StringName, bool] = {"NeuronLayer": 1, "Reshape2D": 1}
 var count_reach: int = 0
 func call_count(from: Connection, to: Connection, branch_cache: Dictionary):

@@ -11,6 +11,7 @@ func _ready() -> void:
 	resize.call_deferred()
 
 func resize() -> void:
+	if !parent_indep: resize_dep(); return
 	var available: Vector2
 	
 	if parent_indep:
@@ -36,3 +37,22 @@ func resize() -> void:
 	var k: float = min(kx, ky)
 	var new_scale: float = clamp(base_scale * k, min_scale, base_scale)
 	scale = Vector2.ONE * new_scale
+
+
+
+func resize_dep() -> void:
+	var parent_ctrl := get_parent()
+	if not (parent_ctrl is Control):
+		return
+	var parent_size: Vector2 = parent_ctrl.size
+	var available: Vector2 = parent_size - position
+	var text_size: Vector2 = glob.get_label_text_size(self, base_scale) + padding / scale
+	
+	if text_size.x <= 0.0 or text_size.y <= 0.0:
+		return
+
+	var kx: float = available.x / text_size.x
+	var ky: float = available.y / text_size.y
+	var k: float = min(kx, ky)
+	
+	scale = Vector2.ONE * min(base_scale, max(min_scale, base_scale * k))

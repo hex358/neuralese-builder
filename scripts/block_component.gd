@@ -353,7 +353,7 @@ func _create_scaler_wrapper() -> void:
 	wrapper.custom_minimum_size = self.base_size * scale
 
 	# Decide if we should copy anchors or raw position
-	var uses_anchors := not (is_equal_approx(anchor_left, 0.0)
+	var uses_anchors = not (is_equal_approx(anchor_left, 0.0)
 		and is_equal_approx(anchor_top, 0.0)
 		and is_equal_approx(anchor_right, 0.0)
 		and is_equal_approx(anchor_bottom, 0.0))
@@ -718,8 +718,12 @@ func _process_block_button(delta: float) -> void:
 var freedom: bool = true
 var bar: VScrollBar
 
+var _last_extents: Vector4 = Vector4.ZERO
+var _last_has_shrink: bool = false
+
+
 func update_children_reveal() -> void:
-	if _contained.is_empty(): 
+	if _contained.is_empty():
 		_reveal_dirty = false
 		return
 	if not is_visible_in_tree() or scroll == null or bar == null:
@@ -737,69 +741,49 @@ func update_children_reveal() -> void:
 	var bar_page: float = bar.page
 	var mul_y: float = mult.y
 
-	var extents = Vector4(0.0, 0.0, 0.0, 0.0)
+	var extents = Vector4.ZERO
 	if has_shrink:
 		var top_edge = s_glob_y if (bar_value > 10.0) else -20.0
 		var bottom_edge = (s_glob_y + scroll.size.y * scroll.scale.y * mul_y) if (bar_value < (bar_max - bar_page)) else 0.0
 		extents = Vector4(top_edge, bottom_edge, 0.0, 0.0)
 
-	var i: int = 0
-	var n: int = _contained.size()
-	var stay_hot: bool = false
+	var n = _contained.size()
+	var stay_hot = false
+	var changed_extents = has_shrink != _last_has_shrink or extents != _last_extents
+	var a = 0
 
-	while i < n:
+	for i in n:
 		var c: BlockComponent = _contained[i]
 		var pos = c._wrapped_in.position.y + s_pos_y + c.base_size.y
 		var new_visible = has_shrink or (pos < max_y)
-		if c.visible != new_visible:
-			c.visible = new_visible
-			stay_hot = true
+		var new_free = size_diff_ok and (pos - bar_value < max_y) and (pos - bar_value > base_y)
 
-		var free = false
-		if new_visible:
-			var rel = pos - bar_value
-			free = size_diff_ok and (rel < max_y) and (rel > base_y)
-
-		if c.freedom != free:
-			c.freedom = free
-			stay_hot = true
-
-		if not free:
-			# target alpha = 0
-			if c.modulate.a > _A0:
-				var m = c.modulate
-				m.a = 0.0
-				c.modulate = m
+		if c.visible != new_visible or c.freedom != new_free or changed_extents:
+			if c.visible != new_visible:
+				c.visible = new_visible
 				stay_hot = true
-		else:
-			if c.modulate.a < _A1:
+
+			if c.freedom != new_free:
+				c.freedom = new_free
 				stay_hot = true
-			if has_shrink:
-				c.set_instance_shader_parameter("extents", extents)
-				c.label.set_instance_shader_parameter("extents", extents)
 
-		if (not has_shrink) and (pos >= max_y):
-			i += 1
-			while i < n:
-				var cc: BlockComponent = _contained[i]
-				if cc.visible:
-					cc.visible = false
+			if not new_free:
+				if c.modulate.a > _A0:
+					var m = c.modulate
+					m.a = 0.0
+					c.modulate = m
 					stay_hot = true
-				if cc.freedom:
-					cc.freedom = false
+			else:
+				if c.modulate.a < _A1:
 					stay_hot = true
-				if cc.modulate.a > _A0:
-					var mm = cc.modulate
-					mm.a = 0.0
-					cc.modulate = mm
-					stay_hot = true
-				i += 1
-			_reveal_dirty = stay_hot
-			return
-
-		i += 1
-
+				var e = extents if has_shrink else Vector4.ZERO
+				a += 1
+				c.set_instance_shader_parameter("extents", e)
+				c.label.set_instance_shader_parameter("extents", e)
+	_last_extents = extents
+	_last_has_shrink = has_shrink
 	_reveal_dirty = stay_hot
+
 
 
 var _reveal_dirty: bool = false

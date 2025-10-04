@@ -38,7 +38,11 @@ func _get_unit(kw: Dictionary) -> Control:
 	return dup
 
 func _get_info() -> Dictionary:
-	return {}
+	return {
+		"position": position,
+		"neuron_count": cfg.neuron_count,
+		"arr": [0,1,2,3,4],
+	}
 
 var last_resized: int = 0
 func _size_changed():

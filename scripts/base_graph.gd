@@ -33,21 +33,31 @@ func hold_for_frame():
 @export var base_config: Dictionary[StringName, Variant] = {}
 @export_group("")
 
-func get_first_descendants() -> Array:
-	var res: Dictionary = {}
+func get_first_descendants() -> Array[Graph]:
+	var res: Dictionary[Graph, Variant] = {}
 	for i in outputs:
 		for j:int in i.outputs:
-			if is_instance_valid(i.outputs[j].tied_to.parent_graph):
+			if i.outputs[j].tied_to and is_instance_valid(i.outputs[j].tied_to.parent_graph):
 				res[i.outputs[j].tied_to.parent_graph] = true
-	return res.keys()
+	var a: Array[Graph] = res.keys()
+	return a
 
-func get_first_ancestors() -> Array:
-	var res: Dictionary = {}
+func get_first_ancestors() -> Array[Graph]:
+	var res: Dictionary[Graph, Variant] = {}
 	for i in input_keys:
 		for j in input_keys[i].inputs:
 			if is_instance_valid(j.origin.parent_graph):
 				res[j.origin.parent_graph] = true
-	return res.keys()
+	var a: Array[Graph] = res.keys()
+	return a
+
+func get_descendant() -> Graph:
+	var dess = get_first_descendants()
+	return dess[0] if dess else null
+
+func get_ancestor() -> Graph:
+	var dess = get_first_ancestors()
+	return dess[0] if dess else null
 
 func request_save():
 	_request_save()
@@ -87,6 +97,9 @@ func just_connected(who: Connection, to: Connection):
 
 func _is_valid() -> bool:
 	return true
+
+func get_title() -> String:
+	return $ColorRect/root/Label.text if $ColorRect/root/Label else server_typename
 
 var invalid_fields: Dictionary = {}
 var cfg_snapshot: Dictionary = {}
@@ -238,8 +251,6 @@ func _seq_push_input(connection_key: int, value) -> void:
 
 func get_info() -> Dictionary:
 	var output = {
-	"position": Vector2(),
-	"arr": [position, rotation, scale, output_keys.keys()]
 	}
 	#print(input_keys)
 	output.merge(_get_info(), true)
@@ -337,7 +348,7 @@ func _stopped_processing():
 	glob.reset_menu_type(self, &"edit_graph")
 	glob.un_occupy(self, &"graph")
 	drag_ended()
-	if glob._menu_type_occupator in output_key_by_conn:
+	if glob._menu_type_occupator is Connection and glob._menu_type_occupator in output_key_by_conn:
 		glob.reset_menu_type(glob._menu_type_occupator, "detatch")
 	if glob.is_occupied(self, "conn_active"):
 		glob.un_occupy(glob.occ_layers["conn_active"], "conn_active")

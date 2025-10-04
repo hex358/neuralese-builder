@@ -194,19 +194,27 @@ func store_delta(graph: Graph):
 	
 	var pathed_adds = {}; var pathed_deletes = {}
 	for i in result_adds:
-		pathed_adds["/".join(i)] = Marshalls.raw_to_base64(var_to_bytes(result_adds[i]))
+		pathed_adds["/".join(i)] = result_adds[i]
 	for i in result_deletes:
-		pathed_deletes["/".join(i)] = Marshalls.raw_to_base64(var_to_bytes(result_deletes[i]))
+		pathed_deletes["/".join(i)] = result_deletes[i]
 	
 	return [pathed_adds, pathed_deletes]
 
 var _graphs_ids: Dictionary[int, bool] = {}
 var _graphs: Dictionary[int, Graph] = {}
+
+var _graph_names = {}
+
+func nodes_of_type(type: String) -> Dictionary:
+	return _graph_names.get(type, {})
+
 func add(graph: Graph):
+	_graph_names.get_or_add(graph.server_typename, {})[graph] = true
 	_graphs[graph.graph_id] = graph
 	_graphs_ids[graph.graph_id] = true
 
 func remove(graph: Graph):
+	_graph_names.get(graph.server_typename, {}).erase(graph)
 	_graphs.erase(graph.graph_id)
 	_graphs_ids.erase(graph.graph_id)
 	stop_drag(graph)
@@ -242,8 +250,10 @@ var graph_to_key = {}
 
 func save():
 	var deltas = get_deltas()
-	print(deltas)
-	var compressed = glob.compress_dict_gzip(get_deltas())
+	var bytes = var_to_bytes(deltas)
+	var compressed = bytes.compress(FileAccess.COMPRESSION_GZIP)
+	compressed.append(len(bytes))
+	web.POST("save", compressed, true)
 
 var _training_head: Graph = null
 var _train_origin_graph: Graph = null
@@ -333,20 +343,40 @@ func def_call(from: Connection, to: Connection, branch_cache: Dictionary):
 
 var reach_mode: bool = false
 
-var graph_map: Dictionary[String, Graph] = {}
-var graph_unmap: Dictionary[Graph, String] = {}
-func set_graph_name(who, name_: String):
-	if who in graph_unmap:
-		graph_map.erase(graph_unmap[who])
-	graph_map[name_] = who
-	graph_unmap[who] = name_
 
-func reset_graph_name(who: Graph):
-	graph_map.erase(graph_unmap[who])
-	graph_unmap.erase(who)
 
-func graph_by_name(name_: String):
-	return graph_map.get(name_)
+var input_graph_names: Dictionary[String, Graph] = {}
+var input_graphs: Dictionary[Graph, String] = {}
+func add_input_graph_name(who: Graph, name_: String):
+	input_graph_names[name_] = who
+	input_graphs[who] = name_
+
+func has_named_input_graph(who: Graph) -> bool:
+	return who in input_graphs
+
+func input_graph_name_exists(strr: String) -> bool:
+	return strr in input_graph_names
+
+func rename_input_graph(who: Graph, name_: String):
+	if not who in input_graphs: return
+	input_graph_names.erase(input_graphs[who])
+	input_graphs[who] = name_
+	input_graph_names[name_] = who
+
+func get_input_graph_by_name(name_: String):
+	return input_graph_names.get(name_)
+
+func forget_input_graph_name(name_: String):
+	if name_ in input_graph_names:
+		input_graphs.erase(input_graph_names[name_])
+		input_graph_names.erase(name_)
+
+func forget_input_graph(who: Graph):
+	if who in input_graphs:
+		input_graph_names.erase(input_graphs[who])
+		input_graphs.erase(who)
+
+
 
 
 signal spline_connected(from_conn: Connection, to_conn: Connection)
@@ -482,8 +512,8 @@ func unpush_2d(target):
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
-	#if Input.is_action_just_pressed("ui_accept"):
-		#save()
+	if glob.space_just_pressed:
+		save()
 	
 	if not last_frame_visible: 
 		last_frame_visible = visible; return

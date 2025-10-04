@@ -58,7 +58,7 @@ func repush(columns: int, rows: int):
 		grid.y = old_grid.y
 		
 func _just_connected(who: Connection, to: Connection):
-	graphs.push_2d(int(1+grid.x/group), int(1+grid.y/group), get_first_descendants())
+	graphs.push_2d(int(grid.x/group), int(grid.y/group), get_first_descendants())
 
 func _proceed_hold() -> bool:
 	return true
@@ -92,7 +92,7 @@ func _config_field(field: StringName, val: Variant):
 			group = int(val)
 			hold_for_frame()
 			#print(int(grid.x/group*1.5))
-			graphs.push_2d(int(1+grid.x/group), int(1+grid.y/group), get_first_descendants())
+			graphs.push_2d(int(grid.x/group), int(grid.y/group), get_first_descendants())
 
 func _can_drag() -> bool:
 	return not ui.is_focus($YY)
@@ -100,7 +100,7 @@ func _can_drag() -> bool:
 func update_grid(x: int, y: int):
 	grid.x = x
 	grid.y = y
-	graphs.push_2d(int(1+grid.x/group), int(1+grid.y/group), get_first_descendants())
+	graphs.push_2d(int(grid.x/group), int(grid.y/group), get_first_descendants())
 
 func _on_yy_submitted(new_text: String) -> void:
 

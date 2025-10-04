@@ -39,7 +39,7 @@ func start_train(train_input: Graph, args: Dictionary = {}):
 		if to.parent_graph.server_typename == "RunModel":
 			assert(not _d.get("input"), "compile failed, run_model node >1 times banned")
 			
-			_d["input"] = graphs.graph_by_name(to.parent_graph.name_graph)
+			_d["input"] = graphs.get_input_graph_by_name(to.parent_graph.name_graph)
 	#var all = 
 	#print(train_input_origin)
 	graphs.reach(train_input_origin, cachify)
@@ -121,14 +121,14 @@ func send_inference_data(input: Graph, data: Dictionary) -> void:
 
 func _process(delta: float) -> void:
 	pass
-	#if not is_instance_valid(graphs._input_origin_graph): return
-	#if Input.is_action_just_pressed("ui_accept"):
-		#if !is_infer_channel(graphs._input_origin_graph):
-			#open_infer_channel(graphs._input_origin_graph)
-		#else:
-			#send_inference_data(graphs._input_origin_graph, graphs._input_origin_graph.useful_properties())
-	#if Input.is_action_just_pressed("ui_x"):
-		#close_infer_channel(graphs._input_origin_graph)
+	if not is_instance_valid(graphs._input_origin_graph): return
+	if Input.is_action_just_pressed("ui_accept"):
+		if !is_infer_channel(graphs._input_origin_graph):
+			open_infer_channel(graphs._input_origin_graph)
+		else:
+			send_inference_data(graphs._input_origin_graph, graphs._input_origin_graph.useful_properties())
+	if Input.is_action_just_pressed("ui_x"):
+		close_infer_channel(graphs._input_origin_graph)
 
 
 func close_infer_channel(input: Graph) -> void:

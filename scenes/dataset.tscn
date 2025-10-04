@@ -38,7 +38,7 @@ gradient_color = Color(0.7019608, 0.4, 1, 1)
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = ExtResource("3_0wvvd")
-instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
+instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
 instance_shader_parameters/outline_color = Color(0.9369999, 0.73, 1, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.639216)
 layout_mode = 0

@@ -44,7 +44,6 @@ _accepted_datatypes = "layer1d"
 server_name = &"layer_out"
 connection_type = 1
 area_paddings = Vector4(10, 10, 10, 10)
-multiple_splines = true
 origin_offset = Vector2(8, 0)
 max_splines_by_keyword = Dictionary[StringName, int]({
 &"train": 0
