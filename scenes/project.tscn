@@ -12,7 +12,7 @@
 
 [node name="base" type="Node2D"]
 script = ExtResource("1_6ipd3")
-importance_chain = Array[StringName]([&"dataset", &"netname", &"neuron", &"input_graph", &"flatten", &"reshape", &"layer", &"conv2d", &"maxpool", &"softmax", &"classifier", &"train_begin", &"run_model", &"train_input", &"io", &"loop", &"base"])
+importance_chain = Array[StringName]([&"dataset", &"netname", &"neuron", &"input", &"flatten", &"reshape", &"layer", &"conv2d", &"maxpool", &"softmax", &"classifier", &"train_begin", &"run_model", &"train_input", &"io", &"loop", &"base"])
 
 [node name="fg" parent="." instance=ExtResource("1_djuk3")]
 

@@ -283,8 +283,8 @@ func load_scene(state: Dictionary):
 		type_layers[chain[i]] = i
 		sequence[i] = []
 		
-	for id in state["graphs"]:
-		var pack = state["graphs"]
+	for id in state:
+		var pack = state[id]
 		pack.id = id
 		sequence[type_layers[pack.created_with]].append(pack)
 	
@@ -292,6 +292,7 @@ func load_scene(state: Dictionary):
 	for layer in sequence:
 		for pack in sequence[layer]:
 			var graph: Graph = get_graph(pack.created_with, Graph.Flags.NONE, pack.id)
+			graph.position = pack.position
 			graph.set_meta("pack", pack)
 			for port_key in pack.outputs:
 				var id = pack.outputs[port_key][-1]
@@ -307,13 +308,7 @@ func load_scene(state: Dictionary):
 	
 	for g in _graphs:
 		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
-	
-	# TODO
-	# loader will begin by creating the more important
-	# nodes, then less important ones,
-	# gathering the edges they had along the way.
-	# Then it will connect everything using these edges.
-	# And finally, it will map the properties.
+		_graphs[g].hold_for_frame.call_deferred()
 	
 
 func save():
