@@ -245,15 +245,99 @@ func _reach_input(from: Graph, custom: String = "InputNode"):
 		next_frame = new_frame
 	return null
 
-var key_to_graph = {}
-var graph_to_key = {}
+var key_to_graph: Dictionary[int, Graph] = {}
+var graph_to_key: Dictionary[Graph, int] = {}
+
+
+var connection_ids: Dictionary[int, Connection] = {}
+
+func reg_conn(who: Connection):
+	connection_ids[who.conn_id] = who
+
+func del_conn(who: Connection):
+	connection_ids.erase(who.conn_id)
+
+#func get_info() -> Dictionary:
+	#var inputs = {}
+	#var outputs_ = {}
+	#for i in input_keys:
+		#inputs[input_keys[i].conn_id] = i
+	#for i in output_keys:
+		#var port = [output_keys[i].conn_id]
+		#for o in output_keys[i].outputs:
+			#port.append(output_keys[i].outputs[o].tied_to.conn_id)
+		#outputs_[i] = port
+			##input_spline.
+	#var base = {
+		#"position": position,
+		#"inputs": inputs,
+		#"outputs": outputs_,
+		#"created_with": get_meta("created_with")
+	#}
+
+func load_scene(state: Dictionary):
+	var chain = glob.base_node.importance_chain
+	var type_layers = {}
+	var sequence = {}
+	for i in len(chain):
+		type_layers[chain[i]] = i
+		sequence[i] = []
+		
+	for id in state["graphs"]:
+		var pack = state["graphs"]
+		pack.id = id
+		sequence[type_layers[pack.created_with]].append(pack)
+	
+	var edges = {} # from: [to1, to2, ...]
+	for layer in sequence:
+		for pack in sequence[layer]:
+			var graph: Graph = get_graph(pack.created_with, Graph.Flags.NONE, pack.id)
+			graph.set_meta("pack", pack)
+			for port_key in pack.outputs:
+				var id = pack.outputs[port_key][-1]
+				graph.output_keys[port_key].update_conn_id(id)
+				pack.outputs[port_key].remove_at(-1)
+				edges[id] = pack.outputs[port_key]
+			for port_id in pack.inputs:
+				graph.input_keys[pack.inputs[port_id]].update_conn_id(port_id)
+	
+	for conn_id in edges:
+		for other_conn_id in edges[conn_id]:
+			connection_ids[conn_id].connect_to(connection_ids[other_conn_id], true)
+	
+	for g in _graphs:
+		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
+	
+	# TODO
+	# loader will begin by creating the more important
+	# nodes, then less important ones,
+	# gathering the edges they had along the way.
+	# Then it will connect everything using these edges.
+	# And finally, it will map the properties.
+	
 
 func save():
-	var deltas = get_deltas()
-	var bytes = var_to_bytes(deltas)
-	var compressed = bytes.compress(FileAccess.COMPRESSION_GZIP)
-	compressed.append(len(bytes))
-	web.POST("save", compressed, true)
+	var l = func():
+		var a = FileAccess.open("user://test.txt", FileAccess.READ)
+		load_scene(a.get_var())
+	l.call()
+	
+	#var s = {}
+	#for graph in _graphs.values():
+		#s[graph.graph_id] = graph.get_info()
+	#var a = FileAccess.open("user://test.txt", FileAccess.WRITE)
+	#a.store_var(s)
+	#a.close()
+	#var deltas = get_deltas()
+	## delete, because pull_nodes are passed through 1st-level dict
+	#var pull_nodes = deltas["graph_adds"]
+	#deltas.erase("graph_adds")
+	#var bytes = var_to_bytes(deltas)
+	#var compressed = bytes.compress(FileAccess.COMPRESSION_GZIP)
+	#compressed.append(len(bytes))
+	##print(deltas)
+	#web.POST("save", {"deltas": Marshalls.raw_to_base64(compressed), 
+	#"pull_nodes": pull_nodes}, false)
 
 var _training_head: Graph = null
 var _train_origin_graph: Graph = null
@@ -471,8 +555,12 @@ var graph_types = {
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
-func get_graph(type = graph_types.base, flags = Graph.Flags.NONE) -> Graph:
+func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0) -> Graph:
+	var type = graph_types[typename]
 	var new = type.instantiate()
+	new.set_meta("created_with", typename)
+	if id:
+		new.graph_id = id
 	new.graph_flags = flags
 	var last = storage.get_child(-1)
 	z_count += last.z_space if last else 0

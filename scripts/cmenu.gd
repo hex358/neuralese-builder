@@ -6,35 +6,35 @@ func _menu_handle_release(button: BlockComponent):
 	var type = null
 	match button.hint:
 		"layer":
-			type = graphs.graph_types.layer
+			type = "layer"
 		"act":
-			type = graphs.graph_types.neuron
+			type = "neuron"
 		"input":
-			type = graphs.graph_types.input
+			type = "input"
 		"train_input":
-			type = graphs.graph_types.train_input
+			type = "train_input"
 		"softmax":
-			type = graphs.graph_types.softmax
+			type = "softmax"
 		"reshape2d":
-			type = graphs.graph_types.reshape2d
+			type = "reshape2d"
 		"flatten":
-			type = graphs.graph_types.flatten
+			type = "flatten"
 		"conv2d":
-			type = graphs.graph_types.conv2d
+			type = "conv2d"
 		"maxpool":
-			type = graphs.graph_types.maxpool
+			type = "maxpool"
 		"classifier":
-			type = graphs.graph_types.classifier
+			type = "classifier"
 		"train_begin":
-			type = graphs.graph_types.train_begin
+			type = "train_begin"
 		"augmenter":
-			type = graphs.graph_types.augmenter
+			type = "augmenter"
 		"run_model":
-			type = graphs.graph_types.run_model
+			type = "run_model"
 		"model_name":
-			type = graphs.graph_types.model_name
+			type = "model_name"
 		"dataset":
-			type = graphs.graph_types.dataset
+			type = "dataset"
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

@@ -215,9 +215,9 @@ func _useful_properties() -> Dictionary:
 func _ready() -> void:
 	position -= rect.position
 	animate(0)
-	graphs.add(self)
+	#graphs.add(self)
 	_after_ready()
-	graphs.mark_rect(self)
+	#graphs.mark_rect(self)
 	#graphs.collider(rect)
 
 
@@ -250,23 +250,36 @@ func _seq_push_input(connection_key: int, value) -> void:
 		pushed_inputs.clear()
 
 func get_info() -> Dictionary:
-	var output = {
+	var inputs = {}
+	var outputs_ = {}
+	for i in input_keys:
+		inputs[input_keys[i].conn_id] = i
+	for i in output_keys:
+		var port = []
+		for o in output_keys[i].outputs:
+			port.append(output_keys[i].outputs[o].tied_to.conn_id)
+		port.append(output_keys[i].conn_id)
+		outputs_[i] = port
+			#input_spline.
+	var base = {
+		"position": position,
+		"inputs": inputs,
+		"outputs": outputs_,
+		"created_with": get_meta("created_with")
 	}
-	#print(input_keys)
-	output.merge(_get_info(), true)
-	#var fields = graphs.FieldPack.new(output, 0<len(info_nested_fields), info_nested_fields)
-	return output
+	base.merge(_get_info(), true)
+	return base
 
 func map_properties(pack: Dictionary):
+	position = pack.position
+	
+	_map_properties(pack)
+
+func _map_properties(pack: Dictionary):
 	pass
 	#for i in pack:
 		
 
-func map_property():
-	pass
-
-func _map_property():
-	pass
 
 var info_nested_fields: Array = []
 func _get_info() -> Dictionary:

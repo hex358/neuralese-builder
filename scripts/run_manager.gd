@@ -122,13 +122,13 @@ func send_inference_data(input: Graph, data: Dictionary) -> void:
 func _process(delta: float) -> void:
 	pass
 	if not is_instance_valid(graphs._input_origin_graph): return
-	if Input.is_action_just_pressed("ui_accept"):
-		if !is_infer_channel(graphs._input_origin_graph):
-			open_infer_channel(graphs._input_origin_graph)
-		else:
-			send_inference_data(graphs._input_origin_graph, graphs._input_origin_graph.useful_properties())
-	if Input.is_action_just_pressed("ui_x"):
-		close_infer_channel(graphs._input_origin_graph)
+	#if Input.is_action_just_pressed("ui_accept"):
+		#if !is_infer_channel(graphs._input_origin_graph):
+			#open_infer_channel(graphs._input_origin_graph)
+		#else:
+			#send_inference_data(graphs._input_origin_graph, graphs._input_origin_graph.useful_properties())
+	#if Input.is_action_just_pressed("ui_x"):
+		#close_infer_channel(graphs._input_origin_graph)
 
 
 func close_infer_channel(input: Graph) -> void:

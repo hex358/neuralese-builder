@@ -144,9 +144,14 @@ func attach_spline(id: int, target: Connection):
 	target.parent_graph.just_attached(self, target)
 	end_spline(id, false)
 
+func update_conn_id(new: int):
+	graphs.del_conn(self)
+	conn_id = new
+	graphs.reg_conn(self)
+
 var conn_id: int = 0
 func _init() -> void:
-	conn_id = randi_range(0,99999999)
+	conn_id = randi_range(0,9999999)
 	if custom_expression:
 		custom_expression.parse(suitable_custom_check, ["target"])
 
@@ -168,6 +173,8 @@ func _ready() -> void:
 		parent_graph = get_parent()
 	if !Engine.is_editor_hint() and parent_graph:
 		parent_graph.add_connection(self)
+		await get_tree().process_frame
+		graphs.reg_conn(self)
 
 func _exit_tree() -> void:
 	delete()
@@ -175,6 +182,7 @@ func _exit_tree() -> void:
 		parent_graph.conn_exit(self)
 	if glob.hovered_connection == self:
 		glob.hovered_connection = null
+	graphs.del_conn(self)
 
 func get_origin() -> Vector2:
 	var global_rect = get_global_rect().size
@@ -220,6 +228,25 @@ func multiple(conn: Connection) -> bool:
 
 var custom_expression: Expression = null if \
 !suitable_custom_check else Expression.new()
+
+
+func connect_to(target: Connection, force: bool = false) -> bool:
+	if not is_instance_valid(target) or target == self:
+		return false
+	if connection_type != OUTPUT:
+		return false
+
+	if not force and not is_suitable(target):
+		return false
+
+	if not force and not multiple(target):
+		return false
+
+	var slot = add_spline()
+	start_spline(slot)
+	attach_spline(slot, target)
+	
+	return true
 
 
 func is_suitable(conn: Connection) -> bool:

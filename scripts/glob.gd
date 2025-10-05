@@ -98,7 +98,7 @@ func go_window(window_name: String):
 
 
 
-
+var base_node: Node2D = null
 
 func cap(value: float, decimals: int) -> float:
 	var factor = pow(10.0, decimals)
