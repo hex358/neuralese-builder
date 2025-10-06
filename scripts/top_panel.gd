@@ -25,7 +25,7 @@ var game_icon = preload("res://game_assets/icons/game.png")
 var build_icon = preload("res://game_assets/icons/build.png")
 @onready var play = $Control/play
 func _on_play_released() -> void:
-	if play.hint == "play_tab":
+	if play.hint == "play_tab": 
 		play.hint = "build_tab"
 		play.text_offset = Vector2(7,0)
 		play.text = " Make"
