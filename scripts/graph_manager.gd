@@ -301,11 +301,11 @@ func load_scene(state: Dictionary):
 				edges[id] = pack.outputs[port_key]
 			for port_id in pack.inputs:
 				graph.input_keys[pack.inputs[port_id]].update_conn_id(port_id)
-	
+	await get_tree().process_frame
 	for conn_id in edges:
 		for other_conn_id in edges[conn_id]:
 			connection_ids[conn_id].connect_to(connection_ids[other_conn_id], true)
-	await get_tree().process_frame
+	
 	for g in _graphs:
 		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
 		_graphs[g].hold_for_frame.call_deferred()
