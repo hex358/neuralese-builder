@@ -263,6 +263,7 @@ func get_info() -> Dictionary:
 			#input_spline.
 	var base = {
 		"position": position,
+		"cfg": cfg,
 		"inputs": inputs,
 		"outputs": outputs_,
 		"created_with": get_meta("created_with")
@@ -272,7 +273,7 @@ func get_info() -> Dictionary:
 
 func map_properties(pack: Dictionary):
 	position = pack.position
-	
+	update_config(pack.cfg)
 	_map_properties(pack)
 
 func _map_properties(pack: Dictionary):

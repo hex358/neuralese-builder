@@ -305,7 +305,7 @@ func load_scene(state: Dictionary):
 	for conn_id in edges:
 		for other_conn_id in edges[conn_id]:
 			connection_ids[conn_id].connect_to(connection_ids[other_conn_id], true)
-	
+	await get_tree().process_frame
 	for g in _graphs:
 		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
 		_graphs[g].hold_for_frame.call_deferred()
@@ -315,14 +315,14 @@ func save():
 	var l = func():
 		var a = FileAccess.open("user://test.txt", FileAccess.READ)
 		load_scene(a.get_var())
-	l.call()
+	l.call(); return
 	
-	#var s = {}
-	#for graph in _graphs.values():
-		#s[graph.graph_id] = graph.get_info()
-	#var a = FileAccess.open("user://test.txt", FileAccess.WRITE)
-	#a.store_var(s)
-	#a.close()
+	var s = {}
+	for graph in _graphs.values():
+		s[graph.graph_id] = graph.get_info()
+	var a = FileAccess.open("user://test.txt", FileAccess.WRITE)
+	a.store_var(s)
+	a.close()
 	#var deltas = get_deltas()
 	## delete, because pull_nodes are passed through 1st-level dict
 	#var pull_nodes = deltas["graph_adds"]
