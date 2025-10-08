@@ -47,6 +47,13 @@ func _window_show():
 	$Control/scenes/list.menu_show($Control/scenes/list.global_position)
 	prev_win = Vector2()
 	tick()
+	$Control/scenes/list.show_up(request_texts())
+	await get_tree().process_frame
+	if last_hint != null:
+		if last_hint in $Control/scenes/list.button_by_hint:
+			_on_list_child_button_release($Control/scenes/list.button_by_hint[last_hint])
+	elif $Control/scenes/list._contained:
+		_on_list_child_button_release($Control/scenes/list._contained[0])
 	for i in 5:
 		await get_tree().process_frame
 	$Control/scenes/list.update_children_reveal()
@@ -127,7 +134,7 @@ func tick(force: bool = false) -> void:
 			x += game_w / 2 - rect.scale.x * rect.size.x / 2
 			y += 15
 			y -= glob.window_size.y * 0.02
-		y += 15
+		y += 5
 		rect.position = Vector2(x, game_window.size.y / 2 - rect.scale.y * rect.size.y / 2 + y)
 
 
@@ -218,8 +225,49 @@ func get_current_game_code() -> String:
 	return $Control/CodeEdit.text
 
 
+var received_texts = {}
+func request_texts() -> Dictionary:
+	var texts = {}
+	texts["hellfffffffo"] = "print('nya :3')"
+	texts["hellffffff3fo"] = "print('nya :3')1"
+	texts["hellfff5ffffo"] = "print('nya :3')2"
+	received_texts = texts
+	return texts
+
+
+func get_texts():
+	return received_texts
+
+
 func _on_run_released() -> void:
 	var viewport = $Control/view/game
 	var process = luas.create_process(get_current_game_name(), get_current_game_code())
 	viewport.add_child(process)
 	process.position.y = viewport.size.y
+
+var last_hint = null
+var last_button: BlockComponent = null
+var current_lua_env = null
+var cursors: Dictionary[String, Vector2i] =  {}
+func _on_list_child_button_release(button: BlockComponent) -> void:
+	var code = $Control/CodeEdit
+	if last_button:
+		cursors[current_lua_env] = Vector2i(code.get_caret_column(), code.get_caret_line())
+		last_button.set_tuning(last_button.base_tuning)
+	button.set_tuning(button.base_tuning * 2.6)
+	last_button = button
+	current_lua_env = button.hint
+	last_hint = button.hint
+	$Control/CodeEdit.text = received_texts[button.hint]
+	if current_lua_env and current_lua_env in cursors:
+		code.set_caret_column(cursors[current_lua_env].x)
+		code.set_caret_line(cursors[current_lua_env].y)
+
+
+func _on_code_edit_text_changed() -> void:
+	await get_tree().process_frame
+	if current_lua_env:
+		received_texts[current_lua_env] = $Control/CodeEdit.text
+		
+		#$Control/scenes/list.button_by_hint[current_lua_env].metadata["content"] = $Control/CodeEdit.text
+	

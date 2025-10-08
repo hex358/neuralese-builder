@@ -78,6 +78,32 @@ func _process(delta: float):
 #	print(get_viewport().gui_get_focus_owner())
 			
 
+var splash_menus = {
+	"login": preload("res://scenes/splash.tscn")
+}
+
+
+var cl = CanvasLayer.new()
+func _ready():
+	cl.layer = 128
+	add_child(cl)
+	create_splash("login")
+
+var splashed = {}
+
+func add_splashed(who: SplashMenu):
+	splashed[who] = true
+
+func rem_splashed(who: SplashMenu):
+	splashed.erase(who)
+
+func create_splash(menu: String) -> SplashMenu:
+	var m = splash_menus[menu].instantiate()
+	cl.add_child(m)
+	return m
+	
+
+
 var selecting_box: bool = false
 func click_screen(pos: Vector2, button = MOUSE_BUTTON_LEFT, double_click = false) -> void:
 	var vp = get_viewport()

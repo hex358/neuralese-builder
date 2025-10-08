@@ -625,7 +625,7 @@ func _process_block_button(delta: float) -> void:
 	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking \
 	or (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	var frozen = is_contained and parent.is_frozen or is_frozen
-
+	blocked = blocked or ui.splashed
 	#if parent.name == "add_graph" and text == "Condition":
 	#	print(parent.scrolling)
 
@@ -896,7 +896,7 @@ func _disarm_menu_hit_tests() -> void:
 @onready var base_tuning = RenderingServer.canvas_item_get_instance_shader_parameter(get_canvas_item(), &"tuning")
 
 func set_tuning(color_: Color):
-	RenderingServer.canvas_item_set_instance_shader_parameter(get_canvas_item(), &"tuning", base_tuning)
+	RenderingServer.canvas_item_set_instance_shader_parameter(get_canvas_item(), &"tuning", color_)
 
 func reset_tuning():
 	RenderingServer.canvas_item_set_instance_shader_parameter(get_canvas_item(), &"tuning", base_tuning)

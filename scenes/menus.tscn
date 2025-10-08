@@ -36,7 +36,7 @@ shader_parameter/gaussian_step = 1.094000051965
 shader_parameter/use_bg = false
 
 [node name="menus" type="CanvasLayer"]
-layer = 127
+layer = 126
 script = ExtResource("1_chs3c")
 
 [node name="Node2D" type="Node2D" parent="."]

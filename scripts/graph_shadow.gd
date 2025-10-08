@@ -8,7 +8,8 @@ var _offset: Vector2 = Vector2()
 var _size_add: Vector2 = Vector2()
 @export var extents: Vector2 = Vector2(50,50):
 	set(v):
-		size = v + _size_add; extents = v
+		set_deferred("size", v + _size_add)
+		extents = v
 
 @export_range(1.0,100.0) var blur_size: float = 2.0:
 	set(v):

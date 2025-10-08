@@ -275,7 +275,7 @@ func del_conn(who: Connection):
 		#"created_with": get_meta("created_with")
 	#}
 
-func load_scene(state: Dictionary):
+func load_graph(state: Dictionary):
 	var chain = glob.base_node.importance_chain
 	var type_layers = {}
 	var sequence = {}
@@ -310,29 +310,34 @@ func load_scene(state: Dictionary):
 		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
 		_graphs[g].hold_for_frame.call_deferred()
 	
+	
+
+func get_project_data() -> Dictionary:
+	var data = {"graphs": {}, "lua": {}}
+	for i in _graphs:
+		data["graphs"][i] = _graphs[i].get_info()
+	for i in glob.tree_windows["env"].get_texts():
+		pass
+	return data
+
 
 func save():
-	var l = func():
-		var a = FileAccess.open("user://test.txt", FileAccess.READ)
-		load_scene(a.get_var())
-	l.call(); return
+	pass
+	#var bytes = JSON.stringify(get_project_data()).to_utf8_buffer()
+	#var compressed = bytes.compress(FileAccess.CompressionMode.COMPRESSION_ZSTD)
+	#print(len(compressed), " ", len(bytes))
 	
-	var s = {}
-	for graph in _graphs.values():
-		s[graph.graph_id] = graph.get_info()
-	var a = FileAccess.open("user://test.txt", FileAccess.WRITE)
-	a.store_var(s)
-	a.close()
+	# TODO: make actual delta transfer
+
 	#var deltas = get_deltas()
-	## delete, because pull_nodes are passed through 1st-level dict
 	#var pull_nodes = deltas["graph_adds"]
 	#deltas.erase("graph_adds")
-	#var bytes = var_to_bytes(deltas)
-	#var compressed = bytes.compress(FileAccess.COMPRESSION_GZIP)
-	#compressed.append(len(bytes))
-	##print(deltas)
-	#web.POST("save", {"deltas": Marshalls.raw_to_base64(compressed), 
-	#"pull_nodes": pull_nodes}, false)
+	#var dict = {
+		#"pull_nodes": pull_nodes,
+		#"deltas": Marshalls.raw_to_base64(var_to_bytes(deltas))
+	#}
+	#var bytes = JSON.stringify(dict).to_utf8_buffer()
+	#web.POST("save", bytes.compress(FileAccess.CompressionMode.COMPRESSION_ZSTD), true)
 
 var _training_head: Graph = null
 var _train_origin_graph: Graph = null
@@ -596,7 +601,7 @@ var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
 	if glob.space_just_pressed:
-		save()
+		glob.save()
 	
 	if not last_frame_visible: 
 		last_frame_visible = visible; return
@@ -633,7 +638,7 @@ func _process(delta: float) -> void:
 			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
 			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))
 			if graph.hold_process or padded_inside or graph.active_output_connections:
-				graph.process_mode = PROCESS_MODE_ALWAYS
+				graph.process_mode = PROCESS_MODE_INHERIT
 				#print(graph.hold_process)
 				if inside:
 					force_held = true

@@ -17,8 +17,8 @@ config/icon="res://game_assets/icons/icon.svg"
 
 [autoload]
 
-glob="*res://scripts/glob.gd"
 ui="*res://scripts/ui_manager.gd"
+glob="*res://scripts/glob.gd"
 graphs="*res://scripts/graph_manager.gd"
 web="*res://scripts/web.gd"
 sockets="*res://scripts/sockets.gd"

@@ -8,9 +8,8 @@ extends BlockComponent
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		super()
-		show_up(range(1), null)
 
-func show_up(iter, node):
+func show_up(iter, node=null):
 	#if visible: return=
 	#menu_hide()
 	#if is_instance_valid(timer):

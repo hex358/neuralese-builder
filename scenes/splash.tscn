@@ -1,0 +1,56 @@
+[gd_scene load_steps=5 format=3 uid="uid://cqdev2bbac1o5"]
+
+[ext_resource type="Script" uid="uid://bq63htf3tigxl" path="res://scripts/splash_menu.gd" id="1_86pdq"]
+[ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_5svwm"]
+[ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="3_5svwm"]
+[ext_resource type="Texture2D" uid="uid://kdt71jk5swyh" path="res://game_assets/icons/user.png" id="3_31efs"]
+
+[node name="Node2D" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_86pdq")
+
+[node name="bg" type="ColorRect" parent="."]
+material = ExtResource("2_5svwm")
+instance_shader_parameters/corner_radius_width_add = Vector2(17.915, 2)
+instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.5764706)
+layout_mode = 1
+offset_left = -28.0
+offset_top = -35.0
+offset_right = 1202.0
+offset_bottom = 712.0
+
+[node name="ColorRect" type="ColorRect" parent="."]
+z_index = 8
+material = ExtResource("2_5svwm")
+instance_shader_parameters/corner_radius_width_add = Vector2(9.365, 1)
+instance_shader_parameters/outline_color = Color(0.85, 0.85, 0.85, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.7529412)
+layout_mode = 0
+offset_left = 365.0
+offset_top = 128.0
+offset_right = 777.0
+offset_bottom = 464.0
+
+[node name="root" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="i" type="Sprite2D" parent="ColorRect/root"]
+position = Vector2(23.000015, 21)
+scale = Vector2(0.9496938, 0.9496938)
+texture = ExtResource("3_31efs")
+
+[node name="Label" type="Label" parent="ColorRect/root"]
+z_index = 1
+layout_mode = 0
+offset_left = 36.0
+offset_top = 3.0
+offset_right = 140.84766
+offset_bottom = 46.0
+scale = Vector2(0.9044997, 0.9044997)
+theme = ExtResource("3_5svwm")
+text = "Login"

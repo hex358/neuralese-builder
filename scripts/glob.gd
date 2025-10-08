@@ -420,6 +420,32 @@ func is_vec_approx(a: Vector2, b: Vector2, eps: float = 0.01) -> bool:
 func inst_uniform(who: CanvasItem, uniform: StringName, val):
 	RenderingServer.canvas_item_set_instance_shader_parameter(who.get_canvas_item(), uniform, val)
 
+func in_out_quad(t: float) -> float:
+	t = clamp(t, 0.0, 1.0)
+	return 2.0 * t * t if t < 0.5 else 1.0 - pow(-2.0 * t + 2.0, 2.0) / 2.0
+
+
+func get_project_data() -> Dictionary:
+	var data = {"graphs": {}, "lua": {}}
+	for i in graphs._graphs:
+		data["graphs"][i] = graphs._graphs[i].get_info()
+	var texts = glob.tree_windows["env"].get_texts()
+	for i in texts:
+		data["lua"][i] = texts[i]
+	return data
+
+
+func init_scene(scene: String):
+	tree_windows["env"].request_texts()
+
+
+
+func save():
+	var bytes = JSON.stringify(get_project_data()).to_utf8_buffer()
+	var compressed = bytes.compress(FileAccess.CompressionMode.COMPRESSION_ZSTD)
+	web.POST("save", {"name": "gr1", "blob": Marshalls.raw_to_base64(compressed)}, false)
+
+
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
@@ -435,6 +461,7 @@ func _ready() -> void:
 	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(splines_layer)
 	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(top_splines_layer)
 	
+	init_scene()
 	go_window("graph")
 	
 	
