@@ -289,7 +289,7 @@ func _wrap_text(txt: String) -> String:
 		trimmed = false
 		return txt
 	label.text = txt
-	var size_x = glob.get_label_text_size(label, label.scale.x).x + 20
+	var size_x = glob.get_label_text_size(label, label.scale.x).x + 30
 	if size_x > size.x:
 		var one = float(size_x) / len(txt)
 		var right = (size_x - size.x) / one
@@ -615,7 +615,7 @@ func _update_scroll_text(delta: float) -> void:
 
 
 
-
+@export var in_splash: bool = false
 
 
 func _process_block_button(delta: float) -> void:
@@ -625,7 +625,7 @@ func _process_block_button(delta: float) -> void:
 	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking \
 	or (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	var frozen = is_contained and parent.is_frozen or is_frozen
-	blocked = blocked or ui.splashed
+	blocked = blocked or (ui.splashed and not in_splash)
 	#if parent.name == "add_graph" and text == "Condition":
 	#	print(parent.scrolling)
 
@@ -640,6 +640,11 @@ func _process_block_button(delta: float) -> void:
 			press_request = false
 	mouse_pressed = mouse_pressed# and not glob.is_overlapped(self)
 	#print(inside)
+	if in_splash:
+		if inside:
+			glob.occupy(self, "block_button_inside")
+		else:
+			glob.un_occupy(self, "block_button_inside")
 
 	if inside:
 		if mouse_pressed:

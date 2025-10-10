@@ -85,7 +85,33 @@ func _string_width_px(s: String, fs: int) -> float:
 
 @onready var base_font_size = get_theme_font_size("font_size")
 @onready var k = base_font_size/float(get_theme_font_size("font"))
+@export var monospaced: bool = true
+
+
+# Interpret `resize_after` as a pixel width limit (rendered width).
 func _resize_label():
+	if monospaced:
+		_resize_monospace(); return
+	var s := text
+	if s.is_empty() or resize_after <= 0:
+		add_theme_font_size_override("font_size", base_font_size)
+		return
+	var limit_px := float(resize_after)
+	var sb := get_theme_stylebox("normal", "LineEdit")
+	if sb:
+		limit_px -= (sb.get_content_margin(SIDE_LEFT) + sb.get_content_margin(SIDE_RIGHT))
+	var w := _font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1.0, base_font_size).x
+	if w <= limit_px:
+		add_theme_font_size_override("font_size", base_font_size)
+		return
+	var ratio = clamp(limit_px / max(1.0, w), 0.05, 1.0)
+	var new_fs := int(floor(base_font_size * ratio))
+	add_theme_font_size_override("font_size", max(6, new_fs))
+
+
+
+
+func _resize_monospace():
 	var s = text
 	var _base_fs = get_theme_font_size("font") * k
 	var n = s.length()
@@ -102,6 +128,11 @@ func _resize_label():
 	var scale = clamp(keep_w / full_w, 0, 1.0)
 	var new_fs = int(round(_base_fs * scale))
 	add_theme_font_size_override("font_size", new_fs)
+
+
+
+
+
 
 func _input_submit(input: String):
 	pass

@@ -48,7 +48,7 @@ func start_train(train_input: Graph, args: Dictionary = {}):
 	#print(execute_input_origin.server_typename)
 	#print(train_input_origin.server_typename)
 	request_save()
-	var compressed = glob.compress_dict_gzip({
+	var compressed = glob.compress_dict_zstd({
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(execute_input_origin),
 		"train_graph": graphs.get_syntax_tree(train_input_origin),
@@ -64,19 +64,15 @@ func stop_train(train_input: Graph):
 	if not train_input in training_sockets:
 		#web.POST("end_train", {})
 		return
-	training_sockets[train_input].send(glob.compress_dict_gzip({"stop": "true"}))
+	training_sockets[train_input].send(glob.compress_dict_zstd({"stop": "true"}))
 
 
-# ---------------- Inference channel (open/close only) ----------------
 
 var inference_sockets := {}
 
 func _infer_state_received(bytes: PackedByteArray) -> void:
-	# Minimal handler for now (open/close only). Intentionally no UI logic.
-	# You can expand this later to route "inference"/"error"/"stopped" phases.
 	var _dict = JSON.parse_string(bytes.get_string_from_utf8())
 	print(_dict)
-	# noop
 
 
 func is_infer_channel(input: Graph) -> bool:
@@ -93,7 +89,7 @@ func open_infer_channel(input: Graph) -> void:
 	var sock = sockets.connect_to("ws/infer", _infer_state_received)
 	inference_sockets[input] = sock
 	sock.connected.connect(func() -> void:
-		sock.send(glob.compress_dict_gzip(init_payload))
+		sock.send(glob.compress_dict_zstd(init_payload))
 	)
 	sock.closed.connect(func(...x) -> void:
 		if input in inference_sockets:
@@ -116,7 +112,7 @@ func send_inference_data(input: Graph, data: Dictionary) -> void:
 	var syntax = null
 
 	var payload = {"data": data}
-	var compressed = glob.compress_dict_gzip(payload)
+	var compressed = glob.compress_dict_zstd(payload)
 	sock.send(compressed)
 
 func _process(delta: float) -> void:
@@ -136,4 +132,4 @@ func close_infer_channel(input: Graph) -> void:
 		return
 	var sock = inference_sockets[input]
 	# Ask server/worker to stop, then the server will close the WS.
-	sock.send(glob.compress_dict_gzip({"stop": "true"}))
+	sock.send(glob.compress_dict_zstd({"stop": "true"}))

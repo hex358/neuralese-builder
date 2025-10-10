@@ -108,15 +108,21 @@ scale = Vector2(0.801, 1.393)
 texture = SubResource("GradientTexture2D_nwut5")
 expand_mode = 1
 
-[node name="Label" type="Label" parent="ColorRect"]
+[node name="Label" type="LineEdit" parent="ColorRect"]
 layout_mode = 0
-offset_left = 64.99999
-offset_top = 14.0
+offset_left = 65.0
+offset_top = 12.0
 offset_right = 310.0
-offset_bottom = 57.0
+offset_bottom = 55.0
 scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("3_xwiyo")
-text = "ТестовыйПроект"
+placeholder_text = "Untitled"
+max_length = 50
+expand_to_text_length = true
+script = ExtResource("7_x5ox8")
+resize_after = 250
+monospaced = false
+metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
 [node name="ColorRect3" type="ColorRect" parent="ColorRect"]
 layout_mode = 0
@@ -243,9 +249,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -16.345783
+offset_left = -11.422577
 offset_top = -14.06115
-offset_right = 7.654217
+offset_right = 12.577423
 offset_bottom = 9.93885
 grow_horizontal = 2
 grow_vertical = 2
@@ -328,4 +334,5 @@ base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
 
+[connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
 [connection signal="released" from="ColorRect/Control/play" to="ColorRect" method="_on_play_released"]

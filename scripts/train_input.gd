@@ -6,7 +6,7 @@ extends Graph
 func _useful_properties() -> Dictionary:
 	return {
 		"config":{
-			"optimizer":"adam", "target":[0.0], "loss":"cross_entropy"
+			"optimizer":"adam", "lr": 1e-3
 		}
 	}
 
@@ -87,7 +87,7 @@ func select_optimizer(name: StringName):
 	_opt_selected(name)
 
 func _on_optimizer_child_button_release(button: BlockComponent) -> void:
-	select_optimizer(button.hint)
+	update_config({"optimizer": button.hint})
 	button.is_contained.menu_hide()
 
 func _on_loss_child_button_release(button: BlockComponent) -> void:
@@ -97,7 +97,7 @@ func push_acceptance(acc: float, time: float):
 	$ColorRect2.push_input(time, acc, $ColorRect2._window_end)
 
 func _on_lr_child_button_release(button: BlockComponent) -> void:
-	select_lr(int(button.hint))
+	update_config({"lr": int(button.hint)})
 	button.is_contained.menu_hide()
 
 func set_weight_dec(on: bool):
@@ -110,7 +110,19 @@ func set_weight_dec(on: bool):
 
 @onready var switch = $switch
 func _on_switch_released() -> void:
-	set_weight_dec(switch.text != "I")
+	update_config({"weight_decay": switch.text != "I"})
+	#@set_weight_dec(switch.text != "I")
+
+func _config_field(field: StringName, value: Variant):
+	match field:
+		"weight_decay":
+			set_weight_dec(value)
+		"momentum":
+			$sgd_tab/Label4/HSlider.value = value
+		"lr":
+			select_lr(int(value))
+		"optimizer":
+			select_optimizer(value)
 
 func additional_call(x):
 	pass
@@ -148,3 +160,7 @@ func _set_alpha(n: CanvasItem, a: float) -> void:
 	var c: Color = n.modulate
 	c.a = clamp(a, 0.0, 1.0)
 	n.modulate = c
+
+
+func _on_h_slider_value_changed(value: float) -> void:
+	pass # Replace with function body.

@@ -445,4 +445,5 @@ change_always_accepted = false
 [connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
 [connection signal="released" from="switch" to="." method="_on_switch_released"]
+[connection signal="value_changed" from="sgd_tab/Label4/HSlider" to="." method="_on_h_slider_value_changed"]
 [connection signal="released" from="train" to="." method="_on_train_released"]

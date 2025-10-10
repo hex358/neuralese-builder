@@ -1,3 +1,5 @@
+@tool
+
 extends TextureRect
 
 @export var size_pix: Vector2i = Vector2i(28, 28)
@@ -17,6 +19,7 @@ var _last_img_pos: Vector2 = Vector2.ZERO
 func _ready() -> void:
 	image = Image.create(size_pix.x, size_pix.y, false, Image.FORMAT_L8)
 	image.fill(Color.BLACK)
+	
 	image_texture = ImageTexture.create_from_image(image)
 	texture = image_texture
 	stretch_mode = TextureRect.STRETCH_SCALE
@@ -114,13 +117,17 @@ func _draw_segment(prev_img: Vector2, curr_img: Vector2, dt: float) -> void:
 		var p = prev_img.lerp(curr_img, t)
 		_accumulate_circle_at(p, dt_per_step)
 
+@export var active: bool = true
+
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint(): return
 	if graphs.dragged: return
 	if graphs.conns_active: return
 	if ui.selecting_box: return
 	
 	var local = get_local_mouse_position()
 	var img_pos = _local_to_img_coords(local)
+	if !active: return
 
 	if Input.is_action_pressed("ui_mouse") and img_pos.x >= 0.0:
 		if _was_drawing:

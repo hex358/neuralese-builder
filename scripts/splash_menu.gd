@@ -2,68 +2,68 @@ extends Control
 class_name SplashMenu
 
 var splashed: bool = false
+var indexed = []
+@export var typename: String = "login"
 
-var target_y: float = 0.0
+var t: float = 0.0
+var target_mod: float = 0.0
+var from_scale: Vector2
+var to_scale: Vector2
 
-
+func _ready() -> void:
+	$bg.modulate.a = 0.0
+	$ColorRect.scale = Vector2.ZERO
+	indexed = glob.rget_children(self)
+	await get_tree().process_frame
+	splash()
 
 func _process(delta: float) -> void:
-	if splashed:
-		glob.mouse_pressed = false
-		glob.mouse_just_pressed = false
-		glob.mouse_alt_pressed = false
-		if ui.get_focus():
-			ui.get_focus().release_focus()
-		glob.mouse_alt_just_pressed = false
-	#if glob.space_just_pressed:
-		#if !splashed:
-			#splash()
-		#else:
-			#go_away()
-	if splashed:
-		target_y = glob.window_size.y / 2 - $ColorRect.size.y / 2
-	else:
-		target_y = glob.window_size.y
-	var a = $ColorRect.position.y
-	t += delta * 8.0
-	if a > glob.window_size.y-1.0:
+	if Input.is_action_just_pressed("ui_esc"):
+		go_away()
+	elif glob.mouse_just_pressed and \
+	!$ColorRect.get_global_rect().has_point(get_global_mouse_position()) and\
+	!glob.is_occupied(self, "block_button_inside"):
+		go_away()
+
+
+	# Update visibility and alpha
+	if $ColorRect.modulate.a <= 0.01 and not splashed:
 		hide()
+		queue_free()
 	else:
 		show()
 		$ColorRect.modulate.a = lerp($ColorRect.modulate.a, target_mod, delta * 20.0)
-		#print($ColorRect.position.y)
-		$bg.modulate.a = $ColorRect.modulate.a
-	$bg.size = glob.window_size + Vector2(50,50)
-	$ColorRect.position.x = glob.window_size.x / 2.0 - $ColorRect.size.x / 2.0
-	$ColorRect.position.y = lerp(from_val, target_y, glob.in_out_quad(clamp(t, 0, 1)))
+		$bg.modulate.a = lerp($bg.modulate.a, target_mod, delta * 20.0)
 
-func _ready() -> void:
-	hide()
+	# Scale animation via spring
+	t += delta * 2.0  # time factor for spring curve
+	var spring_scale: Vector2 = glob.spring(from_scale, to_scale, clamp(t, 0.0, 1.0), 2, 5.0, 1.0) 
+	$ColorRect.scale = 0.5 * (spring_scale + Vector2.ONE)
+	$ColorRect.position = glob.window_size / 2.0 - ($ColorRect.size * $ColorRect.scale) / 2.0
+	$bg.size = glob.window_size + Vector2(50, 50)
 
-var from_val = 0.0
-var t = 0.0
-var target_mod = 0.0
-func splash():
+
+func splash() -> void:
 	accept_event()
-	from_val = $ColorRect.position.y
+	from_scale = $ColorRect.scale
+	to_scale = Vector2.ONE
 	t = 0.0
 	target_mod = 1.0
 	splashed = true
 	show()
 	ui.add_splashed(self)
+
 	glob.cam.process_mode = Node.PROCESS_MODE_DISABLED
 	glob.tree_windows["env"].process_mode = Node.PROCESS_MODE_DISABLED
-	#glob.menu_canvas.process_mode = Node.PROCESS_MODE_DISABLED
-	#graphs.storage.process_mode = Node.PROCESS_MODE_DISABLED
+	RenderingServer.global_shader_parameter_set("_view_scale", 1.0)
 
-
-func go_away():
-	from_val = $ColorRect.position.y
+func go_away() -> void:
+	from_scale = $ColorRect.scale
+	to_scale = Vector2.ZERO
 	t = 0.0
 	target_mod = 0.0
 	splashed = false
 	ui.rem_splashed(self)
+
 	glob.cam.process_mode = Node.PROCESS_MODE_ALWAYS
 	glob.tree_windows["env"].process_mode = Node.PROCESS_MODE_ALWAYS
-	#glob.menu_canvas.process_mode = Node.PROCESS_MODE_ALWAYS
-	#graphs.storage.process_mode = Node.PROCESS_MODE_ALWAYS

@@ -200,6 +200,10 @@ func _after_process(delta: float) -> void:
 	hide_menus = false
 	consumed_input.clear()
 	hovered_connection_changed = false
+
+	if space_just_pressed:
+		await save()
+		load_scene("")
 	#print(menu_type)
 
 var opened_menu = null
@@ -295,6 +299,8 @@ func is_consumed(inst: Control, input: StringName):
 func get_consumed(input: StringName):
 	return consumed_input.get(input, null)
 
+
+
 func press_poll():
 	mouse_just_pressed = Input.is_action_just_pressed("ui_mouse")
 	mouse_pressed = Input.is_action_pressed("ui_mouse")
@@ -310,7 +316,18 @@ func press_poll():
 	mouse_middle_pressed = Input.is_action_pressed("ui_mouse_middle")
 	mouse_middle_just_released = Input.is_action_just_released("ui_mouse_middle")
 	mouse_middle_released = not mouse_alt_pressed
+	
+	if unpress_enq:
+		glob.mouse_pressed = false
+		glob.mouse_just_pressed = false
+		glob.mouse_alt_pressed = false
+		glob.mouse_alt_just_pressed = false
+		unpress_enq = false
 
+var unpress_enq: bool = false
+
+func reset_presses():
+	unpress_enq = true
 
 func cull(gp: Vector2, s: Vector2) -> bool:
 	var p0: Vector2 = glob.world_to_screen(gp)
@@ -409,6 +426,11 @@ func compress_dict_gzip(dict: Dictionary):
 	var bytes = jsonified.to_ascii_buffer()
 	return bytes.compress(FileAccess.CompressionMode.COMPRESSION_GZIP)
 
+func compress_dict_zstd(dict: Dictionary):
+	var jsonified = JSON.new().stringify(dict)
+	var bytes = jsonified.to_ascii_buffer()
+	return bytes.compress(FileAccess.CompressionMode.COMPRESSION_ZSTD)
+
 
 var buffer: BackBufferCopy
 var splines_layer: CanvasLayer
@@ -438,12 +460,37 @@ func get_project_data() -> Dictionary:
 func init_scene(scene: String):
 	tree_windows["env"].request_texts()
 
-
+func load_scene(from: String):
+	web.POST("project", {"scene": "gr1", 
+	 "user": "neri", 
+	"pass": "123"}).connect(func(x):
+		var a = JSON.parse_string(x["body"].get_string_from_utf8())["scene"]
+		var dat = Messagepack.decode(Marshalls.base64_to_raw(a))
+		print(dat["value"]["lua"]["hellfff5ffffo"])
+		)
 
 func save():
-	var bytes = JSON.stringify(get_project_data()).to_utf8_buffer()
-	var compressed = bytes.compress(FileAccess.CompressionMode.COMPRESSION_ZSTD)
-	web.POST("save", {"name": "gr1", "blob": Marshalls.raw_to_base64(compressed)}, false)
+	var blob = Marshalls.raw_to_base64(Messagepack.encode(get_project_data())["value"])
+	return web.POST("save", {"scene": "gr1", 
+	"blob": blob,
+	 "user": "neri", 
+	"pass": "123"})
+
+
+
+func rget_children(from_root: Node) -> Array:
+	var result: Array = []
+	var stack: Array = [from_root]
+
+	while stack.size() > 0:
+		var node: Node = stack.pop_back()
+		for child in node.get_children():
+			result.append(child)
+			stack.append(child)
+
+	return result
+
+
 
 
 var space_begin: Vector2 = Vector2()
@@ -461,7 +508,7 @@ func _ready() -> void:
 	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(splines_layer)
 	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(top_splines_layer)
 	
-	init_scene()
 	go_window("graph")
+	init_scene("")
 	
 	

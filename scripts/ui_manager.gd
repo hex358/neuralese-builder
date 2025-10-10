@@ -87,7 +87,6 @@ var cl = CanvasLayer.new()
 func _ready():
 	cl.layer = 128
 	add_child(cl)
-	create_splash("login")
 
 var splashed = {}
 
@@ -97,11 +96,21 @@ func add_splashed(who: SplashMenu):
 func rem_splashed(who: SplashMenu):
 	splashed.erase(who)
 
-func create_splash(menu: String) -> SplashMenu:
+func is_splashed(who: String) -> bool:
+	for i in splashed:
+		if i.typename == who: return true
+	return false
+
+func get_splash(who: String) -> SplashMenu:
+	for i in splashed:
+		if i.typename == who: return i
+	return null
+
+func splash(menu: String) -> SplashMenu:
 	var m = splash_menus[menu].instantiate()
 	cl.add_child(m)
 	return m
-	
+
 
 
 var selecting_box: bool = false

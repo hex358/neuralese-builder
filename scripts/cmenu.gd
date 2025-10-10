@@ -35,6 +35,8 @@ func _menu_handle_release(button: BlockComponent):
 			type = "model_name"
 		"dataset":
 			type = "dataset"
+		"augment_tf":
+			type = "augment_tf"
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

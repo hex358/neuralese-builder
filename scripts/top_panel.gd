@@ -38,3 +38,12 @@ func _on_play_released() -> void:
 		play.text = " Test"
 		play.get_node("i").texture = game_icon
 		glob.go_window("graph")
+
+@onready var login_btn = $Control/login
+func _on_login_released() -> void:
+	if !ui.is_splashed("login"):
+		login_btn.in_splash = true
+		ui.splash("login")
+	else:
+		login_btn.in_splash = false
+		ui.get_splash("login").go_away()

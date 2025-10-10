@@ -1,0 +1,66 @@
+extends Node
+class_name Cookies
+
+const cookie_file = "user://cookies.json"
+var _cookies: Dictionary = {}
+
+func _ready() -> void:
+	_load_cookies()
+
+func _save_cookies() -> void:
+	var f = FileAccess.open(cookie_file, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(_cookies))
+		f.close()
+
+func set_cookie(name: String, value: String) -> void:
+	_cookies[name] = value
+	_save_cookies()
+
+func has_cookie(name: String) -> bool:
+	return _cookies.has(name)
+
+func delete_cookie(name: String) -> void:
+	if _cookies.has(name):
+		_cookies.erase(name)
+		_save_cookies()
+
+func _load_cookies() -> void:
+	if not FileAccess.file_exists(cookie_file):
+		return
+	var f = FileAccess.open(cookie_file, FileAccess.READ)
+	if f:
+		var txt = f.get_as_text().strip_edges()
+		f.close()
+		if txt != "":
+			var parsed = JSON.parse_string(txt)
+			if typeof(parsed) == TYPE_DICTIONARY:
+				_cookies = parsed
+
+func update_from_headers(headers: PackedStringArray) -> void:
+	for h in headers:
+		var lower = h.to_lower()
+		if lower.begins_with("set-cookie:"):
+			var cookie_str = h.substr(12).strip_edges()
+			_parse_cookie(cookie_str)
+	_save_cookies()
+
+func _parse_cookie(cookie_str: String) -> void:
+	var parts = cookie_str.split(";")[0].split("=")
+	if parts.size() == 2:
+		var name = parts[0].strip_edges()
+		var value = parts[1].strip_edges()
+		_cookies[name] = value
+
+func get_header() -> String:
+	if _cookies.is_empty():
+		return ""
+	var list: Array[String] = []
+	for n in _cookies.keys():
+		list.append("%s=%s" % [n, _cookies[n]])
+	return "Cookie: " + "; ".join(list)
+
+func clear():
+	_cookies.clear()
+	if FileAccess.file_exists(cookie_file):
+		DirAccess.open("user://").remove(cookie_file)

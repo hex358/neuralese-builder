@@ -551,7 +551,8 @@ var graph_types = {
 	"train_begin": preload("res://scenes/train_begin.tscn"),
 	"model_name": preload("res://scenes/netname.tscn"),
 	"dataset": preload("res://scenes/dataset.tscn"),
-	"run_model": preload("res://scenes/run_model.tscn")
+	"run_model": preload("res://scenes/run_model.tscn"),
+	"augment_tf": preload("res://scenes/augment_transform.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
@@ -600,8 +601,6 @@ func unpush_2d(target):
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
-	if glob.space_just_pressed:
-		glob.save()
 	
 	if not last_frame_visible: 
 		last_frame_visible = visible; return
@@ -637,7 +636,7 @@ func _process(delta: float) -> void:
 			var inside = graph.is_mouse_inside()
 			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
 			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))
-			if graph.hold_process or padded_inside or graph.active_output_connections:
+			if not ui.splashed and (graph.hold_process or padded_inside or graph.active_output_connections):
 				graph.process_mode = PROCESS_MODE_INHERIT
 				#print(graph.hold_process)
 				if inside:
