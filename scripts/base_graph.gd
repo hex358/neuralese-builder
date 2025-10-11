@@ -362,8 +362,8 @@ func _stopped_processing():
 	glob.reset_menu_type(self, &"edit_graph")
 	glob.un_occupy(self, &"graph")
 	drag_ended()
-	if glob._menu_type_occupator is Connection and glob._menu_type_occupator in output_key_by_conn:
-		glob.reset_menu_type(glob._menu_type_occupator, "detatch")
+	if glob.get_occupator() is Connection and glob.get_occupator() in output_key_by_conn:
+		glob.reset_menu_type(glob.get_occupator(), "detatch")
 	if glob.is_occupied(self, "conn_active"):
 		glob.un_occupy(glob.occ_layers["conn_active"], "conn_active")
 		#hold_for_frame()

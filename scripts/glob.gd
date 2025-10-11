@@ -131,10 +131,15 @@ func set_menu_type(occ: Node, type: StringName, low_priority_types=null ):
 	if !is_instance_valid(_menu_type_occupator) or (low_priority_types and menu_type in low_priority_types): 
 		_menu_type_occupator = occ
 		menu_type = type
-func reset_menu_type(occ: Node, type: StringName):
+func reset_menu_type(occ, type: StringName):
 	if is_instance_valid(_menu_type_occupator) and _menu_type_occupator == occ: 
 		_menu_type_occupator = null
 		menu_type = &""
+
+func get_occupator():
+	if not is_instance_valid(_menu_type_occupator):
+		_menu_type_occupator = null
+	return _menu_type_occupator
 
 # Unique slot
 var id: int = 0
@@ -199,22 +204,24 @@ func wait(wait_time: float, frames: bool = false):
 	var timer = _Timer.new(wait_time, frames)
 	timers[timer] = true; return timer.timeout
 
+var project_id: int = 0
+
 func get_project_id() -> int:
-	return 1235
+	return project_id
 
 
 var parsed_projects = {}
 
-func create_empty_project(name: String):
+func create_empty_project(name: String) -> int:
 	var id: int = random_project_id()
 	parsed_projects[id] = {"name": name}
 	var res = await save_empty(str(id), name)
-	return true
+	return id
 
 func request_projects():
 	var a = await web.POST("project_list", {
-	"user": "neri", 
-	"pass": "123"
+	"user": "n", 
+	"pass": "1"
 	})
 	if a.body:
 		a = JSON.parse_string(a.body.get_string_from_utf8())["list"]
@@ -420,6 +427,9 @@ func _process(delta: float) -> void:
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
+	if not is_instance_valid(_menu_type_occupator):
+		menu_type = ""
+		_menu_type_occupator = null
 	
 	window_size = DisplayServer.window_get_size()
 	window_rect = Rect2(Vector2(), window_size)
@@ -498,19 +508,27 @@ func init_scene(scene: String):
 var env_dump = {}
 func load_scene(from: String):
 	var answer = await web.POST("project", {"scene": from, 
-	 "user": "neri", 
-	"pass": "123"})
+	 "user": "n", 
+	"pass": "1"})
 	if not "body" in answer: return
 	var a = JSON.parse_string(answer["body"].get_string_from_utf8())
 	if not "scene" in a: return
 	var dat = Messagepack.decode(Marshalls.base64_to_raw(a["scene"]))["value"]
+	graphs.delete_all()
 	if !dat: return
 	#clear everything out
-	graphs.delete_all()
 	
 	fg.set_scene_name(a["name"])
 	graphs.load_graph(dat["graphs"])
 	env_dump = dat["lua"]
+	tree_windows["env"].request_texts()
+
+
+func load_empty_scene(name: String):
+	graphs.delete_all()
+	
+	fg.set_scene_name(name)
+	env_dump = {}
 	tree_windows["env"].request_texts()
 
 func save(from: String):
@@ -518,16 +536,16 @@ func save(from: String):
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"name": fg.get_scene_name(),
-	 "user": "neri", 
-	"pass": "123"})
+	 "user": "n", 
+	"pass": "1"})
 
 func save_empty(from: String, name: String):
 	var blob = Marshalls.raw_to_base64(Messagepack.encode(get_project_data(true))["value"])
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"name": name,
-	 "user": "neri", 
-	"pass": "123"})
+	 "user": "n", 
+	"pass": "1"})
 
 
 

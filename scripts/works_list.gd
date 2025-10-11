@@ -9,6 +9,17 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		super()
 
+func _menu_handle_hovering(button: BlockComponent):
+	glob.set_menu_type(self, &"delete_project")
+	if glob.mouse_alt_just_pressed:
+		pass
+		#print("FJFJ")
+		glob.menus[&"delete_project"].show_up(button.text, print)
+
+func _process(delta: float) -> void:
+	super(delta)
+	glob.reset_menu_type(self, &"delete_project")
+
 func show_up(iter, node=null):
 	#if visible: return=
 	#menu_hide()

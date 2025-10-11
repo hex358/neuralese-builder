@@ -622,30 +622,25 @@ func _update_scroll_text(delta: float) -> void:
 
 
 @export var in_splash: bool = false
+@export var still_hover_in_block: bool = false
 
 var ins_request: bool = false
 func _process_block_button(delta: float) -> void:
 	if not visible or not parent.visible or (graph and !graph.visible) or not freedom: 
 		return
-
+	
+	var ins = (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
+	#if is_contained:
+		#print(glob.get_occupied("menu_inside"))
 	var blocked = (is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)) or is_blocking \
-	or (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
+	or ins
 	var frozen = is_contained and parent.is_frozen or is_frozen
 	blocked = blocked or (ui.splashed and not in_splash)
-	#if name == "train2":
-	#	print(glob.get_occupied("menu_inside").get_parent())
-
-	#if text == "+ New":
-		#print((glob.get_occupied("menu_inside")))
-	#if parent.name == "add_graph" and text == "Condition":
-	#if text == "+ New":
-	#	print(blocked)
-	#	print(parent.scrolling)
-
+	
 	if not frozen:
-		inside = is_mouse_inside() and not blocked
+		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins))
 		mouse_pressed = glob.mouse_pressed and not blocked
-	if not blocked and (not mouse_pressed or (inside and mouse_pressed)):
+	if (not blocked or still_hover_in_block) and (not mouse_pressed or (inside and mouse_pressed)):
 		last_mouse_pos = get_global_mouse_position()
 	if press_request:
 		inside = true; mouse_pressed = true
@@ -870,6 +865,8 @@ func menu_expand() -> void:
 	state.expanding = true
 
 func _is_not_menu():
+	#if name == "delete_project":
+		#print(glob.is_my_menu(self))
 	return (not glob.is_my_menu(self))
 
 func pos_clamp(pos: Vector2):
@@ -960,7 +957,6 @@ func _process_context_menu(delta: float) -> void:
 	right_click = right_click and non_splashed
 	right_pressed = right_pressed and non_splashed
 	left_pressed = left_pressed and non_splashed
-	
 	if graphs.conns_active and button_type == ButtonType.DROPOUT_MENU:
 		left_click = false
 		right_click = false
@@ -969,7 +965,7 @@ func _process_context_menu(delta: float) -> void:
 		right_pressed = false
 		right_click = false
 
-	if left_click or right_click or ((mouse_open or static_mode) and not left_pressed and not right_pressed):
+	if left_click or right_click or ((mouse_open or static_mode or still_hover_in_block) and not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
 
 
@@ -1058,6 +1054,8 @@ func _process_context_menu(delta: float) -> void:
 	
 	if inside and not state.tween_hide and visible:
 		glob.occupy(self, "menu_inside")
+		##if name == "delete_project":
+		#	print(last_mouse_pos)
 	else:
 		glob.un_occupy(self, "menu_inside")
 

@@ -312,7 +312,7 @@ func load_graph(state: Dictionary):
 
 
 func delete_all():
-	for graph in _graphs:
+	for graph in _graphs.keys():
 		_graphs[graph].delete()
 	
 

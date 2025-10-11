@@ -8,6 +8,9 @@ func show_up(input: String, call: Callable):
 	menu_show(pos_clamp(get_global_mouse_position()))
 	state.holding = false
 
+func _process(delta: float) -> void:
+	super(delta)
+
 func _menu_handle_release(button: BlockComponent):
 	menu_call.call()
 	menu_hide()

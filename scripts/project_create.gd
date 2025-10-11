@@ -19,12 +19,15 @@ func _resultate(data: Dictionary):
 func _on_trainn_released() -> void:
 	$ColorRect/Label.update_valid()
 	if $ColorRect/Label.is_valid:
-		glob.create_empty_project($ColorRect/Label.text)
-	can_go = false
-	go_away()
-	await quitting
-	queue_free()
-	ui.splash("works", splashed_from, emitter, true)
+		var id = await glob.create_empty_project($ColorRect/Label.text)
+		glob.project_id = id
+		glob.load_empty_scene($ColorRect/Label.text)
+	#can_go = false
+		go_away()
+	#await quitting
+	#glob.load_scene(str(button.metadata["project_id"]))
+	#queue_free()
+	#ui.splash("works", splashed_from, emitter, true)
 	
 		#parsed[glob.random_project_id()] = {"name": "New Project"}
 		#list.show_up(glob.parsed_projects)

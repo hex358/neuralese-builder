@@ -8,7 +8,7 @@ func _ready() -> void:
 	_load_cookies()
 
 func get_username() -> String:
-	return "neri"
+	return "n"
 
 func _save_cookies() -> void:
 	var f = FileAccess.open(cookie_file, FileAccess.WRITE)

@@ -14,6 +14,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	$ColorRect/Label.text = cookies.get_username()
 	var a = await glob.request_projects()
+	quitting.connect(
+	glob.reset_menu_type.bind($ColorRect/list, &"delete_project"))
 	#var a = await web.POST("project_list", {
 	#"user": "neri", 
 	#"pass": "123"
@@ -24,12 +26,13 @@ func _ready() -> void:
 	await get_tree().process_frame
 	for i in list._contained:
 		if i.metadata["project_id"] == glob.get_project_id():
-			i.set_tuning(i.base_tuning * 1.2)
+			i.set_tuning(i.base_tuning * 2.2)
 
 
 func _on_list_child_button_release(button: BlockComponent) -> void:
-	glob.load_scene(str(button.metadata["project_id"]))
-	go_away()
+	if not glob.menus["delete_project"].state.expanding and not glob.menus["delete_project"].state.tween_hide:
+		glob.load_scene(str(button.metadata["project_id"]))
+		go_away()
 
 
 func _on_add() -> void:
