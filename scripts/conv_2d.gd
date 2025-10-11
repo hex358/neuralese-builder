@@ -416,5 +416,7 @@ func _on_h_slider_2_value_changed(value: float) -> void:
 	#stride = a
 
 
-func _on_y_text_submitted(new_text: String) -> void:
+
+
+func _on_yf_submitted(new_text: String) -> void:
 	update_config({"filters": int(new_text)})

@@ -20,8 +20,7 @@ func _on_trainn_released() -> void:
 	$ColorRect/Label.update_valid()
 	if $ColorRect/Label.is_valid:
 		var id = await glob.create_empty_project($ColorRect/Label.text)
-		glob.project_id = id
-		glob.load_empty_scene($ColorRect/Label.text)
+		glob.load_empty_scene(id, $ColorRect/Label.text)
 	#can_go = false
 		go_away()
 	#await quitting

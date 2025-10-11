@@ -238,7 +238,7 @@ offset_top = 7.0000005
 offset_right = 72.50603
 offset_bottom = 43.0
 scale = Vector2(0.8889408, 0.8889408)
-pivot_offset = Vector2(48.928833, 18)
+pivot_offset = Vector2(49.25302, 18)
 color = Color(0.87576675, 0.5546, 0.94, 1)
 button_type = 1
 top = true
@@ -368,3 +368,4 @@ config = SubResource("Resource_thedb")
 
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
 [connection signal="released" from="ColorRect/Control/play" to="ColorRect" method="_on_play_released"]
+[connection signal="released" from="ColorRect/9" to="ColorRect" method="_on__released"]

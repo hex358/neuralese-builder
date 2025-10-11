@@ -209,12 +209,42 @@ var project_id: int = 0
 func get_project_id() -> int:
 	return project_id
 
+func set_var(n: String, val: Variant):
+	var got = get_stored()
+	got[n] = val
+	var op = FileAccess.open("user://memory.bin", FileAccess.WRITE)
+	op.store_var(got)
+	op.close()
+
+func get_var(n: String) -> Variant:
+	return get_stored().get(n, null)
+
+func get_stored() -> Dictionary:
+	var op = FileAccess.open("user://memory.bin", FileAccess.READ)
+	if not op: return {}
+	var res = op.get_var()
+	op.close()
+	return res if res else {}
+
+
+func open_last_project():
+	var got = get_var("last_id")
+	if got:
+		load_scene(str(got))
+	else:
+		var a = await request_projects()
+		if a:
+			load_scene(a.keys()[0])
+		else:
+			var i = await create_empty_project("")
+			load_empty_scene(a, "")
+
 
 var parsed_projects = {}
 
 func create_empty_project(name: String) -> int:
 	var id: int = random_project_id()
-	parsed_projects[id] = {"name": name}
+	parsed_projects[str(id)] = {"name": name}
 	var res = await save_empty(str(id), name)
 	return id
 
@@ -499,14 +529,25 @@ func get_project_data(empty: bool = false) -> Dictionary:
 	var texts = glob.tree_windows["env"].get_texts()
 	for i in texts:
 		data["lua"][i] = texts[i]
+	data["camera"] = Vector3(cam.position.x, cam.position.y, cam.zoom.x)
 	return data
 
 
 func init_scene(scene: String):
 	tree_windows["env"].request_texts()
 
+
+func delete_project(scene: int):
+	web.POST("delete_project", {"user": "n", "pass": "1", "scene": str(scene)})
+	parsed_projects.erase(str(scene))
+	if project_id == scene:
+		var i = await create_empty_project("")
+		load_empty_scene(i, "")
+
+
 var env_dump = {}
 func load_scene(from: String):
+	project_id = int(from)
 	var answer = await web.POST("project", {"scene": from, 
 	 "user": "n", 
 	"pass": "1"})
@@ -516,15 +557,25 @@ func load_scene(from: String):
 	var dat = Messagepack.decode(Marshalls.base64_to_raw(a["scene"]))["value"]
 	graphs.delete_all()
 	if !dat: return
+	set_var("last_id", project_id)
 	#clear everything out
 	
 	fg.set_scene_name(a["name"])
 	graphs.load_graph(dat["graphs"])
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
+	if "camera" in dat and dat["camera"]:
+		if cam is GraphViewport:
+			cam.target_zoom = dat.camera.z
+			cam.target_position = Vector2(dat.camera.x, dat.camera.y)
+		else:
+			cam.zoom = Vector2(dat.camera.z, dat.camera.z)
+			cam.position = Vector2(dat.camera.x, dat.camera.y)
 
 
-func load_empty_scene(name: String):
+func load_empty_scene(pr_id: int, name: String):
+	project_id = pr_id
+	set_var("last_id", project_id)
 	graphs.delete_all()
 	
 	fg.set_scene_name(name)
@@ -587,5 +638,6 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
+	open_last_project()
 	
 	

@@ -277,3 +277,4 @@ text = "Filters"
 
 [connection signal="value_changed" from="Label/HSlider" to="." method="_on_h_slider_value_changed"]
 [connection signal="value_changed" from="Label2/HSlider2" to="." method="_on_h_slider_2_value_changed"]
+[connection signal="submitted" from="Y" to="." method="_on_yf_submitted"]

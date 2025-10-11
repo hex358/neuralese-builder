@@ -524,9 +524,9 @@ func is_mouse_inside() -> bool:
 	if bounds.size.x < 0 or bounds.size.y < 0: return false
 	#if name == "list":
 		#print(last_mouse_pos)
-	#if name == "train":
-		#print(last_mouse_pos)
 	return bounds.has_point(last_mouse_pos)
+
+signal children_revealed
 
 func _align_label() -> void:
 	var text_size = glob.get_label_text_size(label) * label.scale
@@ -797,6 +797,7 @@ func update_children_reveal() -> void:
 	_last_extents = extents
 	_last_has_shrink = has_shrink
 	_reveal_dirty = stay_hot
+	children_revealed.emit()
 
 
 
@@ -967,6 +968,8 @@ func _process_context_menu(delta: float) -> void:
 
 	if left_click or right_click or ((mouse_open or static_mode or still_hover_in_block) and not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
+	#if name == "delete_project":
+	#	print(still_hover_in_block)
 
 
 

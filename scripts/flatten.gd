@@ -33,7 +33,7 @@ func set_count(count: int):
 			if dess.server_typename == "NeuronLayer":
 				dess.push_neuron_count(neuron_count)
 				dess.neurons_fixed = true
-		else:
+		elif dess.server_typename == "NeuronLayer":
 			dess.neurons_fixed = false
 	
 var block_types: Dictionary[StringName, bool] = {"NeuronLayer": 1, "Reshape2D": 1}

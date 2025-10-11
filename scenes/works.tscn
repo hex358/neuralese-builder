@@ -64,7 +64,8 @@ offset_right = 159.0
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("12_sfqu4")
-text_alignment = Vector2(-0.5, 0)
+text_alignment = Vector2(-1, 0)
+text_offset = Vector2(15, 0)
 base_size = Vector2(159, 46)
 _scroll_container = false
 expanded_size = 96
@@ -74,7 +75,7 @@ menu_name = &"delete_project"
 max_size = 0
 config = null
 in_splash = true
-still_hover_in_block = null
+still_hover_in_block = true
 
 [node name="delete" parent="delete_project" instance=ExtResource("5_bysnc")]
 z_index = 2
@@ -93,6 +94,7 @@ base_size = Vector2(101, 41)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_jips7")
+in_splash = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
 z_index = 8
@@ -151,7 +153,6 @@ dynamic_size = true
 max_size = 300
 config = null
 in_splash = true
-still_hover_in_block = null
 
 [node name="name" parent="ColorRect/list" instance=ExtResource("5_bysnc")]
 z_index = 5

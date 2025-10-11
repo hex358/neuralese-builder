@@ -14,7 +14,11 @@ func _menu_handle_hovering(button: BlockComponent):
 	if glob.mouse_alt_just_pressed:
 		pass
 		#print("FJFJ")
-		glob.menus[&"delete_project"].show_up(button.text, print)
+		glob.menus[&"delete_project"].show_up(button.text, 
+		(func():
+			glob.delete_project(button.metadata["project_id"])
+			show_up(glob.parsed_projects)
+			))
 
 func _process(delta: float) -> void:
 	super(delta)
@@ -31,6 +35,9 @@ func show_up(iter, node=null):
 		menu_show(position)
 	state.holding = false
 	unblock_input()
-	
+
+	for i in _contained:
+		if i.metadata["project_id"] == glob.get_project_id():
+			i.set_tuning(i.base_tuning * 2.2)
 	
 	#menu_expand()

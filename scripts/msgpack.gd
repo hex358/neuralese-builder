@@ -163,9 +163,9 @@ static func _encode_message(buffer: StreamPeerBuffer, value):
 			return OK
 
 		TYPE_VECTOR3:
-			buffer.put_u8(0xd7) # fixext 8 = 12 bytes, but fixext8 only supports 8 bytes, so use ext8 manually
-			buffer.put_u8(0xc7) # ext 8
-			buffer.put_u8(12)   # data length
+			# ext8, length = 12 bytes, type = EXT_VECTOR3
+			buffer.put_u8(0xc7)
+			buffer.put_u8(12)   # 3 floats * 4 bytes
 			buffer.put_8(EXT_VECTOR3)
 			buffer.put_float(value.x)
 			buffer.put_float(value.y)
@@ -256,45 +256,50 @@ static func _decode_message(buffer: StreamPeerBuffer, err: Dictionary):
 	elif first_byte == types["nil"]: # nil
 		return null
 		
-	elif first_byte == types["false"]: # false
+	elif first_byte == types["false"]:
 		return false
 		
-	elif first_byte == types["true"]: # true
+	elif first_byte == types["true"]:
 		return true
 		
-	elif first_byte == types["bin_8"]: # bin 8
+	elif first_byte == types["bin_8"]:
 		var length = buffer.get_u8()
 		return buffer.get_partial_data(length)
 		
-	elif first_byte == types["bin_16"]: # bin 16
+	elif first_byte == types["bin_16"]:
 		var length = buffer.get_u16()
 		return buffer.get_partial_data(length)
 		
-	elif first_byte == types["bin_32"]: # bin 32
+	elif first_byte == types["bin_32"]:
 		var length = buffer.get_u32()
 		return buffer.get_partial_data(length)
-		
-	elif first_byte == 0xc7: # ext 8 (used for Vector3)
+
+	# --- CUSTOM EXTENSIONS (Vectors) ---
+	elif first_byte == 0xc7: # ext8
 		var length = buffer.get_u8()
 		var type_code = buffer.get_8()
-		if type_code == EXT_VECTOR3 and length == 12:
-			var x = buffer.get_float()
-			var y = buffer.get_float()
-			var z = buffer.get_float()
-			return Vector3(x, y, z)
-		else:
-			printerr("Unknown ext8 subtype: %d" % type_code)
-			err.error = ERR_UNAVAILABLE
-			return null
 
-	elif first_byte == 0xc8: # ext 16
-		print("Ext 16 type not implemented")
+		match type_code:
+			EXT_VECTOR2:
+				if length == 8:
+					return Vector2(buffer.get_float(), buffer.get_float())
+			EXT_VECTOR3:
+				if length == 12:
+					return Vector3(buffer.get_float(), buffer.get_float(), buffer.get_float())
+			EXT_VECTOR4:
+				if length == 16:
+					return Vector4(buffer.get_float(), buffer.get_float(), buffer.get_float(), buffer.get_float())
+			_:
+				printerr("Unknown ext8 subtype: %d (length=%d)" % [type_code, length])
+				err.error = ERR_UNAVAILABLE
+				return null
+
+	# unused ext types
+	elif first_byte == 0xc8 or first_byte == 0xc9:
+		printerr("ext16/ext32 types not implemented")
+		err.error = ERR_UNAVAILABLE
 		return null
 
-	elif first_byte == 0xc9: # ext 32
-		print("Ext 32 type not implemented")
-		return null
-		
 	elif first_byte == types["float_32"]:
 		return buffer.get_float()
 		
@@ -325,35 +330,24 @@ static func _decode_message(buffer: StreamPeerBuffer, err: Dictionary):
 	elif first_byte == types["int_64"]:
 		return buffer.get_64()
 		
-	elif first_byte == 0xd6: # fixext 8 (used for Vector2)
+	elif first_byte == 0xd6: # fixext8 (Vector2 legacy)
 		var type_code = buffer.get_8()
 		if type_code == EXT_VECTOR2:
-			var x = buffer.get_float()
-			var y = buffer.get_float()
-			return Vector2(x, y)
+			return Vector2(buffer.get_float(), buffer.get_float())
 		else:
 			printerr("Unknown fixext8 subtype: %d" % type_code)
 			err.error = ERR_UNAVAILABLE
 			return null
 
-	elif first_byte == 0xd7: # fixext 8 (unused here)
-		print("Fixext 8 type not implemented")
-		err.error = ERR_UNAVAILABLE
-		return null
-
-	elif first_byte == 0xd8: # fixext 16 (used for Vector4)
+	elif first_byte == 0xd8: # fixext16 (Vector4 legacy)
 		var type_code = buffer.get_8()
 		if type_code == EXT_VECTOR4:
-			var x = buffer.get_float()
-			var y = buffer.get_float()
-			var z = buffer.get_float()
-			var w = buffer.get_float()
-			return Vector4(x, y, z, w)
+			return Vector4(buffer.get_float(), buffer.get_float(), buffer.get_float(), buffer.get_float())
 		else:
 			printerr("Unknown fixext16 subtype: %d" % type_code)
 			err.error = ERR_UNAVAILABLE
 			return null
-		
+
 	elif first_byte == types["str_8"]:
 		var size = buffer.get_u8()
 		return buffer.get_utf8_string(size)

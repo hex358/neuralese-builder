@@ -73,3 +73,7 @@ func _on_login_released() -> void:
 	#else:
 	#	login_btn.in_splash = false
 	#	ui.get_splash("login").go_away()
+
+
+func _on__released() -> void:
+	glob.save(str(glob.get_project_id()))

@@ -24,13 +24,12 @@ func _ready() -> void:
 		#parsed = JSON.parse_string(a.body.get_string_from_utf8())["list"]
 	list.show_up(a)
 	await get_tree().process_frame
-	for i in list._contained:
-		if i.metadata["project_id"] == glob.get_project_id():
-			i.set_tuning(i.base_tuning * 2.2)
+
 
 
 func _on_list_child_button_release(button: BlockComponent) -> void:
-	if not glob.menus["delete_project"].state.expanding and not glob.menus["delete_project"].state.tween_hide:
+	if not glob.menus["delete_project"].state.expanding \
+	and (!glob.menus["delete_project"].visible or not glob.menus["delete_project"].state.tween_hide):
 		glob.load_scene(str(button.metadata["project_id"]))
 		go_away()
 
