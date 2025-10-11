@@ -7,6 +7,9 @@ var _cookies: Dictionary = {}
 func _ready() -> void:
 	_load_cookies()
 
+func get_username() -> String:
+	return "neri"
+
 func _save_cookies() -> void:
 	var f = FileAccess.open(cookie_file, FileAccess.WRITE)
 	if f:

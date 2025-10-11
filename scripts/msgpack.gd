@@ -60,6 +60,7 @@ static func encode(value) -> Dictionary:
 	}
 
 static func _encode_message(buffer: StreamPeerBuffer, value):
+	if value is StringName: value = String(value)
 	match typeof(value):
 		TYPE_NIL:
 			buffer.put_u8(types["nil"])

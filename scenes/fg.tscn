@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=25 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
@@ -16,6 +16,8 @@
 [ext_resource type="Texture2D" uid="uid://da35wdaqy728m" path="res://game_assets/icons/save.png" id="10_4mxf5"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="12_thedb"]
+[ext_resource type="Texture2D" uid="uid://df28yjqauh4ub" path="res://game_assets/icons/help.png" id="12_v7s1j"]
+[ext_resource type="Texture2D" uid="uid://cfllvhawyqi4x" path="res://game_assets/icons/wonder.png" id="12_x67tc"]
 
 [sub_resource type="Gradient" id="Gradient_5k5he"]
 interpolation_mode = 2
@@ -110,27 +112,28 @@ expand_mode = 1
 
 [node name="Label" type="LineEdit" parent="ColorRect"]
 layout_mode = 0
-offset_left = 65.0
+offset_left = 60.000004
 offset_top = 12.0
-offset_right = 310.0
+offset_right = 305.0
 offset_bottom = 55.0
 scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("3_xwiyo")
 placeholder_text = "Untitled"
-max_length = 50
+max_length = 25
 expand_to_text_length = true
 script = ExtResource("7_x5ox8")
 resize_after = 250
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
-[node name="ColorRect3" type="ColorRect" parent="ColorRect"]
+[node name="ColorRect3" type="TextureRect" parent="ColorRect"]
 layout_mode = 0
-offset_left = 19.999998
-offset_top = 12.0
-offset_right = 60.0
-offset_bottom = 52.0
-scale = Vector2(0.764192, 0.764192)
+offset_left = 9.0
+offset_top = 8.0
+offset_right = 49.0
+offset_bottom = 48.0
+scale = Vector2(1.0126857, 1.0126857)
+texture = ExtResource("12_v7s1j")
 
 [node name="Control" type="Control" parent="ColorRect"]
 layout_mode = 1
@@ -159,7 +162,10 @@ color = Color(0.49019608, 0.627451, 0.83137256, 1)
 button_type = 1
 top = true
 hint = &"layer"
-text = "  Login"
+resize_after = 5
+text = "Login"
+text_alignment = Vector2(-1, 0)
+text_offset = Vector2(37, 0)
 base_size = Vector2(108.23486, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
@@ -175,9 +181,9 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
 layout_mode = 0
-offset_left = 165.00003
+offset_left = 164.00003
 offset_top = 7.0000005
-offset_right = 284.23148
+offset_right = 283.23148
 offset_bottom = 43.0
 scale = Vector2(0.8889408, 0.8889408)
 pivot_offset = Vector2(59.615723, 18)
@@ -221,6 +227,32 @@ position = Vector2(20.670837, 17.999998)
 scale = Vector2(1.1249341, 1.1249341)
 texture = ExtResource("9_gbf2a")
 
+[node name="ai" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
+material = ExtResource("12_thedb")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = -26.000015
+offset_top = 7.0000005
+offset_right = 72.50603
+offset_bottom = 43.0
+scale = Vector2(0.8889408, 0.8889408)
+pivot_offset = Vector2(48.928833, 18)
+color = Color(0.87576675, 0.5546, 0.94, 1)
+button_type = 1
+top = true
+hint = &"ai_help"
+text = "  Axon"
+text_offset = Vector2(2, 0)
+base_size = Vector2(98.50604, 36)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_5i506")
+
+[node name="i" type="Sprite2D" parent="ColorRect/Control/ai"]
+position = Vector2(21.795776, 17.999996)
+texture = ExtResource("12_x67tc")
+
 [node name="9" parent="ColorRect" instance=ExtResource("4_5k5he")]
 self_modulate = Color(1, 1, 1, 0)
 material = ExtResource("12_thedb")
@@ -228,9 +260,9 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
 layout_mode = 0
-offset_left = 255.0
+offset_left = 252.0
 offset_top = 10.999999
-offset_right = 289.80444
+offset_right = 286.80444
 offset_bottom = 43.624138
 scale = Vector2(0.6480339, 0.6480339)
 pivot_offset = Vector2(17.402222, 16.312069)

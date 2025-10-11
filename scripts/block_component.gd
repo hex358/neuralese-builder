@@ -212,6 +212,7 @@ func initialize() -> void:
 		if not scroll:
 			default_scroll()
 		bar = scroll.get_v_scroll_bar()
+		bar.scrolling.connect(update_children_reveal)
 		bar.scale.x = bar_scale_x
 		bar.z_index = 2
 
@@ -521,6 +522,10 @@ func is_mouse_inside() -> bool:
 	bounds.size *= mult
 	bounds.position += global_position - Vector2.ONE*area_padding*mult
 	if bounds.size.x < 0 or bounds.size.y < 0: return false
+	#if name == "list":
+		#print(last_mouse_pos)
+	#if name == "train":
+		#print(last_mouse_pos)
 	return bounds.has_point(last_mouse_pos)
 
 func _align_label() -> void:
@@ -576,6 +581,7 @@ func press(press_time: float = 0.0):
 		imm_unpress = false
 		await glob.wait(press_time)
 		press_request = false
+		ins_request = true
 
 
 func _update_scroll_text(delta: float) -> void:
@@ -617,16 +623,23 @@ func _update_scroll_text(delta: float) -> void:
 
 @export var in_splash: bool = false
 
-
+var ins_request: bool = false
 func _process_block_button(delta: float) -> void:
 	if not visible or not parent.visible or (graph and !graph.visible) or not freedom: 
 		return
 
-	var blocked = is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling) or is_blocking \
+	var blocked = (is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)) or is_blocking \
 	or (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	var frozen = is_contained and parent.is_frozen or is_frozen
 	blocked = blocked or (ui.splashed and not in_splash)
+	#if name == "train2":
+	#	print(glob.get_occupied("menu_inside").get_parent())
+
+	#if text == "+ New":
+		#print((glob.get_occupied("menu_inside")))
 	#if parent.name == "add_graph" and text == "Condition":
+	#if text == "+ New":
+	#	print(blocked)
 	#	print(parent.scrolling)
 
 	if not frozen:
@@ -645,6 +658,8 @@ func _process_block_button(delta: float) -> void:
 			glob.occupy(self, "block_button_inside")
 		else:
 			glob.un_occupy(self, "block_button_inside")
+	if ins_request:
+		ins_request = false; inside = true
 
 	if inside:
 		if mouse_pressed:
@@ -672,8 +687,6 @@ func _process_block_button(delta: float) -> void:
 					_scrolling = false
 					label.text = _wrap_text(text)
 					_align_label()
-
-
 			hovering.emit()
 			if not state.hovering:
 				hovered.emit()
@@ -682,6 +695,7 @@ func _process_block_button(delta: float) -> void:
 				modulate = modulate.lerp(config.hover_color * config.hover_mult * base_modulate, delta * 15)
 			else:
 				modulate = modulate.lerp(config.hover_color * config.hover_mult, delta * 15)
+
 			if state.pressing:
 				released.emit()
 				state.pressing = false
@@ -759,9 +773,9 @@ func update_children_reveal() -> void:
 
 	for i in n:
 		var c: BlockComponent = _contained[i]
-		var pos = c._wrapped_in.position.y + s_pos_y + c.base_size.y
-		var new_visible = has_shrink or (pos < max_y)
-		var new_free = size_diff_ok and (pos - bar_value < max_y) and (pos - bar_value > base_y)
+		var pos = c._wrapped_in.position.y + s_pos_y
+		var new_visible = has_shrink or (pos + c.base_size.y  < max_y)
+		var new_free = size_diff_ok and (pos - bar_value < max_y) and (pos - bar_value + c.base_size.y > base_y)
 
 		if c.visible != new_visible or c.freedom != new_free or changed_extents:
 			if c.visible != new_visible:
@@ -919,18 +933,20 @@ func unroll():
 	bar.self_modulate.a = 1.0
 	update_children_reveal()
 	glob.occupy(self, &"menu")
-	if is_mouse_inside():
-		glob.occupy(self, "menu_inside")
-	else:
-		glob.un_occupy(self, "menu_inside")
+	if !static_mode:
+		if is_mouse_inside():
+			glob.occupy(self, "menu_inside")
+		else:
+			glob.un_occupy(self, "menu_inside")
 
 
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
 	var reset_menu = not static_mode and _is_not_menu()
 	if not is_visible_in_tree() and reset_menu:
-		glob.un_occupy(self, &"menu")
-		glob.un_occupy(self, "menu_inside")
+		if !static_mode:
+			glob.un_occupy(self, &"menu")
+			glob.un_occupy(self, "menu_inside")
 		return
 	
 	# mouse state
@@ -938,6 +954,12 @@ func _process_context_menu(delta: float) -> void:
 	var right_pressed = glob.mouse_alt_pressed if !left_activate else glob.mouse_pressed
 	var left_click = glob.mouse_just_pressed if !left_activate else glob.mouse_alt_just_pressed
 	var right_click = glob.mouse_alt_just_pressed if !left_activate else glob.mouse_just_pressed
+	
+	var non_splashed = in_splash or !ui.splashed
+	left_click = left_click and non_splashed
+	right_click = right_click and non_splashed
+	right_pressed = right_pressed and non_splashed
+	left_pressed = left_pressed and non_splashed
 	
 	if graphs.conns_active and button_type == ButtonType.DROPOUT_MENU:
 		left_click = false
@@ -947,8 +969,10 @@ func _process_context_menu(delta: float) -> void:
 		right_pressed = false
 		right_click = false
 
-	if left_click or right_click or (mouse_open and not left_pressed and not right_pressed):
+	if left_click or right_click or ((mouse_open or static_mode) and not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
+
+
 
 	if !static_mode and glob.hide_menus and not state.holding and button_type == ButtonType.CONTEXT_MENU:
 		left_pressed = false; right_pressed = false
@@ -995,10 +1019,14 @@ func _process_context_menu(delta: float) -> void:
 		scroll_checking = false
 		glob.un_occupy(self, &"scroll")
 
-	if glob.mouse_scroll or (is_in_bar and glob.mouse_pressed) or scrolling or _reveal_dirty:
+	if (is_in_bar and glob.mouse_pressed) or scrolling or _reveal_dirty:
 		update_children_reveal()
 
 	if static_mode:
+		#if inside and not state.tween_hide and visible:
+			#glob.occupy(self, "menu_inside")
+		#else:
+			#glob.un_occupy(self, "menu_inside")
 		return
 
 	var do_reset: bool = (reset_menu and (right_click or (left_click and left_activate)) )
@@ -1027,7 +1055,7 @@ func _process_context_menu(delta: float) -> void:
 			menu_expand()
 	if not i_occupied:
 		glob.un_occupy(self, &"menu")
-
+	
 	if inside and not state.tween_hide and visible:
 		glob.occupy(self, "menu_inside")
 	else:

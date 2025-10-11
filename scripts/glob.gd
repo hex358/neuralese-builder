@@ -73,19 +73,22 @@ func is_occupied(node: Node, layer: StringName) -> bool:
 	return is_instance_valid(occupied) and occupied != node
 
 func get_occupied(layer: StringName):
-	return occ_layers.get(layer, null)
+	var got = occ_layers.get(layer, null)
+	return got if is_instance_valid(got) else null
 
+var sib: Node
 func loaded(string: String) -> int:
+	if not sib: 
+		sib = Node.new(); get_tree().get_root().add_child(sib)
+		sib.get_parent().move_child(sib, base_node.get_index()+1)
+		
 	var inst = load(string).instantiate()
 	inst.window_hide()
-	add_child(inst); return 0
+	sib.add_child(inst); return 0
 
 var fg: ColorRect = null
 var tree_windows: Dictionary[String, TabWindow] = {}
-@onready var _load_window_scenes = {
-	"graph": $"../base/WIN_GRAPH",
-	"env": loaded("res://scenes/env_tab.tscn"),
-}
+@onready var _load_window_scenes = {}
 var curr_window = ""
 func go_window(window_name: String):
 	if curr_window == window_name: return
@@ -196,15 +199,42 @@ func wait(wait_time: float, frames: bool = false):
 	var timer = _Timer.new(wait_time, frames)
 	timers[timer] = true; return timer.timeout
 
+func get_project_id() -> int:
+	return 1235
+
+
+var parsed_projects = {}
+
+func create_empty_project(name: String):
+	var id: int = random_project_id()
+	parsed_projects[id] = {"name": name}
+	var res = await save_empty(str(id), name)
+	return true
+
+func request_projects():
+	var a = await web.POST("project_list", {
+	"user": "neri", 
+	"pass": "123"
+	})
+	if a.body:
+		a = JSON.parse_string(a.body.get_string_from_utf8())["list"]
+		parsed_projects = a
+		return a
+	return {}
+
+func random_project_id() -> int:
+	return randi_range(0,999999999)
+
 func _after_process(delta: float) -> void:
 	hide_menus = false
 	consumed_input.clear()
 	hovered_connection_changed = false
 
 	if space_just_pressed:
-		await save()
-		load_scene("")
-	#print(menu_type)
+		pass
+		#await save(str(get_project_id()))
+		#load_scene("gr1")
+	#prit(menu_type)
 
 var opened_menu = null
 
@@ -407,7 +437,6 @@ func _process(delta: float) -> void:
 	for i in to_erase:
 		timers.erase(i)
 		i.free.call_deferred()
-
 	input_poll()
 
 
@@ -442,13 +471,19 @@ func is_vec_approx(a: Vector2, b: Vector2, eps: float = 0.01) -> bool:
 func inst_uniform(who: CanvasItem, uniform: StringName, val):
 	RenderingServer.canvas_item_set_instance_shader_parameter(who.get_canvas_item(), uniform, val)
 
+func inst_uniform_read(who: CanvasItem, uniform: StringName):
+	#(RenderingServer.canvas_item_get_instance_shader_parameter_list(who.get_canvas_item()))
+	return RenderingServer.canvas_item_get_instance_shader_parameter(who.get_canvas_item(), uniform)
+
+
 func in_out_quad(t: float) -> float:
 	t = clamp(t, 0.0, 1.0)
 	return 2.0 * t * t if t < 0.5 else 1.0 - pow(-2.0 * t + 2.0, 2.0) / 2.0
 
 
-func get_project_data() -> Dictionary:
+func get_project_data(empty: bool = false) -> Dictionary:
 	var data = {"graphs": {}, "lua": {}}
+	if empty: return data
 	for i in graphs._graphs:
 		data["graphs"][i] = graphs._graphs[i].get_info()
 	var texts = glob.tree_windows["env"].get_texts()
@@ -460,19 +495,37 @@ func get_project_data() -> Dictionary:
 func init_scene(scene: String):
 	tree_windows["env"].request_texts()
 
+var env_dump = {}
 func load_scene(from: String):
-	web.POST("project", {"scene": "gr1", 
+	var answer = await web.POST("project", {"scene": from, 
 	 "user": "neri", 
-	"pass": "123"}).connect(func(x):
-		var a = JSON.parse_string(x["body"].get_string_from_utf8())["scene"]
-		var dat = Messagepack.decode(Marshalls.base64_to_raw(a))
-		print(dat["value"]["lua"]["hellfff5ffffo"])
-		)
+	"pass": "123"})
+	if not "body" in answer: return
+	var a = JSON.parse_string(answer["body"].get_string_from_utf8())
+	if not "scene" in a: return
+	var dat = Messagepack.decode(Marshalls.base64_to_raw(a["scene"]))["value"]
+	if !dat: return
+	#clear everything out
+	graphs.delete_all()
+	
+	fg.set_scene_name(a["name"])
+	graphs.load_graph(dat["graphs"])
+	env_dump = dat["lua"]
+	tree_windows["env"].request_texts()
 
-func save():
+func save(from: String):
 	var blob = Marshalls.raw_to_base64(Messagepack.encode(get_project_data())["value"])
-	return web.POST("save", {"scene": "gr1", 
+	return await web.POST("save", {"scene": from, 
 	"blob": blob,
+	"name": fg.get_scene_name(),
+	 "user": "neri", 
+	"pass": "123"})
+
+func save_empty(from: String, name: String):
+	var blob = Marshalls.raw_to_base64(Messagepack.encode(get_project_data(true))["value"])
+	return await web.POST("save", {"scene": from, 
+	"blob": blob,
+	"name": name,
 	 "user": "neri", 
 	"pass": "123"})
 
@@ -484,14 +537,18 @@ func rget_children(from_root: Node) -> Array:
 
 	while stack.size() > 0:
 		var node: Node = stack.pop_back()
-		for child in node.get_children():
+		for child in node.get_children(true):
 			result.append(child)
 			stack.append(child)
 
 	return result
 
 
-
+func _window_scenes() -> Dictionary:
+	return {
+	"graph": $"../base/WIN_GRAPH",
+	"env": loaded("res://scenes/env_tab.tscn"),
+	}
 
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
@@ -508,6 +565,8 @@ func _ready() -> void:
 	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(splines_layer)
 	get_tree().get_root().get_node("base/WIN_GRAPH").add_child(top_splines_layer)
 	
+	await get_tree().process_frame
+	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
 	

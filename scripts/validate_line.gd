@@ -6,6 +6,7 @@ class_name ValidInput
 @export var accept_button: BlockComponent
 
 @export var resize_after: int = 0
+@export var auto_red: bool = false
 func _ready() -> void:
 	
 	text_changed.connect(_input_changed)
@@ -14,6 +15,17 @@ func _ready() -> void:
 func set_valid(valid: bool):
 	is_valid = valid
 
+func update_valid():
+	is_valid = _is_valid(text)
+	if auto_red:
+		if !is_valid:
+			modulate = Color.INDIAN_RED
+		else:
+			modulate = Color.WHITE
+
+var custom_is_valid: Callable
+func set_is_valid_call(call_: Callable):
+	custom_is_valid = call_
 
 func get_value():
 	return _get_value()
@@ -44,7 +56,9 @@ func _gui_input(event: InputEvent) -> void:
 var is_valid: bool = false
 
 func _is_valid(input: String) -> bool:
+	if custom_is_valid: return custom_is_valid.call(input)
 	return len(input) > 0
+
 
 @export var change_always_accepted: bool = true
 func _can_change_to(emit: bool) -> String:
@@ -68,6 +82,11 @@ func set_line(input: String, emit: bool = false):
 	if !change_always_accepted:
 		text = _can_change_to(emit)
 	is_valid = _is_valid(input)
+	if auto_red:
+		if !is_valid:
+			modulate = Color.INDIAN_RED
+		else:
+			modulate = Color.WHITE
 	if !change_always_accepted:
 		prev_input = input
 	_text_changed()

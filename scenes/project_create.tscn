@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://b4eyheq367smq"]
+
+[ext_resource type="PackedScene" uid="uid://bw340y1d3u505" path="res://scenes/scene_create.tscn" id="1_0gnqm"]
+[ext_resource type="Script" uid="uid://b3h1ee18h6jpt" path="res://scripts/project_create.gd" id="2_3b2pe"]
+
+[node name="Node2D" instance=ExtResource("1_0gnqm")]
+script = ExtResource("2_3b2pe")
+
+[node name="Label" parent="ColorRect/root" index="1"]
+text = "/projects/create"
+
+[node name="Label" parent="ColorRect" index="1"]
+placeholder_text = "project name"
+
+[node name="train" parent="ColorRect" index="2"]
+pivot_offset = Vector2(29.52449, 12.5)

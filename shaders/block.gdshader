@@ -19,7 +19,7 @@ uniform float outline_width: hint_range(0.0, 50.0) = 0.0;
 uniform float mult = 2.0;
 instance uniform vec4 outline_color: source_color = vec4(1.0);
 
-uniform float blur_level: hint_range(0.0, 7.0) = 2.5;
+uniform float blur_level: hint_range(-7.0, 7.0) = 2.5;
 uniform float gaussian_mix: hint_range(0.0, 1.0) = 1.0;
 uniform float gaussian_step: hint_range(0.0, 8.0) = 1.0;
 
@@ -95,7 +95,7 @@ void fragment() {
 	vec4 out_col = outline_color;
 
 	if (blurred_background) {
-		float lod = blur_level * _view_scale;
+		float lod = blur_level < 0.0 ? -blur_level : blur_level * _view_scale;
 
 		vec2 step_px = SCREEN_PIXEL_SIZE * max(gaussian_step, 0.0001) * (1.0 + blur_level);
 

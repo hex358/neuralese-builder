@@ -17,7 +17,9 @@ func _just_disconnected(who: Connection, to: Connection):
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	if other_conn.parent_graph.server_typename == "InputNode":
 		$TextureRect.texture = other_conn.parent_graph.get_node("TextureRect").texture
+		await get_tree().process_frame
 		repos()
+
 
 func repos():
 	var sz = $TextureRect.size
@@ -25,16 +27,32 @@ func repos():
 	OI.position = Vector2(0,sz.y-1)
 	IO.position = Vector2(sz.x-1,0)
 	II.position = sz-Vector2.ONE
+	params()
 
+func params():
 	var to_img = $TextureRect._local_to_img_coords
-	var param = $TextureRect.material.set_shader_parameter
+	var param = func(name, vec):
+		if name == "p00": 
+			var zw = glob.inst_uniform_read($TextureRect, "p00_01")
+			glob.inst_uniform($TextureRect, "p00_01", Vector4(vec.x, vec.y, zw.z, zw.w))
+		if name == "p01": 
+			var zw = glob.inst_uniform_read($TextureRect, "p00_01")
+			glob.inst_uniform($TextureRect, "p00_01", Vector4(zw.x, zw.y, vec.x, vec.y))
+		if name == "p10": 
+			var zw = glob.inst_uniform_read($TextureRect, "p10_11")
+			glob.inst_uniform($TextureRect, "p10_11", Vector4(vec.x, vec.y, zw.z, zw.w))
+		if name == "p11": 
+			var zw = glob.inst_uniform_read($TextureRect, "p10_11")
+			glob.inst_uniform($TextureRect, "p10_11", Vector4(zw.x, zw.y, vec.x, vec.y))
 	param.call("p00", to_img.call(OO.position))
 	param.call("p01", to_img.call(OI.position))
 	param.call("p10", to_img.call(IO.position))
 	param.call("p11", to_img.call(II.position))
 
 func _ready() -> void:
+	super()
 	if Engine.is_editor_hint(): return
+	await get_tree().process_frame
 	repos()
 
 @export var OO: Sprite2D
@@ -70,20 +88,8 @@ func _after_process(delta: float):
 		_dragging.position = (mouse_pos + drag_offset - k/2).snapped(k)
 		_dragging.position.x = clamp(_dragging.position.x, 0, $TextureRect.size.x-1)
 		_dragging.position.y = clamp(_dragging.position.y, 0, $TextureRect.size.y-1)
-		if _dragging.position.y == $TextureRect.size.y-1:
-			_dragging.offset.y = -11
-		if _dragging.position.y == 0:
-			_dragging.offset.y = 15
-		if _dragging.position.x == $TextureRect.size.x-1:
-			_dragging.offset.x = -11
-		if _dragging.position.x == 0:
-			_dragging.offset.x = 15
 		hold_for_frame()
 
 	var to_img = $TextureRect._local_to_img_coords
 	var sc = $TextureRect.scale * 0.5
-	var param = $TextureRect.material.set_shader_parameter
-	param.call("p00", to_img.call(OO.position))
-	param.call("p01", to_img.call(OI.position))
-	param.call("p10", to_img.call(IO.position))
-	param.call("p11", to_img.call(II.position))
+	params()

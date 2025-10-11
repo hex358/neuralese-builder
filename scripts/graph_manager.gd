@@ -309,7 +309,11 @@ func load_graph(state: Dictionary):
 	for g in _graphs:
 		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
 		_graphs[g].hold_for_frame.call_deferred()
-	
+
+
+func delete_all():
+	for graph in _graphs:
+		_graphs[graph].delete()
 	
 
 func get_project_data() -> Dictionary:

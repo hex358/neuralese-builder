@@ -83,7 +83,8 @@ shader_parameter/use_bg = true
 [sub_resource type="Resource" id="Resource_5x1c3"]
 script = ExtResource("8_81s2i")
 hover_color = Color(1.3, 1.1, 1.1, 1)
-hover_mult = 1.3
+hover_mult = 1.15
+_hover_scale = 1.02
 press_color = Color(1.1, 0.9, 0.9, 1)
 _press_scale = 0.97
 animation_speed = 1.951
@@ -154,6 +155,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_r7hpq")
 text = "-- Create your scene in the Scenes menu."
+editable = false
 context_menu_enabled = false
 scroll_v_scroll_speed = 60.0
 minimap_width = 60
@@ -171,8 +173,8 @@ script = ExtResource("4_c5gg0")
 material = SubResource("ShaderMaterial_epnia")
 instance_shader_parameters/corner_radius_width_add = Vector2(10, 0.3)
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.7882353, 0.7882353, 0.7882353, 1)
-instance_shader_parameters/tuning = Color(0.4, 0.4, 0.4, 1)
+instance_shader_parameters/outline_color = Color(0.6313726, 0.6313726, 0.6313726, 1)
+instance_shader_parameters/tuning = Color(0.36078432, 0.36078432, 0.36078432, 1)
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -274,7 +276,8 @@ offset_bottom = 24.000002
 scale = Vector2(1.3652097, 1.3652097)
 texture = ExtResource("16_ngk34")
 
-[node name="run" parent="Control/scenes" instance=ExtResource("6_o688u")]
+[node name="plus" parent="Control/scenes" instance=ExtResource("6_o688u")]
+process_mode = 3
 z_index = 9
 instance_shader_parameters/corner_radius_width_add = Vector2(-10.835, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -307,8 +310,8 @@ config = SubResource("Resource_n8ca6")
 material = SubResource("ShaderMaterial_epnia")
 instance_shader_parameters/corner_radius_width_add = Vector2(10, 0.3)
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.79, 0.79, 0.79, 1)
-instance_shader_parameters/tuning = Color(0.4, 0.4, 0.4, 1)
+instance_shader_parameters/outline_color = Color(0.63, 0.63, 0.63, 1)
+instance_shader_parameters/tuning = Color(0.36, 0.36, 0.36, 1)
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -395,4 +398,5 @@ anchor_mode = 0
 [connection signal="text_changed" from="Control/CodeEdit" to="." method="_on_code_edit_text_changed"]
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/9" to="." method="_on__released"]
+[connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
 [connection signal="released" from="Control/view/run" to="." method="_on_run_released"]

@@ -13,7 +13,7 @@ func _ready() -> void:
 	target_size = size
 
 func _process(delta: float) -> void:
-	if glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
+	if not ui.splashed and glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
 	and not graphs.dragged and not graphs.conns_active and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y:
 		select_origin = get_global_mouse_position()
 		selecting = true

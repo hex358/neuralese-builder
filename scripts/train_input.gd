@@ -34,6 +34,7 @@ func _after_process(delta: float):
 			n.show()
 		var next_a: float = lerp(curr_a, target_a, delta * fade_speed)
 		_set_alpha(n, next_a)
+		hold_for_frame()
 		if target_a < 0.5 and next_a < 0.02 and n.visible:
 			n.hide()
 
@@ -163,4 +164,4 @@ func _set_alpha(n: CanvasItem, a: float) -> void:
 
 
 func _on_h_slider_value_changed(value: float) -> void:
-	pass # Replace with function body.
+	update_config({"momentum": value})

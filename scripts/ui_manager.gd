@@ -78,8 +78,13 @@ func _process(delta: float):
 #	print(get_viewport().gui_get_focus_owner())
 			
 
+var blur = preload("res://scenes/blur.tscn").instantiate()
 var splash_menus = {
-	"login": preload("res://scenes/splash.tscn")
+	"login": preload("res://scenes/splash.tscn"),
+	"signup": preload("res://scenes/signup.tscn"),
+	"scene_create": preload("res://scenes/scene_create.tscn"),
+	"works": preload("res://scenes/works.tscn"),
+	"project_create": preload("res://scenes/project_create.tscn"),
 }
 
 
@@ -87,6 +92,8 @@ var cl = CanvasLayer.new()
 func _ready():
 	cl.layer = 128
 	add_child(cl)
+	blur.modulate.a = 0
+	cl.add_child(blur)
 
 var splashed = {}
 
@@ -106,10 +113,45 @@ func get_splash(who: String) -> SplashMenu:
 		if i.typename == who: return i
 	return null
 
-func splash(menu: String) -> SplashMenu:
-	var m = splash_menus[menu].instantiate()
+func splash(menu: String, splashed_from = null, emitter_ = null, inner = false) -> SplashMenu:
+	if splashed_from:
+		if !is_splashed(menu):
+			splashed_from.in_splash = true
+		else:
+			splashed_from.in_splash = false
+			get_splash(menu).go_away()
+			return null
+	var m: SplashMenu = splash_menus[menu].instantiate()
+	m.inner = inner
 	cl.add_child(m)
+	m.splashed_from = splashed_from
+	var emitter = ResultEmitter.new() if !emitter_ else emitter_
+	m.emitter = emitter
 	return m
+
+func error(text: String):
+	print(text)
+
+class ResultEmitter:
+	signal res(data: Dictionary, who: String)
+
+signal result_emit(data: Dictionary)
+func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, inner = false) -> Dictionary:
+	if splashed_from:
+		if !is_splashed(menu):
+			splashed_from.in_splash = true
+		else:
+			splashed_from.in_splash = false
+			get_splash(menu).go_away()
+			return {}
+	var m: SplashMenu = splash_menus[menu].instantiate()
+	m.inner = inner
+	cl.add_child(m)
+	m.splashed_from = splashed_from
+	var emitter = ResultEmitter.new() if !emitter_ else emitter_
+	m.emitter = emitter
+	var a = await emitter.res
+	return a
 
 
 

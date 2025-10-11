@@ -56,10 +56,11 @@ func delete():
 			outputs[i].tied_to.detatch_spline(outputs[i])
 			end_spline(i)
 
-func is_mouse_inside(padding:Vector4=area_paddings*1.5) -> bool:
+func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
 	# padded hit area
 	#if glob.is_consumed(self, "conn_mouse_inside"): return false
-	padding = Vector4()
+	if padding == -Vector4.ONE:
+		padding = Vector4.ONE * 18 * pow(glob.cam.zoom.x, -0.5)
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x: return false
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale
@@ -274,9 +275,11 @@ func _stylize_spline(spline: Spline, hovered_suitable: bool, finalize: bool = fa
 	hovered_suitable = hovered_suitable and is_instance_valid(glob.hovered_connection)
 	if hovered_suitable:
 		spline.modulate = Color(1.1, 1.1, 1.1)
+		#spline.end_dir_vec = glob.hovered_connection.dir_vector
 		spline.turn_into(keyword, glob.hovered_connection.keyword)
 		spline.color_a = spline.origin.gradient_color
 	else:
+		#spline.end_dir_vec = -dir_vector
 		spline.modulate = Color(0.8,0.8,0.8)
 		spline.turn_into(keyword)
 		spline.color_a = Color.WHITE
@@ -358,7 +361,9 @@ func _process(delta: float) -> void:
 		#print("f")
 		prog = 0
 		modulate = modulate.lerp(Color(1.5, 1.5, 1.5), delta * 23.0)
+		parent_graph.hold_for_frame()
 	elif prog < 0.95:
+		parent_graph.hold_for_frame()
 		prog = lerpf(prog, 1, delta * 23.0)
 		if prog < 0.95: modulate = modulate.lerp(base_modulate, delta * 23.0)
 		else: modulate = base_modulate

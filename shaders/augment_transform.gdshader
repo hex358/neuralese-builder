@@ -3,10 +3,8 @@ shader_type canvas_item;
 uniform float corner_radius : hint_range(0.0, 100.0) = 8.0;
 uniform vec2 rect_size = vec2(200.0, 100.0);
 
-uniform vec2 p00 = vec2(0.0, 0.0);
-uniform vec2 p10 = vec2(256.0, 0.0);
-uniform vec2 p01 = vec2(0.0, 256.0);
-uniform vec2 p11 = vec2(256.0, 256.0);
+instance uniform vec4 p00_01 = vec4(0.0);
+instance uniform vec4 p10_11 = vec4(0.0);
 
 uniform bool use_pixel_points = true;
 uniform int newton_iters = 5;
@@ -16,15 +14,15 @@ uniform float pixel_softness = 0.5; // 0=hard pixel grid, 1=smooth edges
 void get_quad_uvs(out vec2 q00, out vec2 q10, out vec2 q01, out vec2 q11, vec2 psize) {
 	if (use_pixel_points) {
 		vec2 ts = psize;
-		q00 = p00 * ts;
-		q10 = p10 * ts;
-		q01 = p01 * ts;
-		q11 = p11 * ts;
+		q00 = p00_01.xy * ts;
+		q10 = p10_11.xy * ts;
+		q01 = p00_01.zw * ts;
+		q11 = p10_11.zw * ts;
 	} else {
-		q00 = p00;
-		q10 = p10;
-		q01 = p01;
-		q11 = p11;
+		q00 = p00_01.xy;
+		q10 = p10_11.zy;
+		q01 = p00_01.zw;
+		q11 = p10_11.zw;
 	}
 }
 

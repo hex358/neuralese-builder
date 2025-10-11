@@ -21,8 +21,15 @@ func _process(delta: float) -> void:
 		#menus["a"].close()
 
 
+func get_scene_name():
+	return $Label.text
+
+func set_scene_name(name: String):
+	$Label.text = name
+
+
 var game_icon = preload("res://game_assets/icons/game.png")
-var build_icon = preload("res://game_assets/icons/build.png")
+var build_icon = preload("res://game_assets/icons/splines.png")
 @onready var play = $Control/play
 func _on_play_released() -> void:
 	if play.hint == "play_tab": 
@@ -39,11 +46,30 @@ func _on_play_released() -> void:
 		play.get_node("i").texture = game_icon
 		glob.go_window("graph")
 
+var logged_in: bool = false
+
+func set_login_state(name: String):
+	logged_in = len(name) > 0
+	if name:
+		login_btn.text = name
+	else:
+		login_btn.text = "Login"
+
+
 @onready var login_btn = $Control/login
 func _on_login_released() -> void:
-	if !ui.is_splashed("login"):
-		login_btn.in_splash = true
-		ui.splash("login")
+	#if !ui.is_splashed("login"):
+	#	login_btn.in_splash = true
+	
+	if !logged_in:
+		var a = await ui.splash_and_get_result("login", login_btn)
+		if a:
+			set_login_state("Works")
+			ui.splash("works", login_btn)
+		else:
+			set_login_state("")
 	else:
-		login_btn.in_splash = false
-		ui.get_splash("login").go_away()
+		var a = await ui.splash_and_get_result("works", login_btn)
+	#else:
+	#	login_btn.in_splash = false
+	#	ui.get_splash("login").go_away()

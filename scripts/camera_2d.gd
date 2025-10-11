@@ -83,7 +83,8 @@ func _process(delta: float) -> void:
 	if glob.mouse_middle_just_pressed:
 		acc = glob.get_display_mouse_position().x < glob.space_end.x
 	var mouse: Vector2 = get_global_mouse_position()
-	RenderingServer.global_shader_parameter_set("_view_scale", pow(zoom.x, 0.25))
+	if not ui.splashed:
+		RenderingServer.global_shader_parameter_set("_view_scale", pow(zoom.x, 0.25))
 	zoom = Vector2.ONE * lerp(zoom.x, target_zoom, delta * zoom_interpolation_speed)
 	move_intensity = lerp(move_intensity, 0.0, delta * zoom_interpolation_speed)
 	if glob.mouse_scroll:

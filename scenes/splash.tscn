@@ -25,22 +25,13 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[node name="Node2D" type="Control"]
+[node name="Node2D" type="Control" node_paths=PackedStringArray("accept", "first_line")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_86pdq")
-
-[node name="bg" type="ColorRect" parent="."]
-material = ExtResource("2_5svwm")
-instance_shader_parameters/corner_radius_width_add = Vector2(17.915, 2)
-instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.5764706)
-layout_mode = 1
-offset_left = -28.0
-offset_top = -35.0
-offset_right = 1202.0
-offset_bottom = 712.0
+accept = NodePath("ColorRect/train")
+first_line = NodePath("ColorRect/Label")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 z_index = 8
@@ -90,11 +81,12 @@ grow_horizontal = 2
 scale = Vector2(0.92970926, 0.92970926)
 theme = ExtResource("5_r4d6w")
 theme_override_fonts/font = ExtResource("6_651hb")
-placeholder_text = "username"
+placeholder_text = "name"
 max_length = 32
 expand_to_text_length = true
 script = ExtResource("7_x1bu2")
 resize_after = 250
+auto_red = true
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
@@ -111,11 +103,12 @@ grow_horizontal = 2
 scale = Vector2(0.92970926, 0.92970926)
 theme = ExtResource("5_r4d6w")
 theme_override_fonts/font = ExtResource("6_651hb")
-placeholder_text = "password"
+placeholder_text = "pass"
 max_length = 32
 expand_to_text_length = true
 script = ExtResource("7_x1bu2")
 resize_after = 250
+auto_red = true
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
@@ -170,7 +163,7 @@ offset_bottom = -18.999985
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(0.954273, 0.954273)
-pivot_offset = Vector2(31.000015, 12.5)
+pivot_offset = Vector2(39.288773, 12.5)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 0)
 button_type = 1
@@ -191,3 +184,6 @@ in_splash = true
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_440nw")
+
+[connection signal="released" from="ColorRect/train" to="." method="_on_train_released"]
+[connection signal="released" from="ColorRect/train2" to="." method="_on_train_2_released"]

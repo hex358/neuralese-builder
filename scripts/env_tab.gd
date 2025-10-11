@@ -36,6 +36,19 @@ func _window_hide():
 	glob.un_occupy(list, &"menu")
 	glob.un_occupy(list, "menu_inside")
 	
+func reload_scenes():
+	$Control/scenes/list.show_up(request_texts())
+	if not current_lua_env:
+		if not received_texts:
+			$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
+		else:
+			$Control/CodeEdit.text = "-- Select your scene from the Scenes menu."
+	await get_tree().process_frame
+	if !is_instance_valid(last_button):
+		if last_hint in $Control/scenes/list.button_by_hint:
+			_on_list_child_button_release($Control/scenes/list.button_by_hint[last_hint])
+		elif received_texts:
+			_on_list_child_button_release($Control/scenes/list._contained[0])
 
 @onready var base_size = $Control.size
 func _window_show():
@@ -47,7 +60,7 @@ func _window_show():
 	$Control/scenes/list.menu_show($Control/scenes/list.global_position)
 	prev_win = Vector2()
 	tick()
-	$Control/scenes/list.show_up(request_texts())
+	reload_scenes()
 	await get_tree().process_frame
 	if last_hint != null:
 		if last_hint in $Control/scenes/list.button_by_hint:
@@ -148,7 +161,8 @@ func tick(force: bool = false) -> void:
 			$Control/scenes.size.x += 2
 		prev_win = glob.window_size
 		repos()
-
+	
+	
 	$Control/view/Label.resize()
 
 
@@ -227,11 +241,9 @@ func get_current_game_code() -> String:
 
 var received_texts = {}
 func request_texts() -> Dictionary:
-	var texts = {}
-	texts["hellfffffffo"] = "print('nya :3')"
-	texts["hellffffff3fo"] = "print('nya :3')1"
-	texts["hellfff5ffffo"] = "print('nya :3')2"
+	var texts = glob.env_dump
 	received_texts = texts
+	$Control/CodeEdit.editable = len(texts) > 0
 	return texts
 
 
@@ -254,7 +266,7 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	if last_button:
 		cursors[current_lua_env] = Vector2i(code.get_caret_column(), code.get_caret_line())
 		last_button.set_tuning(last_button.base_tuning)
-	button.set_tuning(button.base_tuning * 2.6)
+	button.set_tuning(button.base_tuning * 2)
 	last_button = button
 	current_lua_env = button.hint
 	last_hint = button.hint
@@ -271,3 +283,8 @@ func _on_code_edit_text_changed() -> void:
 		
 		#$Control/scenes/list.button_by_hint[current_lua_env].metadata["content"] = $Control/CodeEdit.text
 	
+
+@onready var plus = $Control/scenes/plus
+func _on_plus_released() -> void:
+	var a = await ui.splash_and_get_result("scene_create", plus, null, false)
+	#print(a)

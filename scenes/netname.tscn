@@ -56,6 +56,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="ColorRect/root"]
+self_modulate = Color(0.85882354, 0.4, 1, 1)
 z_index = 1
 layout_mode = 0
 offset_left = 35.0
