@@ -212,18 +212,16 @@ func get_project_id() -> int:
 func set_var(n: String, val: Variant):
 	var got = get_stored()
 	got[n] = val
-	var op = FileAccess.open("user://memory.bin", FileAccess.WRITE)
+	var op = cookies.open_or_create("memory.bin")
 	op.store_var(got)
-	op.close()
 
 func get_var(n: String) -> Variant:
 	return get_stored().get(n, null)
 
 func get_stored() -> Dictionary:
-	var op = FileAccess.open("user://memory.bin", FileAccess.READ)
+	var op = cookies.open_or_create("memory.bin")
 	if not op: return {}
 	var res = op.get_var()
-	op.close()
 	return res if res else {}
 
 
@@ -237,7 +235,7 @@ func open_last_project():
 			load_scene(a.keys()[0])
 		else:
 			var i = await create_empty_project("")
-			load_empty_scene(a, "")
+			load_empty_scene(i, "")
 
 
 var parsed_projects = {}
@@ -245,7 +243,9 @@ var parsed_projects = {}
 func create_empty_project(name: String) -> int:
 	var id: int = random_project_id()
 	parsed_projects[str(id)] = {"name": name}
+	ui.hourglass_on()
 	var res = await save_empty(str(id), name)
+	ui.hourglass_off()
 	return id
 
 func request_projects():
@@ -452,6 +452,9 @@ var space_pressed: bool = false
 var space_just_pressed: bool = false
 
 func _process(delta: float) -> void:
+	
+	
+	
 	space_just_pressed = Input.is_action_just_pressed("ui_accept")
 	space_pressed = Input.is_action_pressed("ui_accept")
 	time += delta
@@ -522,15 +525,26 @@ func in_out_quad(t: float) -> float:
 
 
 func get_project_data(empty: bool = false) -> Dictionary:
-	var data = {"graphs": {}, "lua": {}}
-	if empty: return data
+	var data = {"graphs": {}, "lua": {}, "registry": {}}
+	if empty:
+		return data
 	for i in graphs._graphs:
 		data["graphs"][i] = graphs._graphs[i].get_info()
 	var texts = glob.tree_windows["env"].get_texts()
 	for i in texts:
 		data["lua"][i] = texts[i]
+		
 	data["camera"] = Vector3(cam.position.x, cam.position.y, cam.zoom.x)
+	
+	data["registry"]["subgraph_registry"] = {}
+	for sub_id in Graph._subgraph_registry:
+		var ids = []
+		for n in Graph._subgraph_registry[sub_id]:
+			if is_instance_valid(n):
+				ids.append(n.graph_id)
+		data["registry"]["subgraph_registry"][sub_id] = ids
 	return data
+
 
 
 func init_scene(scene: String):
@@ -543,6 +557,7 @@ func delete_project(scene: int):
 	if project_id == scene:
 		var i = await create_empty_project("")
 		load_empty_scene(i, "")
+	return true
 
 
 var env_dump = {}
@@ -553,37 +568,46 @@ func load_scene(from: String):
 	"pass": "1"})
 	if not "body" in answer: return
 	var a = JSON.parse_string(answer["body"].get_string_from_utf8())
+	if not a: return
 	if not "scene" in a: return
-	var dat = Messagepack.decode(Marshalls.base64_to_raw(a["scene"]))["value"]
-	graphs.delete_all()
+	var dat = bytes_to_var(Marshalls.base64_to_raw(a["scene"]))
 	if !dat: return
+	fg.go_into_graph()
+	await graphs.delete_all()
 	set_var("last_id", project_id)
-	#clear everything out
+	tree_windows["env"].reset()
 	
 	fg.set_scene_name(a["name"])
-	graphs.load_graph(dat["graphs"])
+	graphs.load_graph(dat["graphs"], dat["registry"]["subgraph_registry"])
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
 	if "camera" in dat and dat["camera"]:
 		if cam is GraphViewport:
 			cam.target_zoom = dat.camera.z
 			cam.target_position = Vector2(dat.camera.x, dat.camera.y)
-		else:
-			cam.zoom = Vector2(dat.camera.z, dat.camera.z)
-			cam.position = Vector2(dat.camera.x, dat.camera.y)
+		#else:
+		cam.zoom = Vector2(dat.camera.z, dat.camera.z)
+		cam.position = Vector2(dat.camera.x, dat.camera.y)
+	return true
 
 
 func load_empty_scene(pr_id: int, name: String):
+	fg.go_into_graph()
 	project_id = pr_id
 	set_var("last_id", project_id)
-	graphs.delete_all()
+	tree_windows["env"].reset()
+	await graphs.delete_all()
 	
 	fg.set_scene_name(name)
 	env_dump = {}
 	tree_windows["env"].request_texts()
 
+#func pull_scene_locally(from: String):
+	#var old_var = cookies.open_or_create("scene_cache/%s.bin" % from).get_var()
+	#
+
 func save(from: String):
-	var blob = Marshalls.raw_to_base64(Messagepack.encode(get_project_data())["value"])
+	var blob = Marshalls.raw_to_base64(var_to_bytes(get_project_data()))
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"name": fg.get_scene_name(),
@@ -591,7 +615,7 @@ func save(from: String):
 	"pass": "1"})
 
 func save_empty(from: String, name: String):
-	var blob = Marshalls.raw_to_base64(Messagepack.encode(get_project_data(true))["value"])
+	var blob = Marshalls.raw_to_base64(var_to_bytes(get_project_data(true)))
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"name": name,

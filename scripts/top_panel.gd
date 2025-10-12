@@ -40,11 +40,14 @@ func _on_play_released() -> void:
 		#play.get_node("i").offset.x = -3
 		glob.go_window("env")
 	else:
-		play.hint = "play_tab"
-		play.text_offset = Vector2(7,0)
-		play.text = " Test"
-		play.get_node("i").texture = game_icon
-		glob.go_window("graph")
+		go_into_graph()
+
+func go_into_graph():
+	play.hint = "play_tab"
+	play.text_offset = Vector2(7,0)
+	play.text = " Test"
+	play.get_node("i").texture = game_icon
+	glob.go_window("graph")
 
 var logged_in: bool = false
 
@@ -69,11 +72,25 @@ func _on_login_released() -> void:
 		else:
 			set_login_state("")
 	else:
-		var a = await ui.splash_and_get_result("works", login_btn)
+		ui.splash("works", login_btn)
 	#else:
 	#	login_btn.in_splash = false
 	#	ui.get_splash("login").go_away()
 
 
 func _on__released() -> void:
-	glob.save(str(glob.get_project_id()))
+	ui.hourglass_on()
+	var a = await glob.save(str(glob.get_project_id()))
+	ui.hourglass_off()
+
+@onready var axon = $Control/ai
+func _on_ai_released() -> void:
+	if !logged_in:
+		var a = await ui.splash_and_get_result("login", axon)
+		if a:
+			set_login_state("Works")
+			ui.splash("ai_help", axon)
+		else:
+			set_login_state("")
+	else:
+		ui.splash("ai_help", axon)

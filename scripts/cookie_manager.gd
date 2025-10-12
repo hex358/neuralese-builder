@@ -10,6 +10,24 @@ func _ready() -> void:
 func get_username() -> String:
 	return "n"
 
+func open_or_create(path: String) -> FileAccess:
+	var full_path = "user://" + path
+	var dir_path = full_path.get_base_dir()
+	var dir := DirAccess.open("user://")
+	if not dir.dir_exists(dir_path):
+		var err = dir.make_dir_recursive(dir_path)
+		if err != OK:
+			push_error("Failed to create directory: %s" % dir_path)
+			return null
+	var file = FileAccess.open(full_path, FileAccess.READ_WRITE)
+	if file:
+		return file
+	file = FileAccess.open(full_path, FileAccess.WRITE_READ)
+	if not file:
+		push_error("Failed to open or create file: %s" % full_path)
+		return null
+	return file
+
 func _save_cookies() -> void:
 	var f = FileAccess.open(cookie_file, FileAccess.WRITE)
 	if f:

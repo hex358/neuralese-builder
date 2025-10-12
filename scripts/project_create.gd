@@ -15,6 +15,11 @@ func _resultate(data: Dictionary):
 	go_away()
 
 
+func _quit_request():
+	can_go = false
+	await quitting
+	queue_free()
+	ui.splash("works", splashed_from, emitter, true)
 
 func _on_trainn_released() -> void:
 	$ColorRect/Label.update_valid()

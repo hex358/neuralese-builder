@@ -275,7 +275,8 @@ func del_conn(who: Connection):
 		#"created_with": get_meta("created_with")
 	#}
 
-func load_graph(state: Dictionary):
+func load_graph(state: Dictionary, reg: Dictionary):
+	z_count = RenderingServer.CANVAS_ITEM_Z_MIN
 	var chain = glob.base_node.importance_chain
 	var type_layers = {}
 	var sequence = {}
@@ -306,14 +307,27 @@ func load_graph(state: Dictionary):
 		for other_conn_id in edges[conn_id]:
 			connection_ids[conn_id].connect_to(connection_ids[other_conn_id], true)
 	
+	Graph._subgraph_registry.clear()
 	for g in _graphs:
 		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
 		_graphs[g].hold_for_frame.call_deferred()
+	
+	for sub_id in reg:
+		Graph._subgraph_registry[int(sub_id)] = []
+		for gid in reg[sub_id]:
+			for node_id in graphs._graphs:
+				if graphs._graphs[node_id].graph_id == gid:
+					Graph._subgraph_registry[int(sub_id)].append(graphs._graphs[node_id])
+	#Graph.debug_print_contexts()
+
 
 
 func delete_all():
+	Graph._subgraph_registry.clear()
 	for graph in _graphs.keys():
 		_graphs[graph].delete()
+	await get_tree().process_frame
+	return true
 	
 
 func get_project_data() -> Dictionary:

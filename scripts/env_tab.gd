@@ -257,6 +257,13 @@ func _on_run_released() -> void:
 	viewport.add_child(process)
 	process.position.y = viewport.size.y
 
+func reset():
+	current_lua_env = null
+	last_button = null
+	last_hint = null
+	cursors.clear()
+
+
 var last_hint = null
 var last_button: BlockComponent = null
 var current_lua_env = null

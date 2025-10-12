@@ -114,12 +114,15 @@ func _on_switch_released() -> void:
 	update_config({"weight_decay": switch.text != "I"})
 	#@set_weight_dec(switch.text != "I")
 
+func _map_properties(pack: Dictionary):
+	update_config({"lr": cfg["lr"]})
+
 func _config_field(field: StringName, value: Variant):
 	match field:
 		"weight_decay":
 			set_weight_dec(value)
 		"momentum":
-			$sgd_tab/Label4/HSlider.value = value
+			$sgd_tab/Label4/HSlider.value = float(value)
 		"lr":
 			select_lr(int(value))
 		"optimizer":

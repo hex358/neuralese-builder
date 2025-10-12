@@ -6,10 +6,12 @@ func _can_drag() -> bool:
 func _config_field(field: StringName, value: Variant):
 	if field == "name":
 		if not upd:
-			$LineEdit.text = value
+			$LineEdit.set_line(value)
 
 var upd: bool = false
-func _on_line_edit_text_submitted(new_text: String) -> void:
+
+
+func _on_line_edit_changed() -> void:
 	upd = true
-	update_config({"name": new_text})
+	update_config({"name": $LineEdit.text})
 	upd = false

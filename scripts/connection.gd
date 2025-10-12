@@ -60,7 +60,7 @@ func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
 	# padded hit area
 	#if glob.is_consumed(self, "conn_mouse_inside"): return false
 	if padding == -Vector4.ONE:
-		padding = Vector4.ONE * 18 * pow(glob.cam.zoom.x, -0.5)
+		padding = Vector4.ONE * 20 * pow(glob.cam.zoom.x, -0.5)
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x: return false
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale

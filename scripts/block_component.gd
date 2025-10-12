@@ -249,6 +249,8 @@ func dynamic_child_exit(child: BlockComponent):
 		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
 		scroll.size.y = max_size-base_size.y-10
 		_contained.erase(child)
+		if button_by_hint[child.hint] == child:
+			button_by_hint.erase(child.hint)
 	
 		
 
@@ -638,7 +640,7 @@ func _process_block_button(delta: float) -> void:
 	blocked = blocked or (ui.splashed and not in_splash)
 	
 	if not frozen:
-		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins))
+		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins or (is_contained and is_contained.scrolling)))
 		mouse_pressed = glob.mouse_pressed and not blocked
 	if (not blocked or still_hover_in_block) and (not mouse_pressed or (inside and mouse_pressed)):
 		last_mouse_pos = get_global_mouse_position()
@@ -692,7 +694,8 @@ func _process_block_button(delta: float) -> void:
 				modulate = modulate.lerp(config.hover_color * config.hover_mult, delta * 15)
 
 			if state.pressing:
-				released.emit()
+				if not (is_contained and is_contained.scrolling):
+					released.emit()
 				state.pressing = false
 				hover_scale = base_scale if config.animation_scale else base_scale * config._press_scale
 				state.tween_progress = delta

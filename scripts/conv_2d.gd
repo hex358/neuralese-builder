@@ -404,7 +404,7 @@ func _config_field(field: StringName, val: Variant):
 			stride = int(val)
 		"filters":
 			if not (val == $Y.min_value and $Y.text == ""):
-				$Y.text = str(val)
+				$Y.set_line(str(val))
 			filter_number = int(val)
 
 var filter_number: int = 1

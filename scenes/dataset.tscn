@@ -77,4 +77,5 @@ expand_to_text_length = true
 context_menu_enabled = false
 resize_after = 16
 
+[connection signal="changed" from="LineEdit" to="." method="_on_line_edit_changed"]
 [connection signal="text_submitted" from="LineEdit" to="." method="_on_line_edit_text_submitted"]

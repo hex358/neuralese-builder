@@ -88,7 +88,8 @@ func _cell_added(x: int, y: int):
 func _config_field(field: StringName, val: Variant):
 	match field:
 		"group":
-			#$Label/n.text = str(int(val))
+			if not updating:
+				$YY.set_line(str(int(val)))
 			group = int(val)
 			hold_for_frame()
 			#print(int(grid.x/group*1.5))
@@ -103,12 +104,16 @@ func update_grid(x: int, y: int):
 	graphs.push_2d(int(grid.x/group), int(grid.y/group), get_first_descendants())
 
 func _on_yy_submitted(new_text: String) -> void:
+	updating = true
 
 	update_config({"group": int($YY.get_value())})
+	updating = false
 
-
+var updating: bool = false
 func _on_yy_changed() -> void:
 	var val = int($YY.get_value())
 	if not $YY.is_valid_input():
 		return
+	updating = true
 	update_config({"group": val})
+	updating = false

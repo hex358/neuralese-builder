@@ -12,26 +12,32 @@ func _enter_tree() -> void:
 	glob.cam = self
 	glob.viewport = get_viewport()
 
+var _ignore_next_motion: int = 0
+
 func _handle_mouse_wrap(pos: Vector2) -> void:
-	#pos -= glob.space_begin
 	var sz = Vector2(glob.space_end)
 	var new_pos = pos
+	var wrapped := false
 
 	if pos.x <= glob.space_begin.x:
 		new_pos.x = sz.x - 2
+		wrapped = true
 	elif pos.x >= sz.x - 1:
 		new_pos.x = 1 + glob.space_begin.x
+		wrapped = true
 
 	if pos.y <= glob.space_begin.y:
 		new_pos.y = sz.y - 2
+		wrapped = true
 	elif pos.y >= sz.y - 1:
 		new_pos.y = 1 + glob.space_begin.y
+		wrapped = true
 
-	if new_pos != pos:
-		_ignore_next_motion = true
+	if wrapped:
+		_ignore_next_motion = 2  # skip next few motion events
 		get_viewport().warp_mouse(new_pos)
 
-var _ignore_next_motion: bool = false
+
 var target_zoom: float = zoom.x
 
 var target_position: Vector2 = Vector2()
@@ -55,13 +61,13 @@ func _input(event: InputEvent) -> void:
 				glob.hide_all_menus()
 
 	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed and acc:
-		if _ignore_next_motion:
-			_ignore_next_motion = false
+		if _ignore_next_motion > 0:
+			_ignore_next_motion -= 1
 			return
-		
 		target_position -= event.relative * drag_speed / zoom
 		glob.hide_all_menus()
 		_handle_mouse_wrap(event.position)
+
 
 var move_intensity: float = 1.0
 var zoom_move_vec: Vector2 = Vector2()

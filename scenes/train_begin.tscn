@@ -12,6 +12,7 @@ offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_oiu5h")
 server_typename = &"TrainBegin"
+is_input = true
 area_padding = 0.0
 
 [node name="o2" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_oiu5h")]

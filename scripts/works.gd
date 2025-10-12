@@ -13,7 +13,9 @@ func _ready() -> void:
 	super()
 	await get_tree().process_frame
 	$ColorRect/Label.text = cookies.get_username()
+	ui.hourglass_on()
 	var a = await glob.request_projects()
+	ui.hourglass_off()
 	quitting.connect(
 	glob.reset_menu_type.bind($ColorRect/list, &"delete_project"))
 	#var a = await web.POST("project_list", {
@@ -30,7 +32,10 @@ func _ready() -> void:
 func _on_list_child_button_release(button: BlockComponent) -> void:
 	if not glob.menus["delete_project"].state.expanding \
 	and (!glob.menus["delete_project"].visible or not glob.menus["delete_project"].state.tween_hide):
-		glob.load_scene(str(button.metadata["project_id"]))
+		if button.metadata["project_id"] != glob.get_project_id():
+			ui.hourglass_on()
+			var a = await glob.load_scene(str(button.metadata["project_id"]))
+			ui.hourglass_off()
 		go_away()
 
 

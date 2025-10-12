@@ -368,4 +368,5 @@ config = SubResource("Resource_thedb")
 
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
 [connection signal="released" from="ColorRect/Control/play" to="ColorRect" method="_on_play_released"]
+[connection signal="released" from="ColorRect/Control/ai" to="ColorRect" method="_on_ai_released"]
 [connection signal="released" from="ColorRect/9" to="ColorRect" method="_on__released"]

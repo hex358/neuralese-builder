@@ -13,6 +13,7 @@ func _resultate(data: Dictionary):
 		queue_free()
 		ui.splash_and_get_result("login", splashed_from, emitter, true)
 	else:
+		ui.hourglass_on()
 		var answer = await web.POST("create_user", {"user": data["user"], "pass": data["pass"]})
 		if answer.ok:
 			var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
@@ -23,6 +24,7 @@ func _resultate(data: Dictionary):
 				ui.error("This username is already occupied. Choose a different one, please!")
 		else:
 			ui.error("Either your internet or the server itself is down. Sorry!")
+		ui.hourglass_off()
 
 
 func _on_train_2_releaseda() -> void:

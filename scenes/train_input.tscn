@@ -59,8 +59,8 @@ tab_size_adds = Dictionary[StringName, float]({
 })
 server_typename = &"TrainInput"
 base_config = Dictionary[StringName, Variant]({
-&"lr": 0.001,
-&"momentum": "0.0",
+&"lr": 0,
+&"momentum": 0.0,
 &"optimizer": "adam",
 &"weight_decay": false
 })

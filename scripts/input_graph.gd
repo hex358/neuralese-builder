@@ -37,7 +37,13 @@ func _useful_properties() -> Dictionary:
 	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28}}
 
 
+func _process(delta: float) -> void:
+	super(delta)
+	#if glob.space_just_pressed:
+	#	print(graphs.get_syntax_tree(self))
+
 var image_dims = Vector2i(1,1)
 func _after_ready() -> void:
 	super()
+	graphs._input_origin_graph = self
 	image_dims = Vector2i($TextureRect.image.get_width(), $TextureRect.image.get_height())

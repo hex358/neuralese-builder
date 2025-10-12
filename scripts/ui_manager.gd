@@ -39,7 +39,7 @@ func _input(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
 			#print(glob.is_occupied(focused, "menu_inside"))
 			if event.button_index in mouse_buttons:
-				if focused and (focused is LineEdit or focused is Slider):
+				if focused and (focused is LineEdit or focused is Slider or focused is TextEdit):
 					var rect = focused.get_global_rect()
 					if not rect.has_point(get_global_mouse_position()) and not event.has_meta("_emulated"):
 						focused.release_focus()
@@ -85,15 +85,34 @@ var splash_menus = {
 	"scene_create": preload("res://scenes/scene_create.tscn"),
 	"works": preload("res://scenes/works.tscn"),
 	"project_create": preload("res://scenes/project_create.tscn"),
+	"ai_help": preload("res://scenes/ai_help.tscn"),
 }
 
 
 var cl = CanvasLayer.new()
+var hg = preload("res://scenes/hourglass.tscn")
+var hourglass: TextureRect
+
+func hourglass_on():
+	hourglass.on()
+
+func hourglass_off():
+	hourglass.off()
+
 func _ready():
 	cl.layer = 128
 	add_child(cl)
-	blur.modulate.a = 0
+	blur.self_modulate.a = 0
 	cl.add_child(blur)
+	var inst: Control = hg.instantiate()
+	hourglass = inst
+	hourglass.hide()
+	cl.add_child(inst)
+	inst.scale = Vector2.ONE * 2.0
+	#inst.position = Vector2(30,30)
+	#inst.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	inst.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_KEEP_HEIGHT, 39)
+	inst.z_index = 90
 
 var splashed = {}
 
@@ -114,6 +133,7 @@ func get_splash(who: String) -> SplashMenu:
 	return null
 
 func splash(menu: String, splashed_from = null, emitter_ = null, inner = false) -> SplashMenu:
+	hourglass.off(true)
 	if splashed_from:
 		if !is_splashed(menu):
 			splashed_from.in_splash = true
@@ -137,6 +157,7 @@ class ResultEmitter:
 
 signal result_emit(data: Dictionary)
 func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, inner = false) -> Dictionary:
+	hourglass.off(true)
 	if splashed_from:
 		if !is_splashed(menu):
 			splashed_from.in_splash = true

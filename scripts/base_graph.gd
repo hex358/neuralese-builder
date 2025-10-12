@@ -87,13 +87,117 @@ func _after_ready():
 	pass
 
 
-func is_branch_merge_allowed(who: Connection, to: Connection) -> bool:
-	return true
+
+
+func ensure_input_has_context(n: Graph) -> void:
+	if not is_instance_valid(n) or not n.is_input:
+		return
+	if n.root_context_id == 0:
+		n.root_context_id = _new_context_id()
+	if n.context_id == 0:
+		n.context_id = n.root_context_id
+
+
+
+func _set_subgraph_context(sub_id: int, ctx: int) -> void:
+	if ctx == 0 or not _subgraph_registry.has(sub_id): return
+	for node in _subgraph_registry[sub_id]:
+		if is_instance_valid(node):
+			node.context_id = ctx
+
+
+func collect_component_nodes(root: Graph) -> Array:
+	var res: Array = []
+	var sid = root.subgraph_id
+	if sid != 0 and _subgraph_registry.has(sid) and not _subgraph_registry[sid].is_empty():
+		collect_branch_nodes(root, res, sid)
+	else:
+		res.append(root)
+	return res
+
+
 
 func just_connected(who: Connection, to: Connection):
+	var a: Graph = who.parent_graph
+	var b: Graph = to.parent_graph
+
+	ensure_input_has_context(a)
+	ensure_input_has_context(b)
+	var nodes_a: Array = collect_component_nodes(a)
+	var nodes_b: Array = collect_component_nodes(b)
+
+	var ctx_a: int = 0
+	var ctx_b: int = 0
+	if not nodes_a.is_empty() and is_instance_valid(nodes_a[0]):
+		ctx_a = nodes_a[0].context_id
+	if not nodes_b.is_empty() and is_instance_valid(nodes_b[0]):
+		ctx_b = nodes_b[0].context_id
+
+	var winning_ctx: int = 0
+
+	if ctx_a != 0 and ctx_b == 0:
+		winning_ctx = ctx_a
+	elif ctx_b != 0 and ctx_a == 0:
+		winning_ctx = ctx_b
+	elif ctx_a != 0 and ctx_b != 0:
+		var dominant_input: Graph = null
+		if a.is_input:
+			dominant_input = a
+		elif b.is_input:
+			dominant_input = b
+		winning_ctx = _pick_context_for_merge(nodes_a, nodes_b, dominant_input)
+	else:
+		if a.is_input:
+			ensure_input_has_context(a)
+			winning_ctx = a.context_id
+		elif b.is_input:
+			ensure_input_has_context(b)
+			winning_ctx = b.context_id
+		else:
+			winning_ctx = _new_context_id()
+
+	if not a.subgraph_occupied and not b.subgraph_occupied:
+		var new_id = _new_subgraph_id()
+		a.propagate_subgraph(new_id)
+		b.propagate_subgraph(new_id)
+	elif a.subgraph_occupied and not b.subgraph_occupied:
+		b.propagate_subgraph(a.subgraph_id)
+	elif b.subgraph_occupied and not a.subgraph_occupied:
+		a.propagate_subgraph(b.subgraph_id)
+	elif a.subgraph_id != b.subgraph_id:
+		_merge_subgraphs(a.subgraph_id, b.subgraph_id)
+
+	var merged_sub: int = a.subgraph_id
+	_set_subgraph_context(merged_sub, winning_ctx)
+
 	graphs.update_dependencies()
 	_just_connected(who, to)
 	graphs.spline_connected.emit(who, to)
+
+
+
+func _count_connected_nodes(start: Graph, visited = {}) -> int:
+	if start in visited:
+		return 0
+	visited[start] = true
+	var total = 1
+	for n in start.get_first_ancestors() + start.get_first_descendants():
+		if n.subgraph_id == start.subgraph_id:
+			total += _count_connected_nodes(n, visited)
+	return total
+
+
+
+func _choose_context_owner(left: Graph, right: Graph) -> Graph:
+	var left_count = _count_connected_nodes(left)
+	var right_count = _count_connected_nodes(right)
+	if left_count > right_count:
+		return left
+	elif right_count > left_count:
+		return right
+	return right
+
+
 
 func _is_valid() -> bool:
 	return true
@@ -133,6 +237,10 @@ func _just_deattached(other_conn: Connection, my_conn: Connection):
 	pass
 
 
+var subgraph_id: int = 0
+var context_id: int = 0
+var subgraph_occupied: bool = false
+
 func just_attached(other_conn: Connection, my_conn: Connection):
 	_just_attached(other_conn, my_conn)
 
@@ -153,9 +261,16 @@ func _deattaching(other_conn: Connection, my_conn: Connection):
 	pass
 
 func just_disconnected(who: Connection, from: Connection):
-	#graphs.update_dependencies(who.parent_graph)
 	from.parent_graph.just_deattached(who, from)
 	_just_disconnected(who, from)
+
+	var a: Graph = who.parent_graph
+	var b: Graph = from.parent_graph
+	if is_instance_valid(a): a.mark_new_subgraph()
+	if is_instance_valid(b): b.mark_new_subgraph()
+
+
+
 
 func disconnecting(who: Connection, from: Connection):
 	graphs.spline_disconnected.emit(who, from)
@@ -200,7 +315,209 @@ func conn_exit(conn: Connection):
 			output_key_by_conn.erase(conn)
 
 func _exit_tree() -> void:
+	if _subgraph_registry.has(subgraph_id):
+		var arr: Array = _subgraph_registry[subgraph_id]
+		if self in arr:
+			arr.erase(self)
+			if arr.is_empty():
+				Graph._subgraph_registry.erase(subgraph_id)
 	graphs.remove(self)
+
+
+
+static var _subgraph_registry: Dictionary = {}
+
+func register_in_subgraph(id: int) -> void:
+	if not _subgraph_registry.has(id):
+		_subgraph_registry[id] = []
+	if not self in _subgraph_registry[id]:
+		_subgraph_registry[id].append(self)
+
+	subgraph_id = id
+	subgraph_occupied = true
+
+	if context_id == 0:
+		context_id = id
+
+
+
+
+func mark_new_subgraph() -> void:
+	if any_input_upstream():
+		return
+
+	var old_sub = subgraph_id
+	if not _subgraph_registry.has(old_sub):
+		return
+
+	var pre_nodes: Array = _subgraph_registry[old_sub].duplicate()
+	if pre_nodes.is_empty():
+		return
+	var pre_context: int = pre_nodes[0].context_id
+
+	var branch_a: Array = []
+	collect_branch_nodes(self, branch_a, old_sub)
+
+	if branch_a.is_empty() or branch_a.size() == pre_nodes.size():
+		return
+
+	var branch_b: Array = pre_nodes.duplicate()
+	for n in branch_a:
+		branch_b.erase(n)
+	if branch_b.is_empty():
+		return
+
+	var root_a: Graph = branch_a[0]
+	var root_b: Graph = branch_b[0]
+	var winner: Graph = _context_policy(root_a, root_b, branch_a, branch_b)
+	var winner_is_a = branch_a.has(winner)
+
+	var new_sub = _new_subgraph_id()
+
+	var new_context = _new_context_id()
+
+	if winner_is_a:
+		for n in branch_a:
+			if not is_instance_valid(n): continue
+			_subgraph_registry[old_sub].erase(n)
+			n.register_in_subgraph(new_sub)
+			n.context_id = pre_context
+		for n in branch_b:
+			if is_instance_valid(n):
+				n.context_id = new_context
+	else:
+		for n in branch_a:
+			if not is_instance_valid(n): continue
+			_subgraph_registry[old_sub].erase(n)
+			n.register_in_subgraph(new_sub)
+			n.context_id = new_context
+
+	_subgraph_registry[new_sub] = branch_a
+	_subgraph_registry[old_sub] = branch_b
+
+
+
+
+func _count_contexts(nodes: Array) -> Dictionary:
+	var hist = {}
+	for n in nodes:
+		if not is_instance_valid(n): continue
+		var c: int = n.context_id
+		hist[c] = (hist.get(c, 0) + 1)
+	return hist
+
+func _pick_context_for_merge(nodes_a: Array, nodes_b: Array, dominant_input: Graph) -> int:
+	var all = nodes_a.duplicate()
+	all.append_array(nodes_b)
+	var hist = _count_contexts(all)
+
+	var winner_ctx = 0
+	var winner_cnt = -1
+	for c in hist.keys():
+		var cnt: int = hist[c]
+		if cnt > winner_cnt:
+			winner_cnt = cnt
+			winner_ctx = c
+
+	if dominant_input and hist.has(dominant_input.root_context_id) and hist[dominant_input.root_context_id] == winner_cnt:
+		winner_ctx = dominant_input.root_context_id
+
+	return winner_ctx
+
+
+
+
+
+
+
+
+
+
+func _reassign_subgraph_recursive(old_id: int, new_id: int, visited = {}):
+	if self in visited:
+		return
+	visited[self] = true
+
+	if _subgraph_registry.has(old_id):
+		_subgraph_registry[old_id].erase(self)
+
+	register_in_subgraph(new_id)
+	subgraph_id = new_id
+
+	for desc in get_first_descendants():
+		if desc.subgraph_id == old_id:
+			desc._reassign_subgraph_recursive(old_id, new_id, visited)
+	for anc in get_first_ancestors():
+		if anc.subgraph_id == old_id and not anc.is_input:
+			anc._reassign_subgraph_recursive(old_id, new_id, visited)
+
+
+
+
+func any_input_upstream(visited = {}) -> bool:
+	if self in visited:
+		return false
+	visited[self] = true
+
+	if is_input:
+		return true
+
+	for anc in get_first_ancestors():
+		if anc.any_input_upstream(visited):
+			return true
+
+	return false
+
+
+func propagate_subgraph(id: int, visited = {}):
+	if self in visited:
+		return
+	visited[self] = true
+	register_in_subgraph(id)
+
+	if is_input:
+		for desc in get_first_descendants():
+			if desc.subgraph_id != id:
+				desc.propagate_subgraph(id, visited)
+	else:
+		for anc in get_first_ancestors():
+			if anc.subgraph_id != id:
+				anc.propagate_subgraph(id, visited)
+		for desc in get_first_descendants():
+			if desc.subgraph_id != id:
+				desc.propagate_subgraph(id, visited)
+
+
+func _merge_subgraphs(a_id: int, b_id: int) -> void:
+	if a_id == b_id: return
+	if not _subgraph_registry.has(a_id) or not _subgraph_registry.has(b_id): return
+
+	var a_nodes = _subgraph_registry[a_id]
+	var b_nodes = _subgraph_registry[b_id]
+
+	var a_ctx = a_nodes[0].context_id if not a_nodes.is_empty() else a_id
+
+	for n in b_nodes:
+		n.subgraph_id = a_id
+		n.subgraph_occupied = true
+		n.context_id = a_ctx
+		if n not in a_nodes:
+			a_nodes.append(n)
+
+	_subgraph_registry[a_id] = a_nodes
+	_subgraph_registry.erase(b_id)
+
+	if not a_nodes.is_empty():
+		a_nodes[0].propagate_subgraph(a_id)
+
+
+var root_context_id: int = 0
+
+func _new_subgraph_id() -> int:
+	return randi_range(100000, 999999)
+
+func _new_context_id() -> int:
+	return randi_range(100000, 999999)
 
 
 func _chain_incoming(cache: Dictionary):
@@ -218,7 +535,72 @@ func _ready() -> void:
 	#graphs.add(self)
 	_after_ready()
 	#graphs.mark_rect(self)
+	if is_input and root_context_id == 0:
+		root_context_id = _new_context_id()
+		context_id = root_context_id
+
 	#graphs.collider(rect)
+
+
+func _collect_inputs_in_subgraph(sub_id: int) -> Array:
+	var res: Array = []
+	if _subgraph_registry.has(sub_id):
+		for n in _subgraph_registry[sub_id]:
+			if is_instance_valid(n) and n.is_input:
+				res.append(n)
+	return res
+
+
+func collect_branch_nodes(root: Graph, out: Array, old_id: int, visited = {}):
+	if root in visited:
+		return
+	visited[root] = true
+	out.append(root)
+	for d in root.get_first_descendants():
+		if d.subgraph_id == old_id:
+			collect_branch_nodes(d, out, old_id, visited)
+	for a in root.get_first_ancestors():
+		if a.subgraph_id == old_id:
+			collect_branch_nodes(a, out, old_id, visited)
+
+
+
+func _recompute_context_for_subgraph(sub_id: int, dominant_input: Graph = null) -> void:
+	if not _subgraph_registry.has(sub_id):
+		return
+
+	var winner: Graph = null
+	if dominant_input and dominant_input.is_input and dominant_input.subgraph_id == sub_id:
+		winner = dominant_input
+	else:
+		var inputs = _collect_inputs_in_subgraph(sub_id)
+		if inputs.is_empty():
+			return
+		inputs.sort_custom(func(a, b): return a.root_context_id < b.root_context_id)
+		winner = inputs[0]
+
+	var ctx = winner.root_context_id
+	for n in _subgraph_registry[sub_id]:
+		if is_instance_valid(n):
+			n.context_id = ctx
+
+
+func _context_policy(a: Graph, b: Graph, a_nodes: Array, b_nodes: Array) -> Graph:
+	if a_nodes.size() > b_nodes.size():
+		return a
+	if b_nodes.size() > a_nodes.size():
+		return b
+	var a_inputs = a_nodes.any(func(n): return n.is_input)
+	var b_inputs = b_nodes.any(func(n): return n.is_input)
+	if a_inputs and not b_inputs:
+		return a
+	if b_inputs and not a_inputs:
+		return b
+	return a
+
+
+
+
 
 
 func is_mouse_inside(rectangle: float = area_padding) -> bool:
@@ -266,15 +648,54 @@ func get_info() -> Dictionary:
 		"cfg": cfg,
 		"inputs": inputs,
 		"outputs": outputs_,
-		"created_with": get_meta("created_with")
+		"created_with": get_meta("created_with"),
+		"subgraph_id": subgraph_id,
+		"context_id": context_id,
+		"root_context_id": root_context_id,
+		"subgraph_occupied": subgraph_occupied
 	}
 	base.merge(_get_info(), true)
 	return base
 
 func map_properties(pack: Dictionary):
 	position = pack.position
+	subgraph_id = pack.subgraph_id
+	context_id = pack.context_id
+	root_context_id = pack.root_context_id
+	subgraph_occupied = pack.subgraph_occupied
+	if not Graph._subgraph_registry.has(subgraph_id):
+		Graph._subgraph_registry[subgraph_id] = []
+	if not self in Graph._subgraph_registry[subgraph_id]:
+		Graph._subgraph_registry[subgraph_id].append(self)
 	update_config(pack.cfg)
 	_map_properties(pack)
+
+
+static func debug_print_contexts() -> void:
+	var ctx_groups: Dictionary = {}
+	
+	# group all nodes in the registry by their context_id
+	for sub_id in _subgraph_registry:
+		for n in _subgraph_registry[sub_id]:
+			if not is_instance_valid(n):
+				continue
+			var ctx = n.context_id
+			if not ctx_groups.has(ctx):
+				ctx_groups[ctx] = []
+			ctx_groups[ctx].append(n)
+
+	for ctx_id in ctx_groups.keys():
+		var nodes = ctx_groups[ctx_id]
+		print("Context %s (%d nodes):" % [str(ctx_id), nodes.size()])
+		for n in nodes:
+			var t = n.server_typename if n.server_typename != "" else n.get_class()
+			var info = "%-12s  subgraph=%d  graph_id=%d  input=%s" % [
+				t, n.subgraph_id, n.graph_id, str(n.is_input)
+			]
+			print(info)
+
+
+
 
 func _map_properties(pack: Dictionary):
 	pass
@@ -398,6 +819,9 @@ var graph_id: int = 0
 
 func _init() -> void:
 	graph_id = randi_range(0,99999999)
+	subgraph_id = randi_range(0,99999999)
+	context_id = subgraph_id
+	subgraph_occupied = false
 
 func _dragged():
 	pass
