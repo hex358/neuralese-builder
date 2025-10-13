@@ -12,5 +12,17 @@ func _process(delta: float) -> void:
 	$ColorRect/root/TextureRect2.visible = bar.value > 0.1
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().max_value )
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().value )
-	tr.visible = bar.max_value - bar.page > bar.value
-	tr.position = $ColorRect/Label2.position - Vector2(0,5)
+	tr.visible = bar.max_value - bar.page > bar.value or $ColorRect/Label2.size.y > 73
+	if $ColorRect/Label2.size.y > 73:
+		tr.position = $ColorRect/Label2.position + Vector2(0,1)
+	else:
+		tr.position = $ColorRect/Label2.position - Vector2(0,11)
+		
+
+
+func _on_train_hovering() -> void:
+	pass # Replace with function body.
+
+
+func on_send() -> void:
+	pass # Replace with function body.

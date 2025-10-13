@@ -292,7 +292,7 @@ func _wrap_text(txt: String) -> String:
 		trimmed = false
 		return txt
 	label.text = txt
-	var size_x = glob.get_label_text_size(label, label.scale.x).x + 30
+	var size_x = glob.get_label_text_size(label, label.scale.x).x + 50
 	if size_x > size.x:
 		var one = float(size_x) / len(txt)
 		var right = (size_x - size.x) / one
