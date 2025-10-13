@@ -39,7 +39,7 @@ func _input(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
 			#print(glob.is_occupied(focused, "menu_inside"))
 			if event.button_index in mouse_buttons:
-				if focused and (focused is LineEdit or focused is Slider or focused is TextEdit):
+				if focused and (focused is LineEdit or focused is Slider or focused is TextEdit or focused is RichTextLabel):
 					var rect = focused.get_global_rect()
 					if not rect.has_point(get_global_mouse_position()) and not event.has_meta("_emulated"):
 						focused.release_focus()

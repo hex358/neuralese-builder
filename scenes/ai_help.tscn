@@ -88,7 +88,7 @@ z_index = 8
 material = ExtResource("2_o277e")
 instance_shader_parameters/corner_radius_width_add = Vector2(9.365, 1)
 instance_shader_parameters/outline_color = Color(0.85, 0.85, 0.85, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.7529412)
+instance_shader_parameters/tuning = Color(0.42, 0.42, 0.42, 1)
 layout_mode = 0
 offset_left = 342.0
 offset_top = 29.0
@@ -97,43 +97,44 @@ offset_bottom = 489.0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ColorRect"]
 layout_mode = 0
-offset_left = 28.0
+offset_left = 20.0
 offset_top = 38.0
-offset_right = 456.0
-offset_bottom = 367.0
+offset_right = 466.0
+offset_bottom = 363.0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/ScrollContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="ColorRect/ScrollContainer"]
+layout_mode = 2
+theme_override_constants/margin_right = -20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Control" type="Control" parent="ColorRect/ScrollContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(120, 0)
+[node name="Control" type="Control" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(147, 0)
 layout_mode = 2
 
-[node name="user" type="RichTextLabel" parent="ColorRect/ScrollContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(300, 0)
+[node name="user" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 focus_mode = 2
 theme = ExtResource("5_3k8xb")
 bbcode_enabled = true
-text = "здравствуйте братишька бля хасан
-здравствуйте братишька бля хасан
-здравствуйте братишька бля хасан
-здравствуйте братишька бля хасан
-здравствуйте братишька бля хасан"
+text = "здравствуйте братишька бля 
+здравствуйте"
 fit_content = true
 selection_enabled = true
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="ColorRect/ScrollContainer/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
 layout_direction = 3
 layout_mode = 2
 alignment = 2
 
-[node name="ai" type="RichTextLabel" parent="ColorRect/ScrollContainer/VBoxContainer/HBoxContainer2"]
-custom_minimum_size = Vector2(300, 0)
+[node name="ai" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 focus_mode = 2
 theme = ExtResource("5_3k8xb")
@@ -141,6 +142,59 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_42jti")
 theme_override_styles/focus = SubResource("StyleBoxFlat_42jti")
 bbcode_enabled = true
 text = "ОКей босс щас я тебе сделаю казахстанский чатгипити чтобы он был мощны йкрч"
+fit_content = true
+selection_enabled = true
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+custom_minimum_size = Vector2(147, 0)
+layout_mode = 2
+
+[node name="user" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+focus_mode = 2
+theme = ExtResource("5_3k8xb")
+bbcode_enabled = true
+text = "здравствуйте братишька бля 
+здравствуйте"
+fit_content = true
+selection_enabled = true
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_direction = 3
+layout_mode = 2
+alignment = 2
+
+[node name="ai" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+focus_mode = 2
+theme = ExtResource("5_3k8xb")
+theme_override_styles/normal = SubResource("StyleBoxFlat_42jti")
+theme_override_styles/focus = SubResource("StyleBoxFlat_42jti")
+bbcode_enabled = true
+text = "ОКей босс щас я тебе сделаю казахстанский чатгипити чтобы он был мощны йкрч"
+fit_content = true
+selection_enabled = true
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+custom_minimum_size = Vector2(147, 0)
+layout_mode = 2
+
+[node name="user" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+focus_mode = 2
+theme = ExtResource("5_3k8xb")
+bbcode_enabled = true
+text = "здравствуйте братишька бля 
+здравствуйте"
 fit_content = true
 selection_enabled = true
 
@@ -171,14 +225,27 @@ text = "/axon"
 z_index = 5
 layout_mode = 0
 offset_left = 20.987915
-offset_top = 367.0
+offset_top = 364.0
 offset_right = 41.347443
-offset_bottom = 811.71155
+offset_bottom = 808.71155
 rotation = -1.5707964
 texture = SubResource("GradientTexture1D_h3ok5")
 expand_mode = 1
 
+[node name="TextureRect2" type="TextureRect" parent="ColorRect/root"]
+z_index = 5
+layout_mode = 0
+offset_left = 20.987915
+offset_top = 37.0
+offset_right = 41.347443
+offset_bottom = 481.71155
+rotation = -1.5707964
+scale = Vector2(-1, 1)
+texture = SubResource("GradientTexture1D_h3ok5")
+expand_mode = 1
+
 [node name="Label2" type="TextEdit" parent="ColorRect"]
+z_index = 6
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0

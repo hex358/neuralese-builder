@@ -47,7 +47,7 @@ func _input(event: InputEvent) -> void:
 		if event.button_index == drag_button:
 			dragging = event.pressed
 
-		elif event.pressed and not glob.is_occupied(self, &"scroll"):
+		elif not ui.splashed and event.pressed and not glob.is_occupied(self, &"scroll"):
 			var factor = zoom_speed * event.factor * zoom.x
 			var prev_zoom = target_zoom
 			
@@ -60,7 +60,7 @@ func _input(event: InputEvent) -> void:
 				move_intensity = 1.0
 				glob.hide_all_menus()
 
-	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed and acc:
+	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed and acc and not ui.splashed:
 		if _ignore_next_motion > 0:
 			_ignore_next_motion -= 1
 			return
@@ -93,7 +93,7 @@ func _process(delta: float) -> void:
 		RenderingServer.global_shader_parameter_set("_view_scale", pow(zoom.x, 0.25))
 	zoom = Vector2.ONE * lerp(zoom.x, target_zoom, delta * zoom_interpolation_speed)
 	move_intensity = lerp(move_intensity, 0.0, delta * zoom_interpolation_speed)
-	if glob.mouse_scroll:
+	if glob.mouse_scroll and not ui.splashed:
 		zoom_move_vec = (mouse - get_global_mouse_position())
 	var display_mouse = glob.get_display_mouse_position()
 
