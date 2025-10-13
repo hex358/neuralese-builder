@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://f081neg4h7dv"]
+[gd_scene load_steps=20 format=3 uid="uid://f081neg4h7dv"]
 
 [ext_resource type="Script" uid="uid://bang6a1r87sqa" path="res://scripts/ai_help.gd" id="1_tb6sx"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_o277e"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_32ht4"]
 [ext_resource type="Texture2D" uid="uid://cavs5745mjda4" path="res://game_assets/icons/send.png" id="9_tb6sx"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_hh2om"]
+[ext_resource type="Texture2D" uid="uid://cwe4nkiqegj6f" path="res://game_assets/icons/mic.png" id="11_h3ok5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_42jti"]
 content_margin_left = 10.0
@@ -32,7 +33,7 @@ gradient = SubResource("Gradient_o277e")
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tb6sx"]
 content_margin_left = 10.0
 content_margin_top = 10.0
-content_margin_right = 40.0
+content_margin_right = 80.0
 content_margin_bottom = 10.0
 bg_color = Color(0.21, 0.21, 0.21, 1)
 corner_radius_top_left = 15
@@ -43,7 +44,7 @@ corner_radius_bottom_left = 15
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o277e"]
 content_margin_left = 10.0
 content_margin_top = 10.0
-content_margin_right = 40.0
+content_margin_right = 80.0
 content_margin_bottom = 10.0
 bg_color = Color(0.23137255, 0.23137255, 0.23137255, 1)
 corner_radius_top_left = 15
@@ -54,7 +55,7 @@ corner_radius_bottom_left = 15
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h3ok5"]
 content_margin_left = 10.0
 content_margin_top = 10.0
-content_margin_right = 10.0
+content_margin_right = 80.0
 content_margin_bottom = 10.0
 bg_color = Color(0.17, 0.17, 0.17, 1)
 corner_radius_top_left = 15
@@ -76,11 +77,13 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[node name="Node2D" type="Control"]
+[node name="Node2D" type="Control" node_paths=PackedStringArray("_user_message", "_ai_message")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_tb6sx")
+_user_message = NodePath("ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer")
+_ai_message = NodePath("ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2")
 typename = "ai_help"
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -100,7 +103,7 @@ layout_mode = 0
 offset_left = 28.0
 offset_top = 38.0
 offset_right = 461.0
-offset_bottom = 357.0
+offset_bottom = 386.0
 
 [node name="MarginContainer" type="MarginContainer" parent="ColorRect/ScrollContainer"]
 layout_mode = 2
@@ -117,7 +120,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(136, 0)
 layout_mode = 2
 
-[node name="user" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="txt" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 focus_mode = 2
@@ -133,7 +136,7 @@ layout_direction = 3
 layout_mode = 2
 alignment = 2
 
-[node name="ai" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="txt" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 focus_mode = 2
@@ -142,59 +145,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_42jti")
 theme_override_styles/focus = SubResource("StyleBoxFlat_42jti")
 bbcode_enabled = true
 text = "ОКей босс щас я тебе сделаю казахстанский чатгипити чтобы он был мощны йкрч"
-fit_content = true
-selection_enabled = true
-
-[node name="HBoxContainer3" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Control" type="Control" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
-custom_minimum_size = Vector2(136, 0)
-layout_mode = 2
-
-[node name="user" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
-custom_minimum_size = Vector2(280, 0)
-layout_mode = 2
-focus_mode = 2
-theme = ExtResource("5_3k8xb")
-bbcode_enabled = true
-text = "здравствуйте братишька  
-здравствуйте"
-fit_content = true
-selection_enabled = true
-
-[node name="HBoxContainer4" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
-layout_direction = 3
-layout_mode = 2
-alignment = 2
-
-[node name="ai" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
-custom_minimum_size = Vector2(280, 0)
-layout_mode = 2
-focus_mode = 2
-theme = ExtResource("5_3k8xb")
-theme_override_styles/normal = SubResource("StyleBoxFlat_42jti")
-theme_override_styles/focus = SubResource("StyleBoxFlat_42jti")
-bbcode_enabled = true
-text = "ОКей босс щас я тебе сделаю казахстанский чатгипити чтобы он был мощны йкрч"
-fit_content = true
-selection_enabled = true
-
-[node name="HBoxContainer5" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Control" type="Control" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
-custom_minimum_size = Vector2(136, 0)
-layout_mode = 2
-
-[node name="user" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
-custom_minimum_size = Vector2(280, 0)
-layout_mode = 2
-focus_mode = 2
-theme = ExtResource("5_3k8xb")
-bbcode_enabled = true
-text = "здравствуйте братишька бля 
-здравствуйте"
 fit_content = true
 selection_enabled = true
 
@@ -225,9 +175,9 @@ text = "/axon"
 z_index = 5
 layout_mode = 0
 offset_left = 20.987915
-offset_top = 364.0
+offset_top = 396.0
 offset_right = 41.347443
-offset_bottom = 808.71155
+offset_bottom = 840.71155
 rotation = -1.5707964
 texture = SubResource("GradientTexture1D_h3ok5")
 expand_mode = 1
@@ -258,7 +208,7 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 17.0
-offset_top = -91.0
+offset_top = -64.44354
 offset_right = 467.0
 offset_bottom = -18.443542
 grow_vertical = 0
@@ -268,6 +218,7 @@ theme_override_fonts/font = ExtResource("6_uxxa7")
 theme_override_styles/normal = SubResource("StyleBoxFlat_tb6sx")
 theme_override_styles/focus = SubResource("StyleBoxFlat_o277e")
 theme_override_styles/read_only = SubResource("StyleBoxFlat_h3ok5")
+text = "ф"
 placeholder_text = " "
 context_menu_enabled = false
 deselect_on_focus_loss_enabled = false
@@ -277,7 +228,7 @@ script = ExtResource("7_o277e")
 max_length = 512
 
 [node name="train" parent="ColorRect/Label2" instance=ExtResource("8_q5qxb")]
-instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/corner_radius_width_add = Vector2(-6, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 1
 anchors_preset = 3
@@ -285,13 +236,13 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -46.250977
-offset_top = -41.363922
-offset_right = -9.826355
-offset_bottom = -9.327457
+offset_left = -44.0
+offset_top = -39.556458
+offset_right = -7.5753784
+offset_bottom = -7.519989
 grow_horizontal = 0
 grow_vertical = 0
-scale = Vector2(1.1770253, 1.1770253)
+scale = Vector2(1.1, 1.1)
 pivot_offset = Vector2(18.21231, 16.018232)
 color = Color(0.91666675, 0.5, 1, 1)
 button_type = 1
@@ -299,7 +250,7 @@ top = true
 hint = &"Add"
 base_scale_x = 0.45
 resize_after = 6
-base_size = Vector2(36.42462, 32.036465)
+base_size = Vector2(36.42462, 32.03647)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -317,6 +268,48 @@ offset_right = 42.61277
 offset_bottom = 40.966152
 scale = Vector2(0.77839935, 0.77839935)
 texture = ExtResource("9_tb6sx")
+
+[node name="train2" parent="ColorRect/Label2" instance=ExtResource("8_q5qxb")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-6, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -80.17877
+offset_top = -39.556458
+offset_right = -51.08789
+offset_bottom = -7.519989
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.1, 1.1)
+pivot_offset = Vector2(18.21231, 16.018234)
+color = Color(0.91666675, 0.5, 1, 1)
+button_type = 1
+top = true
+hint = &"Add"
+base_scale_x = 0.45
+resize_after = 6
+base_size = Vector2(29.090881, 32.03647)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_3idxy")
+in_splash = true
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/Label2/train2"]
+layout_mode = 0
+offset_left = 1.8182068
+offset_top = 4.1834574
+offset_right = 41.818207
+offset_bottom = 44.183456
+scale = Vector2(0.62722844, 0.62722844)
+texture = ExtResource("11_h3ok5")
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_hh2om")
