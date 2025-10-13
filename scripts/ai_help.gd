@@ -3,6 +3,8 @@ extends SplashMenu
 @export var _user_message: HBoxContainer
 @export var _ai_message: HBoxContainer
 
+var chat_id: int = 0
+
 @onready var user_message = _user_message.duplicate()
 @onready var ai_message = _ai_message.duplicate()
 func _ready() -> void:
@@ -10,45 +12,42 @@ func _ready() -> void:
 	_user_message.queue_free()
 	_ai_message.queue_free()
 	set_messages([
-		{"user": true, "text": "[b]Hi![/b]"}, {"user": false, "text": "**Hi!**"}
+		{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"}
 		])
 
+func text_receive(data: PackedByteArray):
+	var dt = data.get_string_from_utf8()
+	var parsed = JSON.parse_string(dt)
+	if "text" in parsed:
+		get_last_message().object.push_text(parsed.text)
 
-func markdown_to_bbcode(input: String) -> String:
-	var output := input
-	
-	# Escape BBCode brackets (optional)
-	output = output.replace("[", "[lb]").replace("]", "[rb]")
+func send_message(text: String):
+	add_message({"user": true, "text": text})
+	$ColorRect/Label2.disable()
+	$ColorRect/Label2.clear()
+	add_message({"user": false, "text": "", "_pending": true})
+	var sock = await sockets.connect_to("ws/talk", text_receive)
+	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id)})
+	await sock.closed
+	print("close!")
 
-	# Bold: **text** -> [b]text[/b]
-	var bold_re = RegEx.new()
-	bold_re.compile(r"\*\*(.+?)\*\*")
-	output = bold_re.sub(output, "[b]$1[/b]", true)
-
-	# Italic: *text* -> [i]text[/i]
-	var italic_re = RegEx.new()
-	italic_re.compile(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)") # prevents ** from being caught as *
-	output = italic_re.sub(output, "[i]$1[/i]", true)
-
-	# Code: `text` -> [code]text[/code]
-	var code_re = RegEx.new()
-	code_re.compile(r"`(.+?)`")
-	output = code_re.sub(output, "[code]$1[/code]", true)
-
-	return output
+var _message_list: Array[Dictionary] = []
 
 @onready var scroller = $ColorRect/ScrollContainer/MarginContainer/VBoxContainer
 func set_messages(messages: Array[Dictionary]):
 	for message in messages:
-		var new = null
-		if message.user:
-			new = user_message.duplicate()
-		else:
-			new = ai_message.duplicate()
-		scroller.add_child(new)
-		new.get_node("txt").text = markdown_to_bbcode(message.text)
-			
-	
+		add_message(message)
+
+func add_message(message: Dictionary):
+	_message_list.append(message)
+	var new = null
+	if message.user:
+		new = user_message.duplicate()
+	else:
+		new = ai_message.duplicate()
+	scroller.add_child(new)
+	new.get_node("txt").text = message.text
+	message.object = new.get_node("txt")
 
 
 func _just_splash():
@@ -63,8 +62,8 @@ func _process(delta: float) -> void:
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().max_value )
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().value )
 	tr.visible = bar.max_value - bar.page > bar.value or $ColorRect/Label2.size.y > 73
-	if $ColorRect/Label2.size.y > 73:
-		tr.position = $ColorRect/Label2.position + Vector2(0,1)
+	if $ColorRect/Label2.size.y > 46.5:
+		tr.position = $ColorRect/Label2.position + Vector2(0,-11)
 	else:
 		tr.position = $ColorRect/Label2.position - Vector2(0,11)
 		
@@ -74,5 +73,10 @@ func _on_train_hovering() -> void:
 	pass # Replace with function body.
 
 
-func on_send() -> void:
-	pass # Replace with function body.
+func get_last_message() -> Dictionary:
+	return _message_list[-1] if _message_list else null
+
+
+func on_send(txt: String) -> void:
+	if get_last_message() and not get_last_message().has("_pending"):
+		send_message($ColorRect/Label2.text)

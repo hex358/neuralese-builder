@@ -137,6 +137,7 @@ signal released
 
 @onready var default_modulate: Color = modulate
 @onready var base_modulate: Color = modulate
+@onready var _base_modulate: Color = modulate
 @onready var base_scale: Vector2 = scale
 
 const EPSILON: float = 0.0002

@@ -24,6 +24,8 @@ func _disconnecting(who: Connection, to: Connection):
 func _is_valid() -> bool:
 	var d = get_descendant()
 	#print(d)
+	#print(graphs.input_graph_name_exists(cfg["name"]))
+	#print(graphs.input_graph_name_exists(cfg["name"]))
 	return (!d) or ((cfg["name"]) and ((d and d.server_typename == "InputNode") \
 	or graphs.input_graph_name_exists(cfg["name"])))
 
@@ -44,6 +46,7 @@ func _config_field(field: StringName, value: Variant):
 				if value:
 					if graphs.has_named_input_graph(dess):
 						graphs.rename_input_graph(dess, value)
+						#print(graphs.input_graph_name_exists(cfg["name"]))
 					else:
 						graphs.add_input_graph_name(dess, value)
 					#graphs.set_graph_name(graphs._reach_input(dess), value)

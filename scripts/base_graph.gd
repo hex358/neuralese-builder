@@ -68,9 +68,9 @@ func _request_save(): # virtual
 @onready var cfg: Dictionary[StringName, Variant] = base_config.duplicate()
 func update_config(update: Dictionary):
 	cfg.merge(update, true)
-	check_valid(update)
 	for field in update:
 		_config_field(field, update[field])
+	check_valid(update)
 
 func get_config_dict() -> Dictionary:
 	return cfg.duplicate()

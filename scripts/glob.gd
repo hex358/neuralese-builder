@@ -526,6 +526,7 @@ func in_out_quad(t: float) -> float:
 
 func get_project_data(empty: bool = false) -> Dictionary:
 	var data = {"graphs": {}, "lua": {}, "registry": {}}
+	data["registry"]["subgraph_registry"] = {}
 	if empty:
 		return data
 	for i in graphs._graphs:
@@ -536,7 +537,6 @@ func get_project_data(empty: bool = false) -> Dictionary:
 		
 	data["camera"] = Vector3(cam.position.x, cam.position.y, cam.zoom.x)
 	
-	data["registry"]["subgraph_registry"] = {}
 	for sub_id in Graph._subgraph_registry:
 		var ids = []
 		for n in Graph._subgraph_registry[sub_id]:
@@ -578,7 +578,7 @@ func load_scene(from: String):
 	tree_windows["env"].reset()
 	
 	fg.set_scene_name(a["name"])
-	graphs.load_graph(dat["graphs"], dat["registry"]["subgraph_registry"])
+	graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
 	if "camera" in dat and dat["camera"]:
