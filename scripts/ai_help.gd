@@ -10,7 +10,7 @@ func _ready() -> void:
 	_user_message.queue_free()
 	_ai_message.queue_free()
 	set_messages([
-		{"user": true, "text": "Hi!"}, {"user": false, "text": "**Hi!**"}
+		{"user": true, "text": "[b]Hi![/b]"}, {"user": false, "text": "**Hi!**"}
 		])
 
 
