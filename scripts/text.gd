@@ -19,6 +19,17 @@ func disable():
 		child.base_modulate = Color(b.r*0.7, b.g*0.7, b.b*0.7, b.a)
 	release_focus()
 
+func enable():
+	editable = true
+	modulate = Color.WHITE
+	mouse_filter = Control.MOUSE_FILTER_PASS
+	set_process(1)
+	set_process_input(1)
+	for child in children_layer:
+		child.unblock_input()
+		var b = child._base_modulate
+		child.base_modulate = b
+
 var _snap_text: String = ""
 var _snap_line: int = 0
 var _snap_col: int = 0

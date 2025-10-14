@@ -12,7 +12,7 @@ func _ready() -> void:
 	_user_message.queue_free()
 	_ai_message.queue_free()
 	set_messages([
-		{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"}
+		{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"},
 		])
 
 func text_receive(data: PackedByteArray):
@@ -24,16 +24,17 @@ func text_receive(data: PackedByteArray):
 func send_message(text: String):
 	add_message({"user": true, "text": text})
 	$ColorRect/Label2.disable()
-	$ColorRect/Label2.clear()
 	add_message({"user": false, "text": "", "_pending": true})
 	var sock = await sockets.connect_to("ws/talk", text_receive)
-	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id)})
+	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), "text": $ColorRect/Label2.text})
+	$ColorRect/Label2.clear()
 	await sock.closed
-	print("close!")
+	get_last_message().erase("_pending")
+	$ColorRect/Label2.enable()
 
 var _message_list: Array[Dictionary] = []
 
-@onready var scroller = $ColorRect/ScrollContainer/MarginContainer/VBoxContainer
+@onready var scroller = $ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer
 func set_messages(messages: Array[Dictionary]):
 	for message in messages:
 		add_message(message)
@@ -53,6 +54,7 @@ func add_message(message: Dictionary):
 func _just_splash():
 	ui.blur.set_tuning(Color(0,0,0,0.5))
 
+@onready var bs = $ColorRect/ScrollContainer.size.y
 func _process(delta: float) -> void:
 	super(delta)
 	var tr = $ColorRect/root/TextureRect
@@ -61,11 +63,28 @@ func _process(delta: float) -> void:
 	$ColorRect/root/TextureRect2.visible = bar.value > 0.1
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().max_value )
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().value )
-	tr.visible = bar.max_value - bar.page > bar.value or $ColorRect/Label2.size.y > 73
+	tr.visible = bar.max_value - bar.page > bar.value or $ColorRect/Label2.size.y > 46.5
+	
+	var scrolling = bar.max_value - bar.page > bar.value
+	#if !scrolling:
+		
+	#if scrolling:
+	#	$ColorRect/ScrollContainer.size.y = bs + 6
+	#else:
+	#$ColorRect/ScrollContainer.size.y = bs - 90
+		
+	
 	if $ColorRect/Label2.size.y > 46.5:
-		tr.position = $ColorRect/Label2.position + Vector2(0,-11)
+		if scrolling:
+			tr.position = $ColorRect/Label2.position + Vector2(0,-1)
+		else:
+			tr.position = $ColorRect/Label2.position + Vector2(0,-11)
+			
 	else:
-		tr.position = $ColorRect/Label2.position - Vector2(0,11)
+		if scrolling:
+			tr.position = $ColorRect/Label2.position + Vector2(0,-0)
+		else:
+			tr.position = $ColorRect/Label2.position + Vector2(0,-11)
 		
 
 
