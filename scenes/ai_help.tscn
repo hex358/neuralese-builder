@@ -123,7 +123,7 @@ layout_mode = 2
 [node name="txt" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
-focus_mode = 0
+focus_mode = 2
 mouse_filter = 2
 theme = ExtResource("5_3k8xb")
 bbcode_enabled = true
@@ -140,7 +140,7 @@ alignment = 2
 [node name="txt" type="RichTextLabel" parent="ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer2"]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
-focus_mode = 0
+focus_mode = 2
 mouse_filter = 2
 theme = ExtResource("5_3k8xb")
 theme_override_styles/normal = SubResource("StyleBoxFlat_42jti")

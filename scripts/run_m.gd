@@ -2,10 +2,13 @@ extends DynamicGraph
 
 var name_graph: String = ""
 
+var unit_keys = {}
 func _useful_properties() -> Dictionary:
 	var body = {}
+	#print(cfg)
 	for u in units:
-		body[u.get_meta("points_to").graph_id] = "cross_entropy"
+		var who = (u.get_meta("points_to").graph_id)
+		body[who] = cfg["branches"].get(str(who), "mse")
 	return {
 		"config": {"branch_losses": body}
 	}
@@ -16,10 +19,46 @@ func _request_save():
 func dis():
 	$Label2.hide()
 
+func loss_button(bt: BlockComponent):
+	#print("AA")
+	#print(bt.is_contained.get_parent().name)
+	var got = str(bt.is_contained.graph.get_meta("points_to", {"graph_id": ""}).graph_id)
+	
+	set_loss_type(got, bt.hint)
+	bt.is_contained.text = bt.text
+	bt.is_contained.menu_hide()
+
+var manually: bool = false
+func set_loss_type(of_id, loss: String, inner=false):
+	#if not has_config_subfield("branches/" + str(node.graph_id)):
+	if of_id == "": 
+		return
+	if not inner:
+		manually = true
+		update_config_subfield({"branches": {str(of_id): loss}})
+	if of_id in unit_keys:
+		var ls = unit_keys[of_id].get_node("loss")
+		if ls:
+			ls.text = ls.button_by_hint[loss].text
+	if not inner:
+		manually = false
+
+func _map_properties(pack: Dictionary):
+	pass
+
+func _config_field(field: StringName, value: Variant):
+	if field.begins_with("branches/"):
+		if not manually:
+			var trimmed = field.trim_prefix("branches/")
+			set_loss_type(trimmed, value, true)
+
 func edit_unit(node: Graph, u: Control):
 	u.get_node("Control/Label").text = node.get_title()
 	u.get_node("Control/Label").resize()
 	u.set_meta("points_to", node)
+	unit_keys[str(node.graph_id)] = u
+	#print("A!")
+
 
 
 
@@ -69,6 +108,7 @@ func set_name_graph(st: String, remove = null):
 			add_unit({"text": j.get_title()}, true)
 		edit_unit(j, units[ct])
 
+
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
 	dup.get_node("loss").graph = dup
@@ -81,7 +121,7 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	for child in dup.get_node("imp").get_children():
 		if child is BlockComponent:
 			child.auto_ready = true
-
+	dup.get_node("loss").child_button_release.connect(loss_button)
 	dup.get_node("Control/Label").text = kw["text"]
 	dup.show()
 	dup.modulate.a = 0.0

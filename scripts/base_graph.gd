@@ -72,6 +72,18 @@ func update_config(update: Dictionary):
 		_config_field(field, update[field])
 	check_valid(update)
 
+func has_config_subfield(query: String) -> bool:
+	var splt = query.split("/")
+	return cfg.has(splt[0]) and cfg[splt[0]].has(splt[1])
+
+func update_config_subfield(update: Dictionary):
+	for field in update:
+		if !cfg.has(field): continue
+		cfg[field].merge(update[field], true)
+		for subfield in update[field]:
+			_config_field(field + "/" + subfield, update[field][subfield])
+	check_valid(update)
+
 func get_config_dict() -> Dictionary:
 	return cfg.duplicate()
 
@@ -80,7 +92,7 @@ func _config_field(field: StringName, value: Variant):
 
 func animate(delta: float):
 	if graph_flags & Flags.NEW:
-		if exist_time < 2.0: hold_for_frame()
+		if exist_time < 2.0: hold_for_frame(); reposition_splines()
 		_new_animate(delta)
 
 func _after_ready():
@@ -429,10 +441,6 @@ func _pick_context_for_merge(nodes_a: Array, nodes_b: Array, dominant_input: Gra
 
 
 
-
-
-
-
 func _reassign_subgraph_recursive(old_id: int, new_id: int, visited = {}):
 	if self in visited:
 		return
@@ -530,6 +538,7 @@ func _useful_properties() -> Dictionary:
 	return {}
 
 func _ready() -> void:
+	glob.get_llm_tag(self)
 	position -= rect.position
 	animate(0)
 	#graphs.add(self)
@@ -652,10 +661,13 @@ func get_info() -> Dictionary:
 		"subgraph_id": subgraph_id,
 		"context_id": context_id,
 		"root_context_id": root_context_id,
-		"subgraph_occupied": subgraph_occupied
+		"subgraph_occupied": subgraph_occupied,
+		"llm_tag": llm_tag,
 	}
 	base.merge(_get_info(), true)
 	return base
+
+var llm_tag: String = ""
 
 func map_properties(pack: Dictionary):
 	position = pack.position
@@ -667,7 +679,12 @@ func map_properties(pack: Dictionary):
 		Graph._subgraph_registry[subgraph_id] = []
 	if not self in Graph._subgraph_registry[subgraph_id]:
 		Graph._subgraph_registry[subgraph_id].append(self)
+	if "llm_tag" in pack:
+		glob.set_llm_tag(self, pack.llm_tag)
 	update_config(pack.cfg)
+	for f in pack.cfg:
+		if pack.cfg[f] is Dictionary:
+			update_config_subfield({f: pack.cfg[f]})
 	_map_properties(pack)
 
 

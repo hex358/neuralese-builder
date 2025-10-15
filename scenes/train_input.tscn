@@ -384,6 +384,7 @@ offset_bottom = 25.6463
 scale = Vector2(2, 2)
 focus_mode = 1
 mouse_force_pass_scroll_events = false
+max_value = 1.0
 step = 10.0
 
 [node name="name" type="Label" parent="sgd_tab" index="1"]

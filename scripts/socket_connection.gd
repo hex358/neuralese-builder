@@ -17,6 +17,10 @@ func _init(url: String, _graceful: bool = true):
 	if err != OK:
 		push_error("socket connect_to_url failed: %s" % err)
 
+signal kill
+
+var cache = {}
+
 func _poll() -> void:
 	_ws.poll()
 
@@ -32,6 +36,7 @@ func _poll() -> void:
 			var code = _ws.get_close_code()
 			var reason = _ws.get_close_reason()
 			closed.emit(code, reason, code != -1)
+			kill.emit()
 		_last_state = state
 
 	if state == WebSocketPeer.STATE_OPEN:
@@ -52,6 +57,10 @@ func send(bytes: PackedByteArray) -> void:
 		_ws.send(bytes)
 	else:
 		_out_queue.append(bytes)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		kill.emit()
 
 func close() -> void:
 	match _ws.get_ready_state():

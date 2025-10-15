@@ -574,7 +574,7 @@ var graph_types = {
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
-func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0) -> Graph:
+func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: String = "") -> Graph:
 	var type = graph_types[typename]
 	var new = type.instantiate()
 	new.set_meta("created_with", typename)
@@ -586,6 +586,8 @@ func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0) -> Grap
 	new.z_index = z_count
 	storage.add_child(new)
 	add(new)
+	if tag:
+		glob.set_llm_tag(new, tag)
 	return new
 
 var graph_layers: Dictionary[int, CanvasLayer] = {}

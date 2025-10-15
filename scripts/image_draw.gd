@@ -119,6 +119,7 @@ func _draw_segment(prev_img: Vector2, curr_img: Vector2, dt: float) -> void:
 
 @export var active: bool = true
 
+var lst = Vector2()
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	if graphs.dragged: return
@@ -129,7 +130,7 @@ func _process(delta: float) -> void:
 	var img_pos = _local_to_img_coords(local)
 	if !active: return
 
-	if Input.is_action_pressed("ui_mouse") and img_pos.x >= 0.0:
+	if Input.is_action_pressed("ui_mouse") and img_pos.x >= 0.0 and get_global_rect().has_point(glob.last_mouse_click_at):
 		if _was_drawing:
 			_draw_segment(_last_img_pos, img_pos, delta)
 		else:

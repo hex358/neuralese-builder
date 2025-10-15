@@ -390,6 +390,9 @@ func press_poll():
 		glob.mouse_alt_pressed = false
 		glob.mouse_alt_just_pressed = false
 		unpress_enq = false
+	
+	if mouse_just_pressed:
+		last_mouse_click_at = get_global_mouse_position()
 
 var unpress_enq: bool = false
 
@@ -481,7 +484,9 @@ func _process(delta: float) -> void:
 		timers.erase(i)
 		i.free.call_deferred()
 	input_poll()
-
+	var occ = get_occupied("block_button_inside")
+	if occ and not occ.is_mouse_inside():
+		un_occupy(occ, "block_button_inside")
 
 
 var hovered_connection_changed: bool = false
@@ -558,6 +563,301 @@ func delete_project(scene: int):
 		var i = await create_empty_project("")
 		load_empty_scene(i, "")
 	return true
+
+func def(...args) -> void:
+	pass
+
+
+var tags = ["change_nodes", "connect_ports", "delete_nodes", "disconnect_ports"]
+
+func tag_strip(text: String) -> Array:
+	var out = ""
+	var i = 0
+	var stack: Array[String] = []
+	var did_remove := false
+
+	while i < text.length():
+		var next_open = -1
+		var next_close = -1
+		var found_tag = ""
+		var closing_tag = false
+
+		for tag in tags:
+			var pos_open = text.find("<%s>" % tag, i)
+			var pos_close = text.find("</%s>" % tag, i)
+			if pos_open != -1 and (next_open == -1 or pos_open < next_open):
+				next_open = pos_open
+				found_tag = tag
+				closing_tag = false
+			if pos_close != -1 and (next_close == -1 or pos_close < next_close):
+				next_close = pos_close
+				if next_open == -1 or next_close < next_open:
+					found_tag = tag
+					closing_tag = true
+
+		if next_open == -1 and next_close == -1:
+			out += text.substr(i)
+			break
+
+		var min_pos = INF
+		if next_open != -1:
+			min_pos = min(min_pos, next_open)
+		if next_close != -1:
+			min_pos = min(min_pos, next_close)
+
+		out += text.substr(i, min_pos - i)
+		i = min_pos
+
+		if closing_tag:
+			if stack.size() > 0 and stack.back() == found_tag:
+				stack.pop_back()
+			i += ("</%s>" % found_tag).length()
+			did_remove = true
+		else:
+			stack.append(found_tag)
+			i += ("<%s>" % found_tag).length()
+			var close_pos = text.find("</%s>" % found_tag, i)
+			if close_pos == -1:
+				did_remove = true
+				break
+			i = close_pos + ("</%s>" % found_tag).length()
+			did_remove = true
+
+	return [out, did_remove]
+
+
+func _match_tag_token(buf: String, pos: int) -> Variant:
+	if pos >= buf.length() or buf[pos] != '<':
+		return null
+
+	for tag in tags:
+		var open_tok = "<%s>" % tag
+		var close_tok = "</%s>" % tag
+
+		if buf.substr(pos, open_tok.length()) == open_tok:
+			return {"kind": "open", "tag": tag, "len": open_tok.length()}
+		if buf.substr(pos, close_tok.length()) == close_tok:
+			return {"kind": "close", "tag": tag, "len": close_tok.length()}
+
+	var tail = buf.substr(pos)
+	for tag in tags:
+		var open_tok = "<%s>" % tag
+		var close_tok = "</%s>" % tag
+		if open_tok.begins_with(tail) or close_tok.begins_with(tail):
+			return {"kind": "partial"}
+
+	return null
+
+
+
+
+func parse_stream_tags(sock: SocketConnection, chunk: String) -> String:
+	var state = sock.cache.get_or_add("parser_state", {"buf": "", "stack": [], "acc": []})
+	var actions = sock.cache.get_or_add("actions", {})  # { tag: [body1, body2, ...] }
+
+	state.buf += chunk
+
+	var result: String = ""
+	var i: int = 0
+
+	while i < state.buf.length():
+		var token = null
+		if state.buf[i] == '<':
+			token = _match_tag_token(state.buf, i)
+			if token == null:
+				if state.stack.size() == 0:
+					result += state.buf[i]
+				else:
+					state.acc[state.acc.size() - 1] += state.buf[i]
+				i += 1
+				continue
+
+			if token.has("kind") and token.kind == "partial":
+				break
+
+			if token.kind == "open":
+				state.stack.append(token.tag)
+				state.acc.append("")
+				i += token.len
+				continue
+
+			if token.kind == "close":
+				var top_ok = state.stack.size() > 0 and state.stack[state.stack.size() - 1] == token.tag
+				if top_ok:
+					var body: String = state.acc.pop_back()
+					state.stack.pop_back()
+
+					if not actions.has(token.tag):
+						actions[token.tag] = []
+					actions[token.tag].append(body)
+
+					if state.acc.size() > 0:
+						state.acc[state.acc.size() - 1] += body
+
+					i += token.len
+					continue
+				else:
+					if state.stack.size() == 0:
+						result += state.buf[i]
+					else:
+						state.acc[state.acc.size() - 1] += state.buf[i]
+					i += 1
+					continue
+
+		if state.stack.size() == 0:
+			result += state.buf[i]
+		else:
+			state.acc[state.acc.size() - 1] += state.buf[i]
+		i += 1
+
+	state.buf = state.buf.substr(i)
+	for j in tags:
+		if not j in actions:
+			actions[j] = []
+	return result
+
+func clean_message(s: String):
+	#s = s.replace("```json\n", "")
+	#s = s.replace("\n```", "")
+	#s = s.strip_edges()
+	return tag_strip(s)[0].strip_edges()
+
+
+func message_chunk_received(data, sock: SocketConnection):
+	var dt = data.get_string_from_utf8()
+	var parsed = JSON.parse_string(dt)
+	if not "text" in parsed:
+		return
+	var text_update = sock.get_meta("text_update")
+	var text: String = parsed.text
+	var clean_text = parse_stream_tags(sock, text)
+	#clean_text = clean_text.replace("```json\n", "").replace("\n```", "").strip_edges()`
+	if clean_text.is_empty():
+		return
+	sock.cache.get_or_add("message", [""])[0] += clean_text
+	if text_update.is_valid():
+		text_update.call(clean_text)
+
+
+var message_sockets: Dictionary[int, SocketConnection] = {}
+
+var last_mouse_click_at: Vector2 = Vector2()
+
+var llm_name_mapping = {
+	activation = "neuron",
+	dense_layer = "layer",
+	conv2d_layer = "conv2d",
+	maxpool_layer = "maxpool",
+	softmax = "softmax",
+	flatten = "flatten",
+	reshape2d = "reshape2d",
+	out_classes =  "classifier",
+	input_image_small = "input",
+	model_name = "model_name",
+	run_model = "run_model",
+	train_begin = "train_begin",
+	train_step = "train_input",
+}
+
+var tag_types = {}
+
+func get_llm_tag(who: Graph) -> String:
+	var res = ""; var iters: int = 0
+	var g = who.get_meta("created_with")
+	if not g in tag_types: tag_types[g] = {}
+	while res in tag_types[g] or iters < 1:
+		var r = ""
+		r += llm_name_unmapping.get(g)
+		r += "_" + str(len(tag_types[g]))
+		res = r
+		iters += 1
+	tag_types[g][res] = true
+	#print(res)
+	return res
+
+func set_llm_tag(who: Graph, val: String):
+	var g = who.get_meta("created_with")
+	if not g in tag_types: tag_types[g] = {}
+	who.llm_tag = val
+	tag_types[g][val] = true
+
+var llm_name_unmapping = (func():
+	var dict = {}
+	for i in llm_name_mapping:
+		dict[llm_name_mapping[i]] = i
+	return dict).call()
+
+
+func test_place():
+	var a = cookies.open_or_create("test.bin").get_var()
+	model_changes_apply(a)
+	
+func model_changes_apply(actions: Dictionary):
+	cookies.open_or_create("test.bin").store_var(actions)
+	var creating: Dictionary[String, Graph] = {}
+	if actions["change_nodes"]:
+		for i in ui.splashed:
+			i.go_away()
+	await wait(0.05)
+
+	for pack in actions["change_nodes"]:
+		for node in pack:
+			var typename = llm_name_mapping.get(node.node)
+			if not typename:
+				continue
+			var g = graphs.get_graph(typename, Graph.Flags.NEW, 0, node.tag)
+			creating[node.tag] = g
+			g.hold_for_frame()
+
+	await get_tree().process_frame
+
+	for pack in actions["connect_ports"]:
+		for connection in pack:
+			if connection.from.tag in creating and connection.to.tag in creating:
+				var from_graph = creating[connection.from.tag]
+				var to_graph = creating[connection.to.tag]
+
+				var out_ports = from_graph.output_keys
+				var in_ports = to_graph.input_keys
+
+				if len(out_ports) == 1:
+					connection.from.port = out_ports.keys()[0]
+				if len(in_ports) == 1:
+					connection.to.port = in_ports.keys()[0]
+
+				out_ports[int(connection.from.port)].connect_to(in_ports[int(connection.to.port)])
+
+
+func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
+	message_sockets.erase(chat_id)
+	on_close.call()
+	var acts = sock.cache.get("actions", {})
+	
+	for action in acts:
+		for el in len(acts[action]):
+			acts[action][el] = JSON.parse_string(acts[action][el])
+	
+	model_changes_apply(acts)
+		#print()
+
+func update_message_stream(input_text: String, chat_id: int, text_update: Callable = def, on_close: Callable = def, clear: bool = false) -> SocketConnection:
+	if chat_id in message_sockets: return
+	var sock = await sockets.connect_to("ws/talk", def)
+	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), 
+	"text": input_text, "_clear": "1" if clear else "",
+	"scene": str(get_project_id())})
+	sock.packet.connect(message_chunk_received.bind(sock))
+	message_sockets[chat_id] = sock
+	sock.set_meta("text_update", text_update)
+	sock.kill.connect(sock_end_life.bind(chat_id, on_close, sock))
+	return sock
+
+func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
+	if chat_id in message_sockets:
+		var got = message_sockets[chat_id]
+		got.set_meta("text_update", text_update)
+		return [got, got.cache.get("message", [""])[0]]
+	return [null, ""]
 
 
 var env_dump = {}
@@ -670,6 +970,8 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
-	open_last_project()
+	#open_last_project()
+	
+	test_place()
 	
 	

@@ -23,28 +23,42 @@ func _ready() -> void:
 				i.user = true
 			elif i["role"] != "system":
 				i.user = false
+				i.text = glob.clean_message(i.text)
 			i.erase("role")
 		set_messages(json.messages)
 	
+	await get_tree().process_frame
+	$ColorRect/ScrollContainer.set_deferred("scroll_vertical", $ColorRect/ScrollContainer.get_v_scroll_bar().max_value)
+	if get_last_message().user:
+		if glob.message_sockets.has(chat_id):
+			var got = glob.get_my_message_state(chat_id, text_receive)
+			if got[0]:
+				$ColorRect/Label2.disable()
+				got[0].kill.connect(func():
+						get_last_message().erase("_pending")
+						$ColorRect/Label2.enable())
+				#print(got[1])
+				add_message({"user": false, "text": got[1]})
 
-func text_receive(data: PackedByteArray):
-	var dt = data.get_string_from_utf8()
-	var parsed = JSON.parse_string(dt)
-	if "text" in parsed:
-		get_last_message().object.push_text(parsed.text)
+func text_receive(text):
+	get_last_message().object.push_text(text)
 
 func send_message(text: String):
 	add_message({"user": true, "text": text})
 	$ColorRect/Label2.disable()
 	add_message({"user": false, "text": "", "_pending": true})
-	var sock = await sockets.connect_to("ws/talk", text_receive)
-	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), 
-	"text": $ColorRect/Label2.text, "_clear": "",
-	"scene": str(glob.get_project_id())})
 	$ColorRect/Label2.clear()
-	await sock.closed
+	var sock = await glob.update_message_stream(text, chat_id, text_receive, glob.def, true)
+	if sock:
+	#var sock = await sockets.connect_to("ws/talk", text_receive)
+	#sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), 
+	#"text": $ColorRect/Label2.text, "_clear": "",
+	#"scene": str(glob.get_project_id())})
+		await sock.kill
 	get_last_message().erase("_pending")
 	$ColorRect/Label2.enable()
+	#await get_tree().process_frame
+	#$ColorRect/ScrollContainer.set_deferred("scroll_vertical", $ColorRect/ScrollContainer.get_v_scroll_bar().max_value)
 
 var _message_list: Array[Dictionary] = []
 
@@ -61,6 +75,8 @@ func add_message(message: Dictionary):
 	else:
 		new = ai_message.duplicate()
 	scroller.add_child(new)
+	if not message.user:
+		new.get_node("txt").actual_text = message.text
 	new.get_node("txt").text = message.text
 	message.object = new.get_node("txt")
 

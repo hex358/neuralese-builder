@@ -37,6 +37,9 @@ target_size = 35.0
 input_y_add = 3.0
 server_typename = &"RunModel"
 area_padding = 0.0
+base_config = Dictionary[StringName, Variant]({
+&"branches": {}
+})
 
 [node name="o2" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("11_0iy4y")]
 instance_shader_parameters/corner_radius_width_add = Vector2(4.5, 0)
@@ -175,7 +178,7 @@ mouse_filter = 1
 color = Color(0.584314, 0.576471, 0.85098, 1)
 button_type = 2
 base_scale_x = 0.45
-resize_after = 6
+resize_after = 5
 text = "MSE"
 base_size = Vector2(57.40246, 20)
 expanded_size = 72
