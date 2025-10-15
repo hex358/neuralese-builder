@@ -591,6 +591,14 @@ func load_scene(from: String):
 	return true
 
 
+
+func request_chat(chat_id: String):
+	return await web.POST("get_chat", {"user": "n", 
+	"pass": "1", 
+	"chat_id": chat_id, 
+	"scene": str(get_project_id())})
+
+
 func load_empty_scene(pr_id: int, name: String):
 	fg.go_into_graph()
 	project_id = pr_id

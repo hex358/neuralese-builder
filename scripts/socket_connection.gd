@@ -21,6 +21,7 @@ func _poll() -> void:
 	_ws.poll()
 
 	var state = _ws.get_ready_state()
+	#print(state)
 	if state != _last_state:
 		if state == WebSocketPeer.STATE_OPEN:
 			for bytes in _out_queue:

@@ -38,10 +38,11 @@ func set_name_graph(st: String, remove = null):
 	var branch_ends = {}
 	var cachify = func (from: Connection, to: Connection, branch_cache: Dictionary):
 		if to.parent_graph == remove: return
+		if to.parent_graph.server_typename == "ClassifierNode": return
 		var desc = to.parent_graph.get_first_descendants()
 		if remove in desc:
 			desc.erase(remove)
-		if desc.is_empty():
+		if desc.is_empty() or (len(desc) == 1 and desc[0].server_typename == "ClassifierNode"):
 			branch_ends[to.parent_graph] = true
 	name_graph = st
 	var input_graph = graphs.get_input_graph_by_name(name_graph)

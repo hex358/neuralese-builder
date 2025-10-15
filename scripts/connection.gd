@@ -12,10 +12,10 @@ var datatype: StringName = ""
 		if not is_node_ready():
 			await ready
 		_accepted_datatypes = v
-		accepted_datatypes.clear()
+		accepted_datatypes = {}
 		if _accepted_datatypes:
 			for i in _accepted_datatypes.split(" "):
-				if connection_type == OUTPUT:
+				if not datatype:#connection_type == OUTPUT:
 					datatype = i
 				accepted_datatypes[i] = true
 		#print(connection_type == OUTPUT)
@@ -249,12 +249,20 @@ func connect_to(target: Connection, force: bool = false) -> bool:
 	
 	return true
 
+func dtype(conn: Connection):
+	#if not !conn.accepted_datatypes: return true
+	if len(accepted_datatypes) == 1: return conn.accepted_datatypes.has(datatype)
+	for i in accepted_datatypes:
+		if i in conn.accepted_datatypes:
+			return true
+	return false
+
 
 func is_suitable(conn: Connection) -> bool:
 #	print((!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype)))
 	#print(custom_expression.get_error_text())
 	var cond_1: bool = (conn and conn != self and conn.connection_type == INPUT
-		and (!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype))
+		and dtype(conn)
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
 		and multiple(conn) #conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or true or conn.conn_count_keyword == &"router"
 		and graphs.validate_acyclic_edge(self, conn)

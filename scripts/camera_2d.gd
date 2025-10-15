@@ -6,6 +6,15 @@ class_name GraphViewport
 @export var drag_speed: float = 1.0
 @export var zoom_interpolation_speed: float = 10.0
 
+var paused: bool = false
+
+func stop():
+	paused = true
+	drag_move_vec = Vector2()
+
+func resume():
+	paused = false
+
 var dragging: bool = false
 
 func _enter_tree() -> void:
@@ -47,7 +56,7 @@ func _input(event: InputEvent) -> void:
 		if event.button_index == drag_button:
 			dragging = event.pressed
 
-		elif not ui.splashed and event.pressed and not glob.is_occupied(self, &"scroll"):
+		elif not ui.splashed and not paused and event.pressed and not glob.is_occupied(self, &"scroll"):
 			var factor = zoom_speed * event.factor * zoom.x
 			var prev_zoom = target_zoom
 			
@@ -60,7 +69,7 @@ func _input(event: InputEvent) -> void:
 				move_intensity = 1.0
 				glob.hide_all_menus()
 
-	elif event is InputEventMouseMotion and dragging and not glob.mouse_pressed and acc and not ui.splashed:
+	elif event is InputEventMouseMotion and not paused and dragging and not glob.mouse_pressed and acc and not ui.splashed:
 		if _ignore_next_motion > 0:
 			_ignore_next_motion -= 1
 			return
@@ -86,7 +95,7 @@ func mouse_range(pos: float, edge_start: float, edge_end: float, axis: int):
 
 var rise_mult: float = 0.0
 func _process(delta: float) -> void:
-	if glob.mouse_middle_just_pressed:
+	if glob.mouse_middle_just_pressed and not paused:
 		acc = glob.get_display_mouse_position().x < glob.space_end.x
 	var mouse: Vector2 = get_global_mouse_position()
 	if not ui.splashed:
@@ -95,20 +104,21 @@ func _process(delta: float) -> void:
 	move_intensity = lerp(move_intensity, 0.0, delta * zoom_interpolation_speed)
 	if glob.mouse_scroll and not ui.splashed:
 		zoom_move_vec = (mouse - get_global_mouse_position())
-	var display_mouse = glob.get_display_mouse_position()
+	if not paused:
+		var display_mouse = glob.get_display_mouse_position()
 
-	rise_mult = min(mouse_range(display_mouse.x, 110, 50, glob.RIGHT)+
-							mouse_range(display_mouse.x, 110, 50, glob.LEFT)+
-							mouse_range(display_mouse.y, 30, -30, glob.UP)+
-							mouse_range(display_mouse.y, 30, -30, glob.DOWN), 1.0) if !glob.is_occupied(self,&"scroll") else 0.0
-	if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult:
-		var dir = glob.window_middle.direction_to(display_mouse)
-		drag_move_vec = drag_move_vec.lerp(
-		1000 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
-		delta * 10.0)
-		glob.hide_all_menus.call_deferred()
-	else:
-		drag_move_vec = drag_move_vec.lerp(Vector2(), delta * 10.0)
-	target_position += drag_move_vec
+		rise_mult = min(mouse_range(display_mouse.x, 110, 50, glob.RIGHT)+
+								mouse_range(display_mouse.x, 110, 50, glob.LEFT)+
+								mouse_range(display_mouse.y, 30, -30, glob.UP)+
+								mouse_range(display_mouse.y, 30, -30, glob.DOWN), 1.0) if !glob.is_occupied(self,&"scroll") else 0.0
+		if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult:
+			var dir = glob.window_middle.direction_to(display_mouse)
+			drag_move_vec = drag_move_vec.lerp(
+			1000 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5), 
+			delta * 10.0)
+			glob.hide_all_menus.call_deferred()
+		else:
+			drag_move_vec = drag_move_vec.lerp(Vector2(), delta * 10.0)
+		target_position += drag_move_vec
 	target_position += zoom_move_vec * move_intensity
 	position = position.lerp(target_position, 20.0*delta)

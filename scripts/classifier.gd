@@ -1,11 +1,21 @@
 extends DynamicGraph
 
-
 var value_cache: Array = []
+var manually: bool = false
 func unit_set(unit, value, text):
 	units[unit].set_weight(value, text)
 
+func _config_field(field: StringName, value: Variant):
+	if not manually and field == "units":
+		for i in len(value):
+			add_unit({"text": value[i]})
+		#	units[i].get_node("Label").text = value[i]
+		push_values(value_cache, per)
+		
+
+var per: bool = false
 func push_values(values: Array, percent: bool = false):
+	per = percent
 	var minimal = values.min()
 	var maximal = values.max()
 	var add = "%" if percent else ""
@@ -21,6 +31,12 @@ func push_values(values: Array, percent: bool = false):
 			unit_set(unit, 0.0, "0%")
 		else:
 			unit_set(unit, 0.0, "0.0")
+	var res = []
+	for i in units: 
+		res.append(i.get_node("Label").text)
+	manually = true
+	update_config({"units": res})
+	manually = false
 
 func _unit_just_added() -> void:
 	var ancestor = get_first_ancestors()

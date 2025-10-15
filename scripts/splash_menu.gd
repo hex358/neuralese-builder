@@ -129,8 +129,9 @@ func splash() -> void:
 	splashed = true
 	show()
 	ui.add_splashed(self)
-
-	glob.cam.process_mode = Node.PROCESS_MODE_DISABLED
+	
+	if glob.cam is GraphViewport:
+		glob.cam.stop()
 	glob.tree_windows["env"].get_node("Control").process_mode = Node.PROCESS_MODE_DISABLED
 	_just_splash()
 
@@ -142,7 +143,9 @@ func go_away() -> void:
 	splashed = false
 	ui.rem_splashed(self)
 
-	glob.cam.process_mode = Node.PROCESS_MODE_ALWAYS
+
+	if glob.cam is GraphViewport:
+		glob.cam.resume()
 	glob.tree_windows["env"].get_node("Control").process_mode = Node.PROCESS_MODE_ALWAYS
 
 	_just_go_away()

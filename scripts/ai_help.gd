@@ -14,6 +14,18 @@ func _ready() -> void:
 	set_messages([
 		{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"},
 		])
+	var received = await glob.request_chat(str(chat_id))
+	if received and received.body:
+		var json = JSON.parse_string(received.body.get_string_from_utf8())
+		if not "messages" in json: return
+		for i in json.messages:
+			if i["role"] == "user":
+				i.user = true
+			elif i["role"] != "system":
+				i.user = false
+			i.erase("role")
+		set_messages(json.messages)
+	
 
 func text_receive(data: PackedByteArray):
 	var dt = data.get_string_from_utf8()
@@ -26,7 +38,9 @@ func send_message(text: String):
 	$ColorRect/Label2.disable()
 	add_message({"user": false, "text": "", "_pending": true})
 	var sock = await sockets.connect_to("ws/talk", text_receive)
-	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), "text": $ColorRect/Label2.text})
+	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), 
+	"text": $ColorRect/Label2.text, "_clear": "",
+	"scene": str(glob.get_project_id())})
 	$ColorRect/Label2.clear()
 	await sock.closed
 	get_last_message().erase("_pending")
@@ -35,7 +49,7 @@ func send_message(text: String):
 var _message_list: Array[Dictionary] = []
 
 @onready var scroller = $ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer
-func set_messages(messages: Array[Dictionary]):
+func set_messages(messages: Array):
 	for message in messages:
 		add_message(message)
 
@@ -78,13 +92,13 @@ func _process(delta: float) -> void:
 		if scrolling:
 			tr.position = $ColorRect/Label2.position + Vector2(0,-1)
 		else:
-			tr.position = $ColorRect/Label2.position + Vector2(0,-11)
+			tr.position = $ColorRect/Label2.position + Vector2(0,-1)
 			
 	else:
 		if scrolling:
 			tr.position = $ColorRect/Label2.position + Vector2(0,-0)
 		else:
-			tr.position = $ColorRect/Label2.position + Vector2(0,-11)
+			tr.position = $ColorRect/Label2.position + Vector2(0,-1)
 		
 
 
