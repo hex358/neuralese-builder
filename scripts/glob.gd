@@ -826,6 +826,75 @@ func model_changes_apply(actions: Dictionary):
 					connection.to.port = in_ports.keys()[0]
 
 				out_ports[int(connection.from.port)].connect_to(in_ports[int(connection.to.port)])
+	_auto_layout(creating)
+
+
+
+func _auto_layout(creating: Dictionary[String, Graph], padding: float = 180.0):
+	var visited := {}
+
+	# pick arbitrary starting node (or one without inputs)
+	var origins: Array = []
+	for tag in creating.keys():
+		var g: Graph = creating[tag]
+		if g.server_typename == "InputNode" or g.server_typename == "TrainBegin":
+			origins.append(g)
+		g.hold_for_frame()
+	if origins.is_empty():
+		origins.append(creating.values()[0])
+	for i in origins:
+		if graphs.is_node(i, "TrainBegin"):
+			i.position.y -= 310
+	
+	var leftover = creating
+	for origin in origins:
+		#origin.position = Vector2.ZERO
+		graphs.reach(origin, func(from_conn: Connection, to_conn: Connection, branch_cache: Dictionary):
+			var from_graph: Graph = from_conn.parent_graph
+			var to_graph: Graph = to_conn.parent_graph
+			if to_graph in visited:
+				return
+			visited[to_graph] = true
+			var base_pos: Vector2 = from_graph.rect.global_position
+			var dir: Vector2 = from_conn.dir_vector.normalized()
+			var mult = Vector2(); var pad = 30
+			mult.x = from_graph.rect.size.x + pad if dir.x >= 0 else pad
+			mult.y = from_graph.rect.size.y + pad if dir.y >= 0 else pad
+			if dir.y == 0:
+				base_pos.y = from_graph.rect.global_position.y + from_graph.rect.size.y / 2
+		#	to_graph.rect.position = base_pos + dir * mult
+			to_graph.global_position = base_pos + dir * mult - to_graph.rect.position
+			leftover.erase(to_graph.llm_tag)
+		)
+	for key in leftover:
+		var node = leftover[key]
+		# special rules for tag nodes
+		if graphs.is_node(node, "LayerConfig"):
+			var descendants = node.get_first_descendants()
+			if descendants:
+				var middle_x = float(0.0)
+				for i in descendants:
+					middle_x += i.rect.global_position.x + i.rect.size.x / 2
+				middle_x /= len(descendants)
+				var min_y = INF
+				for i in descendants:
+					min_y = min(min_y, i.rect.global_position.y)
+				if min_y != INF:
+					node.position = Vector2(middle_x, min_y - 100)
+
+		if graphs.is_node(node, "ModelName"):
+			var descendants = node.get_first_descendants()
+			if descendants:
+				var middle_x = INF
+				for i in descendants:
+					middle_x = min(middle_x, i.rect.global_position.x)
+				var min_y = INF
+				for i in descendants:
+					min_y = min(min_y, i.rect.global_position.y)
+				node.position = Vector2(middle_x - 80, min_y - 80)
+	for i in origins:
+		if graphs.is_node(i, "TrainBegin"):
+			i.position.y += 90
 
 
 func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):

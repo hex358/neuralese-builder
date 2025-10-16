@@ -517,6 +517,8 @@ func reach(from_graph: Graph, call: Callable = def_call):
 	gathered[-1] = gather.call(prev_q)
 	reach_mode = false
 
+func is_node(who: Graph, typename: String) -> bool:
+	return who.server_typename == typename
 
 func get_syntax_tree(input) -> Dictionary:
 	var gathered = {}
