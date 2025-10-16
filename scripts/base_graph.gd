@@ -90,9 +90,12 @@ func get_config_dict() -> Dictionary:
 func _config_field(field: StringName, value: Variant):
 	pass
 
+func _layout_size() -> Vector2:
+	return rect.size
+
 func animate(delta: float):
 	if graph_flags & Flags.NEW:
-		if exist_time < 2.0: hold_for_frame(); reposition_splines()
+		if exist_time < 1.0: hold_for_frame(); reposition_splines()
 		_new_animate(delta)
 
 func _after_ready():

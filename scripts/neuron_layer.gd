@@ -19,6 +19,8 @@ func _neurons_fix_set(v: bool):
 	else:
 		ui.line_unblock(line_edit)
 
+func _layout_size():
+	return Vector2(rect.size.x, target_size)
 
 func push_neuron_count(parsed: int):
 	update_config({"neuron_count": parsed})

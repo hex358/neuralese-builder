@@ -26,11 +26,14 @@ func line_unblock(line: LineEdit):
 	line.mouse_filter = MOUSE_FILTER_STOP
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index in wheel_buttons:
-		var hovered = get_viewport().gui_get_hovered_control()
-		if hovered and hovered is Slider:
-			accept_event()
-			return
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index in wheel_buttons:
+			var hovered = get_viewport().gui_get_hovered_control()
+			if hovered and hovered is Slider:
+				accept_event()
+				return
+	#	elif event.button_index == MOUSE_BUTTON_LEFT:
+	#		print(get_focus())
 
 	if event is InputEventMouse:
 		var focused = get_viewport().gui_get_focus_owner()
@@ -86,6 +89,7 @@ var splash_menus = {
 	"works": preload("res://scenes/works.tscn"),
 	"project_create": preload("res://scenes/project_create.tscn"),
 	"ai_help": preload("res://scenes/ai_help.tscn"),
+	"select_dataset": preload("res://scenes/select_dataset.tscn"),
 }
 
 
@@ -132,7 +136,7 @@ func get_splash(who: String) -> SplashMenu:
 		if i.typename == who: return i
 	return null
 
-func splash(menu: String, splashed_from = null, emitter_ = null, inner = false) -> SplashMenu:
+func splash(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> SplashMenu:
 	hourglass.off(true)
 	if splashed_from:
 		if !is_splashed(menu):
@@ -143,6 +147,7 @@ func splash(menu: String, splashed_from = null, emitter_ = null, inner = false) 
 			return null
 	var m: SplashMenu = splash_menus[menu].instantiate()
 	m.inner = inner
+	if passed_data: m.passed_data = passed_data
 	cl.add_child(m)
 	m.splashed_from = splashed_from
 	var emitter = ResultEmitter.new() if !emitter_ else emitter_
@@ -156,7 +161,7 @@ class ResultEmitter:
 	signal res(data: Dictionary, who: String)
 
 signal result_emit(data: Dictionary)
-func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, inner = false) -> Dictionary:
+func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> Dictionary:
 	hourglass.off(true)
 	if splashed_from:
 		if !is_splashed(menu):
@@ -167,6 +172,7 @@ func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, 
 			return {}
 	var m: SplashMenu = splash_menus[menu].instantiate()
 	m.inner = inner
+	if passed_data: m.passed_data = passed_data
 	cl.add_child(m)
 	m.splashed_from = splashed_from
 	var emitter = ResultEmitter.new() if !emitter_ else emitter_

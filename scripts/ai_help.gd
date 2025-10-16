@@ -23,7 +23,7 @@ func _ready() -> void:
 				i.user = true
 			elif i["role"] != "system":
 				i.user = false
-				i.text = glob.clean_message(i.text)
+				i.text = parser.clean_message(i.text)
 			i.erase("role")
 		set_messages(json.messages)
 	

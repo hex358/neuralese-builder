@@ -25,6 +25,7 @@ web="*res://scripts/web.gd"
 sockets="*res://scripts/sockets.gd"
 nn="*res://scripts/run_manager.gd"
 luas="*res://scripts/lua_envs.gd"
+parser="*res://scripts/graph_script_parser.gd"
 
 [display]
 

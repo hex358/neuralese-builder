@@ -60,6 +60,9 @@ func repush(columns: int, rows: int):
 func _just_connected(who: Connection, to: Connection):
 	graphs.push_2d(int(grid.x/group), int(grid.y/group), get_first_descendants())
 
+func _layout_size():
+	return target_size_vec
+
 func _proceed_hold() -> bool:
 	return true
 

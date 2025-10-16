@@ -386,6 +386,8 @@ func visualise_grid(columns: int, rows: int) -> void:
 	target_size_vec.x = columns * (unit_size.x + grid_padding) + size_add_vec.x + offset.x
 	size_changed()
 
+func _layout_size():
+	return target_size_vec
 
 func _on_h_slider_value_changed(value: float) -> void:
 	var a: int = value

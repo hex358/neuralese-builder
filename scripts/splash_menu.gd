@@ -43,6 +43,8 @@ var res: Callable
 func resultate(data: Dictionary):
 	_resultate(data)
 
+var passed_data: Dictionary = {}
+
 var splashed_from: BlockComponent
 var can_go: bool = true
 func _resultate(data: Dictionary):

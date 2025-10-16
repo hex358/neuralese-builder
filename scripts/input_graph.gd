@@ -26,6 +26,9 @@ func _just_connected(who: Connection, to: Connection):
 		graphs._input_origin_graph = self
 	graphs.push_2d(28, 28, to.parent_graph)
 
+
+
+
 func _just_disconnected(who: Connection, to: Connection):
 	pass
 	if graphs._input_origin_graph == self:

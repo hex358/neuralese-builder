@@ -131,6 +131,7 @@ text = "здравствуйте братишька
 здравствуйте"
 fit_content = true
 selection_enabled = true
+script = ExtResource("4_3k8xb")
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer"]
 layout_direction = 3
