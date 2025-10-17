@@ -1,7 +1,7 @@
 extends Graph
 
 func _can_drag() -> bool:
-	return !$TextureRect.mouse_inside
+	return !$TextureRect.mouse_inside and not run.is_mouse_inside()
 
 func get_raw_values():
 	var width: int = $TextureRect.image.get_width()
@@ -28,7 +28,7 @@ func _just_connected(who: Connection, to: Connection):
 
 
 
-
+@onready var run = $run
 func _just_disconnected(who: Connection, to: Connection):
 	pass
 	if graphs._input_origin_graph == self:
@@ -39,9 +39,11 @@ func _useful_properties() -> Dictionary:
 	#print("A")
 	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28}}
 
-
+var running: bool = false
 func _process(delta: float) -> void:
 	super(delta)
+	if nn.is_infer_channel(self) and glob.space_just_pressed:
+		nn.send_inference_data(self, useful_properties())
 	#if glob.space_just_pressed:
 	#	print(graphs.get_syntax_tree(self))
 
@@ -50,3 +52,8 @@ func _after_ready() -> void:
 	super()
 	graphs._input_origin_graph = self
 	image_dims = Vector2i($TextureRect.image.get_width(), $TextureRect.image.get_height())
+
+
+func _on_run_released() -> void:
+	running = true
+	nn.open_infer_channel(self)

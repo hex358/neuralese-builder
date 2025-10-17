@@ -629,12 +629,14 @@ func _update_scroll_text(delta: float) -> void:
 
 var ins_request: bool = false
 func _process_block_button(delta: float) -> void:
-	if not visible or not parent.visible or (graph and !graph.visible) or not freedom: 
+	if not is_visible_in_tree() or not freedom:
+		glob.un_occupy(self, "block_button_inside") 
 		return
 	
 	var ins = (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	#if is_contained:
 		#print(glob.get_occupied("menu_inside"))
+	#ins = ins or (graph_root and not graph_root.visible)
 	var blocked = (is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)) or is_blocking \
 	or ins
 	var frozen = is_contained and parent.is_frozen or is_frozen
@@ -696,6 +698,7 @@ func _process_block_button(delta: float) -> void:
 
 			if state.pressing:
 				if not (is_contained and is_contained.scrolling):
+					#print(_wrapped_in.get_parent())
 					released.emit()
 				state.pressing = false
 				hover_scale = base_scale if config.animation_scale else base_scale * config._press_scale
@@ -945,6 +948,13 @@ func unroll():
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
 	var reset_menu = not static_mode and _is_not_menu()
+	#if menu_name == "add_graph":
+		#print(reset_menu)
+	#if glob.hide_menus:
+	#	print("a")
+	var res = !static_mode and glob.hide_menus and not state.holding and button_type == ButtonType.CONTEXT_MENU
+	if res:
+		menu_hide()
 	if not is_visible_in_tree() and reset_menu:
 		if !static_mode:
 			glob.un_occupy(self, &"menu")
@@ -977,10 +987,10 @@ func _process_context_menu(delta: float) -> void:
 
 
 
-	if !static_mode and glob.hide_menus and not state.holding and button_type == ButtonType.CONTEXT_MENU:
+	if res:
 		left_pressed = false; right_pressed = false
 		left_click = false; right_click = false
-		menu_hide()
+		#menu_hide()
 		
 	var i_occupied: bool = false
 	var inside: bool = is_mouse_inside()

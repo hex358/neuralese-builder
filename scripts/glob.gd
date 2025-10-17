@@ -16,6 +16,18 @@ var refs = {}
 func ref(inst, name):
 	refs[name] = inst
 
+func flatten_array(arr: Array) -> Array:
+	var result: Array = []
+	var queue: Array = [arr]
+
+	while not queue.is_empty():
+		var current = queue.pop_front()
+		for item in current:
+			if item is Array:
+				queue.push_back(item)
+			else:
+				result.append(item)
+	return result
 
 
 func getref(name):
@@ -341,6 +353,44 @@ TYPE_DICTIONARY:true,})
 func is_array(a) -> bool: return typeof(a) in arrays
 func is_iterable(a) -> bool: return typeof(a) in iterables
 
+func deep_map(root: Variant, mapper: Callable) -> Variant:
+	var result = root.duplicate()
+	var queue: Array = [result]
+
+	while queue.size() > 0:
+		var current = queue.pop_back()
+
+		if current is Array:
+			var size: int = current.size()
+			for i in size:
+				var v = current[i]
+				if v is Array:
+					var copy = v.duplicate()
+					current[i] = copy
+					queue.push_back(copy)
+				elif v is Dictionary:
+					var copy = v.duplicate()
+					current[i] = copy
+					queue.push_back(copy)
+				else:
+					current[i] = mapper.call(v)
+
+		elif current is Dictionary:
+			for k in current:
+				var v = current[k]
+				if v is Array:
+					var copy = v.duplicate()
+					current[k] = copy
+					queue.push_back(copy)
+				elif v is Dictionary:
+					var copy = v.duplicate()
+					current[k] = copy
+					queue.push_back(copy)
+				else:
+					current[k] = mapper.call(k, v)
+
+	return result
+
 func list(type: int):
 	var res = null
 	match type:
@@ -426,6 +476,57 @@ func input_poll():
 
 var ticks: int = 0
 
+func cast_variant(value: Variant, target_type: int) -> Variant:
+	match target_type:
+		TYPE_NIL:
+			return null
+
+		TYPE_BOOL:
+			return bool(value)
+
+		TYPE_INT:
+			return int(value)
+
+		TYPE_FLOAT:
+			return float(value)
+
+		TYPE_STRING:
+			return str(value)
+
+		TYPE_VECTOR2:
+			if value is Vector2:
+				return value
+			elif value is Array and value.size() >= 2:
+				return Vector2(value[0], value[1])
+			return Vector2.ZERO
+
+		TYPE_VECTOR3:
+			if value is Vector3:
+				return value
+			elif value is Array and value.size() >= 3:
+				return Vector3(value[0], value[1], value[2])
+			return Vector3.ZERO
+
+		TYPE_COLOR:
+			if value is Color:
+				return value
+			elif value is String:
+				return Color(value)
+			elif value is Array and value.size() >= 3:
+				return Color(value[0], value[1], value[2], value[3] if value.size() > 3 else 1.0)
+			return Color.WHITE
+
+		TYPE_VECTOR4:
+			if value is Vector4:
+				return value
+			elif value is Array and value.size() >= 4:
+				return Vector4(value[0], value[1], value[2], value[3])
+			return Vector4.ZERO
+
+		_:
+			return value  # fallback, return as-is
+
+
 
 var menu_canvas: CanvasLayer = null
 func get_display_mouse_position():
@@ -491,6 +592,8 @@ func _process(delta: float) -> void:
 		occ.last_mouse_pos = occ.get_global_mouse_position()
 		if occ.is_mouse_inside():
 			un_occupy(occ, "block_button_inside")
+	if not _menu_type_occupator or not _menu_type_occupator.is_visible_in_tree():
+		reset_menu_type(_menu_type_occupator, menu_type)
 
 
 var hovered_connection_changed: bool = false
@@ -787,8 +890,8 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
-	#open_last_project()
+	open_last_project()
 	
-	test_place()
+	#test_place()
 	
 	

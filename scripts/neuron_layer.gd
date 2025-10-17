@@ -30,7 +30,7 @@ func push_neuron_count(parsed: int):
 		group_size = max(1, value)
 		_apply_grouping()
 
-var _real_amount = 0
+var _real_amount: int = 0
 @onready var base_size_add: float = size_add
 
 func _get_unit(kw: Dictionary) -> Control:
@@ -43,7 +43,6 @@ func _get_info() -> Dictionary:
 	return {
 		"position": position,
 		"neuron_count": cfg.neuron_count,
-		"arr": [0,1,2,3,4],
 	}
 
 var last_resized: int = 0
@@ -124,14 +123,17 @@ var neuron_count: int = 0
 func _config_field(field: StringName, val: Variant):
 	match field:
 		"neuron_count":
-			neuron_count = val
-			line_edit.set_line(str(val))
-			_real_amount = max(0, val)
-			_apply_grouping()
-			for i in get_first_descendants():
-				if i.server_typename == "Reshape2D":
-					i.update_config({"rows": i.cfg.rows, "columns": i.cfg.columns})
-			hold_for_frame()
+			#print(val)
+			#val = int(val)
+			if 1:#not neurons_fixed:
+				neuron_count = val
+				line_edit.set_line(str(val))
+				_real_amount = max(0, val)
+				_apply_grouping()
+				for i in get_first_descendants():
+					if i.server_typename == "Reshape2D":
+						i.update_config({"rows": i.cfg.rows, "columns": i.cfg.columns})
+				hold_for_frame()
 			
 
 func _on_line_edit_changed() -> void:

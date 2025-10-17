@@ -93,6 +93,24 @@ func _config_field(field: StringName, value: Variant):
 func _layout_size() -> Vector2:
 	return rect.size
 
+func llm_map(pack: Dictionary):
+	_llm_map(pack)
+
+#func llm_property(name: String) -> :
+	#pass
+
+func _llm_map(pack: Dictionary):
+	if not pack: return
+	if len(base_config) == 1:
+		update_config({base_config.keys()[0]: pack.values()[0]})
+		if pack.values()[0] is Dictionary:
+			update_config_subfield({base_config.keys()[0]: pack.values()[0]})
+	else:
+		update_config(pack)
+		for f in pack:
+			if pack[f] is Dictionary:
+				update_config_subfield({f: pack[f]})
+
 func animate(delta: float):
 	if graph_flags & Flags.NEW:
 		if exist_time < 1.0: hold_for_frame(); reposition_splines()
@@ -672,7 +690,9 @@ func get_info() -> Dictionary:
 
 var llm_tag: String = ""
 
-func map_properties(pack: Dictionary):
+func map_properties(pack: Dictionary, careful: bool = false):
+	#for i in pack:
+	#	if not i in 
 	position = pack.position
 	subgraph_id = pack.subgraph_id
 	context_id = pack.context_id

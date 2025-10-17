@@ -520,6 +520,12 @@ func reach(from_graph: Graph, call: Callable = def_call):
 func is_node(who: Graph, typename: String) -> bool:
 	return who.server_typename == typename
 
+func is_nodes(who: Graph, ...typenames: Array) -> bool:
+	for typename in typenames:
+		if who.server_typename == typename:
+			return true
+	return false
+
 func get_syntax_tree(input) -> Dictionary:
 	var gathered = {}
 	var expect = {}

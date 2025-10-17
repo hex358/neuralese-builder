@@ -162,6 +162,7 @@ class ResultEmitter:
 
 signal result_emit(data: Dictionary)
 func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> Dictionary:
+	#print_stack()
 	hourglass.off(true)
 	if splashed_from:
 		if !is_splashed(menu):

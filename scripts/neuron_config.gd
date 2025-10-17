@@ -5,7 +5,8 @@ extends Graph
 func _config_field(field: StringName, value: Variant):
 	if field == "activ":
 		selected_activation = value
-		dropout.text = dropout.button_by_hint[value].text
+		if value in dropout.button_by_hint:
+			dropout.text = dropout.button_by_hint[value].text
 
 var selected_activation: StringName = &"none"
 func _on_color_rect_2_child_button_release(button: BlockComponent) -> void:

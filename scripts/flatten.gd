@@ -15,8 +15,9 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 
 func _just_connected(who: Connection, to: Connection):
 	if to.parent_graph.server_typename == "NeuronLayer":
-		to.parent_graph.neurons_fixed = true
-		to.parent_graph.push_neuron_count(neuron_count)
+		pass
+		#to.parent_graph.push_neuron_count(neuron_count)
+		#to.parent_graph.neurons_fixed = true
 
 func _just_disconnected(who: Connection, from: Connection):
 	if from.parent_graph.server_typename == "NeuronLayer":
@@ -30,11 +31,12 @@ func set_count(count: int):
 	var dess = get_descendant()
 	if dess:
 		if get_ancestor():
-			if dess.server_typename == "NeuronLayer":
-				dess.push_neuron_count(neuron_count)
-				dess.neurons_fixed = true
-		elif dess.server_typename == "NeuronLayer":
-			dess.neurons_fixed = false
+			pass
+			#if dess.server_typename == "NeuronLayer":
+			#	dess.push_neuron_count(neuron_count)
+			#	dess.neurons_fixed = true
+		#elif dess.server_typename == "NeuronLayer":
+		#	dess.neurons_fixed = false
 	
 var block_types: Dictionary[StringName, bool] = {"NeuronLayer": 1, "Reshape2D": 1}
 var count_reach: int = 0

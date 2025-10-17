@@ -163,7 +163,7 @@ func preprocess(actions: Dictionary):
 
 
 func model_changes_apply(actions: Dictionary):
-	cookies.open_or_create("test.bin").store_var(actions)
+	#cookies.open_or_create("test.bin").store_var(actions)
 	actions = preprocess(actions)
 	#print(actions); return
 	var creating: Dictionary[String, Graph] = {}
@@ -179,6 +179,7 @@ func model_changes_apply(actions: Dictionary):
 				continue
 			var g = graphs.get_graph(typename, Graph.Flags.NEW, 0, node.tag)
 			creating[node.tag] = g
+			g.set_meta("llm_pack", node)
 			g.hold_for_frame()
 
 	await get_tree().process_frame
@@ -227,6 +228,21 @@ func model_changes_apply(actions: Dictionary):
 					continue
 
 				out_ports[from_port].connect_to(in_ports[to_port])
+	
+	await get_tree().process_frame
+	for node in creating:
+		var real_node = creating[node]
+		var cfg = real_node.get_meta("llm_pack").config
+		var map = func(...args):
+			var k = args[0]
+			var v = args[1] if args.size() > 1 else k
+			if real_node.base_config.size() == 1: k = real_node.base_config.keys()[0]
+			if k in real_node.base_config:
+				return glob.cast_variant(v, typeof(real_node.base_config[k]))
+			else:
+				return v
+		cfg = glob.deep_map(cfg, map)
+		real_node.llm_map(cfg)
 	_auto_layout(creating)
 
 
@@ -301,6 +317,18 @@ func _auto_layout(creating: Dictionary[String, Graph], padding: float = 180.0):
 				for i in descendants:
 					min_y = min(min_y, i.rect.global_position.y)
 				node.position = Vector2(middle_x - 80, min_y - 80)
+
+		if graphs.is_node(node, "DatasetName"):
+			var descendants = node.get_first_descendants()
+			if descendants:
+				var middle_x = INF
+				for i in descendants:
+					middle_x = min(middle_x, i.rect.global_position.x)
+				var min_y = INF
+				for i in descendants:
+					min_y = min(min_y, i.rect.global_position.y)
+				node.position = Vector2(middle_x - 100, min_y + 10)
+
 	for i in origins:
 		if graphs.is_node(i, "TrainBegin"):
 			i.position.y += 90

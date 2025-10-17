@@ -72,7 +72,14 @@ var inference_sockets := {}
 
 func _infer_state_received(bytes: PackedByteArray) -> void:
 	var _dict = JSON.parse_string(bytes.get_string_from_utf8())
-	print(_dict)
+	if _dict and "result" in _dict and _dict["result"] is Dictionary:
+		for i in _dict["result"]:
+			var node: Graph = graphs._graphs.get(int(i))
+			if not node: continue
+			for to_push in _dict["result"][i].values():
+				if graphs.is_node(node, "ClassifierNode"):
+					node.push_values(glob.flatten_array(to_push), node.per)
+	#print(_dict)
 
 
 func is_infer_channel(input: Graph) -> bool:
@@ -99,7 +106,7 @@ func open_infer_channel(input: Graph) -> void:
 
 func send_inference_data(input: Graph, data: Dictionary) -> void:
 	# make sure channel is open
-	print("try push!")
+	#print("try push!")
 	if not (input in inference_sockets):
 		push_warning("No inference channel open for this graph")
 		return
@@ -117,7 +124,7 @@ func send_inference_data(input: Graph, data: Dictionary) -> void:
 
 func _process(delta: float) -> void:
 	pass
-	if not is_instance_valid(graphs._input_origin_graph): return
+	#if not is_instance_valid(graphs._input_origin_graph): return
 	#if Input.is_action_just_pressed("ui_accept"):
 		#if !is_infer_channel(graphs._input_origin_graph):
 			#open_infer_channel(graphs._input_origin_graph)

@@ -16,8 +16,8 @@ func _config_field(field: StringName, value: Variant):
 var per: bool = false
 func push_values(values: Array, percent: bool = false):
 	per = percent
-	var minimal = values.min()
-	var maximal = values.max()
+	var minimal = values.min() if !percent else 0.0
+	var maximal = values.max() if !percent else 1.0
 	var add = "%" if percent else ""
 	for unit in len(values):
 		var value = (values[unit] - minimal) / float(maximal - minimal)

@@ -142,3 +142,5 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_0qcdd")
 graph = NodePath("..")
+
+[connection signal="released" from="run" to="." method="_on_run_released"]
