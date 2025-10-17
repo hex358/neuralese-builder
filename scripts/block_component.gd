@@ -521,6 +521,8 @@ func is_mouse_inside() -> bool:
 	or glob.get_display_mouse_position().x > glob.space_end.x): return false
 	var height = base_size.y if (
 		button_type == ButtonType.BLOCK_BUTTON or (button_type == ButtonType.DROPOUT_MENU and current_type == ButtonType.BLOCK_BUTTON)) else expanded_size
+	if not static_mode:
+		height = size.y
 	var bounds = Rect2(0, 0, base_size.x + 2*area_padding, height + 2*area_padding)
 	bounds.size *= mult
 	bounds.position += global_position - Vector2.ONE*area_padding*mult
@@ -997,6 +999,8 @@ func _process_context_menu(delta: float) -> void:
 	
 	if scroll and visible and (max_size and max_size < expanded_size):
 		scroll.size.x = base_size.x - scrollbar_padding
+	#if menu_name == "add_graph":
+		#print(inside)
 
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
 		bar.scale.x = bar_scale_x

@@ -47,13 +47,11 @@ func send_message(text: String):
 	add_message({"user": true, "text": text})
 	$ColorRect/Label2.disable()
 	add_message({"user": false, "text": "", "_pending": true})
-	$ColorRect/Label2.clear()
+	$ColorRect/Label2._guard = false
+	$ColorRect/Label2._clear_text_and_reset()
 	var sock = await glob.update_message_stream(text, chat_id, text_receive, glob.def, true)
+	$ColorRect/Label2._clear_text_and_reset()
 	if sock:
-	#var sock = await sockets.connect_to("ws/talk", text_receive)
-	#sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), 
-	#"text": $ColorRect/Label2.text, "_clear": "",
-	#"scene": str(glob.get_project_id())})
 		await sock.kill
 	get_last_message().erase("_pending")
 	$ColorRect/Label2.enable()

@@ -1,9 +1,11 @@
 extends Node
 
-func train_state_received(bytes: PackedByteArray):
+func train_state_received(bytes: PackedByteArray, additional: Callable):
 	var jsonified = bytes.get_string_from_utf8()
 	var dict = JSON.parse_string(jsonified)
+	if not dict: return
 	if not "phase" in dict: return
+	additional.call(dict)
 	if dict["phase"] == "state":
 		if dict["data"]["type"] == "complete":
 			graphs._training_head.train_stop()
@@ -12,26 +14,14 @@ func train_state_received(bytes: PackedByteArray):
 		var loss = data["val_loss"]
 		graphs._training_head.push_acceptance(1.0 - loss, 0.0)
 
-	#var chain = branch_cache.get_or_add("chain", [])
-	#if  (chain and chain[-1].server_typename in block_types): return
-	#chain.append(from.parent_graph)
-	#
-	#if to.parent_graph.server_typename == "Flatten":
-		#to.parent_graph.set_count(count_reach)
-#
-#func _just_deattached(other_conn: Connection, my_conn: Connection):
-	#set_count(0)
-	#graphs.update_dependencies(self)
-	#graphs.update_dependencies(self)
-	#count_reach = 0
-	#graphs.reach(self, call_count)
+
 
 func request_save():
 	for g in graphs._graphs:
 		graphs._graphs[g].request_save()
 
 var training_sockets = {}
-func start_train(train_input: Graph, args: Dictionary = {}):
+func start_train(train_input: Graph, additional_call: Callable = glob.def):
 	var train_input_origin = graphs._reach_input(train_input, "TrainBegin")
 	var execute_input_origin = null
 	var _d = {}
@@ -52,8 +42,10 @@ func start_train(train_input: Graph, args: Dictionary = {}):
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(execute_input_origin),
 		"train_graph": graphs.get_syntax_tree(train_input_origin),
-	})
-	var a = sockets.connect_to("ws/train", train_state_received)
+		"scene_id": str(glob.get_project_id()),
+		"context": execute_input_origin.context_id
+	}.merged(train_input_origin.get_training_data()))
+	var a = sockets.connect_to("ws/train", train_state_received.bind(additional_call), cookies.get_auth_header())
 	training_sockets[train_input] = a
 	a.connected.connect(func():
 		a.send(compressed))
@@ -91,9 +83,11 @@ func open_infer_channel(input: Graph) -> void:
 	request_save()
 	var init_payload = {
 		"session": "neriqward",
-		"graph": graphs.get_syntax_tree(input)
+		"graph": graphs.get_syntax_tree(input),
+		"scene_id": str(glob.get_project_id()),
+		"context": input.context_id,
 	}
-	var sock = sockets.connect_to("ws/infer", _infer_state_received)
+	var sock = sockets.connect_to("ws/infer", _infer_state_received, cookies.get_auth_header())
 	inference_sockets[input] = sock
 	sock.connected.connect(func() -> void:
 		sock.send(glob.compress_dict_zstd(init_payload))

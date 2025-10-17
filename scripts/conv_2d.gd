@@ -71,6 +71,7 @@ func _after_ready() -> void:
 		$filter.size = Vector2()
 		$filter2.size = Vector2()
 	update_config(base_config.duplicate())
+#	size_add_vec = size_add_vec
 
 @export var label_offset: float = 25.0
 func _size_changed() -> void:
@@ -248,7 +249,8 @@ func fade_process(delta: float):
 	# size lerp
 	var target: Vector2 = target_size_vec.max(biggest_size_possible)
 	if max_size:
-		target = target.max(max_size)
+		target.x = max(target.x, max_size.x)
+		target.y = max(target.y, max_size.y)
 	var prev_size = rect.size
 	rect.size = rect.size.lerp(target, delta * 15.0)
 	if !glob.is_vec_approx(prev_size, rect.size):

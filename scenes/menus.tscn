@@ -26,6 +26,7 @@ script = ExtResource("1_chs3c")
 [node name="Node2D" type="Node2D" parent="."]
 
 [node name="add_graph" parent="." instance=ExtResource("2_rnbi1")]
+visible = false
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
@@ -312,6 +313,7 @@ alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
+visible = false
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
@@ -362,10 +364,10 @@ offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("9_rxqxn")
 placeholder = true
-text = "Edit node  .."
+text = "Delete node -"
 base_size = Vector2(184, 46)
 _scroll_container = false
-expanded_size = 240
+expanded_size = 96
 scale_anim = true
 mouse_open = false
 menu_name = &"edit_graph"
@@ -374,8 +376,8 @@ config = null
 
 [node name="neuron" parent="edit_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.635294, 0.858824, 0.764706, 1)
-instance_shader_parameters/tuning = Color(0.313726, 0.470588, 0.396078, 0.552941)
+instance_shader_parameters/outline_color = Color(0.9490196, 0.41960785, 0.41960785, 1)
+instance_shader_parameters/tuning = Color(0.4392157, 0.22352941, 0.22352941, 0.6392157)
 layout_mode = 0
 offset_left = -94.2857
 offset_top = -68.5714
@@ -384,12 +386,13 @@ offset_bottom = -27.571404
 pivot_offset = Vector2(109.5, 20.5)
 button_type = 1
 hint = &"1"
-text = "Neuron"
+text = "Delete"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
 [node name="delete_i" parent="." instance=ExtResource("2_rnbi1")]
+visible = false
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)

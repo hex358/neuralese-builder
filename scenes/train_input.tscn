@@ -55,7 +55,7 @@ fade_speed = 20.0
 size_lerp_speed = 20.0
 tab_size_adds = Dictionary[StringName, float]({
 &"adam": 0.0,
-&"sgd": 0.0
+&"sgd": 13.0
 })
 server_typename = &"TrainInput"
 base_config = Dictionary[StringName, Variant]({
@@ -129,7 +129,7 @@ instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
 offset_left = -78.0
 offset_top = -45.0
 offset_right = 173.0
-offset_bottom = 84.0
+offset_bottom = 64.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 offset_left = 9.0
@@ -384,7 +384,6 @@ offset_bottom = 25.6463
 scale = Vector2(2, 2)
 focus_mode = 1
 mouse_force_pass_scroll_events = false
-max_value = 1.0
 step = 10.0
 
 [node name="name" type="Label" parent="sgd_tab" index="1"]
@@ -404,6 +403,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="train" parent="." index="9" instance=ExtResource("4_d1efk")]
+visible = false
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -430,6 +430,7 @@ max_size = 170
 config = SubResource("Resource_s3o4y")
 
 [node name="YY" parent="." index="10" instance=ExtResource("10_b41bo")]
+visible = false
 layout_mode = 0
 offset_left = 117.0
 offset_top = 59.0

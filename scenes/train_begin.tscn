@@ -1,9 +1,27 @@
-[gd_scene load_steps=5 format=3 uid="uid://274a5p56vhfv"]
+[gd_scene load_steps=10 format=3 uid="uid://274a5p56vhfv"]
 
 [ext_resource type="Script" uid="uid://c0nii2r70t0mx" path="res://scripts/train_begin.gd" id="1_oiu5h"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_oiu5h"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_rbfmr"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="4_twvuy"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="5_v08dh"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="6_8dwpr"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="7_bo1ga"]
+[ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="8_qoxl0"]
+
+[sub_resource type="Resource" id="Resource_5puut"]
+script = ExtResource("6_8dwpr")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Base" type="Control"]
 layout_mode = 3
@@ -34,7 +52,7 @@ max_splines_by_keyword = Dictionary[StringName, int]({
 dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("..")
 conn_count_keyword = "netname"
-gradient_color = Color(0.7019608, 0.4, 1, 1)
+gradient_color = Color(0.82, 0.64, 1, 1)
 
 [node name="i" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_oiu5h")]
 layout_mode = 0
@@ -61,7 +79,7 @@ layout_mode = 0
 offset_left = -79.0
 offset_top = -68.0
 offset_right = 52.0
-offset_bottom = 71.0
+offset_bottom = 69.0
 
 [node name="root" type="Control" parent="ColorRect"]
 anchors_preset = 0
@@ -88,5 +106,52 @@ layout_mode = 0
 offset_left = -71.0
 offset_top = -47.0
 offset_right = 44.0
-offset_bottom = 63.0
+offset_bottom = 38.0
 color = Color(0.34, 0.34, 0.34, 0.5882353)
+
+[node name="train" parent="." instance=ExtResource("5_v08dh")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = -40.25332
+offset_top = 38.67205
+offset_right = 21.746689
+offset_bottom = 63.672047
+scale = Vector2(0.733764, 0.733764)
+pivot_offset = Vector2(31.000004, 12.499998)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 1)
+button_type = 1
+top = true
+base_scale_x = 0.45
+resize_after = 6
+text = "Train!"
+base_size = Vector2(62.000008, 24.999996)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_5puut")
+
+[node name="YY" parent="." instance=ExtResource("7_bo1ga")]
+layout_mode = 0
+offset_left = 18.746696
+offset_top = 43.672047
+offset_right = 87.7467
+offset_bottom = 91.67204
+scale = Vector2(0.320293, 0.320293)
+placeholder_text = "1"
+max_length = 3
+expand_to_text_length = true
+context_menu_enabled = false
+emoji_menu_enabled = false
+virtual_keyboard_type = 2
+script = ExtResource("8_qoxl0")
+min_value = 1
+max_value = 50
+resize_after = 4
+change_always_accepted = false
+
+[connection signal="released" from="train" to="." method="_on_train_released"]

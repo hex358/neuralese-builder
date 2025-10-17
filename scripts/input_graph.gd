@@ -8,10 +8,10 @@ func get_raw_values():
 	var total: int = $TextureRect.image.get_width() * $TextureRect.image.get_height()
 	var res = []
 	for y in width:
-		var row = []
+		#var row = []
 		for x in width:
-			row.append($TextureRect.get_pixel(Vector2(x,y)).r)
-		res.append(row)
+			res.append($TextureRect.get_pixel(Vector2(x,y)).r)
+		#res.append(row)
 	return res
 
 

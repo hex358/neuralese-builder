@@ -167,6 +167,8 @@ func _restore_snapshot() -> void:
 func _insert_newline_at_caret() -> void:
 	insert_text_at_caret("\n")
 
+@export var base: float = 46
+
 func _clear_text_and_reset() -> void:
 	if _guard:
 		return
@@ -180,6 +182,7 @@ func _clear_text_and_reset() -> void:
 	scroll_horizontal = 0.0
 
 	custom_minimum_size.y = 0
+	custom_minimum_size.y = 46
 
 	_accept_snapshot()
 

@@ -7,6 +7,9 @@ var _cookies: Dictionary = {}
 func _ready() -> void:
 	_load_cookies()
 
+func get_auth_header() -> Dictionary:
+	return {"user": "n", "pass": "1"}
+
 func get_username() -> String:
 	return "n"
 

@@ -710,11 +710,8 @@ func map_properties(pack: Dictionary, careful: bool = false):
 			update_config_subfield({f: pack.cfg[f]})
 	_map_properties(pack)
 
-
-static func debug_print_contexts() -> void:
+static func get_ctx_groups() -> Dictionary:
 	var ctx_groups: Dictionary = {}
-	
-	# group all nodes in the registry by their context_id
 	for sub_id in _subgraph_registry:
 		for n in _subgraph_registry[sub_id]:
 			if not is_instance_valid(n):
@@ -723,6 +720,10 @@ static func debug_print_contexts() -> void:
 			if not ctx_groups.has(ctx):
 				ctx_groups[ctx] = []
 			ctx_groups[ctx].append(n)
+	return ctx_groups
+
+static func debug_print_contexts() -> void:
+	var ctx_groups = get_ctx_groups()
 
 	for ctx_id in ctx_groups.keys():
 		var nodes = ctx_groups[ctx_id]

@@ -84,6 +84,7 @@ func _match_tag_token(buf: String, pos: int) -> Variant:
 func parse_stream_tags(sock: SocketConnection, chunk: String) -> String:
 	var state = sock.cache.get_or_add("parser_state", {"buf": "", "stack": [], "acc": []})
 	var actions = sock.cache.get_or_add("actions", {})  # { tag: [body1, body2, ...] }
+	return chunk
 
 	state.buf += chunk
 	var result: String = ""
@@ -143,6 +144,7 @@ func parse_stream_tags(sock: SocketConnection, chunk: String) -> String:
 	return result
 
 func clean_message(s: String):
+	return s
 	return tag_strip(s)[0].strip_edges()
 
 func preprocess(actions: Dictionary):

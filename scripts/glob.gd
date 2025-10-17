@@ -713,6 +713,7 @@ var llm_name_mapping = {
 	train_begin = "train_begin",
 	train_step = "train_input",
 	load_dataset = "dataset",
+	augment_tf = "augment_tf",
 }
 
 var tag_types = {}
@@ -762,7 +763,7 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 
 func update_message_stream(input_text: String, chat_id: int, text_update: Callable = def, on_close: Callable = def, clear: bool = false) -> SocketConnection:
 	if chat_id in message_sockets: return
-	var sock = await sockets.connect_to("ws/talk", def)
+	var sock = await sockets.connect_to("ws/talk", def, cookies.get_auth_header())
 	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), 
 	"text": input_text, "_clear": "1" if clear else "",
 	"scene": str(get_project_id())})
@@ -840,12 +841,14 @@ func save(from: String):
 	"blob": blob,
 	"name": fg.get_scene_name(),
 	 "user": "n", 
+	"contexts": Graph.get_ctx_groups().keys(),
 	"pass": "1"})
 
 func save_empty(from: String, name: String):
 	var blob = Marshalls.raw_to_base64(var_to_bytes(get_project_data(true)))
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
+	"contexts": [],
 	"name": name,
 	 "user": "n", 
 	"pass": "1"})

@@ -54,7 +54,7 @@ var learning_rates = {"adam": ["1e-2", "1e-3", "1e-4"], "sgd": ["1e-1","1e-2","1
 
 var is_training: bool = false
 func _proceed_hold() -> bool:
-	return is_training
+	return training
 
 func _can_drag() -> bool:
 	return not switch.is_mouse_inside() and not train_button.is_mouse_inside()\
@@ -122,34 +122,31 @@ func _config_field(field: StringName, value: Variant):
 		"weight_decay":
 			set_weight_dec(value)
 		"momentum":
-			$sgd_tab/Label4/HSlider.value = float(value)
+			#print(value)
+			$sgd_tab/Label4/HSlider.value = float(value) * 100.0
 		"lr":
 			select_lr(int(value))
 		"optimizer":
 			select_optimizer(value)
 
-func additional_call(x):
-	pass
-
 func train_stop():
-	$ColorRect2.alive = false
-	train.text = "Train!"
-	nn.stop_train(self)
-
+	if 1:#training:
+		training = false
+		$ColorRect2.alive = false
+	#train.text = "Train!"
+	#nn.stop_train(self)
+var training: bool = false
 func train_start():
-	timing_offset = -$ColorRect2.get_time()
-	$ColorRect2.alive = true
-	$ColorRect2/time_passed.text = "0.0s"
-	train.text = "Stop"
-	nn.start_train(self, {"additional_call": additional_call})
+	if 1:#not training:
+		training = true
+		timing_offset = -$ColorRect2.get_time()
+		$ColorRect2.alive = true
+		$ColorRect2/time_passed.text = "0.0s"
+	#train.text = "Stop"
+	#nn.start_train(self, {"additional_call": additional_call})
 
 var timing_offset: float = 0.0
-@onready var train = $train
-func _on_train_released() -> void:
-	if $ColorRect2.alive:
-		train_stop()
-	else:
-		train_start()
+
 	#graphs.train()
 
 var _fade_targets: Dictionary = {}
@@ -167,4 +164,4 @@ func _set_alpha(n: CanvasItem, a: float) -> void:
 
 
 func _on_h_slider_value_changed(value: float) -> void:
-	update_config({"momentum": value})
+	update_config({"momentum": value / 100.0})

@@ -56,11 +56,14 @@ func get_last_value() -> float:
 	return points[_window_end-1]
 
 func push_input(time: float, value: float, last: int = 0) -> void:
-	if value > max_value:
-		max_value = value
-	points_q[int(time / dot_represents) if not last else last] = value / max_value
+	#print(value)
+	if alive:
+		if value > max_value:
+			max_value = value
+		points_q[int(time / dot_represents) if not last else last] = value / max_value
 
 func _process(delta: float) -> void:
+	#print(killed)
 	if killed: return
 	t += delta
 	t_last_frame += delta
@@ -68,6 +71,11 @@ func _process(delta: float) -> void:
 	if tweener:
 		_draw_offset_x = lerp(0.0, -spacing, t_last_frame / snapshot_every)
 		_reline()
+		if not alive and _draw_offset_x > -1:
+			_draw_offset_x = 0
+			killed = true
+			_point_step()
+			return
 
 	if t_last_frame <= snapshot_every:
 		if tweener and mode == 0:

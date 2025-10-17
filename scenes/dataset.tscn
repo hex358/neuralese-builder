@@ -53,7 +53,7 @@ max_splines_by_keyword = Dictionary[StringName, int]({
 dir_vector = Vector2(0, 1)
 parent_graph = NodePath("..")
 conn_count_keyword = "netname"
-gradient_color = Color(0.7019608, 0.4, 1, 1)
+gradient_color = Color(0.81960785, 0.6392157, 1, 1)
 
 [node name="ColorRect" type="ColorRect" parent="."]
 material = ExtResource("3_0wvvd")
