@@ -468,6 +468,11 @@ func rename_input_graph(who: Graph, name_: String):
 func get_input_graph_by_name(name_: String):
 	return input_graph_names.get(name_)
 
+signal model_updated(who: String)
+
+func get_input_name_by_graph(input: Graph):
+	return input_graphs.get(input)
+
 func forget_input_graph_name(name_: String):
 	if name_ in input_graph_names:
 		input_graphs.erase(input_graph_names[name_])

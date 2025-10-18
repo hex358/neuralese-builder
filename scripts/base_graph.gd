@@ -6,6 +6,7 @@ class_name Graph
 @onready var rect = $ColorRect
 @export var z_space: int = 2
 @export var is_input: bool = false
+@export var is_head: bool = false
 
 enum Flags {NONE=0, NEW=2}
 @export_flags("none", "new") var graph_flags = 0
@@ -559,7 +560,8 @@ func _useful_properties() -> Dictionary:
 	return {}
 
 func _ready() -> void:
-	glob.get_llm_tag(self)
+	if not llm_tag:
+		llm_tag = glob.get_llm_tag(self)
 	position -= rect.position
 	animate(0)
 	#graphs.add(self)

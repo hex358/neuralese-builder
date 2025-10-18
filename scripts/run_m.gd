@@ -14,6 +14,20 @@ func _useful_properties() -> Dictionary:
 		"config": {"branch_losses": body}
 	}
 
+func _llm_map(pack: Dictionary):
+	await get_tree().process_frame
+	#cfg["branches"].clear()
+	for i in pack["loss_heads"]:
+		#i = cfg[""]
+		var node = glob.tags_1d.get(i)
+		#print(node)
+		if node and str(node.graph_id) in cfg["branches"]:
+			#print(pack["loss_heads"][i])
+			set_loss_type(str(node.graph_id), pack["loss_heads"][i])
+		else:
+			print("Skipping one...")
+
+
 func _request_save():
 	set_name_graph(name_graph)
 
@@ -37,6 +51,8 @@ func set_loss_type(of_id, loss: String, inner=false):
 	if not inner:
 		manually = true
 		update_config_subfield({"branches": {str(of_id): loss}})
+	#print(of_id, unit_keys)
+	
 	if of_id in unit_keys:
 		var ls = unit_keys[of_id].get_node("loss")
 		if ls:
@@ -58,6 +74,7 @@ func edit_unit(node: Graph, u: Control):
 	u.get_node("Control/Label").resize()
 	u.set_meta("points_to", node)
 	unit_keys[str(node.graph_id)] = u
+	#set_loss_type(str(node.graph_id), "mse")
 	#print("A!")
 
 
@@ -78,12 +95,10 @@ func set_name_graph(st: String, remove = null):
 	var branch_ends = {}
 	var cachify = func (from: Connection, to: Connection, branch_cache: Dictionary):
 		if to.parent_graph == remove: return
-		if to.parent_graph.server_typename == "ClassifierNode": return
-		var desc = to.parent_graph.get_first_descendants()
-		if remove in desc:
-			desc.erase(remove)
-		if desc.is_empty() or (len(desc) == 1 and desc[0].server_typename == "ClassifierNode"):
-			branch_ends[to.parent_graph] = true
+		if to.parent_graph.is_head: 
+			branch_ends[to.parent_graph] = true; return
+		#if desc[0].is_head:
+		#	branch_ends[to.parent_graph] = true
 	name_graph = st
 	var input_graph = graphs.get_input_graph_by_name(name_graph)
 	#print(graphs.graph_map)
@@ -94,6 +109,12 @@ func set_name_graph(st: String, remove = null):
 		dis()
 		return
 	graphs.reach(input_graph, cachify)
+	var prev_by_title := {}
+	for id in cfg["branches"]:
+		var u = unit_keys.get(id)
+		if u:
+			var title = u.get_node("Control/Label").text
+			prev_by_title[title] = cfg["branches"][id]
 	var new_len = len(branch_ends)
 	for unitt in range(new_len, old_len):
 		remove_unit(len(units)-1)
@@ -108,6 +129,17 @@ func set_name_graph(st: String, remove = null):
 		if ct >= old_len:
 			add_unit({"text": j.get_title()}, true)
 		edit_unit(j, units[ct])
+		#if ct >= old_len:
+		set_loss_type(str(j.graph_id), "mse")
+	#print(prev_branches)
+	#print(old_units)
+	#print(prev_branches)
+	#print(unit_keys)
+	for j in branch_ends:
+		var title = j.get_title()
+		var loss = prev_by_title.get(title, "mse")
+		set_loss_type(str(j.graph_id), loss)
+
 
 
 func _get_unit(kw: Dictionary) -> Control: #virtual
@@ -127,6 +159,7 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	dup.show()
 	dup.modulate.a = 0.0
 	appear_units[dup] = true
+	#update_config_subfield({"branches/%s"%})
 	return dup
 
 

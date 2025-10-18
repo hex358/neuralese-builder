@@ -57,6 +57,7 @@ func stop_train(train_input: Graph):
 		#web.POST("end_train", {})
 		return
 	training_sockets[train_input].send(glob.compress_dict_zstd({"stop": "true"}))
+	training_sockets.erase(train_input)
 
 
 
@@ -69,7 +70,7 @@ func _infer_state_received(bytes: PackedByteArray) -> void:
 			var node: Graph = graphs._graphs.get(int(i))
 			if not node: continue
 			for to_push in _dict["result"][i].values():
-				if graphs.is_node(node, "ClassifierNode"):
+				if node.is_head:
 					node.push_values(glob.flatten_array(to_push), node.per)
 	#print(_dict)
 
@@ -100,7 +101,6 @@ func open_infer_channel(input: Graph) -> void:
 
 func send_inference_data(input: Graph, data: Dictionary) -> void:
 	# make sure channel is open
-	#print("try push!")
 	if not (input in inference_sockets):
 		push_warning("No inference channel open for this graph")
 		return
@@ -115,6 +115,7 @@ func send_inference_data(input: Graph, data: Dictionary) -> void:
 	var payload = {"data": data}
 	var compressed = glob.compress_dict_zstd(payload)
 	sock.send(compressed)
+	#print(data)
 
 func _process(delta: float) -> void:
 	pass

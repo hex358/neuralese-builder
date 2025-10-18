@@ -706,7 +706,7 @@ var llm_name_mapping = {
 	softmax = "softmax",
 	flatten = "flatten",
 	reshape2d = "reshape2d",
-	out_classes =  "classifier",
+	label_names =  "classifier",
 	input_image_small = "input",
 	model_name = "model_name",
 	run_model = "run_model",
@@ -717,6 +717,7 @@ var llm_name_mapping = {
 }
 
 var tag_types = {}
+var tags_1d = {}
 
 func get_llm_tag(who: Graph) -> String:
 	var res = ""; var iters: int = 0
@@ -730,13 +731,18 @@ func get_llm_tag(who: Graph) -> String:
 		iters += 1
 	tag_types[g][res] = true
 	#print(res)
+	
+	tags_1d[who.llm_tag] = who
 	return res
 
 func set_llm_tag(who: Graph, val: String):
+	if who.llm_tag in tags_1d:
+		tags_1d.erase(who.llm_tag)
 	var g = who.get_meta("created_with")
 	if not g in tag_types: tag_types[g] = {}
 	who.llm_tag = val
 	tag_types[g][val] = true
+	tags_1d[who.llm_tag] = who
 
 var llm_name_unmapping = (func():
 	var dict = {}
@@ -893,8 +899,10 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
-	open_last_project()
+	#open_last_project()
 	
-	#test_place()
-	
-	
+	test_place()
+
+func disconnect_all(from_signal: Signal):
+	for i in from_signal.get_connections():
+		from_signal.disconnect(i.callable)

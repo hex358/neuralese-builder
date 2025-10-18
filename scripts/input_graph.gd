@@ -19,11 +19,18 @@ func get_raw_values():
 	#if graphs._reach_input(to.parent_graph):
 		#
 
+
+func get_netname():
+	for i in get_first_ancestors():
+		if i.server_typename == "ModelName":
+			return i
+	return null
+
 func _just_connected(who: Connection, to: Connection):
 	#if to.parent_graph.server_typename == "Flatten":
 	#	to.parent_graph.set_count(cfg.rows * cfg.columns)
-	if graphs._input_origin_graph == null:
-		graphs._input_origin_graph = self
+	#if graphs._input_origin_graph == null:
+	#	graphs._input_origin_graph = self
 	graphs.push_2d(28, 28, to.parent_graph)
 
 
@@ -31,8 +38,8 @@ func _just_connected(who: Connection, to: Connection):
 @onready var run = $run
 func _just_disconnected(who: Connection, to: Connection):
 	pass
-	if graphs._input_origin_graph == self:
-		graphs._input_origin_graph = null
+	#if graphs._input_origin_graph == self:
+	#	graphs._input_origin_graph = null
 	#graphs.unpush_2d(to.parent_graph)
 
 func _useful_properties() -> Dictionary:

@@ -68,6 +68,9 @@ func _ready() -> void:
 			if x.parent_graph.cfg["name"] == cfg["name"]:
 				update_config({"name": cfg["name"]})
 	)
+	graphs.model_updated.connect(func(str: String):
+		if str == cfg["name"]:
+			reload())
 
 	graphs.spline_disconnected.connect(
 	func(x: Connection, y: Connection):
@@ -76,12 +79,13 @@ func _ready() -> void:
 		if reached and reached == graphs.get_input_graph_by_name(cfg["name"]):
 			await get_tree().process_frame
 			update_config({"name": cfg["name"]})
-		if x.parent_graph.server_typename == "ModelName":
-			if y.parent_graph.server_typename == "InputNode" and cfg["name"] == x.parent_graph.cfg.get("name", ""):
-				
-				for i in get_first_descendants():
-					if i.server_typename == "RunModel":
-						i.set_name_graph("")
+		if is_instance_valid(x):
+			if x.parent_graph.server_typename == "ModelName":
+				if y.parent_graph.server_typename == "InputNode" and cfg["name"] == x.parent_graph.cfg.get("name", ""):
+					
+					for i in get_first_descendants():
+						if i.server_typename == "RunModel":
+							i.set_name_graph("")
 	)
 
 var had_name: String = ""
@@ -91,6 +95,9 @@ func recheck(old_name: String, new_name: String):
 	#if cfg["name"] == old_name and (old_name or get_first_descendants()):
 		#update_config({"name": new_name})
 	#else:
+	update_config({"name": cfg["name"]})
+
+func reload():
 	update_config({"name": cfg["name"]})
 
 var upd: bool = false

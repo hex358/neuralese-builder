@@ -342,7 +342,7 @@ func arrange():
 		#print(maxsize)
 
 func _enter_tree() -> void:
-	if !Engine.is_editor_hint() and (button_type == ButtonType.CONTEXT_MENU):
+	if !Engine.is_editor_hint() and (button_type == ButtonType.CONTEXT_MENU) and menu_name:
 		assert(not glob.menus.get(menu_name), "Menu %s already regged"%menu_name)
 		glob.menus[menu_name] = self
 	if !Engine.is_editor_hint():

@@ -230,7 +230,8 @@ scroll_fit_content_height = true
 script = ExtResource("7_o277e")
 children_layer = [NodePath("train2"), NodePath("train")]
 enter_event = NodePath("train")
-max_length = 512
+max_length = 200
+max_size_y = 512
 
 [node name="train" parent="ColorRect/Label2" instance=ExtResource("8_q5qxb")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-6, 0)

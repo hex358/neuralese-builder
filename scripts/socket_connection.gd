@@ -26,6 +26,10 @@ func _init(url: String, _graceful: bool = true, headers: Dictionary = {}):
 	if err != OK:
 		push_error("socket connect_to_url failed: %s" % err)
 
+func disconnect_all():
+	for i in packet.get_connections():
+		packet.disconnect(i.callable)
+
 func _poll() -> void:
 	_ws.poll()
 

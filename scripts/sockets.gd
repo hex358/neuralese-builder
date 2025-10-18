@@ -17,6 +17,8 @@ func _process(_dt: float) -> void:
 	for c in to_del:
 		_conns.erase(c)
 
+
+
 func connect_to(url: String, on_packet: Callable = Callable(), headers: Dictionary = {}) -> SocketConnection:
 	var c = SocketConnection.new(connection_prefix + url, true, headers)
 	_conns[c] = true

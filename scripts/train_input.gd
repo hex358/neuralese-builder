@@ -76,7 +76,8 @@ func _opt_selected(opt: StringName):
 		for i in lr._contained:
 			idx += 1
 			i.text = learning_rates[opt][idx]
-		lr.text = lr.button_by_hint["1"].text
+		#lr.text = lr.button_by_hint["1"].text
+		update_config({"lr": 1})
 
 @onready var lr = $lr
 func select_lr(index: int):

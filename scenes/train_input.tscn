@@ -109,9 +109,9 @@ text = "WeightDec"
 [node name="i" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
 layout_mode = 0
 offset_left = -87.0
-offset_top = 7.0
+offset_top = -2.0
 offset_right = -69.0
-offset_bottom = 27.0
+offset_bottom = 18.0
 color = Color(0.462745, 0.45098, 0.85098, 1)
 _accepted_datatypes = "model_output"
 server_name = &"pred_in"

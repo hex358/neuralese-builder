@@ -1,8 +1,9 @@
-[gd_scene load_steps=13 format=3 uid="uid://de6mgawywaidj"]
+[gd_scene load_steps=17 format=3 uid="uid://de6mgawywaidj"]
 
 [ext_resource type="Script" uid="uid://itl55srlcsih" path="res://scripts/classifier.gd" id="1_eb5hl"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_pa8wt"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="3_7qyfr"]
+[ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="4_cdbc0"]
 [ext_resource type="Script" uid="uid://7mf5v1esvqbs" path="res://scripts/unit.gd" id="4_n00y3"]
 [ext_resource type="Material" uid="uid://blkv556akjllh" path="res://resources/panel.tres" id="5_lukgp"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="6_m7mi5"]
@@ -11,6 +12,12 @@
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_lckd6"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_2xc02"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_giqb5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pa8wt"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cdbc0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n00y3"]
 
 [sub_resource type="Resource" id="Resource_jeojw"]
 script = ExtResource("10_giqb5")
@@ -41,6 +48,7 @@ target_size = 96.0
 input_y_add = 3.0
 server_typename = &"ClassifierNode"
 z_space = 1
+is_head = true
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
 &"units": []
@@ -64,16 +72,24 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="Label" type="Label" parent="ColorRect/root"]
+[node name="Label" type="LineEdit" parent="ColorRect/root"]
 layout_mode = 0
-offset_left = 11.0
-offset_top = 6.0
-offset_right = 204.0
-offset_bottom = 49.0
+offset_left = 8.0
+offset_top = 5.0
+offset_right = 220.1489
+offset_bottom = 53.0
 scale = Vector2(0.414803, 0.414803)
 theme = ExtResource("3_7qyfr")
 theme_override_colors/font_color = Color(0, 1, 0.716667, 1)
-text = "FieldTypes"
+theme_override_colors/font_placeholder_color = Color(0.3835, 0.65, 0.5744917, 1)
+theme_override_font_sizes/font_size = 31
+theme_override_styles/normal = SubResource("StyleBoxEmpty_pa8wt")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_cdbc0")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_n00y3")
+placeholder_text = "Name here.."
+script = ExtResource("4_cdbc0")
+resize_after = 10
+metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
 [node name="connection" type="Control" parent="."]
 anchors_preset = 0
@@ -196,4 +212,5 @@ parent_graph = NodePath("..")
 conn_count_keyword = "classifier"
 gradient_color = Color(0.298039, 0.901961, 0.729412, 1)
 
+[connection signal="changed" from="ColorRect/root/Label" to="." method="_on_label_changed"]
 [connection signal="pressed" from="input/ColorRect2" to="." method="_on_color_rect_2_pressed"]

@@ -94,6 +94,7 @@ func _on_text_changed() -> void:
 		var content_h = visual_rows * lh
 		custom_minimum_size.y = min(content_h, max_size_y)
 	else:
+		#print("rest!")
 		_restore_snapshot()
 
 	var max_line = max(0, get_line_count() - 1)
@@ -143,26 +144,26 @@ func _accept_snapshot() -> void:
 		_snap_sel_to_line = 0
 		_snap_sel_to_col = 0
 
-func _restore_snapshot() -> void:
-	text = _snap_text
 
+func _restore_snapshot() -> void:
+	var cur_line = get_caret_line()
+	var cur_col = get_caret_column()
+	var cur_vscroll = scroll_vertical
+	var cur_hscroll = scroll_horizontal
+
+	text = _snap_text
+	await get_tree().process_frame
+
+	# clamp current caret position to new layout
 	var max_line = max(0, get_line_count() - 1)
-	var line = clamp(_snap_line, 0, max_line)
-	var col = clamp(_snap_col, 0, get_line(line).length())
+	var line = clamp(cur_line, 0, max_line)
+	var col = clamp(cur_col, 0, get_line(line).length())
+
 	set_caret_line(line, true, true)
 	set_caret_column(col)
+	scroll_vertical = cur_vscroll
+	scroll_horizontal = cur_hscroll
 
-	scroll_vertical = _snap_vscroll
-	scroll_horizontal = _snap_hscroll
-
-	if _snap_has_sel:
-		var f_line = clamp(_snap_sel_from_line, 0, max_line)
-		var f_col  = clamp(_snap_sel_from_col, 0, get_line(f_line).length())
-		var t_line = clamp(_snap_sel_to_line, 0, max_line)
-		var t_col  = clamp(_snap_sel_to_col, 0, get_line(t_line).length())
-		select(f_line, f_col, t_line, t_col)
-	else:
-		deselect()
 
 func _insert_newline_at_caret() -> void:
 	insert_text_at_caret("\n")

@@ -13,8 +13,9 @@ func get_training_head():
 
 func additional_call(dict):
 	if dict["phase"] == "state":
+		#print(dict)
 		if "epoch" in dict["data"] and $YY.text.is_valid_int():
-			var new_text = max(int($YY.text)-1, 0)
+			var new_text = max(0, int(dict["data"].get("left", 0))-1)
 			$YY.set_line(str(new_text) if new_text else "")
 	if dict["phase"] == "done":
 		train_stop(true)

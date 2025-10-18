@@ -11,7 +11,16 @@ func _config_field(field: StringName, value: Variant):
 			add_unit({"text": value[i]})
 		#	units[i].get_node("Label").text = value[i]
 		push_values(value_cache, per)
-		
+
+func _can_drag() -> bool:
+	return super() and not ui.is_focus($ColorRect/root/Label)
+
+func _proceed_hold() -> bool:
+	return ui.is_focus($ColorRect/root/Label)
+	
+
+func get_title() -> String:
+	return $ColorRect/root/Label.text if $ColorRect/root/Label.text else "LabelGroup"
 
 var per: bool = false
 func push_values(values: Array, percent: bool = false):
@@ -65,3 +74,15 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 func _after_process(delta: float):
 	super(delta)
 	#push_values(range(len(units)), true)
+
+signal label_changed(text: String)
+func _on_label_changed() -> void:
+	var target = graphs._reach_input(self)
+	if !target: return
+	var got = graphs.get_input_name_by_graph(target)
+	if got:
+		graphs.model_updated.emit(got)
+	#var netname = target.get_netname()
+	#if netname:
+	#	netname.reload()
+	#label_changed.emit($ColorRect/root/Label.text)
