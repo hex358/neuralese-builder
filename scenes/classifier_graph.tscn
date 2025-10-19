@@ -51,7 +51,8 @@ z_space = 1
 is_head = true
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
-&"units": []
+&"texts": [],
+&"title": ""
 })
 
 [node name="ColorRect" type="ColorRect" parent="."]

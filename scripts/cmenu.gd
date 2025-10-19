@@ -37,6 +37,14 @@ func _menu_handle_release(button: BlockComponent):
 			type = "dataset"
 		"augment_tf":
 			type = "augment_tf"
+		"output_map":
+			type = "output_map"
+		"augment_tune":
+			type = "augment_tune"
+		"augment_clean":
+			type = "augment_clean"
+		"augment_fit":
+			type = "augment_fit"
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

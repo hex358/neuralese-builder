@@ -317,7 +317,19 @@ func _disconnecting(who: Connection, to: Connection):pass
 func _connecting(who: Connection, to: Connection):pass
 func _just_disconnected(who: Connection, from: Connection):pass
 
+var virtual_inputs = {}
+
+var virtual_outputs = {}
+
 func add_connection(conn: Connection):
+	#var input_nm = 
+	if conn.dynamic: return
+	if conn.virtual: 
+		if conn.connection_type == Connection.INPUT:
+			virtual_inputs[conn.hint] = conn
+		else:
+			virtual_outputs[conn.hint] = conn
+		return
 	match conn.connection_type:
 		Connection.INPUT: 
 			_inputs.append(conn)
@@ -338,6 +350,15 @@ func reach(call: Callable):
 	pass
 
 func conn_exit(conn: Connection):
+	if conn.dynamic:
+		return
+	if conn.virtual:
+		if conn.connection_type == Connection.INPUT:
+			virtual_inputs.erase(conn.hint)
+		else:
+			virtual_outputs.erase(conn.hint)
+		return
+			
 	match conn.connection_type:
 		Connection.INPUT: 
 			_inputs.erase(conn)
@@ -356,6 +377,8 @@ func _exit_tree() -> void:
 			if arr.is_empty():
 				Graph._subgraph_registry.erase(subgraph_id)
 	graphs.remove(self)
+	for i in graphs.where_am_i(self):
+		graphs.uncache(self, i)
 
 
 
@@ -973,6 +996,10 @@ func reposition_splines():
 		input.reposition_splines()
 	for output in outputs:
 		output.reposition_splines()
+	for i in virtual_inputs:
+		virtual_inputs[i].reposition_splines()
+	for o in virtual_outputs:
+		virtual_outputs[o].reposition_splines()
 
 func _after_process(delta: float):
 	pass

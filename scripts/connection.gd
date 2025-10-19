@@ -3,21 +3,25 @@ class_name Connection
 
 static var INPUT: int = 0
 static var OUTPUT: int = 1
-
+@export var dynamic: bool = false
+@export var virtual: bool = false
 
 var accepted_datatypes: Dictionary[StringName, bool] = {}
 var datatype: StringName = ""
 @export var _accepted_datatypes: String = "": ##any(empty), float, config
 	set(v):
+		_accepted_datatypes = v
 		if not is_node_ready():
 			await ready
-		_accepted_datatypes = v
-		accepted_datatypes = {}
-		if _accepted_datatypes:
-			for i in _accepted_datatypes.split(" "):
-				if not datatype:#connection_type == OUTPUT:
-					datatype = i
-				accepted_datatypes[i] = true
+		repoll_accepted()
+
+func repoll_accepted():
+	accepted_datatypes = {}
+	if _accepted_datatypes:
+		for i in _accepted_datatypes.split(" "):
+			if not datatype:#connection_type == OUTPUT:
+				datatype = i
+			accepted_datatypes[i] = true
 		#print(connection_type == OUTPUT)
 @export var hint: int = 0
 @export var server_name: StringName = "":
@@ -251,6 +255,7 @@ func connect_to(target: Connection, force: bool = false) -> bool:
 
 func dtype(conn: Connection):
 	#if not !conn.accepted_datatypes: return true
+	#print(conn.accepted_datatypes)
 	if len(accepted_datatypes) == 1: return conn.accepted_datatypes.has(datatype)
 	for i in accepted_datatypes:
 		if i in conn.accepted_datatypes:
@@ -261,6 +266,7 @@ func dtype(conn: Connection):
 func is_suitable(conn: Connection) -> bool:
 #	print((!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype)))
 	#print(custom_expression.get_error_text())
+	#print(dtype(conn))
 	var cond_1: bool = (conn and conn != self and conn.connection_type == INPUT
 		and dtype(conn)
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
@@ -344,13 +350,14 @@ func _process(delta: float) -> void:
 			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active and (multiple_splines or outputs.size() == 0): # TODO: implement router splines
 				var nspline = add_spline()
 				start_spline(nspline)
+				#glob.consume_input(self, "mouse_press")
 				glob.activate_spline(outputs[nspline])
 			#elif !multiple_splines and outputs:
 				#outputs[0].tied_to.detatch_spline(outputs[0])
 		elif glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(outputs, self)
 
-	if connection_type == INPUT and inside and not occ:
+	if connection_type == INPUT and inside and not occ and not graphs.conns_active:
 		if glob.mouse_alt_just_pressed and unpadded:
 			glob.menus["detatch"].show_up(inputs, self)
 		elif mouse_just_pressed and inputs:

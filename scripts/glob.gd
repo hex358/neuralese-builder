@@ -1,5 +1,6 @@
 @tool
 extends Node2D
+const DEBUG: bool = true
 
 var default_spline = preload("res://scenes/default_spline.tscn")
 var scroll_container = preload("res://scenes/vbox.tscn")
@@ -714,6 +715,7 @@ var llm_name_mapping = {
 	train_step = "train_input",
 	load_dataset = "dataset",
 	augment_tf = "augment_tf",
+	output_map = "output_map",
 }
 
 var tag_types = {}
@@ -899,9 +901,9 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
-	#open_last_project()
+	open_last_project()
 	
-	test_place()
+	#test_place()
 
 func disconnect_all(from_signal: Signal):
 	for i in from_signal.get_connections():

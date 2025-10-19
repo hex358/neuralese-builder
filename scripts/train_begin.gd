@@ -3,6 +3,38 @@ extends Graph
 func get_training_data():
 	return {"epochs": epochs if epochs else 1, "dataset": "datasets/mnist.ds", "test_dataset": "datasets/mnist_test.ds"}
 
+var dataset_meta: Dictionary = {}
+
+func set_dataset_meta(meta: Dictionary):
+	dataset_meta = meta
+	for i in graphs.get_cache("", self):
+		i.push_meta(self, dataset_meta)
+	
+
+func _ready() -> void:
+	super()
+	set_dataset_meta({"outputs": [
+		{"label": "bbox", "length": 5, "dtype": "1d"}, {"label": "bbox", "length": 5, "dtype": "1d"}
+	]})
+	graphs.spline_connected.connect(func(from: Connection, to: Connection):
+		if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
+			var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
+			graphs.bind_cache(to.parent_graph, "", self)
+			if reached and reached == self:
+				to.parent_graph.push_meta(self, dataset_meta)
+			)
+	graphs.spline_disconnected.connect(func(from: Connection, to: Connection):
+		if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
+			if to.parent_graph.meta_owner == self:
+				graphs.uncache(to.parent_graph, "", self)
+				to.parent_graph.unpush_meta()
+				
+			#var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
+			#if reached and reached == self and not to.virtual:
+			#	to.parent_graph.push_meta(dataset_meta["outputs"])
+			)
+	
+
 func get_training_head():
 	var r = []
 	var def_call = func(from: Connection, to: Connection, branch_cache: Dictionary):
@@ -45,6 +77,8 @@ func _can_drag() -> bool:
 	return not train.is_mouse_inside() and not ui.is_focus($YY)
 
 func _proceed_hold() -> bool:
+	#if glob.space_just_pressed:
+	#	set_dataset_meta({"outputs": [{"label": "hii"}]})
 	return ui.is_focus($YY)
 
 var old_head = null

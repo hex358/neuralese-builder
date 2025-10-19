@@ -312,6 +312,24 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
+[node name="18" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 302.667
+offset_top = -258.667
+offset_right = 521.667
+offset_bottom = -217.66699
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.463817, 0.4505, 0.85, 1)
+button_type = 1
+hint = &"output_map"
+text = "OutputMap"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
 material = ExtResource("3_gygdu")
@@ -359,13 +377,13 @@ metadata/_custom_type_script = "uid://cppqde4187p8n"
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
-offset_right = 178.66667
+offset_right = 182.66667
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("9_rxqxn")
 placeholder = true
 text = "Delete node -"
-base_size = Vector2(178.66667, 46)
+base_size = Vector2(182.66667, 46)
 _scroll_container = false
 expanded_size = 96
 scale_anim = true

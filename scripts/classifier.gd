@@ -6,11 +6,14 @@ func unit_set(unit, value, text):
 	units[unit].set_weight(value, text)
 
 func _config_field(field: StringName, value: Variant):
-	if not manually and field == "units":
+	if not manually and field == "texts":
 		for i in len(value):
 			add_unit({"text": value[i]})
 		#	units[i].get_node("Label").text = value[i]
 		push_values(value_cache, per)
+	if not upd and field == "title":
+		$ColorRect/root/Label.set_line(value)
+		ch()
 
 func _can_drag() -> bool:
 	return super() and not ui.is_focus($ColorRect/root/Label)
@@ -44,7 +47,7 @@ func push_values(values: Array, percent: bool = false):
 	for i in units: 
 		res.append(i.get_node("Label").text)
 	manually = true
-	update_config({"units": res})
+	update_config({"texts": res})
 	manually = false
 
 func _unit_just_added() -> void:
@@ -75,13 +78,20 @@ func _after_process(delta: float):
 	super(delta)
 	#push_values(range(len(units)), true)
 
-signal label_changed(text: String)
-func _on_label_changed() -> void:
+func ch():
 	var target = graphs._reach_input(self)
 	if !target: return
 	var got = graphs.get_input_name_by_graph(target)
 	if got:
 		graphs.model_updated.emit(got)
+
+var upd = false
+signal label_changed(text: String)
+func _on_label_changed() -> void:
+	ch()
+	upd = true
+	update_config({"title": $ColorRect/root/Label.text})
+	upd = false
 	#var netname = target.get_netname()
 	#if netname:
 	#	netname.reload()

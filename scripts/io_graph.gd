@@ -8,6 +8,8 @@ class_name DynamicGraph
 @export var padding: float = 0.0
 @export var line_edit: ValidInput
 @export var unit_offset_y: float = 0.0
+@export var wait_enclose: bool = false
+@export var enclose_pad: float = 0.0
 
 @onready var _unit = unit.duplicate()
 
@@ -50,8 +52,13 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 #	dup.server_name = 
 	return dup
 
+
 var key_by_unit: Dictionary = {}
+func _unit_removal(id: int):
+	pass
+
 func remove_unit(id: int):
+	_unit_removal(id)
 	var unit = units[id]; var dec = unit.size.y + padding
 	appear_units.erase(unit)
 	if glob.cull(unit.global_position, unit.size):
@@ -145,6 +152,9 @@ func _after_process(delta: float):
 
 	var to_del = []
 	for appearer in appear_units:
+		if (wait_enclose and not rect.get_global_rect().\
+		has_point(Vector2(rect.global_position.x + 10, appearer.get_global_rect().end.y - 10))): 
+			continue
 		appearer.modulate.a = lerpf(appearer.modulate.a, 1.0, 10.0*delta)
 		if appearer.modulate.a > 0.9:
 			appearer.modulate.a = 1.0

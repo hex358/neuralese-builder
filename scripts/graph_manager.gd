@@ -275,6 +275,26 @@ func del_conn(who: Connection):
 		#"created_with": get_meta("created_with")
 	#}
 
+var caches = {}
+var bound = {}
+
+func bind_cache(who: Graph, name: String, whose: Graph = null):
+	if whose: name = str(whose.graph_id) + name
+	bound.get_or_add(who, {})[name] = true
+	caches.get_or_add(name, {})[who] = true
+
+func where_am_i(who: Graph):
+	return bound.get(who, {}).keys()
+
+func uncache(who: Graph, name: String, whose: Graph = null):
+	if whose: name = str(whose.graph_id) + name
+	bound.get_or_add(who, {}).erase(name)
+	caches.get_or_add(name, {}).erase(who)
+
+func get_cache(name: String, whose: Graph = null):
+	if whose: name = str(whose.graph_id) + name
+	return caches.get(name, {})
+
 func load_graph(state: Dictionary, reg: Dictionary):
 	z_count = RenderingServer.CANVAS_ITEM_Z_MIN
 	var chain = glob.base_node.importance_chain
@@ -565,25 +585,31 @@ func get_syntax_tree(input) -> Dictionary:
 	#"graph": syntax_tree}), true)
 
 
+func gload(path: String):
+	var loaded = load(path)
+	loaded.set_meta("_loaded_with", path)
+	return loaded
+
 var graph_types = {
-	"io": preload("res://scenes/io_graph.tscn"),
-	"neuron": preload("res://scenes/neuron.tscn"),
-	"loop": preload("res://scenes/loop.tscn"),
-	"base": preload("res://scenes/base_graph.tscn"),
-	"input": preload("res://scenes/input_graph.tscn"),
-	"layer": preload("res://scenes/layer.tscn"),
-	"train_input": preload("res://scenes/train_input.tscn"),
-	"softmax": preload("res://scenes/softmax.tscn"),
-	"reshape2d": preload("res://scenes/reshape.tscn"),
-	"flatten": preload("res://scenes/flatten.tscn"),
-	"conv2d": preload("res://scenes/conv2d.tscn"),
-	"maxpool": preload("res://scenes/maxpool.tscn"),
-	"classifier": preload("res://scenes/classifier_graph.tscn"),
-	"train_begin": preload("res://scenes/train_begin.tscn"),
-	"model_name": preload("res://scenes/netname.tscn"),
-	"dataset": preload("res://scenes/dataset.tscn"),
-	"run_model": preload("res://scenes/run_model.tscn"),
-	"augment_tf": preload("res://scenes/augment_transform.tscn"),
+	"io": gload("res://scenes/io_graph.tscn"),
+	"neuron": gload("res://scenes/neuron.tscn"),
+	"loop": gload("res://scenes/loop.tscn"),
+	"base": gload("res://scenes/base_graph.tscn"),
+	"input": gload("res://scenes/input_graph.tscn"),
+	"layer": gload("res://scenes/layer.tscn"),
+	"train_input": gload("res://scenes/train_input.tscn"),
+	"softmax": gload("res://scenes/softmax.tscn"),
+	"reshape2d": gload("res://scenes/reshape.tscn"),
+	"flatten": gload("res://scenes/flatten.tscn"),
+	"conv2d": gload("res://scenes/conv2d.tscn"),
+	"maxpool": gload("res://scenes/maxpool.tscn"),
+	"classifier": gload("res://scenes/classifier_graph.tscn"),
+	"train_begin": gload("res://scenes/train_begin.tscn"),
+	"model_name": gload("res://scenes/netname.tscn"),
+	"dataset": gload("res://scenes/dataset.tscn"),
+	"run_model": gload("res://scenes/run_model.tscn"),
+	"augment_tf": gload("res://scenes/augment_transform.tscn"),
+	"output_map": gload("res://scenes/branch_mapping.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

@@ -16,16 +16,19 @@ func _useful_properties() -> Dictionary:
 
 func _llm_map(pack: Dictionary):
 	await get_tree().process_frame
+	await get_tree().process_frame
 	#cfg["branches"].clear()
 	for i in pack["loss_heads"]:
 		#i = cfg[""]
-		var node = glob.tags_1d.get(i)
+		#var node = glob.tags_1d.get(i)
 		#print(node)
-		if node and str(node.graph_id) in cfg["branches"]:
+		for branch_str in cfg["branches"]:
 			#print(pack["loss_heads"][i])
-			set_loss_type(str(node.graph_id), pack["loss_heads"][i])
-		else:
-			print("Skipping one...")
+			if not int(branch_str) in graphs._graphs: continue
+			if graphs._graphs[int(branch_str)].get_title() == i:
+				set_loss_type(branch_str, pack["loss_heads"][i])
+		#else:
+		#	print("Skipping one...")
 
 
 func _request_save():
@@ -111,10 +114,11 @@ func set_name_graph(st: String, remove = null):
 	graphs.reach(input_graph, cachify)
 	var prev_by_title := {}
 	for id in cfg["branches"]:
-		var u = unit_keys.get(id)
-		if u:
-			var title = u.get_node("Control/Label").text
-			prev_by_title[title] = cfg["branches"][id]
+		#var u = unit_keys.get(id)
+		#if u:
+		#	#var title = u.get_node("Control/Label").text
+		if not int(id) in graphs._graphs: continue
+		prev_by_title[graphs._graphs[int(id)].get_title()] = cfg["branches"][id]
 	var new_len = len(branch_ends)
 	for unitt in range(new_len, old_len):
 		remove_unit(len(units)-1)
@@ -140,10 +144,14 @@ func set_name_graph(st: String, remove = null):
 		var loss = prev_by_title.get(title, "mse")
 		set_loss_type(str(j.graph_id), loss)
 
+func _unit_removal(id: int):
+	units[id].get_node("i").queue_free()
 
 
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
+	dup.get_node("i").hint = randf_range(0,999999)
+	dup.get_node("i").dynamic = false
 	dup.get_node("loss").graph = dup
 	dup.get_node("loss").auto_ready = true
 	for child in dup.get_node("loss").get_children():
@@ -160,6 +168,7 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	dup.modulate.a = 0.0
 	appear_units[dup] = true
 	#update_config_subfield({"branches/%s"%})
+	#print(outputs)
 	return dup
 
 
