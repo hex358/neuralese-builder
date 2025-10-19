@@ -8,7 +8,9 @@ func _useful_properties() -> Dictionary:
 	#print(cfg)
 	for u in units:
 		var who = (u.get_meta("points_to").graph_id)
-		body[who] = cfg["branches"].get(str(who), "mse")
+		var real = u.get_meta("points_to").get_ancestor().graph_id
+		#print(real)
+		body[real] = cfg["branches"].get(str(who), "mse")
 	#print(body)
 	return {
 		"config": {"branch_losses": body}

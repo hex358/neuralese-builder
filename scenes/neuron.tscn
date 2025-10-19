@@ -49,7 +49,7 @@ gradient_color = Color(0.298039, 0.670588, 0.901961, 1)
 
 [node name="ColorRect" parent="." index="1"]
 instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
-instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+instance_shader_parameters/outline_color = Color(0.42000002, 0.7776666, 1, 1)
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_left = -43.0
 offset_top = -38.0

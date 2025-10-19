@@ -64,7 +64,7 @@ func _layout_size():
 	return target_size_vec
 
 func _proceed_hold() -> bool:
-	return true
+	return false
 
 func _cell_added(x: int, y: int):
 	var chunk_x = x / group

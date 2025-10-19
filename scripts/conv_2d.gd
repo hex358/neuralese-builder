@@ -254,6 +254,7 @@ func fade_process(delta: float):
 	var prev_size = rect.size
 	rect.size = rect.size.lerp(target, delta * 15.0)
 	if !glob.is_vec_approx(prev_size, rect.size):
+		hold_for_frame()
 		size_changed()
 
 func update_grid(x: int, y: int):

@@ -98,6 +98,7 @@ conn_count_keyword = "train"
 gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
 
 [node name="ColorRect" type="ColorRect" parent="."]
+z_index = 1
 material = ExtResource("2_cs7cw")
 instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
 instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
@@ -133,7 +134,6 @@ offset_bottom = 47.5
 script = ExtResource("5_sbclw")
 
 [node name="i" parent="connection" node_paths=PackedStringArray("parent_graph") instance=ExtResource("11_0iy4y")]
-z_index = -1
 layout_mode = 0
 offset_left = 97.0
 offset_top = 11.0

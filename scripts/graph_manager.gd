@@ -228,8 +228,19 @@ func attach_edge(from_conn: Connection, to_conn: Connection):
 func remove_edge(from_conn: Connection, to_conn: Connection):
 	pass
 
-func validate_acyclic_edge(from_conn: Connection, to_conn: Connection):
-	return true
+func validate_acyclic_edge(from_conn: Connection, to_conn: Connection) -> bool:
+	if from_conn.parent_graph == to_conn.parent_graph:
+		return false
+	var reached: Array = [false]
+	var _cycle_check = func(fc: Connection, tc: Connection, _branch_cache: Dictionary) -> void:
+		#print(tc.parent_graph.graph_id, " ", from_conn.parent_graph.graph_id)
+		if tc.parent_graph.graph_id == from_conn.parent_graph.graph_id:
+			reached[0] = true
+			#print(reached)
+	reach(to_conn.parent_graph, _cycle_check)
+	#print(reached)
+	return not reached[0]
+
 
 func _reach_input(from: Graph, custom: String = "InputNode"):
 	if from.server_typename == custom: return from

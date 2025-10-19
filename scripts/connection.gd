@@ -241,11 +241,15 @@ func connect_to(target: Connection, force: bool = false) -> bool:
 	if connection_type != OUTPUT:
 		return false
 
-	if not force and not is_suitable(target):
-		return false
-
-	if not force and not multiple(target):
-		return false
+	if not force:
+		if not is_suitable(target):
+			return false
+		if not graphs.validate_acyclic_edge(self, target):
+			return false
+		if not multiple(target):
+			return false
+		if target.connected.has(self) or not (target.multiple_splines or len(target.inputs) == 0 or target.conn_count_keyword == &"router"):
+			return false
 
 	var slot = add_spline()
 	start_spline(slot)

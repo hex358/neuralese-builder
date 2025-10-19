@@ -51,7 +51,7 @@ z_space = 1
 is_head = true
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
-&"texts": [],
+&"label_names": [],
 &"title": ""
 })
 
@@ -89,7 +89,7 @@ theme_override_styles/read_only = SubResource("StyleBoxEmpty_cdbc0")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_n00y3")
 placeholder_text = "Name here.."
 script = ExtResource("4_cdbc0")
-resize_after = 10
+resize_after = 9
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
 [node name="connection" type="Control" parent="."]

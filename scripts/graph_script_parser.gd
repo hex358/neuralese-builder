@@ -1,6 +1,6 @@
 extends Node
 
-var tags = ["change_nodes", "connect_ports", "delete_nodes", "disconnect_ports"]
+var tags = ["change_nodes", "connect_ports", "delete_nodes", "disconnect_ports", "thinking"]
 
 
 
@@ -172,7 +172,8 @@ func model_changes_apply(actions: Dictionary):
 		for i in ui.splashed:
 			i.go_away()
 	await glob.wait(0.05)
-
+	
+	#print("one...")
 	for pack in actions["change_nodes"]:
 		for node in pack:
 			var typename = glob.llm_name_mapping.get(node.type)
@@ -184,6 +185,7 @@ func model_changes_apply(actions: Dictionary):
 			g.hold_for_frame()
 
 	await get_tree().process_frame
+	#print("two...")
 
 	for pack in actions["connect_ports"]:
 		for connection in pack:
@@ -231,6 +233,7 @@ func model_changes_apply(actions: Dictionary):
 				out_ports[from_port].connect_to(in_ports[to_port])
 	
 	await get_tree().process_frame
+	#print("three...")
 	for node in creating:
 		var real_node = creating[node]
 		var cfg = real_node.get_meta("llm_pack").config

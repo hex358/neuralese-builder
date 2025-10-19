@@ -43,14 +43,19 @@ func get_training_head():
 	graphs.reach(self, def_call)
 	return r[0] if r else null
 
+func _can_train() -> bool:
+	var res = true
+	return res
+
 func additional_call(dict):
-	if dict["phase"] == "state":
-		#print(dict)
-		if "epoch" in dict["data"] and $YY.text.is_valid_int():
-			var new_text = max(0, int(dict["data"].get("left", 0))-1)
-			$YY.set_line(str(new_text) if new_text else "")
-	if dict["phase"] == "done":
-		train_stop(true)
+	if training:
+		if dict["phase"] == "state":
+			#print(dict)
+			if "epoch" in dict["data"] and $YY.text.is_valid_int():
+				var new_text = max(0, int(dict["data"].get("left", 0))-1)
+				$YY.set_line(str(new_text) if new_text else "")
+		if dict["phase"] == "done":
+			train_stop(true)
 
 var epochs: int = 0
 
@@ -58,7 +63,7 @@ var training: bool = false
 var delaying: bool = false
 func train_stop(force: bool = false):
 	#$ColorRect2.alive = false
-	if training and (not delaying or force):
+	if training and (not delaying or force) and _can_train():
 		$YY.editable = true
 		var a = func():
 			delaying = true

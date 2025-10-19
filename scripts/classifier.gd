@@ -6,7 +6,7 @@ func unit_set(unit, value, text):
 	units[unit].set_weight(value, text)
 
 func _config_field(field: StringName, value: Variant):
-	if not manually and field == "texts":
+	if not manually and field == "label_names":
 		for i in len(value):
 			add_unit({"text": value[i]})
 		#	units[i].get_node("Label").text = value[i]
@@ -47,7 +47,7 @@ func push_values(values: Array, percent: bool = false):
 	for i in units: 
 		res.append(i.get_node("Label").text)
 	manually = true
-	update_config({"texts": res})
+	update_config({"label_names": res})
 	manually = false
 
 func _unit_just_added() -> void:
