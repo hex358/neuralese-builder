@@ -16,6 +16,18 @@ func _useful_properties() -> Dictionary:
 		"config": {"branch_losses": body}
 	}
 
+func get_mapped(targets: bool = true) -> Array:
+	var res = []
+	for i in virtual_outputs.values():
+		var got = i.get_target()
+		if not got: continue
+		var slice = {"got_label": got.parent_graph.get_label(got.get_parent()), 
+		"out_labels_title": unit_titles[i.get_parent()]}
+		res.append(slice)
+		if targets:
+			slice["conn"] = got
+	return res
+
 func _llm_map(pack: Dictionary):
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -74,11 +86,13 @@ func _config_field(field: StringName, value: Variant):
 			var trimmed = field.trim_prefix("branches/")
 			set_loss_type(trimmed, value, true)
 
+
 func edit_unit(node: Graph, u: Control):
 	u.get_node("Control/Label").text = node.get_title()
 	u.get_node("Control/Label").resize()
 	u.set_meta("points_to", node)
 	unit_keys[str(node.graph_id)] = u
+	unit_titles[u] = node.get_title()
 	#set_loss_type(str(node.graph_id), "mse")
 	#print("A!")
 
@@ -87,7 +101,8 @@ func edit_unit(node: Graph, u: Control):
 
 func _process(delta: float) -> void:
 	super(delta)
-	#if glob.space_just_pressed:
+	if glob.space_just_pressed:
+		print(get_mapped())
 		#print(_useful_properties())
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
@@ -149,13 +164,14 @@ func set_name_graph(st: String, remove = null):
 func _unit_removal(id: int):
 	units[id].get_node("i").queue_free()
 
-
+var unit_titles = {}
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
 	dup.get_node("i").hint = randf_range(0,999999)
 	dup.get_node("i").dynamic = false
 	dup.get_node("loss").graph = dup
 	dup.get_node("loss").auto_ready = true
+	unit_titles[dup] = kw["text"]
 	for child in dup.get_node("loss").get_children():
 		if child is BlockComponent:
 			child.auto_ready = true

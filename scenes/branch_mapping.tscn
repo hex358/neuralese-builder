@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://tl4ael3dfb7d"]
+[gd_scene load_steps=14 format=3 uid="uid://tl4ael3dfb7d"]
 
 [ext_resource type="Script" uid="uid://dcp87ll4cimhr" path="res://scripts/branches.gd" id="1_iqntl"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_4wq7h"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_hrn15"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="10_jkpld"]
 [ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="11_tcdqi"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="12_x8xw3"]
 
 [sub_resource type="Resource" id="Resource_4mecg"]
 script = ExtResource("9_hrn15")
@@ -31,9 +32,9 @@ offset_bottom = 50.0
 script = ExtResource("1_iqntl")
 unit = NodePath("connection")
 padding = -5.0
-unit_offset_y = 20.0
+unit_offset_y = 13.0
 wait_enclose = true
-target_size = 42.0
+target_size = 35.0
 input_y_add = 3.0
 server_typename = &"OutputMap"
 area_padding = 0.0
@@ -140,6 +141,25 @@ parent_indep = true
 base_size = Vector2(169.107, 43)
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
+[node name="Label2" type="Label" parent="connection/Control"]
+z_index = 1
+layout_mode = 0
+offset_left = 26.000002
+offset_top = 3.0
+offset_right = 328.98248
+offset_bottom = 92.0
+scale = Vector2(0.2025424, 0.2025424)
+theme = ExtResource("4_pvfsu")
+text = "1d
+200"
+horizontal_alignment = 2
+script = ExtResource("7_i50fk")
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(169.107, 43)
+metadata/_custom_type_script = "uid://bjncugq5805ty"
+
 [node name="imp" parent="connection" node_paths=PackedStringArray("graph_root") instance=ExtResource("8_yvk2d")]
 visible = false
 z_index = 1
@@ -232,3 +252,16 @@ dir_vector = Vector2(-1, 0)
 parent_graph = NodePath("../..")
 conn_count_keyword = "pell"
 gradient_color = Color(0.66, 0.66, 0.66, 1)
+
+[node name="dataset" type="Label" parent="."]
+self_modulate = Color(0.86, 0.86, 0.86, 1)
+z_index = 1
+layout_mode = 0
+offset_left = -44.0
+offset_top = -2.999999
+offset_right = 311.8191
+offset_bottom = 44.0
+scale = Vector2(0.2211043, 0.2211043)
+theme = ExtResource("12_x8xw3")
+text = "Loss"
+horizontal_alignment = 1

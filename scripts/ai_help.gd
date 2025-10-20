@@ -83,6 +83,7 @@ func _just_splash():
 	ui.blur.set_tuning(Color(0,0,0,0.5))
 
 @onready var bs = $ColorRect/ScrollContainer.size.y
+var mic_texture = preload("res://game_assets/icons/mic.png")
 func _process(delta: float) -> void:
 	super(delta)
 	var tr = $ColorRect/root/TextureRect
@@ -127,3 +128,11 @@ func get_last_message() -> Dictionary:
 func on_send(txt: String) -> void:
 	if get_last_message() and not get_last_message().has("_pending"):
 		send_message($ColorRect/Label2.text)
+
+@onready var def_texture = $ColorRect/Label2/train/TextureRect.texture
+func _on_label_2_text_changed() -> void:
+	var trect = $ColorRect/Label2/train/TextureRect
+	if $ColorRect/Label2.text:
+		trect.texture = def_texture
+	else:
+		trect.texture = mic_texture

@@ -13,7 +13,7 @@ func set_dataset_meta(meta: Dictionary):
 
 func _ready() -> void:
 	super()
-	set_dataset_meta({"outputs": [
+	set_dataset_meta({"name": "mnist", "outputs": [
 		{"label": "bbox", "length": 5, "dtype": "1d"}, {"label": "bbox", "length": 5, "dtype": "1d"}
 	]})
 	graphs.spline_connected.connect(func(from: Connection, to: Connection):

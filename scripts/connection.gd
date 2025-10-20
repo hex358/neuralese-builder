@@ -234,6 +234,12 @@ func multiple(conn: Connection) -> bool:
 var custom_expression: Expression = null if \
 !suitable_custom_check else Expression.new()
 
+func get_target() -> Connection:
+	if connection_type == Connection.OUTPUT:
+		if outputs:
+			return outputs.values()[0].tied_to
+	return null
+
 
 func connect_to(target: Connection, force: bool = false) -> bool:
 	if not is_instance_valid(target) or target == self:
@@ -318,117 +324,120 @@ var low = {"detatch": true, "edit_graph": true}
 func _process(delta: float) -> void:
 	if not visible or not parent_graph.visible:
 		return
-	var inside = is_mouse_inside()
-	
+
+	var inside := is_mouse_inside()
+
+	# Resolve 'some' active output connection (normally single drag)
+	var active_out: Connection = null
+	for k in graphs.conns_active:
+		active_out = k
+		break
+
+	if inside:
+		graphs.register_conn_candidate(self, "activate")
+		if connection_type == INPUT and active_out != null:
+			if active_out.is_suitable(self):
+				graphs.register_conn_candidate(self, "hover")
+
 	if active_outputs:
 		parent_graph.hold_for_frame()
-	
-	if connection_type == INPUT:
-		if inside:
-			parent_graph.hold_for_frame()
-			if not is_instance_valid(glob.hovered_connection):
-				glob.hovered_connection_changed = true
-				glob.hovered_connection = self
-		elif glob.hovered_connection == self:
-			glob.hovered_connection = null
-	#print(glob.hovered_connection)
-
-	#if not inside and not active_outputs:
-		#return
 
 	mouse_pressed = glob.mouse_pressed
-	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
+	var not_occ := not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	mouse_just_pressed = glob.mouse_just_pressed and not_occ
-	var unpadded = is_mouse_inside(Vector4())
-	
+	var unpadded := is_mouse_inside(Vector4())
 	if unpadded:
 		glob.set_menu_type(self, "detatch", low)
 	else:
 		glob.reset_menu_type(self, "detatch")
 
-	var occ = glob.is_occupied(self, "conn_active")
-	#if connection_type == OUTPUT:
-	#	print(glob.is_occupied(self, &"menu_inside"))
-	if connection_type == OUTPUT and inside and not occ and not glob.is_consumed(self, "mouse_press"):
-		if mouse_just_pressed:
-			if not glob.is_occupied(self, &"menu_inside") and not graphs.conns_active and (multiple_splines or outputs.size() == 0): # TODO: implement router splines
-				var nspline = add_spline()
-				start_spline(nspline)
-				#glob.consume_input(self, "mouse_press")
-				glob.activate_spline(outputs[nspline])
-			#elif !multiple_splines and outputs:
-				#outputs[0].tied_to.detatch_spline(outputs[0])
-		elif glob.mouse_alt_just_pressed and unpadded:
-			glob.menus["detatch"].show_up(outputs, self)
+	var occ := glob.is_occupied(self, "conn_active")
+	var chosen_activate := graphs.chosen_conn("activate") == self
+	var hover_target: Connection = graphs.chosen_conn("hover")
 
-	if connection_type == INPUT and inside and not occ and not graphs.conns_active:
-		if glob.mouse_alt_just_pressed and unpadded:
-			glob.menus["detatch"].show_up(inputs, self)
-		elif mouse_just_pressed and inputs:
-			var detatch = inputs.keys()[-1]
-			glob.activate_spline(detatch)
-			detatch_spline(detatch)
+	if chosen_activate:
+		if connection_type == OUTPUT and inside and not occ and not glob.is_consumed(self, "mouse_press"):
+			if mouse_just_pressed:
+				if not glob.is_occupied(self, &"menu_inside") and graphs.conns_active.is_empty() and (multiple_splines or outputs.size() == 0):
+					var nspline = add_spline()
+					start_spline(nspline)
+					glob.activate_spline(outputs[nspline])
+			elif glob.mouse_alt_just_pressed and unpadded:
+				glob.menus["detatch"].show_up(outputs, self)
 
-	var to_end = []
-	var to_attach = []
+		elif connection_type == INPUT and inside and not occ and graphs.conns_active.is_empty():
+			if glob.mouse_alt_just_pressed and unpadded:
+				glob.menus["detatch"].show_up(inputs, self)
+			elif mouse_just_pressed and inputs:
+				var detatch = inputs.keys()[-1]
+				glob.activate_spline(detatch)
+				detatch_spline(detatch)
+
+	var to_end: Array = []
+	var to_attach: Array = []
+
 	if active_outputs:
 		glob.occupy(self, &"conn_active")
 	else:
 		glob.un_occupy(self, &"conn_active")
-	
-	if hovered:
-		#print("f")
+
+	var chosen_hover := (hover_target == self)
+	if chosen_hover or hovered:
 		prog = 0
 		modulate = modulate.lerp(Color(1.5, 1.5, 1.5), delta * 23.0)
 		parent_graph.hold_for_frame()
 	elif prog < 0.95:
 		parent_graph.hold_for_frame()
 		prog = lerpf(prog, 1, delta * 23.0)
-		if prog < 0.95: modulate = modulate.lerp(base_modulate, delta * 23.0)
-		else: modulate = base_modulate
-	
-	var suit = false
+		if prog < 0.95:
+			modulate = modulate.lerp(base_modulate, delta * 23.0)
+		else:
+			modulate = base_modulate
+
+	var suit := false
 	if active_outputs:
-		if glob.hovered_connection != _last_hovered_conn:
-			_last_hovered_conn = glob.hovered_connection
-			if _last_hovered_conn:
-				_last_suit = is_suitable(_last_hovered_conn)
-			else:
-				_last_suit = false
+		if hover_target != _last_hovered_conn:
+			_last_hovered_conn = hover_target
+			_last_suit = is_instance_valid(hover_target) and is_suitable(hover_target)
 		suit = _last_suit
 		parent_graph.active_output_connections[self] = true
 		parent_graph.hold_for_frame()
 	else:
 		parent_graph.active_output_connections.erase(self)
+
+	# Update active splines and decide on release
 	for id in active_outputs:
 		var spline = active_outputs[id]
-		# update using the splines origin
 		spline.update_points(spline.origin.get_origin(), get_global_mouse_position(), dir_vector)
-		
+
 		if not mouse_pressed:
-			if suit:
-				glob.occupy(glob.hovered_connection, &"conn_active")
+			# On mouse-up, attach iff there is a hover target AND it is suitable
+			if suit and is_instance_valid(hover_target):
+				glob.occupy(hover_target, &"conn_active")
 				to_attach.append(id)
+				# Keep the target graph alive while its highlight lerps
+				hover_target.parent_graph.hold_for_frame()
 			else:
-				if glob.hovered_connection:
-					glob.hovered_connection.parent_graph.hold_for_frame()
-				glob.un_occupy(glob.hovered_connection, &"conn_active")
-				to_end.append(id)
-		#print(spline.tied_to)
+				# End only if NO hover target at all; prevents detach-to-void in overlaps
+				if not is_instance_valid(hover_target):
+					to_end.append(id)
+
 		_stylize_spline(spline, suit)
-	
-	#if connection_type == OUTPUT and !active_outputs.is_empty():
-		#print(suit)
-	if glob.hovered_connection:
-		if suit and active_outputs:
-			glob.hovered_connection.hover()
+
+	if is_instance_valid(hover_target) and suit and active_outputs:
+		hover_target.hover()
+		hover_target.parent_graph.hold_for_frame()
+
 	for id in to_end:
 		end_spline(id)
-	if glob.hovered_connection:
+
+	if is_instance_valid(hover_target) and suit:
 		for id in to_attach:
-			attach_spline(id, glob.hovered_connection)
+			attach_spline(id, hover_target)
 
 	hovered = false
+
+
 
 var _last_hovered_conn: Connection = null
 var _last_suit: bool = false

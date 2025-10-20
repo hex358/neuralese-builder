@@ -256,6 +256,77 @@ func _reach_input(from: Graph, custom: String = "InputNode"):
 		next_frame = new_frame
 	return null
 
+var _conn_spaces: Dictionary[StringName, Dictionary] = {}
+
+func _ensure_conn_space(ns: StringName) -> Dictionary:
+	return _conn_spaces.get_or_add(ns, {
+		"candidates": [],    # Array[Connection]
+		"chosen": null,      # Connection (this frame)
+		"next_chosen": null, # Connection (exposed next frame)
+	})
+
+func register_conn_candidate(conn: Connection, ns: StringName = "activate") -> void:
+	# Skip invalids early
+	if not is_instance_valid(conn):
+		return
+	_ensure_conn_space(ns)["candidates"].append(conn)
+
+func _distance_key(c: Connection, mouse_pos: Vector2) -> Array:
+	# Prefer actual plug point for distance
+	var p = c.get_origin()
+	var d2 = mouse_pos.distance_squared_to(p)
+	# Tiebreakers: higher z on top (CanvasItem); then smaller rect
+	var zi := (c as CanvasItem).z_index if c is CanvasItem else 0
+	var rect := c.get_global_rect()
+	var area := rect.size.x * rect.size.y
+	# Sort ascending by d2, then descending by z, then ascending by area
+	return [d2, -zi, area]
+
+func choose_conn_under_mouse(ns: StringName = "activate") -> Connection:
+	var space = _ensure_conn_space(ns)
+	var candidates: Array = space["candidates"]
+	var n := candidates.size()
+	if n == 0:
+		space["chosen"] = null
+		return null
+
+	var mouse_pos = get_global_mouse_position()
+
+	# Deduplicate candidates that may have been added twice in the same frame
+	var uniq := {}
+	for c in candidates:
+		if is_instance_valid(c):
+			uniq[c] = true
+
+	var best: Connection = null
+	var best_key: Array = []
+	for c in uniq.keys():
+		# Optional namespace filtering: only INPUTs are hover targets
+		if ns == "hover" and c.connection_type != Connection.INPUT:
+			continue
+		var key = _distance_key(c, mouse_pos)
+		if best == null or key < best_key:
+			best = c
+			best_key = key
+
+	space["chosen"] = best
+	return best
+
+func clear_conn_candidates(ns: StringName = "activate") -> void:
+	var space = _ensure_conn_space(ns)
+	space["candidates"].clear()
+	space["chosen"] = null
+
+func chosen_conn(ns: StringName = "activate") -> Connection:
+	return _ensure_conn_space(ns)["next_chosen"]
+
+func advance_conn_frame(ns: StringName = "activate") -> void:
+	var space = _ensure_conn_space(ns)
+	space["next_chosen"] = space["chosen"]
+	clear_conn_candidates(ns)
+
+
+
 var key_to_graph: Dictionary[int, Graph] = {}
 var graph_to_key: Dictionary[Graph, int] = {}
 
@@ -671,6 +742,26 @@ func unpush_2d(target):
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
+	# 1) Pick winners for both namespaces from last frame's candidates
+	choose_conn_under_mouse("activate")
+	choose_conn_under_mouse("hover")
+
+	# 2) Publish hover winner globally (single source of truth)
+	var prev := glob.hovered_connection
+	var now  := chosen_conn("hover")
+	if prev != now:
+		glob.hovered_connection_changed = true
+		# Make sure the previously hovered connection's graph keeps processing
+		if is_instance_valid(prev) and is_instance_valid(prev.parent_graph):
+			prev.parent_graph.hold_for_frame()
+	glob.hovered_connection = now
+	# Also keep the *current* hovered graph alive while it lerps brighter
+	if is_instance_valid(now) and is_instance_valid(now.parent_graph):
+		now.parent_graph.hold_for_frame()
+
+	# 3) Expose winners and clear candidate arrays
+	advance_conn_frame("activate")
+	advance_conn_frame("hover")
 	
 	if not last_frame_visible: 
 		last_frame_visible = visible; return

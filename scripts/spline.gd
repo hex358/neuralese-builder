@@ -12,7 +12,13 @@ class_name Spline
 var origin: Connection
 var tied_to: Connection
 
-var curve = Curve2D.new()
+var curve := Curve2D.new()
+var end_dir_vec: Vector2
+var baked: PackedVector2Array = [Vector2(), Vector2()]
+var space: PackedVector2Array = PackedVector2Array([Vector2(), Vector2()])
+var doomed := false
+
+# --- READY / PROCESS ------------------------------------------------------------
 
 func _ready() -> void:
 	if line_2d and line_2d.gradient:
@@ -25,29 +31,29 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint() and glob.ticks % 10 == 0:
 		update_points(Vector2(), $Marker2D.position, Vector2.RIGHT)
 
-func appear():
+# --- APPEAR / DISAPPEAR ---------------------------------------------------------
+
+func appear() -> void:
 	pass
 
-var doomed: bool = false
-func disappear():
+func disappear() -> void:
 	doomed = true
 	queue_free()
 
-var end_dir_vec: Vector2
-var baked: PackedVector2Array = [Vector2(), Vector2()]
+# --- POINTS & CURVE -------------------------------------------------------------
 
-func turn_into(word: StringName, other_word: StringName = &"default"):
+func turn_into(word: StringName, other_word: StringName = &"default") -> void:
 	match other_word:
 		"router":
-			color = Color(1,1,0.5)
+			color = Color(1, 1, 0.5)
 			keyword = "default"
 		_:
 			color = Color.WHITE
 			keyword = "default"
 
-var space = PackedVector2Array([Vector2(), Vector2()])
-func weight_points(a:Vector2, b:Vector2, dir_a:Vector2, dir_b):
-	space[0] = a; space[1] = b
+func weight_points(a: Vector2, b: Vector2, dir_a: Vector2, dir_b) -> void:
+	space[0] = a
+	space[1] = b
 	baked = space
 
 func other_default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir):
@@ -68,11 +74,12 @@ func other_default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_
 	var mid_interval = clamp(length * 0.1, 2.0, 30.0)
 	baked = _bake_with_end_smoothing(mid_interval, end_smooth_range_px)
 
-var mapping = {"weight": weight_points}
+var mapping := {"weight": weight_points}
 
-# --- Gradient recoloring ---
-var _base_colors: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHITE])
-var _blended_colors: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHITE])
+# --- GRADIENT RECOLORING (Optimized) -------------------------------------------
+
+var _base_colors := PackedColorArray([Color.WHITE, Color.WHITE])
+var _blended_colors := PackedColorArray([Color.WHITE, Color.WHITE])
 
 @export var blender: Color = Color(1, 1, 1, 0.0):
 	set(v):
@@ -91,12 +98,54 @@ var _blended_colors: PackedColorArray = PackedColorArray([Color.WHITE, Color.WHI
 		_base_colors[1] = v
 		_recolor_gradient()
 
+# New optimized modulate system using Dictionary for O(1) access
+var _modulate_stack: Dictionary = {}  # { name: Color }
+
+func invalid():
+	push_modulate("invalid", Color.RED)
+
+func valid():
+	pop_modulate("invalid")
+
+func push_modulate(name: String, color: Color) -> void:
+	_modulate_stack[name] = color
+	_recolor_gradient()
+
+func pop_modulate(name: String) -> void:
+	if _modulate_stack.has(name):
+		_modulate_stack.erase(name)
+		_recolor_gradient()
+
+func clear_modulates() -> void:
+	if _modulate_stack.size() > 0:
+		_modulate_stack.clear()
+		_recolor_gradient()
+
 func _recolor_gradient() -> void:
-	_blended_colors[0] = _base_colors[0].blend(blender)
-	_blended_colors[1] = _base_colors[1].blend(blender)
+	var ca: Color = _base_colors[0]
+	var cb: Color = _base_colors[1]
+
+	# Legacy blender (backward compatibility)
+	if blender.a > 0.0:
+		ca = ca.blend(blender)
+		cb = cb.blend(blender)
+
+	# Apply all modulates in insertion order (stable since Godot 4.2+)
+	for name in _modulate_stack:
+		var c: Color = _modulate_stack[name]
+		if c.a > 0.0:
+			ca = ca.blend(c)
+			cb = cb.blend(c)
+
+	_blended_colors[0] = ca
+	_blended_colors[1] = cb
+
 	if line_2d and line_2d.gradient:
 		line_2d.gradient.colors = _blended_colors
+
 # --- /Gradient recoloring ---
+
+# --- CURVE UPDATE ---------------------------------------------------------------
 
 func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
 	curve.clear_points()
@@ -124,6 +173,7 @@ func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = 
 	var mid_interval = clamp(length * 0.05, 2.0, 30.0)
 	baked = _bake_with_end_smoothing(mid_interval, end_smooth_range_px)
 
+# --- SMOOTH BAKING --------------------------------------------------------------
 
 func _bake_with_end_smoothing(mid_interval: float, end_range_px: float) -> PackedVector2Array:
 	var prev = curve.bake_interval
@@ -175,7 +225,6 @@ func _bake_with_end_smoothing(mid_interval: float, end_range_px: float) -> Packe
 			out.push_back(right_out[i])
 	return out
 
-
 func _build_left_subcurve_covering(target_px: float) -> Curve2D:
 	var pc = curve.get_point_count()
 	var c = Curve2D.new()
@@ -189,7 +238,6 @@ func _build_left_subcurve_covering(target_px: float) -> Curve2D:
 		var j = max_idx + 1
 		c.add_point(curve.get_point_position(j), curve.get_point_in(j), curve.get_point_out(j))
 	return c
-
 
 func _build_right_subcurve_covering(target_px: float) -> Curve2D:
 	var pc = curve.get_point_count()
@@ -209,7 +257,6 @@ func _build_right_subcurve_covering(target_px: float) -> Curve2D:
 		return c2
 	return c
 
-
 func _bake_curve_1px(c: Curve2D) -> PackedVector2Array:
 	if c.get_point_count() < 2:
 		return PackedVector2Array()
@@ -219,6 +266,7 @@ func _bake_curve_1px(c: Curve2D) -> PackedVector2Array:
 	c.bake_interval = prev
 	return pts
 
+# --- UTILS ----------------------------------------------------------------------
 
 func _nearest_index(points: PackedVector2Array, p: Vector2) -> int:
 	var best_i = 0
@@ -230,13 +278,11 @@ func _nearest_index(points: PackedVector2Array, p: Vector2) -> int:
 			best_i = i
 	return best_i
 
-
 func _poly_length(points: PackedVector2Array) -> float:
 	var acc = 0.0
 	for i in range(1, points.size()):
 		acc += points[i].distance_to(points[i - 1])
 	return acc
-
 
 func _index_at_distance_from_start(points: PackedVector2Array, d: float) -> int:
 	var acc = 0.0
@@ -246,7 +292,6 @@ func _index_at_distance_from_start(points: PackedVector2Array, d: float) -> int:
 			return i
 		acc += seg
 	return points.size() - 1
-
 
 func _index_at_distance_from_end(points: PackedVector2Array, d: float) -> int:
 	var acc = 0.0

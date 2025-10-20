@@ -27,6 +27,9 @@ func _map_properties(pack: Dictionary):
 	#print("A!")
 
 
+func get_label(who: Control):
+	return unit_labels[who]
+
 
 
 func _process(delta: float) -> void:
@@ -36,6 +39,21 @@ func _process(delta: float) -> void:
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	pass
+	if my_conn.virtual:
+		var rgb = Color(1,1,1)*1.4
+		rgb.a = my_conn.get_parent().modulate.a
+		my_conn.get_parent().modulate = rgb
+
+func _just_deattached(other_conn: Connection, my_conn: Connection):
+	pass
+	if my_conn.virtual:
+		def(my_conn.get_parent())
+		#my_conn.get_parent().modulate = Color.WHITE * 1 #.get_node("ColorRect")
+
+func def(who):
+	var rgb = Color(1,1,1)*0.7
+	rgb.a = who.modulate.a
+	who.modulate = rgb
 
 
 func set_pellets(pellets):
@@ -61,25 +79,30 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	dup.get_node("i").repoll_accepted()
 	#print(dup.get_node("i")._accepted_datatypes)
 	dup.get_node("i").dynamic = false
-	dup.get_node("Control/Label").text = kw["text"]
+	unit_labels[dup] = kw["text"]
+	dup.set_meta("label", kw["text"])
+	dup.get_node("Control/Label").text = kw["text"].to_pascal_case()
 	dup.show()
 	dup.modulate.a = 0.0
 	appear_units[dup] = true
 	#update_config_subfield({"branches/%s"%})
+	def(dup)
 	return dup
 
-
+var unit_labels = {}
 func _unit_removal(id: int):
 	units[id].get_node("i").queue_free()
+	unit_labels.erase(units[id])
 
 
 var meta_owner: Graph = null
-func push_meta(who: Graph, data):
+func push_meta(who: Graph, data: Dictionary):
 	meta_owner = who
 	var gathered = []
 	for i in data["outputs"]:
 		gathered.append(i.label)
 	set_pellets(gathered)
+	$dataset.text = data["name"]
 
 func unpush_meta():
 	meta_owner = null
@@ -88,3 +111,4 @@ func unpush_meta():
 
 func _ready() -> void:
 	super()
+	unpush_meta()
