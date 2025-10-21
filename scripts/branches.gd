@@ -61,7 +61,7 @@ func set_pellets(pellets):
 	for unit in len(units):
 		remove_unit(0)
 	for pellet in pellets:
-		add_unit({"text": pellet})
+		add_unit(pellet)
 	#print(prev_branches)
 	#print(old_units)
 	#print(prev_branches)
@@ -82,6 +82,8 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	unit_labels[dup] = kw["text"]
 	dup.set_meta("label", kw["text"])
 	dup.get_node("Control/Label").text = kw["text"].to_pascal_case()
+	var vec = str(kw["x"]) if kw["datatype"] == "1d" else str(kw["x"]) + "," + str(kw["y"])
+	dup.get_node("Control/Label2").text = kw["datatype"] + "(" + vec + ")"
 	dup.show()
 	dup.modulate.a = 0.0
 	appear_units[dup] = true
@@ -100,7 +102,7 @@ func push_meta(who: Graph, data: Dictionary):
 	meta_owner = who
 	var gathered = []
 	for i in data["outputs"]:
-		gathered.append(i.label)
+		gathered.append({"text": i.label, "datatype": "1d", "x": 5})
 	set_pellets(gathered)
 	$dataset.text = data["name"]
 

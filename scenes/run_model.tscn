@@ -163,6 +163,24 @@ offset_top = 1.0
 offset_right = 101.0
 offset_bottom = 33.5
 
+[node name="Label2" type="Label" parent="connection/ColorRect"]
+z_index = 1
+layout_mode = 0
+offset_left = 29.000002
+offset_top = 18.000002
+offset_right = 331.98248
+offset_bottom = 107.0
+scale = Vector2(0.2025424, 0.2025424)
+theme = ExtResource("3_4mecg")
+text = "1d(200)"
+horizontal_alignment = 2
+script = ExtResource("7_cs7cw")
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(169.107, 43)
+metadata/_custom_type_script = "uid://bjncugq5805ty"
+
 [node name="Control" type="Control" parent="connection"]
 anchors_preset = 0
 offset_left = 10.0
