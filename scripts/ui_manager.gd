@@ -136,6 +136,15 @@ func get_splash(who: String) -> SplashMenu:
 		if i.typename == who: return i
 	return null
 
+func force_layout_update(node: Control):
+	node.propagate_call("minimum_size_changed")
+	node.propagate_call("queue_sort")
+	node.propagate_call("size_flags_changed")
+	node.propagate_call("update_minimum_size")
+	node.propagate_call("update")
+	node.propagate_call("notification", [NOTIFICATION_LAYOUT_DIRECTION_CHANGED])
+
+
 func splash(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> SplashMenu:
 	hourglass.off(true)
 	if splashed_from:

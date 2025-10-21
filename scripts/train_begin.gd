@@ -9,13 +9,17 @@ func set_dataset_meta(meta: Dictionary):
 	dataset_meta = meta
 	for i in graphs.get_cache("", self):
 		i.push_meta(self, dataset_meta)
-	
+
+#func _just_attached(other_conn: Connection, my_conn: Connection):
+		#set_dataset_meta({"name": "mnist", "outputs": [
+		#{"label": "bbox", "length": 5, "dtype": "1d"}, {"label": "bbox", "length": 5, "dtype": "1d"}
+	#]})
 
 func _ready() -> void:
 	super()
-	set_dataset_meta({"name": "mnist", "outputs": [
-		{"label": "bbox", "length": 5, "dtype": "1d"}, {"label": "bbox", "length": 5, "dtype": "1d"}
-	]})
+	#set_dataset_meta({"name": "mnist", "outputs": [
+	#	{"label": "bbox", "length": 5, "dtype": "1d"}, {"label": "bbox", "length": 5, "dtype": "1d"}
+	#]})
 	graphs.spline_connected.connect(func(from: Connection, to: Connection):
 		if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
 			var reached = graphs._reach_input(to.parent_graph, "TrainBegin")

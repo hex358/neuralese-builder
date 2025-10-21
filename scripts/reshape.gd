@@ -60,19 +60,21 @@ func _config_field(field: StringName, value: Variant):
 		"rows":
 			if !setting:
 				$Y.set_line(str(value))
-			var desc = get_first_descendants()
 			#for i in desc:
 				#if i.server_typename == "Flatten":
 					#i.set_count(cfg.rows * cfg.columns)
+			await get_tree().process_frame
+			var desc = get_first_descendants()
 			if is_valid():
 				graphs.push_2d(cfg.columns, cfg.rows, desc)
 		"columns":
 			if !setting:
 				$X.set_line(str(value))
-			var desc = get_first_descendants()
 			#for i in desc:
 				#if i.server_typename == "Flatten":
 					#i.set_count(cfg.rows * cfg.columns)
+			var desc = get_first_descendants()
+			await get_tree().process_frame
 			if is_valid():
 				graphs.push_2d(cfg.columns, cfg.rows, desc)
 				#if glob.is_layer(i, "Conv2D"):

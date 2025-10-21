@@ -41,8 +41,9 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 	pass
 	if my_conn.virtual:
 		var rgb = Color(1,1,1)*1.4
-		rgb.a = my_conn.get_parent().modulate.a
-		my_conn.get_parent().modulate = rgb
+		var who = my_conn.get_parent().get_node("ColorRect")
+		rgb.a = who.modulate.a
+		who.modulate = rgb
 
 func _just_deattached(other_conn: Connection, my_conn: Connection):
 	pass
@@ -51,6 +52,7 @@ func _just_deattached(other_conn: Connection, my_conn: Connection):
 		#my_conn.get_parent().modulate = Color.WHITE * 1 #.get_node("ColorRect")
 
 func def(who):
+	who = who.get_node("ColorRect")
 	var rgb = Color(1,1,1)*0.7
 	rgb.a = who.modulate.a
 	who.modulate = rgb
@@ -79,6 +81,7 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	dup.get_node("i").repoll_accepted()
 	#print(dup.get_node("i")._accepted_datatypes)
 	dup.get_node("i").dynamic = false
+	dup.get_node("i").set_meta("kw", kw)
 	unit_labels[dup] = kw["text"]
 	dup.set_meta("label", kw["text"])
 	dup.get_node("Control/Label").text = kw["text"].to_pascal_case()
@@ -100,15 +103,23 @@ func _unit_removal(id: int):
 var meta_owner: Graph = null
 func push_meta(who: Graph, data: Dictionary):
 	meta_owner = who
+	if not who or data.name == "":
+		$ColorRect/root/Label.position.y = 9
+		set_pellets([])
+		$dataset.text = ""
+		return
+	else:
+		$ColorRect/root/Label.position.y = 3
 	var gathered = []
 	for i in data["outputs"]:
-		gathered.append({"text": i.label, "datatype": "1d", "x": 5})
+		#print(i)
+		gathered.append({"text": i.label, "datatype": i.datatype, "x": i.x, "y": i.get("y", 0)})
 	set_pellets(gathered)
 	$dataset.text = data["name"]
 
 func unpush_meta():
-	meta_owner = null
-	set_pellets([])
+	#meta_owner = null
+	push_meta(null, {})
 
 
 func _ready() -> void:

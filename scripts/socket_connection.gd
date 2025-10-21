@@ -59,7 +59,7 @@ func _poll() -> void:
 					_ws.send(bytes)
 
 func send_json(json: Dictionary):
-	send(JSON.stringify(json).to_utf8_buffer())
+	send(JSON.stringify(json, "", true, true).to_utf8_buffer())
 
 func send(bytes: PackedByteArray) -> void:
 	if _ws.get_ready_state() == WebSocketPeer.STATE_OPEN:

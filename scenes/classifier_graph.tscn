@@ -88,9 +88,10 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_pa8wt")
 theme_override_styles/read_only = SubResource("StyleBoxEmpty_cdbc0")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_n00y3")
 placeholder_text = "Name here..."
+max_length = 25
 expand_to_text_length = true
 script = ExtResource("4_cdbc0")
-resize_after = 9
+resize_after = 18
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
 [node name="connection" type="Control" parent="."]

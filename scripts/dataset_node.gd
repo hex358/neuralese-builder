@@ -18,6 +18,14 @@ func _on_line_edit_changed() -> void:
 	update_config({"name": $LineEdit.text})
 	upd = false
 
+func _just_connected(who: Connection, to: Connection):
+	to.parent_graph.set_dataset_meta({"name": "mnist", "outputs": [
+	{"label": "digit", "x": 10, "datatype": "1d"},
+	]})
+
+func _just_disconnected(who: Connection, to: Connection):
+	to.parent_graph.set_dataset_meta({"name": "", "outputs": []})
+
 @onready var run = $run
 func _on_run_released() -> void:
 	var res = await ui.splash_and_get_result("select_dataset", run, null, false, {"with_who": cfg["name"]})

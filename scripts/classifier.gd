@@ -1,4 +1,5 @@
 extends DynamicGraph
+class_name OutputGraph
 
 var value_cache: Array = []
 var manually: bool = false
@@ -34,6 +35,7 @@ func push_values(values: Array, percent: bool = false):
 	for unit in len(values):
 		var value = (values[unit] - minimal) / float(maximal - minimal)
 		var capped = glob.cap(values[unit], 2) if !percent else round(values[unit]*100.0)
+		if unit >= len(units): continue
 		if percent:
 			unit_set(unit, value, str(capped)+"%")
 		else:
@@ -67,11 +69,19 @@ func _deattaching(other_conn: Connection, my_conn: Connection):
 			push_values(value_cache, false)
 
 
+
+
 func _just_attached(other_conn: Connection, my_conn: Connection):
+	graphs.push_1d(other_conn.parent_graph.get_x(), other_conn.parent_graph)
 	if other_conn.parent_graph.server_typename == "SoftmaxNode":
 		push_values(value_cache, true)
 	else:
 		push_values(value_cache, false)
+
+var res_meta: Dictionary = {}
+func push_result_meta(meta: Dictionary):
+	res_meta = meta
+	ch()
 
 
 func _after_process(delta: float):

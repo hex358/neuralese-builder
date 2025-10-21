@@ -20,6 +20,8 @@ unit = NodePath("unit")
 padding = 5.0
 line_edit = NodePath("LineEdit")
 unit_offset_y = -6.0
+wait_enclose = false
+enclose_pad = 0.0
 target_size = 60.0
 min_size = 60.0
 size_add = 3.0
@@ -157,4 +159,5 @@ resize_after = 4
 change_always_accepted = false
 
 [connection signal="changed" from="LineEdit" to="." method="_on_line_edit_changed"]
+[connection signal="submitted" from="LineEdit" to="." method="_on_line_edit_submitted_1"]
 [connection signal="text_changed" from="LineEdit" to="." method="_on_line_edit_text_changed"]

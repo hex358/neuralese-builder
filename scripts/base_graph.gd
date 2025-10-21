@@ -278,6 +278,17 @@ var subgraph_occupied: bool = false
 func just_attached(other_conn: Connection, my_conn: Connection):
 	_just_attached(other_conn, my_conn)
 
+func reload_config():
+	update_config(cfg.duplicate())
+
+func get_x():
+	return _get_x()
+
+func _get_x() -> Variant:
+	return 0
+
+func _is_suitable_conn(who: Connection, other: Connection) -> bool:
+	return true
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	pass

@@ -14,8 +14,9 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 	graphs.reach(self, call_count)
 
 func _just_connected(who: Connection, to: Connection):
-	if to.parent_graph.server_typename == "NeuronLayer":
-		pass
+	pass
+	#if to.parent_graph.server_typename == "NeuronLayer":
+	graphs.push_1d(display_count, self)
 		#to.parent_graph.push_neuron_count(neuron_count)
 		#to.parent_graph.neurons_fixed = true
 
@@ -23,12 +24,18 @@ func _just_disconnected(who: Connection, from: Connection):
 	if from.parent_graph.server_typename == "NeuronLayer":
 		from.parent_graph.neurons_fixed = false
 
+
+func _get_x() -> Variant:
+	return neuron_count
+
 var neuron_count: int = 0
 func set_count(count: int):
 	display_count = count; neuron_count = count
 	$display_count.text = str(count)
 	#await get_tree().process_frame
 	var dess = get_descendant()
+	#print("AA")
+	graphs.push_1d(display_count, self)
 	if dess:
 		if get_ancestor():
 			pass

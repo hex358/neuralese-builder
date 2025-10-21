@@ -6,6 +6,9 @@ func push_text(new: String):
 	actual_text += new
 	text = actual_text.strip_edges()
 
+func set_txt(text_: String):
+	actual_text = text_
+	text = actual_text
 
 func _process(delta: float) -> void:
 	if glob.mouse_just_pressed and get_global_rect().has_point(get_global_mouse_position()) and not ui.get_focus():

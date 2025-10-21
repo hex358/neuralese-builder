@@ -49,6 +49,9 @@ var connected: Dictionary[Connection, bool] = {}
 var mouse_just_pressed: bool = false
 var mouse_pressed: bool = false
 
+func disconnect_all():
+	delete()
+
 func delete():
 	if connection_type == INPUT:
 		var dup =  inputs.duplicate()
@@ -284,6 +287,7 @@ func is_suitable(conn: Connection) -> bool:
 		and graphs.validate_acyclic_edge(self, conn)
 		and conn._accepts(self)
 		and _is_suitable(conn)
+		and parent_graph._is_suitable_conn(self, conn)
 		and (custom_expression == null or custom_expression.execute([conn], self)))
 	
 	if cond_1:

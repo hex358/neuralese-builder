@@ -110,7 +110,13 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 
 
 func set_name_graph(st: String, remove = null):
+	if st:
+		$ColorRect/root/Label.position.y = 3
+	else:
+		$ColorRect/root/Label.position.y = 9
+		
 	hold_for_frame()
+	
 	var old_len = len(units)
 	var branch_ends = {}
 	var cachify = func (from: Connection, to: Connection, branch_cache: Dictionary):
@@ -144,7 +150,7 @@ func set_name_graph(st: String, remove = null):
 	else:
 		$Label2.show()
 	var ct: int = -1
-	for j in (branch_ends):
+	for j: OutputGraph in (branch_ends):
 		ct += 1
 		#print(j.get_title())
 		if ct >= old_len:
@@ -152,6 +158,7 @@ func set_name_graph(st: String, remove = null):
 		edit_unit(j, units[ct])
 		#if ct >= old_len:
 		set_loss_type(str(j.graph_id), "mse")
+		unit_set_meta(units[ct], j.res_meta)
 	#print(prev_branches)
 	#print(old_units)
 	#print(prev_branches)
@@ -164,11 +171,34 @@ func set_name_graph(st: String, remove = null):
 func _unit_removal(id: int):
 	units[id].get_node("i").queue_free()
 
+func revise_datatypes(dt_1: Dictionary, dt_2: Dictionary) -> bool:
+	if dt_1.datatype != dt_2.datatype:
+		return false
+	if dt_1.datatype == "1d": return dt_1.x == dt_2.x
+	if dt_1.datatype == "2d": return dt_1.x == dt_2.x and dt_1.y == dt_2.y
+	return false
+
+func _is_suitable_conn(who: Connection, other: Connection) -> bool:
+	if who.virtual:
+		if not revise_datatypes(who.get_meta("kw"), other.get_meta("kw")): return false
+	return true
+
+func unit_set_meta(unit: Control, kw: Dictionary):
+	var vec = str(kw["x"]) if kw["datatype"] == "1d" else str(kw["x"]) + "," + str(kw["y"])
+	var res_text = kw["datatype"] + "(" + vec + ")"
+	unit.get_node("ColorRect/Label2").text = res_text
+	if unit.get_node("i").get_meta("kw"):
+		if not revise_datatypes(unit.get_node("i").get_meta("kw"), kw):
+			unit.get_node("i").disconnect_all()
+	#print("fjfj")
+	unit.get_node("i").set_meta("kw", kw)
+
 var unit_titles = {}
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
 	dup.get_node("i").hint = randf_range(0,999999)
 	dup.get_node("i").dynamic = false
+	#dup.get_node("i").set_meta("kw", kw)
 	dup.get_node("loss").graph = dup
 	dup.get_node("loss").auto_ready = true
 	unit_titles[dup] = kw["text"]
@@ -185,9 +215,11 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	dup.show()
 	dup.modulate.a = 0.0
 	appear_units[dup] = true
+	#unit_set_meta(dup, kw["end_node"])
 	#update_config_subfield({"branches/%s"%})
 	#print(outputs)
 	return dup
+
 
 
 

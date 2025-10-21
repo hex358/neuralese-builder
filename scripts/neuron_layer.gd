@@ -68,7 +68,7 @@ func _after_process(delta:float):
 			units[0].set_extents(Vector4())
 
 func _just_connected(who: Connection, to: Connection):
-	pass
+	graphs.push_1d(_real_amount, self)
 
 func _just_disconnected(who: Connection, from: Connection):
 	pass
@@ -134,9 +134,23 @@ func _config_field(field: StringName, val: Variant):
 					if i.server_typename == "Reshape2D":
 						i.update_config({"rows": i.cfg.rows, "columns": i.cfg.columns})
 				hold_for_frame()
+				#await get_tree().process_frame
+				graphs.push_1d(_real_amount, self)
+		
 			
+
+func _get_x() -> Variant:
+	return _real_amount
+
+func re_upd():
+	graphs.push_1d(_real_amount, self)
 
 func _on_line_edit_changed() -> void:
 	await get_tree().process_frame
 	update_config({"neuron_count": int($LineEdit.get_value())})
 	#_apply_grouping()
+
+
+func _on_line_edit_submitted_1(new_text: String) -> void:
+	await get_tree().process_frame
+	update_config({"neuron_count": int($LineEdit.get_value())})

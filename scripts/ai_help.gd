@@ -15,20 +15,18 @@ func _ready() -> void:
 		{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"},
 		])
 	var received = await glob.request_chat(str(chat_id))
-	if received and received.body:
-		var json = JSON.parse_string(received.body.get_string_from_utf8())
-		if not "messages" in json: return
-		for i in json.messages:
+	if received:
+		for i in received:
+			i.text = parser.clean_message(i.text)
+			if !i.has("role"): continue
 			if i["role"] == "user":
 				i.user = true
 			elif i["role"] != "system":
 				i.user = false
-				i.text = parser.clean_message(i.text)
 			i.erase("role")
-		set_messages(json.messages)
+		set_messages(received)
 	
-	await get_tree().process_frame
-	$ColorRect/ScrollContainer.set_deferred("scroll_vertical", $ColorRect/ScrollContainer.get_v_scroll_bar().max_value)
+	
 	if get_last_message().user:
 		if glob.message_sockets.has(chat_id):
 			var got = glob.get_my_message_state(chat_id, text_receive)
@@ -36,24 +34,43 @@ func _ready() -> void:
 				$ColorRect/Label2.disable()
 				got[0].kill.connect(func():
 						get_last_message().erase("_pending")
+						#print("ff")
+						#glob.update_chat_cache(str(chat_id), get_last_message())
 						$ColorRect/Label2.enable())
 				#print(got[1])
 				add_message({"user": false, "text": got[1]})
+	await get_tree().process_frame
+	#scroller.queue_sort()
+	scroller.force_update_transform()
+	#ui.force_layout_update(scroller)
+	$ColorRect/ScrollContainer.set("scroll_vertical", $ColorRect/ScrollContainer.get_v_scroll_bar().max_value)
 
-func text_receive(text):
-	get_last_message().object.push_text(text)
+
+func text_receive(arr):
+	if arr[1]:
+		if not get_last_message().get("marked_thinking", false):
+			get_last_message().object.set_txt(get_last_message().object.actual_text + "\nthinking...")
+		get_last_message()["marked_thinking"] = true
+	else:
+		get_last_message()["marked_thinking"] = false
+		
+	get_last_message().text += arr[0]
+	get_last_message().object.push_text(arr[0])
 
 func send_message(text: String):
 	add_message({"user": true, "text": text})
+	glob.update_chat_cache(str(chat_id), _message_list[-1])
 	$ColorRect/Label2.disable()
 	add_message({"user": false, "text": "", "_pending": true})
 	$ColorRect/Label2._guard = false
 	$ColorRect/Label2._clear_text_and_reset()
-	var sock = await glob.update_message_stream(text, chat_id, text_receive, glob.def, true)
+	var sock = await glob.update_message_stream(text, chat_id, text_receive, glob.def, false)
 	$ColorRect/Label2._clear_text_and_reset()
 	if sock:
 		await sock.kill
 	get_last_message().erase("_pending")
+	#print(get_last_message())
+	glob.update_chat_cache(str(chat_id), get_last_message())
 	$ColorRect/Label2.enable()
 	#await get_tree().process_frame
 	#$ColorRect/ScrollContainer.set_deferred("scroll_vertical", $ColorRect/ScrollContainer.get_v_scroll_bar().max_value)
@@ -83,7 +100,6 @@ func _just_splash():
 	ui.blur.set_tuning(Color(0,0,0,0.5))
 
 @onready var bs = $ColorRect/ScrollContainer.size.y
-var mic_texture = preload("res://game_assets/icons/mic.png")
 func _process(delta: float) -> void:
 	super(delta)
 	var tr = $ColorRect/root/TextureRect
@@ -126,12 +142,13 @@ func get_last_message() -> Dictionary:
 
 
 func on_send(txt: String) -> void:
-	if get_last_message() and not get_last_message().has("_pending"):
+	if get_last_message() and not get_last_message().has("_pending") and $ColorRect/Label2.text:
 		send_message($ColorRect/Label2.text)
 
-@onready var def_texture = $ColorRect/Label2/train/TextureRect.texture
+@onready var trect = $ColorRect/Label2/train/TextureRect
+@onready var mic_texture = $ColorRect/Label2/train/TextureRect.texture
+var def_texture = preload("res://game_assets/icons/send.png")
 func _on_label_2_text_changed() -> void:
-	var trect = $ColorRect/Label2/train/TextureRect
 	if $ColorRect/Label2.text:
 		trect.texture = def_texture
 	else:

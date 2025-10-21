@@ -34,7 +34,7 @@ func open_or_create(path: String) -> FileAccess:
 func _save_cookies() -> void:
 	var f = FileAccess.open(cookie_file, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify(_cookies))
+		f.store_string(JSON.stringify(_cookies, "", true, true))
 		f.close()
 
 func set_cookie(name: String, value: String) -> void:

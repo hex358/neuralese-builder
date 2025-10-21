@@ -81,7 +81,7 @@ func _match_tag_token(buf: String, pos: int) -> Variant:
 			return {"kind": "partial"}
 	return null
 
-func parse_stream_tags(sock: SocketConnection, chunk: String) -> String:
+func parse_stream_tags(sock: SocketConnection, chunk: String):
 	var state = sock.cache.get_or_add("parser_state", {"buf": "", "stack": [], "acc": []})
 	var actions = sock.cache.get_or_add("actions", {})  # { tag: [body1, body2, ...] }
 	#return chunk
@@ -172,7 +172,6 @@ func model_changes_apply(actions: Dictionary):
 		for i in ui.splashed:
 			i.go_away()
 	await glob.wait(0.05)
-	
 	#print("one...")
 	for pack in actions["change_nodes"]:
 		for node in pack:

@@ -607,12 +607,12 @@ func byte(x) -> PackedByteArray:
 	return PackedByteArray()
 
 func compress_dict_gzip(dict: Dictionary):
-	var jsonified = JSON.new().stringify(dict)
+	var jsonified = JSON.new().stringify(dict, "", true, true)
 	var bytes = jsonified.to_ascii_buffer()
 	return bytes.compress(FileAccess.CompressionMode.COMPRESSION_GZIP)
 
 func compress_dict_zstd(dict: Dictionary):
-	var jsonified = JSON.new().stringify(dict)
+	var jsonified = JSON.new().stringify(dict, "", true, true)
 	var bytes = jsonified.to_ascii_buffer()
 	return bytes.compress(FileAccess.CompressionMode.COMPRESSION_ZSTD)
 
@@ -686,13 +686,14 @@ func message_chunk_received(data, sock: SocketConnection):
 		return
 	var text_update = sock.get_meta("text_update")
 	var text: String = parsed.text
+	var changed = text
 	var clean_text = parser.parse_stream_tags(sock, text)
 	#clean_text = clean_text.replace("```json\n", "").replace("\n```", "").strip_edges()`
-	if clean_text.is_empty():
-		return
+	#if clean_text.is_empty():
+	#	return
 	sock.cache.get_or_add("message", [""])[0] += clean_text
 	if text_update.is_valid():
-		text_update.call(clean_text)
+		text_update.call([clean_text, text != clean_text])
 
 
 var message_sockets: Dictionary[int, SocketConnection] = {}
@@ -759,6 +760,8 @@ func test_place():
 	parser.model_changes_apply(a)
 
 func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
+	glob.change_chat_cache(str(chat_id), {"role": "ai", "text": 
+		message_sockets[chat_id].cache.get("message", [""])[0]})
 	message_sockets.erase(chat_id)
 	on_close.call()
 	var acts = sock.cache.get("actions", {})
@@ -790,6 +793,7 @@ func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 
 
 var env_dump = {}
+var cached_projects = {}
 func load_scene(from: String):
 	project_id = int(from)
 	var answer = await web.POST("project", {"scene": from, 
@@ -807,6 +811,7 @@ func load_scene(from: String):
 	tree_windows["env"].reset()
 	
 	fg.set_scene_name(a["name"])
+	cached_chats.clear()
 	graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
@@ -820,12 +825,36 @@ func load_scene(from: String):
 	return true
 
 
+var cached_chats = {}
+func update_chat_cache(chat_id: String, update: Dictionary):
+	var got = cached_chats.get_or_add(chat_id, [])
+	if got and (got[-1].get("user", true) == false or got[-1].get("role", "user") != "user"):
+		got[-1] = (update)
+	else:
+		got.append(update)
+
+func change_chat_cache(chat_id: String, update: Dictionary):
+	cached_chats.get_or_add(chat_id, [])[-1] = update
 
 func request_chat(chat_id: String):
-	return await web.POST("get_chat", {"user": "n", 
-	"pass": "1", 
-	"chat_id": chat_id, 
-	"scene": str(get_project_id())})
+	var posted =  null
+	if chat_id in cached_chats:
+		posted = cached_chats[chat_id]
+	else:
+		var received = await web.POST("get_chat", {"user": "n", 
+		"pass": "1", 
+		"chat_id": chat_id, 
+		"scene": str(get_project_id())})
+		if received and received.body:
+			var json = JSON.parse_string(received.body.get_string_from_utf8())
+			if json.has("messages"):
+				cached_chats[chat_id] = json.messages
+				posted = json.messages
+			else:
+				posted = []
+		else:
+			posted = []
+	return posted
 
 
 func load_empty_scene(pr_id: int, name: String):
@@ -833,6 +862,7 @@ func load_empty_scene(pr_id: int, name: String):
 	project_id = pr_id
 	set_var("last_id", project_id)
 	tree_windows["env"].reset()
+	cached_chats.clear()
 	await graphs.delete_all()
 	
 	fg.set_scene_name(name)
@@ -844,7 +874,12 @@ func load_empty_scene(pr_id: int, name: String):
 	#
 
 func save(from: String):
-	var blob = Marshalls.raw_to_base64(var_to_bytes(get_project_data()))
+	var bytes = var_to_bytes(get_project_data())
+	var blob = Marshalls.raw_to_base64(bytes)
+	var acc = cookies.open_or_create("cached_projects/%s.scn" % from)
+	acc.store_var(bytes)
+	print("save...")
+	#print(get_project_data())
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"name": fg.get_scene_name(),
@@ -853,7 +888,10 @@ func save(from: String):
 	"pass": "1"})
 
 func save_empty(from: String, name: String):
-	var blob = Marshalls.raw_to_base64(var_to_bytes(get_project_data(true)))
+	var bytes = var_to_bytes(get_project_data(true))
+	var blob = Marshalls.raw_to_base64(bytes)
+	var acc = cookies.open_or_create("cached_projects/%s.scn" % from)
+	acc.store_var(bytes)
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"contexts": [],

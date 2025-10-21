@@ -659,6 +659,9 @@ func get_syntax_tree(input) -> Dictionary:
 		"train": 1
 	}
 
+func get_llm_summary():
+	pass
+
 #func run_request():
 	#save()
 	#var syntax_tree = get_syntax_tree(_input_origin_graph)
@@ -702,7 +705,7 @@ func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: St
 	if id:
 		new.graph_id = id
 	new.graph_flags = flags
-	var last = storage.get_child(-1)
+	var last = storage.get_child(-1) if storage.get_child_count() else null
 	z_count += last.z_space if last else 0
 	new.z_index = z_count
 	storage.add_child(new)
@@ -720,8 +723,24 @@ func _ready():
 func is_layer(g: Graph, layer: StringName):
 	return g.server_typename == "NeuronLayer" and g.layer_name == layer
 
+func push_1d(columns: int, who: Graph):
+	var target = who.get_first_descendants()
+	#print(columns)
+	#print(target)
+	for i in target:
+		#print(i.server_typename)
+		if is_node(i, "Reshape2D"):
+			i.reload_config()
+		if is_node(i, "SoftmaxNode"):
+			#print("Ff")
+			i.upd(columns)
+		if is_node(i, "Flatten"):
+			push_1d(columns, i)
+		if is_node(i, "ClassifierNode"):
+			i.push_result_meta({"datatype": "1d", "x": columns})
 
 func push_2d(columns: int, rows: int, target):
+	#print("repush..")
 	if !glob.is_iterable(target): target = [target]
 	for i in target:
 		if is_layer(i, "Conv2D"):
@@ -771,6 +790,7 @@ func _process(delta: float) -> void:
 	var dc = 0
 
 	for graph: Graph in storage.get_children():
+		#print("F")
 		var r = graph.rect
 		
 		var vis: bool = visible

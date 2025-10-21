@@ -10,8 +10,8 @@
 [ext_resource type="Script" uid="uid://c4ll2x2c2kw8j" path="res://scripts/text.gd" id="7_o277e"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_q5qxb"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_32ht4"]
-[ext_resource type="Texture2D" uid="uid://cavs5745mjda4" path="res://game_assets/icons/send.png" id="9_tb6sx"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_hh2om"]
+[ext_resource type="Texture2D" uid="uid://cwe4nkiqegj6f" path="res://game_assets/icons/mic.png" id="11_h3ok5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_42jti"]
 content_margin_left = 10.0
@@ -227,7 +227,7 @@ deselect_on_focus_loss_enabled = false
 wrap_mode = 1
 scroll_fit_content_height = true
 script = ExtResource("7_o277e")
-children_layer = [NodePath(""), NodePath("train")]
+children_layer = [NodePath("train")]
 enter_event = NodePath("train")
 max_length = 200
 max_size_y = 512
@@ -272,7 +272,7 @@ offset_top = 0.9661513
 offset_right = 42.61277
 offset_bottom = 40.966152
 scale = Vector2(0.77839935, 0.77839935)
-texture = ExtResource("9_tb6sx")
+texture = ExtResource("11_h3ok5")
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_hh2om")

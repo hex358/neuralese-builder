@@ -9,3 +9,16 @@ func _useful_properties() -> Dictionary:
 			is_output = true
 	return {"config":{
 		"role": "output" if is_output else "none"}}
+
+func _get_x() -> Variant:
+	return holding
+
+var holding: int = 0
+
+func _just_attached(other_conn: Connection, my_conn: Connection):
+	pass
+	#upd(holding)
+
+func upd(count: int):
+	holding = count
+	graphs.push_1d(count, self)

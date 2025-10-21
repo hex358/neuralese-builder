@@ -86,7 +86,7 @@ func _on__released() -> void:
 @onready var axon = $Control/ai
 func _on_ai_released() -> void:
 	if !logged_in:
-		var a =1# await ui.splash_and_get_result("login", axon)
+		var a = 1#await ui.splash_and_get_result("login", axon)
 		if a:
 			set_login_state("Works")
 			ui.splash("ai_help", axon)
