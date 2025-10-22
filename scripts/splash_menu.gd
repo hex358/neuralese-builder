@@ -13,6 +13,9 @@ var from_scale: Vector2
 var to_scale: Vector2
 
 func _ready() -> void:
+	readys()
+
+func readys():
 	RenderingServer.global_shader_parameter_set("_view_scale", 1.0)
 	if first_line:
 		first_line.grab_focus()
@@ -25,12 +28,13 @@ func _ready() -> void:
 	
 	$ColorRect.scale = Vector2.ZERO
 	tick()
-	indexed = glob.rget_children(self)
+	#indexed = glob.rget_children(self)
 	#await get_tree().process_frame
 	splash()
 
 var emitter: ui.ResultEmitter = null
 signal quitting
+
 func quit(data: Dictionary = {}):
 	quitting.emit()
 	if can_go:
@@ -122,7 +126,11 @@ func _just_splash():
 func _just_go_away():
 	pass
 
+func _splash():
+	pass
+
 func splash() -> void:
+	_splash()
 	accept_event()
 	from_scale = $ColorRect.scale
 	to_scale = Vector2.ONE

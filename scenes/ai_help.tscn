@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://f081neg4h7dv"]
+[gd_scene load_steps=20 format=3 uid="uid://f081neg4h7dv"]
 
 [ext_resource type="Script" uid="uid://bang6a1r87sqa" path="res://scripts/ai_help.gd" id="1_tb6sx"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_o277e"]
@@ -66,6 +66,20 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
+[sub_resource type="Resource" id="Resource_h3ok5"]
+script = ExtResource("9_32ht4")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.0
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 1.0
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
 [node name="Node2D" type="Control" node_paths=PackedStringArray("_user_message", "_ai_message")]
 process_mode = 3
 layout_mode = 3
@@ -73,6 +87,7 @@ anchors_preset = 0
 script = ExtResource("1_tb6sx")
 _user_message = NodePath("ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer")
 _ai_message = NodePath("ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer2")
+persistent = true
 typename = "ai_help"
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -204,7 +219,7 @@ scale = Vector2(-1, 1)
 texture = SubResource("GradientTexture1D_h3ok5")
 expand_mode = 1
 
-[node name="Label2" type="TextEdit" parent="ColorRect" node_paths=PackedStringArray("children_layer", "enter_event")]
+[node name="Label2" type="TextEdit" parent="ColorRect" node_paths=PackedStringArray("enter_event")]
 z_index = 6
 layout_mode = 1
 anchors_preset = 2
@@ -227,7 +242,6 @@ deselect_on_focus_loss_enabled = false
 wrap_mode = 1
 scroll_fit_content_height = true
 script = ExtResource("7_o277e")
-children_layer = [NodePath("train")]
 enter_event = NodePath("train")
 max_length = 200
 max_size_y = 512
@@ -267,12 +281,41 @@ in_splash = true
 
 [node name="TextureRect" type="TextureRect" parent="ColorRect/Label2/train"]
 layout_mode = 0
-offset_left = 2.6127694
-offset_top = 0.9661513
-offset_right = 42.61277
-offset_bottom = 40.966152
-scale = Vector2(0.77839935, 0.77839935)
+offset_left = 4.382955
+offset_top = 2.365299
+offset_right = 44.382954
+offset_bottom = 42.3653
+scale = Vector2(0.6954446, 0.6954446)
 texture = ExtResource("11_h3ok5")
+
+[node name="train" parent="ColorRect" instance=ExtResource("8_q5qxb")]
+z_index = 5
+instance_shader_parameters/corner_radius_width_add = Vector2(-8, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 419.00006
+offset_top = 11.999998
+offset_right = 469.97607
+offset_bottom = 32.57119
+scale = Vector2(1.1770253, 1.1770253)
+pivot_offset = Vector2(34.615982, 12.5)
+mouse_filter = 1
+color = Color(0.59, 0.59, 0.59, 1)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 4
+text = "Clear"
+base_size = Vector2(50.976013, 20.571192)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_h3ok5")
+in_splash = true
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_hh2om")
@@ -281,3 +324,4 @@ script = ExtResource("10_hh2om")
 [connection signal="text_changed" from="ColorRect/Label2" to="." method="_on_label_2_text_changed"]
 [connection signal="text_changed" from="ColorRect/Label2" to="ColorRect/Label2" method="_on_text_changed"]
 [connection signal="hovering" from="ColorRect/Label2/train" to="." method="_on_train_hovering"]
+[connection signal="released" from="ColorRect/train" to="." method="_on_cl_released"]

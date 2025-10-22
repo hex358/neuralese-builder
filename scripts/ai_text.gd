@@ -5,6 +5,13 @@ var actual_text = ""
 func push_text(new: String):
 	actual_text += new
 	text = actual_text.strip_edges()
+	if thinking: text += (actual_text + "\n[color=gray]Thinking...[/color]").strip_edges()
+	else: text = actual_text.strip_edges()
+
+var thinking: bool = false
+
+func set_thinking(yes: bool):
+	thinking = yes
 
 func set_txt(text_: String):
 	actual_text = text_

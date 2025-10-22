@@ -760,7 +760,8 @@ func test_place():
 	parser.model_changes_apply(a)
 
 func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
-	glob.change_chat_cache(str(chat_id), {"role": "ai", "text": 
+	#print(message_sockets[chat_id].cache.get("message", [""])[0])
+	glob.update_chat_cache(str(chat_id), {"role": "ai", "text": 
 		message_sockets[chat_id].cache.get("message", [""])[0]})
 	message_sockets.erase(chat_id)
 	on_close.call()
@@ -828,16 +829,25 @@ func load_scene(from: String):
 var cached_chats = {}
 func update_chat_cache(chat_id: String, update: Dictionary):
 	var got = cached_chats.get_or_add(chat_id, [])
-	if got and (got[-1].get("user", true) == false or got[-1].get("role", "user") != "user"):
-		got[-1] = (update)
+	if 0:#got and (got[-1].get("user", true) == false or got[-1].get("role", "user") != "user"):
+		pass#got[-1] = (update)
 	else:
 		got.append(update)
 
 func change_chat_cache(chat_id: String, update: Dictionary):
 	cached_chats.get_or_add(chat_id, [])[-1] = update
 
+
+func clear_chat(chat_id: int):
+	cached_chats.get(str(chat_id), []).clear()
+	web.POST("clear_chat", {"user": "n", 
+		"pass": "1", 
+		"chat_id": str(chat_id), 
+		"scene": str(get_project_id())})
+
 func request_chat(chat_id: String):
 	var posted =  null
+	#print(cached_chats)
 	if chat_id in cached_chats:
 		posted = cached_chats[chat_id]
 	else:

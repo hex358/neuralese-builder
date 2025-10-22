@@ -660,7 +660,24 @@ func get_syntax_tree(input) -> Dictionary:
 	}
 
 func get_llm_summary():
-	pass
+	#var summary = {}
+	var summary = {"nodes": {}, "edges": []}
+	for i in _graphs:
+		var node: Graph = _graphs[i]
+		var outputs = {}
+		for j in node.outputs:
+			var output_splines = []
+			for o in j.outputs:
+				output_splines.append({"to": j.outputs[o].tied_to.parent_graph.llm_tag, "port": j.outputs[o].tied_to.hint})
+				summary["edges"].append({"from": 
+					{"port": j.outputs[o].origin.hint, "tag": j.outputs[o].origin.parent_graph.llm_tag},
+					"to":
+					{"port": j.outputs[o].tied_to.hint, "tag": j.outputs[o].tied_to.parent_graph.llm_tag}})
+			outputs[j.hint] = output_splines
+		summary["nodes"][node.llm_tag] = {"type": glob.llm_name_unmapping[node.get_meta("created_with")],
+		"config": node.cfg, "outputs": outputs}
+	return summary
+	#print(JSON.stringify(summary, "\t"))
 
 #func run_request():
 	#save()
@@ -761,6 +778,8 @@ func unpush_2d(target):
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
+	#if glob.space_just_pressed:
+		#print(get_llm_summary())
 	# 1) Pick winners for both namespaces from last frame's candidates
 	choose_conn_under_mouse("activate")
 	choose_conn_under_mouse("hover")
@@ -794,7 +813,7 @@ func _process(delta: float) -> void:
 		var r = graph.rect
 		
 		var vis: bool = visible
-		if not graph.dragging and visible:
+		if not graph.dragging and visible and not graph.hold_process:
 			var rect = r.get_global_rect()
 			var gp = rect.position - Vector2(10,10)
 			var s  = rect.size + Vector2(20,20)
@@ -813,6 +832,7 @@ func _process(delta: float) -> void:
 			vis = rect_screen.intersects(vp)
 		
 		var force_held: bool = false
+		if !visible and last_frame_visible: force_held = true
 		if visible and (vis or graph.hold_process or graph.dragging or graph.active_output_connections):
 			var inside = graph.is_mouse_inside()
 			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
@@ -829,7 +849,7 @@ func _process(delta: float) -> void:
 					graph._stopped_processing()
 				graph.process_mode = PROCESS_MODE_DISABLED
 			graph.show()
-		else:
+		elif not graph.hold_process:
 			graph.hide()
 			if graph.process_mode != PROCESS_MODE_DISABLED:
 			#	print("GJKGJ")

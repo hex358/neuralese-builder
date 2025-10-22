@@ -1,14 +1,46 @@
 extends SplashMenu
+class_name AIHelpMenu
 
 @export var _user_message: HBoxContainer
 @export var _ai_message: HBoxContainer
+@export var persistent: bool = false
 
 var chat_id: int = 0
 
 @onready var user_message = _user_message.duplicate()
 @onready var ai_message = _ai_message.duplicate()
+
+static var cached_scroller = null
+
+#func reparent_stuff():
+	##print(scroller)
+	#scroller.set_meta("mlist", _message_list)
+	#AIHelpMenu.cached_scroller = scroller
+	#remove_child(scroller)
+	##scroller.tree_exiting.connect(print.bind("hello"))
+#
+#func get_stuff():
+	##print(AIHelpMenu.cached_scroller)
+	#if AIHelpMenu.cached_scroller:
+		##var p = scroller.get_parent()
+		#scroller.queue_free()
+		##p.add_child(AIHelpMenu.cached_scroller)
+		#scroller = AIHelpMenu.cached_scroller
+		#get_node("ColorRect").add_child(AIHelpMenu.cached_scroller)
+		#_message_list = scroller.get_meta("mlist")
+
+func quit(data: Dictionary = {}):
+	quitting.emit()
+	if can_go:
+		hide()
+		ui.blur.self_modulate.a = 0
+		emitter.res.emit(data)
+		#get_parent().remove_child(self)
+
 func _ready() -> void:
 	super()
+	#get_stuff()
+	#quitting.connect(reparent_stuff)
 	_user_message.queue_free()
 	_ai_message.queue_free()
 	set_messages([
@@ -24,18 +56,23 @@ func _ready() -> void:
 			elif i["role"] != "system":
 				i.user = false
 			i.erase("role")
-		set_messages(received)
+		var new_recv = []
+		for i in range(len(_message_list), len(received)):
+		#	new_recv.append(received[i])
+			add_message(received[i])
 	
 	
 	if get_last_message().user:
 		if glob.message_sockets.has(chat_id):
 			var got = glob.get_my_message_state(chat_id, text_receive)
+			trect.texture = stop
 			if got[0]:
 				$ColorRect/Label2.disable()
 				got[0].kill.connect(func():
 						get_last_message().erase("_pending")
 						#print("ff")
 						#glob.update_chat_cache(str(chat_id), get_last_message())
+						trect.texture = mic_texture
 						$ColorRect/Label2.enable())
 				#print(got[1])
 				add_message({"user": false, "text": got[1]})
@@ -49,9 +86,10 @@ func _ready() -> void:
 func text_receive(arr):
 	if arr[1]:
 		if not get_last_message().get("marked_thinking", false):
-			get_last_message().object.set_txt(get_last_message().object.actual_text + "\nthinking...")
+			get_last_message().object.set_thinking(true)
 		get_last_message()["marked_thinking"] = true
 	else:
+		get_last_message().object.set_thinking(false)
 		get_last_message()["marked_thinking"] = false
 		
 	get_last_message().text += arr[0]
@@ -69,8 +107,9 @@ func send_message(text: String):
 	if sock:
 		await sock.kill
 	get_last_message().erase("_pending")
+	trect.texture = mic_texture
 	#print(get_last_message())
-	glob.update_chat_cache(str(chat_id), get_last_message())
+	#glob.update_chat_cache(str(chat_id), get_last_message())
 	$ColorRect/Label2.enable()
 	#await get_tree().process_frame
 	#$ColorRect/ScrollContainer.set_deferred("scroll_vertical", $ColorRect/ScrollContainer.get_v_scroll_bar().max_value)
@@ -92,7 +131,7 @@ func add_message(message: Dictionary):
 	scroller.add_child(new)
 	if not message.user:
 		new.get_node("txt").actual_text = message.text
-	new.get_node("txt").text = message.text
+	new.get_node("txt").set_txt(message.text)
 	message.object = new.get_node("txt")
 
 
@@ -101,6 +140,7 @@ func _just_splash():
 
 @onready var bs = $ColorRect/ScrollContainer.size.y
 func _process(delta: float) -> void:
+	if not visible: return
 	super(delta)
 	var tr = $ColorRect/root/TextureRect
 	var bar: VScrollBar = $ColorRect/ScrollContainer.get_v_scroll_bar()
@@ -137,19 +177,31 @@ func _on_train_hovering() -> void:
 	pass # Replace with function body.
 
 
-func get_last_message() -> Dictionary:
+func get_last_message():
 	return _message_list[-1] if _message_list else null
 
 
 func on_send(txt: String) -> void:
+	#if get_last_message().has("_pending"):
+	#	return
 	if get_last_message() and not get_last_message().has("_pending") and $ColorRect/Label2.text:
 		send_message($ColorRect/Label2.text)
+		trect.texture = stop
 
 @onready var trect = $ColorRect/Label2/train/TextureRect
 @onready var mic_texture = $ColorRect/Label2/train/TextureRect.texture
+@onready var stop = preload("res://game_assets/icons/stop.png")
 var def_texture = preload("res://game_assets/icons/send.png")
 func _on_label_2_text_changed() -> void:
 	if $ColorRect/Label2.text:
 		trect.texture = def_texture
 	else:
 		trect.texture = mic_texture
+
+
+func _on_cl_released() -> void:
+	for i in range(1, len(_message_list)):
+		_message_list[i].object.get_parent().queue_free()
+	_message_list.resize(1)
+	glob.clear_chat(chat_id)
+	$ColorRect/ScrollContainer.set("scroll_vertical", 0)

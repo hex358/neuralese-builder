@@ -154,13 +154,23 @@ func splash(menu: String, splashed_from = null, emitter_ = null, inner = false, 
 			splashed_from.in_splash = false
 			get_splash(menu).go_away()
 			return null
-	var m: SplashMenu = splash_menus[menu].instantiate()
+	var m: SplashMenu 
+	if menu in already_splashed:
+		m = already_splashed[menu]
+	else:
+		m = splash_menus[menu].instantiate()
 	m.inner = inner
 	if passed_data: m.passed_data = passed_data
-	cl.add_child(m)
+	if not menu in already_splashed:
+		cl.add_child(m)
+	else:
+		m.readys()
+		m.splash()
+	already_splashed[menu] = m
 	m.splashed_from = splashed_from
 	var emitter = ResultEmitter.new() if !emitter_ else emitter_
 	m.emitter = emitter
+	m.tree_exited.connect(func(): already_splashed.erase(menu))
 	return m
 
 func error(text: String):
@@ -169,6 +179,7 @@ func error(text: String):
 class ResultEmitter:
 	signal res(data: Dictionary, who: String)
 
+var already_splashed: Dictionary = {}
 signal result_emit(data: Dictionary)
 func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> Dictionary:
 	#print_stack()
@@ -180,13 +191,23 @@ func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, 
 			splashed_from.in_splash = false
 			get_splash(menu).go_away()
 			return {}
-	var m: SplashMenu = splash_menus[menu].instantiate()
+	var m: SplashMenu 
+	if menu in already_splashed:
+		m = already_splashed[menu]
+	else:
+		m = splash_menus[menu].instantiate()
 	m.inner = inner
 	if passed_data: m.passed_data = passed_data
-	cl.add_child(m)
+	if not menu in already_splashed:
+		cl.add_child(m)
+	else:
+		m.readys()
+		m.splash()
+	already_splashed[menu] = m
 	m.splashed_from = splashed_from
 	var emitter = ResultEmitter.new() if !emitter_ else emitter_
 	m.emitter = emitter
+	m.tree_exited.connect(func(): already_splashed.erase(menu))
 	var a = await emitter.res
 	return a
 
