@@ -56,7 +56,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == drag_button:
 			dragging = event.pressed
-		elif not ui.splashed and not paused and event.pressed and not glob.is_occupied(self, &"scroll"):
+		elif not ui.active_splashed() and not paused and event.pressed and not glob.is_occupied(self, &"scroll"):
 			var factor = zoom_speed * event.factor * zoom.x
 			var prev_zoom = target_zoom
 			match event.button_index:
@@ -105,13 +105,13 @@ func _process(delta: float) -> void:
 		acc = glob.get_display_mouse_position().x < glob.space_end.x
 
 	var mouse := get_global_mouse_position()
-	if not ui.splashed:
+	if not ui.active_splashed():
 		RenderingServer.global_shader_parameter_set("_view_scale", pow(zoom.x, 0.25))
 
 	zoom = Vector2.ONE * lerp(zoom.x, target_zoom, delta * zoom_interpolation_speed)
 	move_intensity = lerp(move_intensity, 0.0, delta * zoom_interpolation_speed)
 
-	if glob.mouse_scroll and not ui.splashed:
+	if glob.mouse_scroll and not ui.active_splashed():
 		zoom_move_vec = (mouse - get_global_mouse_position())
 
 	##if dragging:
@@ -121,7 +121,7 @@ func _process(delta: float) -> void:
 		if dragging:
 		#	print("F")
 			glob.hide_all_menus.call_deferred()
-		if dragging and not glob.mouse_pressed and acc and not ui.splashed:
+		if dragging and not glob.mouse_pressed and acc and not ui.active_splashed():
 			var d = _toroidal_delta(_last_disp, display_mouse)
 			if d != Vector2.ZERO:
 				target_position -= d * drag_speed / zoom

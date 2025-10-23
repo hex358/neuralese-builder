@@ -717,26 +717,28 @@ var llm_name_mapping = {
 	load_dataset = "dataset",
 	augment_tf = "augment_tf",
 	output_map = "output_map",
+	input_1d = "input_1d",
 }
 
 var tag_types = {}
 var tags_1d = {}
 
 func get_llm_tag(who: Graph) -> String:
-	var res = ""; var iters: int = 0
-	var g = who.get_meta("created_with")
-	if not g in tag_types: tag_types[g] = {}
-	while res in tag_types[g] or iters < 1:
-		var r = ""
-		r += llm_name_unmapping.get(g)
-		r += "_" + str(len(tag_types[g]))
-		res = r
-		iters += 1
+	var g: String = who.get_meta("created_with")
+	if not g in tag_types:
+		tag_types[g] = {}
+		tag_types[g]["__counter__"] = 0
+
+	var counter: int = tag_types[g].get("__counter__", 0)
+	tag_types[g]["__counter__"] = counter + 1
+
+	var base: String = llm_name_unmapping.get(g, g)
+	var res: String = "%s_%d" % [base, counter]
+
 	tag_types[g][res] = true
-	#print(res)
-	
 	tags_1d[who.llm_tag] = who
 	return res
+
 
 func set_llm_tag(who: Graph, val: String):
 	if who.llm_tag in tags_1d:
@@ -806,6 +808,9 @@ func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 
 func clear_all():
 	last_summary_hash = 0
+	for i in ui.splashed:
+		if i.typename == "ai_help":
+			i.clear_all()
 	#tag_types.clear()
 	#tags_1d.clear()
 	#cached_chats.clear()
@@ -858,12 +863,13 @@ func change_chat_cache(chat_id: String, update: Dictionary):
 	cached_chats.get_or_add(chat_id, [])[-1] = update
 
 
-func clear_chat(chat_id: int):
+func clear_chat(chat_id: int, req=true):
 	cached_chats.get(str(chat_id), []).clear()
-	web.POST("clear_chat", {"user": "n", 
-		"pass": "1", 
-		"chat_id": str(chat_id), 
-		"scene": str(get_project_id())})
+	if req:
+		web.POST("clear_chat", {"user": "n", 
+			"pass": "1", 
+			"chat_id": str(chat_id), 
+			"scene": str(get_project_id())})
 
 func request_chat(chat_id: String):
 	var posted =  null

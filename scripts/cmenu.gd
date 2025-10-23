@@ -9,6 +9,8 @@ func _menu_handle_release(button: BlockComponent):
 			type = "layer"
 		"act":
 			type = "neuron"
+		"input1d":
+			type = "input_1d"
 		"input":
 			type = "input"
 		"train_input":
@@ -48,7 +50,7 @@ func _menu_handle_release(button: BlockComponent):
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()
-	graph.global_position = world_pos
+	graph.global_position = world_pos - graph.rect.position - graph.rect.size / 2
 	#await glob.wait(0.1)
 	menu_hide()
 	#unfreeze_input()

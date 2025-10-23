@@ -115,7 +115,6 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="ColorRect/root"]
-z_index = 1
 layout_mode = 0
 offset_left = 24.0
 offset_top = 3.0
@@ -164,7 +163,6 @@ offset_right = 101.0
 offset_bottom = 33.5
 
 [node name="Label2" type="Label" parent="connection/ColorRect"]
-z_index = 1
 layout_mode = 0
 offset_left = 30.0
 offset_top = 20.0
@@ -350,7 +348,6 @@ auto_ready = false
 
 [node name="Label2" type="Label" parent="."]
 self_modulate = Color(0.65, 0.65, 0.65, 1)
-z_index = 1
 layout_mode = 0
 offset_left = 14.000002
 offset_top = -2.999999

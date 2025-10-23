@@ -36,6 +36,7 @@ metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Base" instance=ExtResource("1_6ucvy")]
 script = ExtResource("2_02not")
+base_dt = "2d"
 server_typename = &"InputNode"
 is_input = true
 
@@ -89,13 +90,13 @@ offset_right = 48.0
 offset_bottom = 116.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
-offset_left = 8.0
-offset_top = 4.000002
-offset_right = 105.0
-offset_bottom = 47.0
-scale = Vector2(0.569577, 0.569577)
+offset_left = 9.0
+offset_top = 4.9999995
+offset_right = 144.0
+offset_bottom = 48.0
+scale = Vector2(0.5097783, 0.5097783)
 theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
-text = "Input"
+text = "Input2D"
 
 [node name="TextureRect" type="TextureRect" parent="." index="3"]
 texture_filter = 1

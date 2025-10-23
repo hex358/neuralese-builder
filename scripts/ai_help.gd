@@ -49,11 +49,11 @@ func _ready() -> void:
 	var received = await glob.request_chat(str(chat_id))
 	if received:
 		for i in received:
-			i.text = parser.clean_message(i.text)
 			if !i.has("role"): continue
 			if i["role"] == "user":
 				i.user = true
 			elif i["role"] != "system":
+				i.text = parser.clean_message(i.text)
 				i.user = false
 			i.erase("role")
 		var new_recv = []
@@ -199,6 +199,11 @@ func _on_label_2_text_changed() -> void:
 	else:
 		trect.texture = mic_texture
 
+func clear_all():
+	for i in range(len(_message_list)):
+		_message_list[i].object.get_parent().queue_free()
+	_message_list.clear()
+	$ColorRect/ScrollContainer.set("scroll_vertical", 0)
 
 func _on_cl_released() -> void:
 	for i in range(len(_message_list)):

@@ -599,20 +599,26 @@ func reach(from_graph: Graph, call: Callable = def_call):
 	node_caches[from_graph] = {}
 	from_graph._chain_incoming(node_caches[from_graph])
 	
+	var visited_graphs = {}
+
 	var gather = func(iter):
 		var page = {}
 		for me: Connection in iter:
+			var parent = me.parent_graph
+			if visited_graphs.has(parent):
+				continue
+			visited_graphs[parent] = true
+
 			if me.connection_type == Connection.OUTPUT:
-				var from_cache = node_caches.get(me.parent_graph, {})
+				var from_cache = node_caches.get(parent, {})
 				for other in iter[me]:
 					var branch_cache = from_cache.duplicate(true)
 					node_caches[other.parent_graph] = branch_cache
 					call.call(me, other, branch_cache)
-			page[me.parent_graph] = true
+			page[parent] = true
 		return page
-	
+
 	from_graph.propagate({})
-	
 	var gathered = []
 	var prev_q = {}
 	gathered.append(gather.call(_propagated_from))
@@ -623,6 +629,7 @@ func reach(from_graph: Graph, call: Callable = def_call):
 		gathered.append(gather.call(_propagated_from))
 	gathered[-1] = gather.call(prev_q)
 	reach_mode = false
+
 
 func is_node(who: Graph, typename: String) -> bool:
 	return who.server_typename == typename
@@ -712,6 +719,7 @@ var graph_types = {
 	"run_model": gload("res://scenes/run_model.tscn"),
 	"augment_tf": gload("res://scenes/augment_transform.tscn"),
 	"output_map": gload("res://scenes/branch_mapping.tscn"),
+	"input_1d": gload("res://scenes/input_1d.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
@@ -813,31 +821,38 @@ func _process(delta: float) -> void:
 		var r = graph.rect
 		
 		var vis: bool = visible
-		if not graph.dragging and visible and not graph.hold_process:
-			var rect = r.get_global_rect()
-			var gp = rect.position - Vector2(10,10)
-			var s  = rect.size + Vector2(20,20)
+		graph.hold_process = graph.exist_time < 1.0
+		if not graph.dragging and visible:
+			if graph.hold_process:
+				vis = true
+			else:
+				var rect = r.get_global_rect()
+				var gp = rect.position - Vector2(10,10)
+				var s  = rect.size + Vector2(20,20)
 
-			var p0 = glob.world_to_screen(gp)
-			var p1 = glob.world_to_screen(gp + Vector2(s.x, 0.0))
-			var p2 = glob.world_to_screen(gp + Vector2(0.0, s.y))
-			var p3 = glob.world_to_screen(gp + s)
+				var p0 = glob.world_to_screen(gp)
+				var p1 = glob.world_to_screen(gp + Vector2(s.x, 0.0))
+				var p2 = glob.world_to_screen(gp + Vector2(0.0, s.y))
+				var p3 = glob.world_to_screen(gp + s)
 
-			var minx = min(p0.x, p1.x, p2.x, p3.x)
-			var maxx = max(p0.x, p1.x, p2.x, p3.x)
-			var miny = min(p0.y, p1.y, p2.y, p3.y)
-			var maxy = max(p0.y, p1.y, p2.y, p3.y)
-			var rect_screen = Rect2(Vector2(minx, miny), Vector2(maxx - minx, maxy - miny))
+				var minx = min(p0.x, p1.x, p2.x, p3.x)
+				var maxx = max(p0.x, p1.x, p2.x, p3.x)
+				var miny = min(p0.y, p1.y, p2.y, p3.y)
+				var maxy = max(p0.y, p1.y, p2.y, p3.y)
+				var rect_screen = Rect2(Vector2(minx, miny), Vector2(maxx - minx, maxy - miny))
 
-			vis = rect_screen.intersects(vp)
+				vis = rect_screen.intersects(vp)
+			#print(graph.get_title())
+		#elif graph.hold_process:
+		#	print("..")
 		
 		var force_held: bool = false
 		if !visible and last_frame_visible: force_held = true
-		if visible and (vis or graph.hold_process or graph.dragging or graph.active_output_connections):
+		if visible and (vis or graph.dragging or graph.active_output_connections or graph.hold_process):
 			var inside = graph.is_mouse_inside()
 			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
 			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))
-			if not ui.splashed and (graph.hold_process or padded_inside or graph.active_output_connections):
+			if not ui.active_splashed() and (graph.hold_process or padded_inside or graph.active_output_connections):
 				graph.process_mode = PROCESS_MODE_INHERIT
 				#print(graph.hold_process)
 				if inside:
@@ -846,10 +861,12 @@ func _process(delta: float) -> void:
 			else:
 				if graph.process_mode != PROCESS_MODE_DISABLED:
 					#print("GJKGJ")
+		#			print(graph.get_title())
 					graph._stopped_processing()
 				graph.process_mode = PROCESS_MODE_DISABLED
 			graph.show()
 		elif not graph.hold_process:
+			#print("h..")
 			graph.hide()
 			if graph.process_mode != PROCESS_MODE_DISABLED:
 			#	print("GJKGJ")
@@ -860,3 +877,4 @@ func _process(delta: float) -> void:
 			graph.hold_process = false
 		
 		dc += int(graph.process_mode != PROCESS_MODE_DISABLED)
+	#print(dc)

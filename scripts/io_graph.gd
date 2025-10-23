@@ -52,6 +52,9 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 #	dup.server_name = 
 	return dup
 
+func _adding_unit(who: Control, kw: Dictionary):
+	pass
+
 
 var key_by_unit: Dictionary = {}
 func _unit_removal(id: int):
@@ -95,6 +98,7 @@ func _unit_just_added() -> void: # virtual
 	
 func _add_q(kw: Dictionary):
 	var new_unit = _get_unit(kw)
+	_adding_unit(new_unit, kw)
 	appear_units[new_unit] = true
 	new_unit.set_script(unit_script)
 	new_unit.id = len(units)

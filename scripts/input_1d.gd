@@ -1,10 +1,23 @@
 extends DynamicGraph
-class_name OutputGraph
+
+var hsliders = {}
+func _adding_unit(who: Control, kw: Dictionary):
+	var hslider = who.get_node("HSlider")
+	hslider.value_changed.connect(hslider_val_changed.bind(hslider))
+	var idx = len(units)-1
+	hslider.tree_exiting.connect(func(): hsliders.erase(idx))
+	hsliders[idx] = hslider
+
+func hslider_val_changed(val: float, slider: HSlider):
+	var k = (val / slider.max_value)
+	slider.get_parent().get_node("Label2").text = str(glob.cap(k, 1))
+
+
 
 var value_cache: Array = []
 var manually: bool = false
 func unit_set(unit, value, text):
-	units[unit].set_weight(value, text)
+	units[unit].set_weight(text)
 
 func _config_field(field: StringName, value: Variant):
 	if not manually and field == "label_names":
@@ -17,14 +30,24 @@ func _config_field(field: StringName, value: Variant):
 		ch()
 
 func _can_drag() -> bool:
-	return super() and not ui.is_focus($ColorRect/root/Label)
+	if not super(): return false
+	for i in hsliders.values():
+		if ui.is_focus(i):
+			return false
+	return true
+#	return super() and not ui.is_focus($ColorRect/root/Label)
 
 func _proceed_hold() -> bool:
-	return ui.is_focus($ColorRect/root/Label)
+	if not super(): return false
+	for i in hsliders.values():
+		if ui.is_focus(i):
+			return true
+	return false
+	#return ui.is_focus($ColorRect/root/Label)
 
 
 func get_title() -> String:
-	return $ColorRect/root/Label.text if $ColorRect/root/Label.text else "LabelGroup"
+	return $ColorRect/root/Label.text
 
 var per: bool = false
 func push_values(values: Array, percent: bool = false):
@@ -52,6 +75,8 @@ func push_values(values: Array, percent: bool = false):
 	update_config({"label_names": res})
 	manually = false
 
+
+
 func _unit_just_added() -> void:
 	var ancestor = get_first_ancestors()
 	if ancestor: 
@@ -61,22 +86,15 @@ func _unit_just_added() -> void:
 			push_values(value_cache, false)
 	else:
 		push_values(value_cache, false)
-	
-func _deattaching(other_conn: Connection, my_conn: Connection):
-	var ancestor = get_first_ancestors()
-	if ancestor: 
-		if ancestor[0].server_typename == "SoftmaxNode":
-			push_values(value_cache, false)
+
+func get_netname():
+	for i in get_first_ancestors():
+		if i.server_typename == "ModelName":
+			return i
+	return null
 
 
 
-
-func _just_attached(other_conn: Connection, my_conn: Connection):
-	graphs.push_1d(other_conn.parent_graph.get_x(), other_conn.parent_graph)
-	if other_conn.parent_graph.server_typename == "SoftmaxNode":
-		push_values(value_cache, true)
-	else:
-		push_values(value_cache, false)
 
 var res_meta: Dictionary = {}
 func push_result_meta(meta: Dictionary):

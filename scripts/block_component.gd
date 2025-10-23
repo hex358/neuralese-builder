@@ -642,7 +642,7 @@ func _process_block_button(delta: float) -> void:
 	var blocked = (is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)) or is_blocking \
 	or ins
 	var frozen = is_contained and parent.is_frozen or is_frozen
-	blocked = blocked or (ui.splashed and not in_splash)
+	blocked = blocked or (ui.active_splashed() and not in_splash)
 	
 	if not frozen:
 		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins or (is_contained and is_contained.scrolling)))
@@ -969,7 +969,7 @@ func _process_context_menu(delta: float) -> void:
 	var left_click = glob.mouse_just_pressed if !left_activate else glob.mouse_alt_just_pressed
 	var right_click = glob.mouse_alt_just_pressed if !left_activate else glob.mouse_just_pressed
 	
-	var non_splashed = in_splash or !ui.splashed
+	var non_splashed = in_splash or !ui.active_splashed()
 	left_click = left_click and non_splashed
 	right_click = right_click and non_splashed
 	right_pressed = right_pressed and non_splashed

@@ -1,0 +1,252 @@
+[gd_scene load_steps=14 format=3 uid="uid://coifi5ok0t7lo"]
+
+[ext_resource type="Script" uid="uid://cvwlkwi2gv6rf" path="res://scripts/input_1d.gd" id="1_gbdyi"]
+[ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_7nifx"]
+[ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="3_pxsba"]
+[ext_resource type="Script" uid="uid://ghud5xtg3ftl" path="res://scripts/conn_slider.gd" id="5_ca2jg"]
+[ext_resource type="Material" uid="uid://blkv556akjllh" path="res://resources/panel.tres" id="6_pm2c6"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="7_0td0h"]
+[ext_resource type="Theme" uid="uid://6b4rxqrmq3yb" path="res://resources/theme_no_aa.tres" id="8_6ybxu"]
+[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="9_tpmcl"]
+[ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="10_m57n5"]
+[ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="11_273vt"]
+[ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="12_ov5bv"]
+
+[sub_resource type="Resource" id="Resource_ca2jg"]
+script = ExtResource("11_273vt")
+hover_color = Color(1, 1, 1, 1)
+hover_mult = 1.4
+_hover_scale = 1.037
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 0.97
+animation_speed = 1.951
+animation_decay = 4.564
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_gbdyi"]
+script = ExtResource("11_273vt")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[node name="Base" type="Control" node_paths=PackedStringArray("unit", "add_button", "input", "line_edit")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 200.0
+offset_bottom = 50.0
+mouse_filter = 2
+script = ExtResource("1_gbdyi")
+bottom_attached = true
+unit = NodePath("connection")
+add_button = NodePath("input/ColorRect2")
+input = NodePath("input")
+padding = -7.0
+line_edit = NodePath("input/LineEdit")
+unit_offset_y = 5.0
+target_size = 100.0
+input_y_add = 6.0
+server_typename = &"InputNode"
+is_input = true
+area_padding = 0.0
+
+[node name="o2" parent="." instance=ExtResource("12_ov5bv")]
+instance_shader_parameters/corner_radius_width_add = Vector2(4.5, 0)
+layout_mode = 0
+offset_left = -96.0
+offset_top = -57.0
+offset_right = -76.0
+offset_bottom = -36.0
+color = Color(0.7019608, 0.4, 1, 1)
+_accepted_datatypes = "netname"
+hint = 1
+server_name = &"RunModel"
+connection_type = 0
+area_paddings = Vector4(20, 20, 20, 20)
+origin_offset = Vector2(8, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
+dir_vector = Vector2(-1, 0)
+conn_count_keyword = "netname"
+gradient_color = Color(0.7019608, 0.4, 1, 1)
+
+[node name="o" parent="." instance=ExtResource("12_ov5bv")]
+instance_shader_parameters/corner_radius_width_add = Vector2(0, 0)
+instance_shader_parameters/extents = Vector4(0, 0, 0, 0)
+instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
+layout_mode = 0
+offset_left = 56.0
+offset_top = -32.0
+offset_right = 72.0
+offset_bottom = -11.0
+color = Color(1, 0.988235, 0.6, 1)
+_accepted_datatypes = "layer1d"
+server_name = &"input_out"
+connection_type = 1
+area_paddings = Vector4(20, 20, 20, 20)
+multiple_splines = true
+origin_offset = Vector2(8, 0)
+max_splines_by_keyword = Dictionary[StringName, int]({
+&"train": 0
+})
+gradient_color = Color(1, 0.988235, 0.6, 1)
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = ExtResource("2_7nifx")
+instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
+instance_shader_parameters/outline_color = Color(0.8901961, 0.8862745, 0.8, 1)
+instance_shader_parameters/tuning = Color(0.050980393, 0.050980393, 0.050980393, 0.5411765)
+layout_mode = 0
+offset_left = -87.0
+offset_top = -65.0
+offset_right = 63.0
+offset_bottom = 30.0
+mouse_filter = 2
+
+[node name="root" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label2" type="Label" parent="ColorRect/root"]
+z_index = 1
+layout_mode = 0
+offset_left = 9.0
+offset_top = 6.0
+offset_right = 144.0
+offset_bottom = 49.0
+scale = Vector2(0.48953125, 0.48953125)
+theme = ExtResource("3_pxsba")
+theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
+text = "Input1D"
+
+[node name="connection" type="Control" parent="."]
+anchors_preset = 0
+offset_left = -85.0
+offset_top = -32.0
+offset_right = 97.0
+offset_bottom = 20.0
+script = ExtResource("5_ca2jg")
+
+[node name="ColorRect" type="ColorRect" parent="connection"]
+material = ExtResource("6_pm2c6")
+instance_shader_parameters/outline_color = Color(0.501961, 0.501961, 0.501961, 0.490196)
+instance_shader_parameters/tuning = Color(0.5, 0.5, 0.5, 0.490196)
+layout_mode = 0
+offset_left = 6.0
+offset_top = 8.0
+offset_right = 140.0
+offset_bottom = 45.0
+
+[node name="Label" type="Label" parent="connection"]
+z_index = 1
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 276.66238
+offset_bottom = 53.0
+scale = Vector2(0.37028307, 0.37028307)
+theme = ExtResource("3_pxsba")
+
+[node name="Label2" type="Label" parent="connection"]
+modulate = Color(0.73, 0.73, 0.73, 1)
+z_index = 1
+layout_mode = 0
+offset_left = 98.0
+offset_top = 14.0
+offset_right = 234.53384
+offset_bottom = 57.0
+scale = Vector2(0.2633309, 0.2633309)
+theme = ExtResource("3_pxsba")
+text = "100%"
+horizontal_alignment = 2
+
+[node name="HSlider" type="HSlider" parent="connection"]
+layout_mode = 0
+offset_left = 11.999999
+offset_top = 27.0
+offset_right = 150.9751
+offset_bottom = 43.0
+scale = Vector2(0.8850506, 0.8850506)
+focus_mode = 1
+mouse_force_pass_scroll_events = false
+min_value = 1.0
+max_value = 11.0
+step = 0.0
+value = 1.0
+
+[node name="input" type="Control" parent="."]
+z_index = 1
+anchors_preset = 0
+offset_left = -78.0
+offset_top = 39.0
+offset_right = -38.0
+offset_bottom = 79.0
+
+[node name="LineEdit" parent="input" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_0td0h")]
+layout_mode = 0
+offset_left = 3.0000045
+offset_top = -37.0
+offset_right = 270.30984
+offset_bottom = 11.0
+theme = ExtResource("8_6ybxu")
+placeholder_text = "Type name"
+max_length = 14
+context_menu_enabled = false
+selecting_enabled = false
+accept_button = NodePath("../ColorRect2")
+
+[node name="ColorRect2" parent="input" node_paths=PackedStringArray("graph") instance=ExtResource("9_tpmcl")]
+material = ExtResource("10_m57n5")
+instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
+layout_mode = 0
+offset_left = 61.0
+offset_top = -14.0
+offset_right = 149.0
+offset_bottom = 28.0
+scale = Vector2(0.583319, 0.583319)
+pivot_offset = Vector2(44, 21)
+button_type = 1
+text = "Add +"
+base_size = Vector2(88, 42)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_ca2jg")
+graph = NodePath("../..")
+
+[node name="run" parent="." instance=ExtResource("9_tpmcl")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 10.924696
+offset_top = -59.999992
+offset_right = 61.452263
+offset_bottom = -37.27872
+scale = Vector2(0.733764, 0.733764)
+pivot_offset = Vector2(25.263783, 11.360636)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 1)
+button_type = 1
+top = true
+base_scale_x = 0.45
+resize_after = 6
+text = "Run!"
+text_offset = Vector2(2, 0)
+base_size = Vector2(50.527565, 22.721272)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_gbdyi")
+
+[connection signal="pressed" from="input/ColorRect2" to="." method="_on_color_rect_2_pressed"]

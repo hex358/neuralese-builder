@@ -1,10 +1,16 @@
 extends Control
 
 func is_focus(control: Control):
+	if control is HSlider: return (control.get_global_rect().has_point(get_global_mouse_position()))
 	return control and get_viewport().gui_get_focus_owner() == control
 	
 func get_focus():
 	return get_viewport().gui_get_focus_owner()
+
+var _active_splashed: bool = false
+
+func active_splashed() -> bool:
+	return _active_splashed
 
 var mouse_buttons: Dictionary = {1: true, 2: true, 3: true}
 var wheel_buttons: Dictionary = {
@@ -77,7 +83,11 @@ func unreg_button(b: BlockComponent):
 	pass
 
 func _process(delta: float):
-	pass
+	var ct: int = 0
+	for i in splashed:
+		if i.persistent:
+			ct += 1
+	_active_splashed = len(splashed) != ct
 #	print(get_viewport().gui_get_focus_owner())
 			
 

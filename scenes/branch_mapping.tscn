@@ -73,7 +73,6 @@ conn_count_keyword = "train"
 gradient_color = Color(0.462745, 0.45098, 0.85098, 1)
 
 [node name="ColorRect" type="ColorRect" parent="."]
-z_index = 1
 material = ExtResource("3_ciq7p")
 instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0)
 instance_shader_parameters/outline_color = Color(0.693883, 0.6885, 0.85, 1)
@@ -90,7 +89,6 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="ColorRect/root"]
-z_index = 1
 layout_mode = 0
 offset_left = 21.0
 offset_top = 3.0000012
@@ -142,7 +140,6 @@ base_size = Vector2(169.107, 43)
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="Label2" type="Label" parent="connection/Control"]
-z_index = 1
 layout_mode = 0
 offset_left = 28.000002
 offset_top = 10.0
@@ -254,7 +251,6 @@ gradient_color = Color(0.66, 0.66, 0.66, 1)
 
 [node name="dataset" type="Label" parent="."]
 self_modulate = Color(0.86, 0.86, 0.86, 1)
-z_index = 1
 layout_mode = 0
 offset_left = -44.0
 offset_top = -2.999999

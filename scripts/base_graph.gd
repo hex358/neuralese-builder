@@ -1,6 +1,7 @@
 extends Control
 class_name Graph
 
+@export var base_dt: String = "1d"
 @export var server_typename: StringName = ""
 @onready var label = $ColorRect/root/Label
 @onready var rect = $ColorRect
@@ -607,6 +608,15 @@ func _ready() -> void:
 
 	#graphs.collider(rect)
 
+func all_connections() -> Array[Connection]:
+	var a: Array[Connection] = []
+	for i in input_key_by_conn:
+		a.append(i)
+	for i in output_key_by_conn:
+		a.append(i)
+	return a
+
+
 
 func _collect_inputs_in_subgraph(sub_id: int) -> Array:
 	var res: Array = []
@@ -972,7 +982,7 @@ func _process(delta: float) -> void:
 	
 	if dragging:
 		hold_for_frame()
-		if not glob.mouse_pressed or (not unp_inside and glob.splines_active) or not _can_drag():
+		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
 			dragging = false
 			drag_ended()
 		else:
