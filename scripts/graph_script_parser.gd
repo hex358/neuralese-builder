@@ -173,6 +173,7 @@ func model_changes_apply(actions: Dictionary):
 			i.go_away()
 	await glob.wait(0.05)
 	#print("one...")
+	#graphs.delete_all()
 	for pack in actions["change_nodes"]:
 		for node in pack:
 			var typename = glob.llm_name_mapping.get(node.type)

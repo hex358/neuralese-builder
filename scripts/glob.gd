@@ -773,12 +773,23 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 	parser.model_changes_apply(acts)
 		#print()
 
+
+var last_summary_hash: int = 0
+
 func update_message_stream(input_text: String, chat_id: int, text_update: Callable = def, on_close: Callable = def, clear: bool = false) -> SocketConnection:
 	if chat_id in message_sockets: return
 	var sock = await sockets.connect_to("ws/talk", def, cookies.get_auth_header())
-	sock.send_json({"user": "n", "pass": "1", "chat_id": str(chat_id), 
+	var payload = {"user": "n", "pass": "1", "chat_id": str(chat_id), 
 	"text": input_text, "_clear": "1" if clear else "",
-	"scene": str(get_project_id())})
+	"scene": str(get_project_id()), "summary": {"nodes": {}, "edges": {}}}
+	var summary = graphs.get_llm_summary()
+	var new_hash = summary.hash()
+	#print(new_hash)
+	if new_hash != last_summary_hash or cached_chats.get(str(chat_id), []).size() <= 1:
+		last_summary_hash = new_hash
+		payload["summary"] = summary
+		
+	sock.send_json(payload)
 	sock.packet.connect(message_chunk_received.bind(sock))
 	message_sockets[chat_id] = sock
 	sock.set_meta("text_update", text_update)
@@ -791,6 +802,14 @@ func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 		got.set_meta("text_update", text_update)
 		return [got, got.cache.get("message", [""])[0]]
 	return [null, ""]
+
+
+func clear_all():
+	last_summary_hash = 0
+	#tag_types.clear()
+	#tags_1d.clear()
+	#cached_chats.clear()
+
 
 
 var env_dump = {}
@@ -806,6 +825,7 @@ func load_scene(from: String):
 	if not "scene" in a: return
 	var dat = bytes_to_var(Marshalls.base64_to_raw(a["scene"]))
 	if !dat: return
+	clear_all()
 	fg.go_into_graph()
 	await graphs.delete_all()
 	set_var("last_id", project_id)
@@ -857,6 +877,7 @@ func request_chat(chat_id: String):
 		"scene": str(get_project_id())})
 		if received and received.body:
 			var json = JSON.parse_string(received.body.get_string_from_utf8())
+			#print(json)
 			if json.has("messages"):
 				cached_chats[chat_id] = json.messages
 				posted = json.messages
@@ -870,6 +891,7 @@ func request_chat(chat_id: String):
 func load_empty_scene(pr_id: int, name: String):
 	fg.go_into_graph()
 	project_id = pr_id
+	clear_all()
 	set_var("last_id", project_id)
 	tree_windows["env"].reset()
 	cached_chats.clear()

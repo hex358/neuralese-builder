@@ -43,9 +43,9 @@ func _ready() -> void:
 	#quitting.connect(reparent_stuff)
 	_user_message.queue_free()
 	_ai_message.queue_free()
-	set_messages([
-		{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"},
-		])
+	#set_messages([
+	#	{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"},
+	#	])
 	var received = await glob.request_chat(str(chat_id))
 	if received:
 		for i in received:
@@ -62,7 +62,7 @@ func _ready() -> void:
 			add_message(received[i])
 	
 	
-	if get_last_message().user:
+	if get_last_message() and get_last_message().user:
 		if glob.message_sockets.has(chat_id):
 			var got = glob.get_my_message_state(chat_id, text_receive)
 			trect.texture = stop
@@ -184,7 +184,8 @@ func get_last_message():
 func on_send(txt: String) -> void:
 	#if get_last_message().has("_pending"):
 	#	return
-	if get_last_message() and not get_last_message().has("_pending") and $ColorRect/Label2.text:
+	#print(get_last_message())
+	if (not get_last_message() or not get_last_message().has("_pending")) and $ColorRect/Label2.text:
 		send_message($ColorRect/Label2.text)
 		trect.texture = stop
 
@@ -200,8 +201,8 @@ func _on_label_2_text_changed() -> void:
 
 
 func _on_cl_released() -> void:
-	for i in range(1, len(_message_list)):
+	for i in range(len(_message_list)):
 		_message_list[i].object.get_parent().queue_free()
-	_message_list.resize(1)
+	_message_list.clear()
 	glob.clear_chat(chat_id)
 	$ColorRect/ScrollContainer.set("scroll_vertical", 0)
