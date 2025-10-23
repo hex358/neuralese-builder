@@ -10,7 +10,7 @@ func _process(delta: float) -> void:
 		
 var parsed = {}
 func _ready() -> void:
-	super()
+	super() 
 	await get_tree().process_frame
 	$ColorRect/Label.text = cookies.get_username()
 	ui.hourglass_on()
