@@ -4,9 +4,6 @@ var tags = ["change_nodes", "connect_ports", "delete_nodes", "disconnect_ports",
 
 # ---- persistent tag index & spawn cursor to avoid overlap across calls
 var _tag_index: Dictionary = {}            # String (llm_tag) -> Graph
-var _spawn_cursor = Vector2(120.0, 120.0) # rolling anchor for next subgraph
-var _spawn_padding = Vector2(280.0, 220.0)
-const _DETACHED_JITTER = 16.0
 
 
 func tag_strip(text: String) -> Array:
@@ -185,21 +182,10 @@ func _grid_snap(p: Vector2, step: float = 8.0) -> Vector2:
 
 
 
-func _bbox_of(nodes: Dictionary[String, Graph]) -> Rect2:
-	var any = true
-	var r = Rect2()
-	for g in nodes.values():
-		var gr = g.rect.get_global_rect()
-		gr.size = g._layout_size()
-		if any:
-			r = gr
-			any = false
-		else:
-			r = r.merge(gr)
-	return r
 
 
-func _choose_origins(nodes: Dictionary[String, Graph]) -> Array:
+
+func _choose_origins(nodes) -> Array:
 	var origins: Array = []
 	for tag in nodes.keys():
 		var g: Graph = nodes[tag]
@@ -209,15 +195,73 @@ func _choose_origins(nodes: Dictionary[String, Graph]) -> Array:
 		origins.append(nodes.values()[0])
 	return origins
 
-
-func _jitter(i: int) -> Vector2:
-	return Vector2((i % 3) * _DETACHED_JITTER, int(i / 3) * _DETACHED_JITTER)
+func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
+	if _subgraph_slots.is_empty():
+		return Vector2.ZERO
+	
+	var candidate_positions = []
+	
+	# Try positions to the right of each existing subgraph
+	for slot in _subgraph_slots:
+		var pos = Vector2(slot.end.x + padding, slot.position.y)
+		candidate_positions.append(pos)
+	
+	# Try positions below each existing subgraph
+	for slot in _subgraph_slots:
+		var pos = Vector2(slot.position.x, slot.end.y + padding)
+		candidate_positions.append(pos)
+	
+	# Try top-right corner (right of rightmost, top of topmost)
+	var max_x = -INF
+	var min_y = INF
+	for slot in _subgraph_slots:
+		max_x = max(max_x, slot.end.x)
+		min_y = min(min_y, slot.position.y)
+	candidate_positions.append(Vector2(max_x + padding, min_y))
+	
+	# Try bottom-left corner (left of leftmost, bottom of bottommost)
+	var min_x = INF
+	var max_y = -INF
+	for slot in _subgraph_slots:
+		min_x = min(min_x, slot.position.x)
+		max_y = max(max_y, slot.end.y)
+	candidate_positions.append(Vector2(min_x, max_y + padding))
+	
+	# Find the position with least overlap and best compactness
+	var best_pos = candidate_positions[0]
+	var best_score = INF
+	
+	for pos in candidate_positions:
+		var test_rect = Rect2(pos, bbox.size)
+		
+		# Check for overlaps
+		var has_overlap = false
+		for slot in _subgraph_slots:
+			if test_rect.intersects(slot):
+				has_overlap = true
+				break
+		
+		if has_overlap:
+			continue
+		
+		# Score based on how far from origin (prefer compact layouts)
+		var score = pos.length_squared() + test_rect.end.length_squared()
+		
+		if score < best_score:
+			best_score = score
+			best_pos = pos
+	
+	return best_pos
 
 
 func model_changes_apply(actions: Dictionary):
 	cookies.open_or_create("test.bin").store_var(actions)
 	actions = preprocess(actions)
-	actions["connect_ports"][-1].remove_at(1)
+	if not actions["connect_ports"] and not actions["change_nodes"] and\
+	not actions["delete_nodes"] and not actions["disconnect_ports"]:
+		return
+	#actions["connect_ports"][-1].remove_at(1)
+#	actions["connect_ports"][-1].remove_at(1)
 	var creating: Dictionary[String, Graph] = {}
 
 	# --- create or reuse nodes
@@ -247,14 +291,14 @@ func model_changes_apply(actions: Dictionary):
 				g.hold_for_frame()
 
 	await get_tree().process_frame
-
-	# --- connect ports (supports old + new)
+	
+	var to_rearrange = []
 	if actions["connect_ports"]:
 		for pack in actions["connect_ports"]:
 			for connection in pack:
-				var from_graph: Graph = creating.get(connection.from.tag, _tag_index.get(connection.from.tag, null))
-				var to_graph: Graph   = creating.get(connection.to.tag,   _tag_index.get(connection.to.tag, null))
-				if from_graph == null or to_graph == null:
+				var from_graph = glob.tags_1d.get(connection.from.tag, _tag_index.get(connection.from.tag, null))
+				var to_graph = glob.tags_1d.get(connection.to.tag,   _tag_index.get(connection.to.tag, null))
+				if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
 					printerr("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
 					continue
 
@@ -275,8 +319,8 @@ func model_changes_apply(actions: Dictionary):
 					var tmp = connection.from
 					connection.from = connection.to
 					connection.to = tmp
-					from_graph = creating.get(connection.from.tag, _tag_index.get(connection.from.tag))
-					to_graph   = creating.get(connection.to.tag,   _tag_index.get(connection.to.tag))
+					from_graph =  glob.tags_1d.get(connection.from.tag, _tag_index.get(connection.from.tag))
+					to_graph   =  glob.tags_1d.get(connection.to.tag,   _tag_index.get(connection.to.tag))
 					out_ports = from_graph.output_keys
 					in_ports  = to_graph.input_keys
 					from_port = int(connection.from.port)
@@ -289,10 +333,14 @@ func model_changes_apply(actions: Dictionary):
 					continue
 
 				out_ports[from_port].connect_to(in_ports[to_port])
+				var from_tag = from_graph.llm_tag
+				var to_tag = to_graph.llm_tag
+				if not (creating.has(from_tag) and creating.has(to_tag)):
+					to_rearrange.append(connection)
 
 	await get_tree().process_frame
 
-	# --- map configs
+
 	for tag in creating.keys():
 		var real_node: Graph = creating[tag]
 		var cfg = real_node.get_meta("llm_pack").config
@@ -307,135 +355,248 @@ func model_changes_apply(actions: Dictionary):
 				return v
 		cfg = glob.deep_map(cfg, map)
 		real_node.llm_map(cfg)
-
-	_auto_layout(creating)
-
-
-
-
+	
+	_auto_layout(creating, to_rearrange, 100)
+var _subgraph_slots: Array = []
+var _next_spawn_x: float = 0.0
 
 
-func _auto_layout(creating: Dictionary[String, Graph], padding: float = 90.0):
-	if not creating:
-		return
+func _get_all_descendants(start_node: Graph) -> Array[Graph]:
+	var descendants: Array[Graph] = []
+	var queue: Array[Graph] = [start_node]
+	var visited: Dictionary = {start_node: true}
+	
+	while not queue.is_empty():
+		var current_node = queue.pop_front()
+		descendants.append(current_node)
+		
+		for port_key in current_node.output_keys:
+			var out_port = current_node.output_keys[port_key]
+			for c in out_port.outputs.values():
+				var connected_node = c.tied_to.parent_graph
+				if not visited.has(connected_node):
+					visited[connected_node] = true
+					queue.append(connected_node)
+					
+	return descendants
 
-	var H = 50.0  # fixed horizontal gap between node sides
-	var V = 50.0   # fixed vertical gap between node sides
 
-	var origins = _choose_origins(creating)
-	for g in origins:
-		g.hold_for_frame()
-		if graphs.is_node(g, "TrainBegin"):
-			g.position.y -= 310.0
+func _find_subgraphs(nodes: Dictionary[String, Graph]) -> Array:
+	var visited = {}
+	var subgraphs = []
+	
+	for tag in nodes.keys():
+		var node = nodes[tag]
+		if node in visited:
+			continue
+		
+		var subgraph = []
+		var queue = [node]
+		
+		while queue.size() > 0:
+			var current = queue.pop_front()
+			if current in visited:
+				continue
+			visited[current] = true
+			subgraph.append(current)
+			
+			var descendants = current.get_first_descendants()
+			for d in descendants:
+				if d in nodes.values() and not (d in visited):
+					queue.append(d)
+			
+			var ancestors = current.get_first_ancestors()
+			for a in ancestors:
+				if a in nodes.values() and not (a in visited):
+					queue.append(a)
+		
+		if subgraph.size() > 0:
+			subgraphs.append(subgraph)
+	
+	return subgraphs
 
-	var visited: Dictionary = {}
-	var placed: Dictionary = {}
-	var anchor = _spawn_cursor
 
-	# seed first node
-	if origins.size() > 0:
-		var seed = origins[0]
-		var base = _grid_snap(anchor)
-		seed.global_position = base - seed.rect.position
-		visited[seed] = true
-		placed[seed] = true
-
-	# flow placement from origins
+func _layout_subgraph(nodes: Array, origins: Array, padding: float):
+	var visited = {}
+	
 	for origin in origins:
-		graphs.reach(origin, func(from_conn: Connection, to_conn: Connection, branch_cache: Dictionary):
-			var from_graph: Graph = from_conn.parent_graph
-			var to_graph: Graph = to_conn.parent_graph
+		var reach_func = func(from_conn, to_conn, branch_cache):
+			var from_graph = from_conn.parent_graph
+			var to_graph = to_conn.parent_graph
+			
 			if to_graph in visited:
 				return
 			visited[to_graph] = true
-
-			var from_rect: Rect2 = from_graph.rect.get_global_rect()
-			from_rect.size = from_graph._layout_size()
-			var to_size: Vector2 = to_graph._layout_size()
-			var dir: Vector2 = from_conn.dir_vector
-			var pos = Vector2()
-
-			# Compute position relative to from_graph's *edge* plus fixed gap
-			if abs(dir.x) >= abs(dir.y):
-				# horizontal placement
-				if dir.x >= 0.0:
-					pos.x = from_rect.end.x + H
-				else:
-					pos.x = from_rect.position.x - (to_size.x + H)
-				pos.y = from_rect.position.y
+			
+			var dir = from_conn.dir_vector
+			var from_rect = from_graph.rect.get_global_rect()
+			
+			var to_rect = Rect2(Vector2.ZERO, from_rect.size)
+			
+			var base_pos = Vector2()
+			
+			if dir.x >= 0:
+				base_pos.x = from_rect.end.x + padding
 			else:
-				# vertical placement
-				pos.x = from_rect.position.x
-				if dir.y >= 0.0:
-					pos.y = from_rect.end.y + V
-				else:
-					pos.y = from_rect.position.y - (to_size.y + V)
+				base_pos.x = from_rect.position.x - to_rect.size.x - padding
+			
+			if dir.y == 0:
+				base_pos.y = from_rect.position.y + (from_rect.size.y - to_rect.size.y) / 2.0
+			elif dir.y > 0:
+				base_pos.y = from_rect.end.y + padding
+			else:
+				base_pos.y = from_rect.position.y - to_rect.size.y - padding
+			
+			to_graph.global_position = base_pos - to_graph.rect.position
+		
+		graphs.reach(origin, reach_func)
 
-			to_graph.global_position = _grid_snap(pos) - to_graph.rect.position
-			placed[to_graph] = true
+
+func _position_special_nodes(node: Graph):
+	if graphs.is_node(node, "LayerConfig"):
+		var descendants = node.get_first_descendants()
+		if descendants:
+			var middle_x = 0.0
+			for i in descendants:
+				middle_x += i.rect.global_position.x + i.rect.size.x / 2.0
+			middle_x /= len(descendants)
+			var min_y = INF
+			for i in descendants:
+				min_y = min(min_y, i.rect.global_position.y)
+			if min_y != INF:
+				node.position = Vector2(middle_x, min_y - 100)
+	
+	if graphs.is_node(node, "ModelName"):
+		var descendants = node.get_first_descendants()
+		if descendants:
+			var middle_x = INF
+			for i in descendants:
+				middle_x = min(middle_x, i.rect.global_position.x)
+			var min_y = INF
+			for i in descendants:
+				min_y = min(min_y, i.rect.global_position.y)
+			node.position = Vector2(middle_x - 80, min_y - 150)
+	
+	if graphs.is_node(node, "DatasetName"):
+		var descendants = node.get_first_descendants()
+		if descendants:
+			var middle_x = INF
+			for i in descendants:
+				middle_x = min(middle_x, i.rect.global_position.x)
+			var min_y = INF
+			for i in descendants:
+				min_y = min(min_y, i.rect.global_position.y)
+			node.position = Vector2(middle_x - 200, min_y - 20)
+
+func _bbox_of(nodes) -> Rect2:
+	var any = true
+	var r = Rect2()
+	for g in nodes:
+		var gr = g.rect.get_global_rect() if g is Graph else nodes[g].rect.get_global_rect()
+		if any:
+			r = gr
+			any = false
+		else:
+			r = r.merge(gr)
+	return r
+
+
+var _layout_bounds: Rect2 = Rect2()
+
+func _place_subgraph_non_overlapping(nodes: Array, padding: float) -> Vector2:
+	var bbox = _bbox_of(nodes)
+	var best_pos = _find_best_position(bbox, padding)
+	var offset = best_pos - bbox.position
+	
+	for node in nodes:
+		node.global_position = node.global_position + offset
+	
+	var new_bbox = _bbox_of(nodes)
+	_subgraph_slots.append(new_bbox)
+	
+	if _subgraph_slots.size() == 1:
+		_layout_bounds = new_bbox
+	else:
+		_layout_bounds = _layout_bounds.merge(new_bbox)
+	
+	return offset
+
+
+
+func _auto_layout(creating: Dictionary[String, Graph], to_rearrange, padding: float = 100.0):
+	if not creating:
+		return
+	
+	for tag in creating.keys():
+		var g = creating[tag]
+		g.hold_for_frame()
+	
+	var subgraphs = _find_subgraphs(creating)
+	
+	var leftover_groups = []
+	for subgraph in subgraphs:
+		var nodes_dict = {}
+		for node in subgraph:
+			var tag = node.get_meta("llm_tag") if node.has_meta("llm_tag") else ""
+			if tag:
+				nodes_dict[tag] = node
+		
+		var origins = _choose_origins(nodes_dict)
+		
+		for origin in origins:
+			if graphs.is_node(origin, "TrainBegin"):
+				origin.position.y -= 310
+		
+		_layout_subgraph(subgraph, origins, padding)
+		
+		var leftover = []
+		for node in subgraph:
+			var was_visited = false
+			for origin in origins:
+				if node == origin:
+					was_visited = true
+					break
+				var check_func = func(from_conn, to_conn, branch_cache):
+					if to_conn.parent_graph == node:
+						was_visited = true
+				graphs.reach(origin, check_func)
+				if was_visited:
+					break
+			if not was_visited:
+				leftover.append(node)
+		
+		leftover_groups.append(leftover)
+		
+		for origin in origins:
+			if graphs.is_node(origin, "TrainBegin"):
+				origin.position.y += 0
+		
+		_place_subgraph_non_overlapping(subgraph, padding)
+	
+	for connection in to_rearrange:
+		var from_graph =  glob.tags_1d.get(connection.from.tag, _tag_index.get(connection.from.tag))
+		var to_graph   =  glob.tags_1d.get(connection.to.tag,   _tag_index.get(connection.to.tag))
+		var out_ports = from_graph.output_keys
+		var in_ports  = to_graph.input_keys
+		var from_rect = from_graph.rect.get_global_rect()
+		var to_rect = to_graph.rect.get_global_rect()
+		
+		var new_to_pos = Vector2(
+			from_rect.end.x + padding,
+			from_rect.position.y + (from_rect.size.y - to_rect.size.y) / 2.0
 		)
+		
+		new_to_pos = _grid_snap(new_to_pos)
+		
+		var current_to_pos = to_graph.rect.get_global_rect().position
+		var offset = new_to_pos - current_to_pos
+		
+		var subgraph_to_move = _get_all_descendants(to_graph)
+		
+		for node in subgraph_to_move:
+			node.global_position = node.global_position + offset
+			node.hold_for_frame()
 
-	# fallback grid for unconnected nodes
-	var leftovers: Array = []
-	for tag in creating.keys():
-		var g: Graph = creating[tag]
-		if not (g in placed):
-			leftovers.append(g)
-
-	if leftovers.size() > 0:
-		var cols = max(1, int(ceil(sqrt(float(leftovers.size())))))
-		var row = 0
-		var col = 0
-		var grid_origin = _grid_snap(anchor + Vector2(H * 0.5, V * 1.0))
-		for i in range(leftovers.size()):
-			var g = leftovers[i]
-			var cell_pos = grid_origin + Vector2(col * (H + g._layout_size().x * 0.5), row * (V + g._layout_size().y * 0.5)) + _jitter(i)
-			g.global_position = _grid_snap(cell_pos) - g.rect.position
-			col += 1
-			if col >= cols:
-				col = 0
-				row += 1
-
-	# special placement rules (unchanged)
-	for tag in creating.keys():
-		var node: Graph = creating[tag]
-		if graphs.is_node(node, "LayerConfig"):
-			var descendants = node.get_first_descendants()
-			if descendants:
-				var middle_x: float = 0.0
-				for d in descendants:
-					middle_x += d.rect.global_position.x + d.rect.size.x / 2.0
-				middle_x /= float(len(descendants))
-				var min_y = INF
-				for d in descendants:
-					min_y = min(min_y, d.rect.global_position.y)
-				if min_y != INF:
-					node.position = Vector2(middle_x, min_y - 100.0)
-
-		if graphs.is_node(node, "ModelName"):
-			var descendants = node.get_first_descendants()
-			if descendants:
-				var left_x = INF
-				var min_y = INF
-				for d in descendants:
-					left_x = min(left_x, d.rect.global_position.x)
-					min_y = min(min_y, d.rect.global_position.y)
-				node.position = Vector2(left_x - 80.0, min_y - 80.0)
-
-		if graphs.is_node(node, "DatasetName"):
-			var descendants = node.get_first_descendants()
-			if descendants:
-				var left_x = INF
-				var min_y = INF
-				for d in descendants:
-					left_x = min(left_x, d.rect.global_position.x)
-					min_y = min(min_y, d.rect.global_position.y)
-				node.position = Vector2(left_x - 100.0, min_y + 10.0)
-
-	for g in _choose_origins(creating):
-		if graphs.is_node(g, "TrainBegin"):
-			g.position.y += 90.0
-
-	# move next-batch spawn anchor right of this batch bbox
-	var batch_bbox = _bbox_of(creating)
-	_spawn_cursor = Vector2(batch_bbox.end.x + _spawn_padding.x, max(_spawn_cursor.y, batch_bbox.position.y) + _spawn_padding.y)
+	for leftover in leftover_groups:
+		for node in leftover:
+			_position_special_nodes(node)

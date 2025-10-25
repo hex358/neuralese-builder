@@ -411,7 +411,7 @@ func load_graph(state: Dictionary, reg: Dictionary):
 	
 	Graph._subgraph_registry.clear()
 	for g in _graphs:
-		_graphs[g].map_properties(_graphs[g].get_meta("pack"))
+		_graphs[g].map_properties(_graphs[g].get_meta("pack", {}))
 		_graphs[g].hold_for_frame.call_deferred()
 	
 	for sub_id in reg:
@@ -821,7 +821,7 @@ func _process(delta: float) -> void:
 		var r = graph.rect
 		
 		var vis: bool = visible
-		graph.hold_process = graph.exist_time < 1.0
+		graph.hold_process = graph.hold_process or graph.exist_time < 1.0
 		if not graph.dragging and visible:
 			if graph.hold_process:
 				vis = true
@@ -848,7 +848,7 @@ func _process(delta: float) -> void:
 		
 		var force_held: bool = false
 		if !visible and last_frame_visible: force_held = true
-		if visible and (vis or graph.dragging or graph.active_output_connections or graph.hold_process):
+		if visible and (vis or graph.hold_process or graph.dragging or graph.active_output_connections or graph.hold_process):
 			var inside = graph.is_mouse_inside()
 			var padded_inside = (Rect2(graph.rect.global_position-Vector2(50,50), 
 			graph.rect.size * graph.rect.scale * graph.scale + 2*Vector2(50,50)).has_point(get_global_mouse_position()))

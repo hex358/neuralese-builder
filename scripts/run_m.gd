@@ -12,11 +12,14 @@ func _useful_properties() -> Dictionary:
 		#print(real)
 		body[real] = cfg["branches"].get(str(who), "mse")
 	#print(body)
+	var branch_maps = {}
+	for i in get_mapped(false):
+		branch_maps[i.out_labels_title] = i.got_label
 	return {
-		"config": {"branch_losses": body}
+		"config": {"branch_losses": body, "branch_maps": branch_maps}
 	}
 
-func get_mapped(targets: bool = true) -> Array:
+func get_mapped(targets: bool = true, origins: bool = false) -> Array:
 	var res = []
 	for i in virtual_outputs.values():
 		var got = i.get_target()
@@ -26,6 +29,8 @@ func get_mapped(targets: bool = true) -> Array:
 		res.append(slice)
 		if targets:
 			slice["conn"] = got
+		if origins:
+			slice["orig"] = i
 	return res
 
 func _llm_map(pack: Dictionary):
@@ -47,6 +52,16 @@ func _llm_map(pack: Dictionary):
 
 func _request_save():
 	set_name_graph(name_graph)
+	var mapped = get_mapped(true, true)
+	var res = {}
+	#print(get_mapped(false))
+	for i in mapped:
+		res[i.orig.get_parent().get_node("Control/Label").text] = i.got_label
+	#for i in units:
+	#	mapped.append({"label_name": i.get_node('i').get_target()
+	manually = true
+	update_config({"mapped": res})
+	manually = false
 
 func dis():
 	$Label2.hide()
@@ -85,6 +100,21 @@ func _config_field(field: StringName, value: Variant):
 		if not manually:
 			var trimmed = field.trim_prefix("branches/")
 			set_loss_type(trimmed, value, true)
+	if field == "mapped":
+		await get_tree().process_frame
+		if not manually and get_descendant():
+			var res = {}
+			var rev = {}
+			var desc = get_descendant()
+			for i in desc.unit_labels:
+				rev[desc.unit_labels[i]] = i
+			for u in unit_titles.keys():
+				if not is_instance_valid(unit_titles[u]): unit_titles.erase(u); continue
+				if not unit_titles[u] in res and unit_titles[u] in value:
+					res[unit_titles[u]] = true
+					u.get_node("i").connect_to(rev[value[unit_titles[u]]].get_node("i"))
+		#	var trimmed = field.trim_prefix("mapped/")
+		#	set_loss_type(trimmed, value, true)
 
 
 func edit_unit(node: Graph, u: Control):
@@ -101,12 +131,13 @@ func edit_unit(node: Graph, u: Control):
 
 func _process(delta: float) -> void:
 	super(delta)
-	if glob.space_just_pressed:
-		print(get_mapped())
+	#if glob.space_just_pressed:
+	#	print(get_mapped())
 		#print(_useful_properties())
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	pass
+
 
 
 func set_name_graph(st: String, remove = null):
@@ -184,6 +215,7 @@ func _is_suitable_conn(who: Connection, other: Connection) -> bool:
 	return true
 
 func unit_set_meta(unit: Control, kw: Dictionary):
+	if not "datatype" in kw: return
 	var vec = str(kw["x"]) if kw["datatype"] == "1d" else str(kw["x"]) + "," + str(kw["y"])
 	var res_text = kw["datatype"] + "(" + vec + ")"
 	unit.get_node("ColorRect/Label2").text = res_text

@@ -423,10 +423,16 @@ var scaler: Control = self
 @export var auto_ready: bool = true
 var auto_wrap: bool = true
 
+signal predelete
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		predelete.emit()
+
 func _ready() -> void:
 	if not auto_ready: return
 	#if graph == null and get_parent() is Control and button_type in [ButtonType.CONTEXT_MENU, ButtonType.DROPOUT_MENU]: 
-		#graph = get_parent()
+	#	graph = get_parent()
 	initialize()
 	size = base_size
 	text = text  # Trigger setter
@@ -732,6 +738,8 @@ func _process_block_button(delta: float) -> void:
 	#if button_type == ButtonType.BLOCK_BUTTON:
 	#	print(scaler.scale)
 	if (!is_equal_approx(scaler.scale.x, base_scale.x) or !base_modulate.is_equal_approx(modulate)):
+		
+		#print(graph)
 		if graph and graph is Graph:
 			graph.hold_for_frame()
 		if graph_root and graph_root is Graph:

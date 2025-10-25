@@ -44,11 +44,14 @@ func _just_disconnected(who: Connection, to: Connection):
 
 func _useful_properties() -> Dictionary:
 	#print("A")
-	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28}}
+	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28, 
+		"subname": "Input2D"},}
 
 var running: bool = false
 func _process(delta: float) -> void:
 	super(delta)
+	if glob.space_just_pressed:
+		web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self)})
 	if nn.is_infer_channel(self) and glob.space_just_pressed:
 		nn.send_inference_data(self, useful_properties())
 	#if glob.space_just_pressed:
@@ -61,6 +64,21 @@ func _after_ready() -> void:
 	image_dims = Vector2i($TextureRect.image.get_width(), $TextureRect.image.get_height())
 
 
+@onready var run_but = $run
 func _on_run_released() -> void:
-	running = true
-	nn.open_infer_channel(self)
+	if not nn.is_infer_channel(self):
+		running = true
+		run_but.text_offset.x = 0
+		run_but.text = "Stop"
+		nn.open_infer_channel(self, close_runner)
+	else:
+		#run_but.text = "Run!"
+		#run.text_offset.x = 2
+		#running = false
+		nn.close_infer_channel(self)
+
+func close_runner():
+	run_but.text_offset.x = 2
+	run_but.text = "Run!"
+	running = false
+	nn.close_infer_channel(self)

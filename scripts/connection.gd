@@ -222,7 +222,7 @@ const default_max_splines: int = 1
 func multiple(conn: Connection) -> bool:
 	# If multiple_splines is disabled → hard-limit to one spline total
 	if not multiple_splines:
-		return outputs.size() == 0 or active_outputs.keys()[0] == outputs.keys()[0]
+		return outputs.size() == 0 or (active_outputs and active_outputs.keys()[0] == outputs.keys()[0])
 
 	var kw: StringName = conn.conn_count_keyword
 	var allowed: int = default_max_splines
@@ -369,7 +369,7 @@ func _process(delta: float) -> void:
 			elif glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(outputs, self)
 
-		elif connection_type == INPUT and inside and not occ and graphs.conns_active.is_empty():
+		elif connection_type == INPUT and inside and not occ and graphs.conns_active.is_empty() and not glob.is_occupied(self, &"menu_inside"):
 			if glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(inputs, self)
 			elif mouse_just_pressed and inputs:

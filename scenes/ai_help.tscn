@@ -87,8 +87,8 @@ anchors_preset = 0
 script = ExtResource("1_tb6sx")
 _user_message = NodePath("ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer")
 _ai_message = NodePath("ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer2")
-persistent = true
 typename = "ai_help"
+persistent = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
 z_index = 8

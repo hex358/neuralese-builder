@@ -124,7 +124,10 @@ func _config_field(field: StringName, value: Variant):
 			set_weight_dec(value)
 		"momentum":
 			#print(value)
-			$sgd_tab/Label4/HSlider.value = float(value) * 100.0
+			$sgd_tab/Label4/HSlider.value = float(value) * (100.0 / 0.9)
+			$sgd_tab/n.text = str(glob.cap(value, 1))
+			#if $sgd_tab/n.text != "0.0":
+			#$sgd_tab/n.text = $sgd_tab/n.text.trim_prefix('0')
 		"lr":
 			select_lr(int(value))
 		"optimizer":
@@ -134,6 +137,7 @@ func train_stop():
 	if 1:#training:
 		training = false
 		$ColorRect2.alive = false
+		hold_for_frame()
 	#train.text = "Train!"
 	#nn.stop_train(self)
 var training: bool = false
@@ -142,6 +146,7 @@ func train_start():
 		training = true
 		timing_offset = -$ColorRect2.get_time()
 		$ColorRect2.alive = true
+		hold_for_frame()
 		$ColorRect2/time_passed.text = "0.0s"
 	#train.text = "Stop"
 	#nn.start_train(self, {"additional_call": additional_call})
@@ -165,4 +170,4 @@ func _set_alpha(n: CanvasItem, a: float) -> void:
 
 
 func _on_h_slider_value_changed(value: float) -> void:
-	update_config({"momentum": value / 100.0})
+	update_config({"momentum": value / (100.0 / 0.9)})

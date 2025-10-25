@@ -57,7 +57,7 @@ func _process(_delta: float) -> void:
 		_insert_newline_at_caret()
 		return
 
-	if Input.is_action_just_pressed("ui_enter") and not shift_down:
+	if editable and Input.is_action_just_pressed("ui_enter") and not shift_down:
 		text = prev_text
 		text_accept.emit(text)
 		if enter_event:

@@ -101,8 +101,10 @@ context_menu_enabled = false
 emoji_menu_enabled = false
 virtual_keyboard_type = 2
 script = ExtResource("6_nm1vw")
-min_value = 0
-max_value = 65536
+min_value = 0.0
+max_value = 1024.0
+allow_float = false
+decimal_places = 2
 resize_after = 4
 change_always_accepted = false
 
@@ -120,12 +122,14 @@ context_menu_enabled = false
 emoji_menu_enabled = false
 virtual_keyboard_type = 2
 script = ExtResource("6_nm1vw")
-min_value = 0
-max_value = 65536
+min_value = 0.0
+max_value = 1024.0
+allow_float = false
+decimal_places = 2
 resize_after = 4
 change_always_accepted = false
 
-[connection signal="changed" from="X" to="." method="_on_x_text_changed"]
 [connection signal="changed" from="X" to="." method="_on_x_changed"]
-[connection signal="changed" from="Y" to="." method="_on_y_text_changed"]
+[connection signal="changed" from="X" to="." method="_on_x_text_changed"]
 [connection signal="changed" from="Y" to="." method="_on_y_changed"]
+[connection signal="changed" from="Y" to="." method="_on_y_text_changed"]

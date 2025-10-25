@@ -140,11 +140,11 @@ script = ExtResource("6_bncok")
 
 [node name="YY" parent="." instance=ExtResource("6_jq4kv")]
 layout_mode = 0
-offset_left = 6.0
-offset_top = -42.0
-offset_right = 75.0
-offset_bottom = 6.0
-scale = Vector2(0.320293, 0.320293)
+offset_left = 5.0
+offset_top = -40.000004
+offset_right = 74.0
+offset_bottom = 7.999996
+scale = Vector2(0.25142688, 0.25142688)
 placeholder_text = "2"
 max_length = 3
 expand_to_text_length = true

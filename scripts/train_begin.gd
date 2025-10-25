@@ -102,6 +102,7 @@ func train_start():
 		if not $YY.text: $YY.set_line("1"); epochs = 1
 		else: epochs = int($YY.text)
 		if old_head:
+			#print("AA")
 			old_head.train_start()
 			nn.start_train(old_head, additional_call)
 		#print($YY.text)

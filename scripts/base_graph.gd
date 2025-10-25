@@ -391,6 +391,7 @@ func _exit_tree() -> void:
 	graphs.remove(self)
 	for i in graphs.where_am_i(self):
 		graphs.uncache(self, i)
+	glob.tags_1d.erase(llm_tag)
 
 
 

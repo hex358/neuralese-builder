@@ -150,7 +150,7 @@ func _after_process(delta: float):
 			input.position.y = lerpf(input.position.y, target_y + input_y_add, delta*20.0)
 		if lerp_size:
 			var prev_size = rect.size
-			rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add), delta*20.0)
+			rect.size.y = lerpf(rect.size.y, max(min_size, target_size + size_add + adding_size_y), delta*20.0)
 			if !glob.is_vec_approx(prev_size, rect.size):
 				size_changed()
 
@@ -196,6 +196,8 @@ func _after_process(delta: float):
 
 	if ui.is_focus(line_edit):
 		hold_for_frame()
+
+var adding_size_y: float = 0.0
 
 
 func _on_color_rect_2_pressed() -> void:

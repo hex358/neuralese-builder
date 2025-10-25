@@ -249,6 +249,7 @@ func open_last_project():
 		else:
 			var i = await create_empty_project("")
 			load_empty_scene(i, "")
+	return 0
 
 
 var parsed_projects = {}
@@ -747,6 +748,7 @@ func set_llm_tag(who: Graph, val: String):
 	if not g in tag_types: tag_types[g] = {}
 	who.llm_tag = val
 	tag_types[g][val] = true
+	#print(who.llm_tag)
 	tags_1d[who.llm_tag] = who
 
 var llm_name_unmapping = (func():
@@ -776,7 +778,7 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 		#print()
 
 
-var last_summary_hash: int = 0
+var last_summary_hash: int = -1
 
 func update_message_stream(input_text: String, chat_id: int, text_update: Callable = def, on_close: Callable = def, clear: bool = false) -> SocketConnection:
 	if chat_id in message_sockets: return
@@ -807,7 +809,7 @@ func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 
 
 func clear_all():
-	last_summary_hash = 0
+	last_summary_hash = -1
 	for i in ui.splashed:
 		if i.typename == "ai_help":
 			i.clear_all()
@@ -861,6 +863,9 @@ func update_chat_cache(chat_id: String, update: Dictionary):
 
 func change_chat_cache(chat_id: String, update: Dictionary):
 	cached_chats.get_or_add(chat_id, [])[-1] = update
+	
+func rem_chat_cache(chat_id: String):
+	cached_chats.get_or_add(chat_id, []).remove_at(-1)
 
 
 func clear_chat(chat_id: int, req=true):
@@ -888,8 +893,10 @@ func request_chat(chat_id: String):
 				cached_chats[chat_id] = json.messages
 				posted = json.messages
 			else:
+				cached_chats[chat_id] = []
 				posted = []
 		else:
+			cached_chats[chat_id] = []
 			posted = []
 	return posted
 
@@ -912,6 +919,7 @@ func load_empty_scene(pr_id: int, name: String):
 	#
 
 func save(from: String):
+	nn.request_save()
 	var bytes = var_to_bytes(get_project_data())
 	var blob = Marshalls.raw_to_base64(bytes)
 	var acc = cookies.open_or_create("cached_projects/%s.scn" % from)
@@ -926,6 +934,7 @@ func save(from: String):
 	"pass": "1"})
 
 func save_empty(from: String, name: String):
+	nn.request_save()
 	var bytes = var_to_bytes(get_project_data(true))
 	var blob = Marshalls.raw_to_base64(bytes)
 	var acc = cookies.open_or_create("cached_projects/%s.scn" % from)
@@ -978,7 +987,7 @@ func _ready() -> void:
 	go_window("graph")
 	init_scene("")
 	open_last_project()
-	
+	#await wait(1)
 	#test_place()
 
 func disconnect_all(from_signal: Signal):

@@ -1,25 +1,30 @@
 extends ValidInput
 class_name ValidNumber
+@export var min_value: float = 0
+@export var max_value: float = 2**16
+@export var allow_float: bool = false  # New: toggle float support
+@export var decimal_places: int = 2    # New: precision for floats
 
-@export var min_value: int = 0
-@export var max_value: int = 2**16
-
-var prev: int = min_value
-
+var prev: float = min_value
 @onready var bef = text
+
 func _can_change_to(emit: bool) -> String:
-	var before = prev; 
+	var before = prev
 	var prev_text = text
 	var o = inte()
-	if int(text) < min_value and before > min_value and len(text) > 1:
-		o = str(min_value); prev = min_value
-	if min_value == 0 and o == str(min_value):
+	
+	if _parse_number(text) < min_value and before > min_value and len(text) > 1:
+		o = _format_number(min_value)
+		prev = min_value
+	
+	if min_value == 0 and o == _format_number(min_value):
 		o = ""
-	#if prev == 0: prev = min_value
+	
 	if prev < min_value or prev > max_value:
-		set_text_color(Color(1.0,0.5,0.5,1.0))
+		set_text_color(Color(1.0, 0.5, 0.5, 1.0))
 	else:
 		reset_text_color()
+	
 	if emit:
 		bef = o
 	return o
@@ -36,44 +41,162 @@ func _ready():
 	focus_exited.connect(submit.bind(""))
 
 signal submitted(new_text: String)
+
 func submit(new: String):
-	if int(text) < min_value: 
+	var val = _parse_number(text)
+	
+	if val < min_value:
 		prev = min_value
 		if text:
-			text = str(min_value)
-	if int(text) > max_value: 
-		prev = max_value; text = str(max_value)
+			text = _format_number(min_value)
+	
+	if val > max_value:
+		prev = max_value
+		text = _format_number(max_value)
+	
 	submitted.emit(text)
 	_resize_label()
 	reset_text_color()
 
 func inte():
 	prev_pos = caret_column
-	if text.begins_with("0") and text.length() > 1: 
+	#print(text)
+	
+	# Remove leading zeros (but keep "0" and "0.")
+	if text.begins_with("0") and text.length() > 1 and not text.begins_with("0.") and text != "0-":
 		text = text.trim_prefix("0")
-	if text.is_valid_int(): 
-		prev = clamp(int(text), 0, int(text))
-		return str(prev)
-	if !text: 
+	var is_valid_f = _is_valid_float_string(text)
+	text = text.replace(".-", ".")
+	text = text.replace("-.", "-")
+	if text.substr(0,1) == ".":
+		text = "0." +text.substr(1)
+	
+	# Handle valid integer input (existing logic)
+	if text.is_valid_int():
+		prev = clamp(float(text), 0, float(text))
+		return str(int(prev)) if not allow_float else text
+	
+	# Handle empty text
+	if !text:
 		prev = 0
 		return ""
+	
+	# New: Check if it's a valid float when float mode is enabled
+	#print(_is_valid_float_string(text))
+	if allow_float and is_valid_f:
+		prev = clamp(float(text), 0, float(text))
+		return text
+	
+	# Build valid number string character by character
 	var new = ""
-	var num: int = clamp(prev, min_value-1, max_value+1)
+	var num: float = clamp(prev, min_value - 1, max_value + 1)
+	var idx: int = -1
+	var has_decimal: bool = false
+	#print(num)
 	for i in text:
-		if i.is_valid_int(): 
+		idx += 1
+		
+		# Allow digits
+		if i.is_valid_int():
 			new += i
-		if i == "+" and num < max_value: 
-			new = str(num+1); break
-		if i == "-" and num > min_value: 
-			new = str(num-1) if num-1 else ""; break
-	if int(new) < min_value: new = str(min_value)
-	if int(new) > max_value: new = str(max_value)
+		# Allow minus sign at start if min_value < 0
+		elif min_value < 0 and i == "-" and idx == 0 and text.count("-") == 1 and text != "-0" and text != "0-":
+			new += i
+		# Allow decimal point if float mode is enabled and no decimal yet
+		elif allow_float and i == "." and not has_decimal:
+			new += i
+			has_decimal = true
+		# Handle increment
+		elif i == "+" and num < max_value:
+			if "." in text:
+				var exp = text.split(".")[-1]
+				new = str(float(num + 1/(pow(10, len(exp)-1))))
+			else:
+				new = _format_number(num + 1)
+			break
+		# Handle decrement
+		elif ((min_value >= 0 or idx > 0) and i == "-") and num > min_value:
+			#print("AA")
+			if "." in text:
+				var exp = text.split(".")[-1]
+				new = str(float(num - 1/(pow(10, len(exp)-1))))
+			else:
+				new = _format_number(num - 1)# if num - 1 != 0 else ""
+			break
+	
+	# Validate and clamp the result
+	var parsed_val = _parse_number(new) if not "." in new else float(new)
+	#print(parsed_val)
+	if parsed_val < min_value:
+		new = _format_number(min_value)
+	if parsed_val > max_value:
+		new = _format_number(max_value)
+	
+	var old_new = new
 	if new != "":
-		prev = clamp(int(new), 0, int(new))
-		new = str(prev)
+		# Handle special cases: lone minus or decimal point
+		if new == "-" or new == "." or new == "-.":
+			return new  # Allow typing these intermediate states
+		
+		prev = clamp(float(new), 0, float(new))
+		if not "." in new:
+			new = _format_number(prev) if old_new != "-" else "-"
 	else:
 		prev = min_value
+	
 	return new
 
 func _text_changed() -> void:
-	caret_column = prev_pos+sign(len(text)-len(prev_input))
+	caret_column = prev_pos + sign(len(text) - len(prev_input))
+
+# Helper function to check if string is a valid float (including intermediate states)
+func _is_valid_float_string(s: String) -> bool:
+	if s == "" or s == "-" or s == "." or s == "-.":
+		return false
+	var count: int = -1
+	#print(s)
+	for i in s:
+		count += 1
+		if count > 0 and i == "-": return false
+		#if count == len(s)-1 and i == ".": return false
+	# Check if it's a valid integer (which is also a valid float)
+	if s.is_valid_int():
+		return true
+	
+	# Check for valid float pattern
+	var has_decimal = s.contains(".")
+	var has_minus = s.begins_with("-")
+	
+	# Remove minus and decimal to check remaining characters
+	var cleaned = s.replace("-", "").replace(".", "")
+	
+	# All remaining characters must be digits
+	for c in cleaned:
+		if not c.is_valid_int():
+			return false
+	
+	# Must have at most one decimal point
+	return s.count(".") <= 1 and has_decimal
+
+# Helper function to parse number from string (handles intermediate states)
+func _parse_number(s: String) -> float:
+	if s == "" or s == "-" or s == "." or s == "-.":
+		return 0.0
+	
+	if s.is_valid_int():
+		return float(s)
+	
+	if allow_float and _is_valid_float_string(s):
+		return float(s)
+	
+	return prev
+
+# Helper function to format number as string
+func _format_number(value: float) -> String:
+	if allow_float:
+		# Round to specified decimal places
+		#var multiplier = pow(10, decimal_places)
+		#var rounded = round(value * multiplier) / multiplier
+		return str(int(value))
+	else:
+		return str(int(value))

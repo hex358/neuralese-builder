@@ -7,12 +7,21 @@ var id: int = 0
 var connect_position: float = 0.0
 var low = {"edit_graph": true}
 
+func get_value():
+	var features = get_meta("kw")["features"]
+	match features.type:
+		"float":
+			return lerpf(features.min, features.max, $HSlider.value / $HSlider.max_value)
+		"int":
+			return $val.get_value() if $val.text else 0
+		
 
 func set_weight(text: String):
+	pass
 #	var points = $actual.points
 #	points[1] = Vector2(lerp($backline.points[0].x, $backline.points[1].x, weight), points[0].y)
 #	$actual.points = points
-	$Label2.text = text
+	#$Label2.text = text
 
 func _process(delta: float) -> void:
 	var loc = get_local_mouse_position()

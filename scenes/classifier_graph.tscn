@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://de6mgawywaidj"]
+[gd_scene load_steps=19 format=3 uid="uid://de6mgawywaidj"]
 
 [ext_resource type="Script" uid="uid://itl55srlcsih" path="res://scripts/classifier.gd" id="1_eb5hl"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_pa8wt"]
@@ -29,6 +29,32 @@ _press_scale = 0.97
 animation_speed = 1.951
 animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cdbc0"]
+bg_color = Color(0.273, 0.3, 0.29235002, 0.5137255)
+border_color = Color(0.8, 0.8, 0.8, 0)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+anti_aliasing_size = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n00y3"]
+bg_color = Color(0.273, 0.3, 0.29235002, 0.5137255)
+border_color = Color(0.8, 0.8, 0.8, 0)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+anti_aliasing_size = 2.0
 
 [node name="Base" type="Control" node_paths=PackedStringArray("unit", "add_button", "input", "line_edit")]
 layout_mode = 3
@@ -165,19 +191,6 @@ offset_top = 39.0
 offset_right = -38.0
 offset_bottom = 79.0
 
-[node name="LineEdit" parent="input" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_e0fxs")]
-layout_mode = 0
-offset_left = 3.0000045
-offset_top = -37.0
-offset_right = 308.1963
-offset_bottom = 11.0
-theme = ExtResource("7_eb5hl")
-placeholder_text = "Type name"
-max_length = 16
-context_menu_enabled = false
-selecting_enabled = false
-accept_button = NodePath("../ColorRect2")
-
 [node name="ColorRect2" parent="input" node_paths=PackedStringArray("graph") instance=ExtResource("8_lckd6")]
 material = ExtResource("9_2xc02")
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
@@ -195,6 +208,20 @@ base_size = Vector2(88, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_jeojw")
 graph = NodePath("../..")
+
+[node name="LineEdit" parent="input" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_e0fxs")]
+layout_mode = 0
+offset_left = 3.0000045
+offset_top = -37.0
+offset_right = 308.1963
+offset_bottom = 11.0
+theme = ExtResource("7_eb5hl")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cdbc0")
+theme_override_styles/focus = SubResource("StyleBoxFlat_n00y3")
+placeholder_text = "Label name"
+max_length = 14
+context_menu_enabled = false
+accept_button = NodePath("../ColorRect2")
 
 [node name="ni" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("6_m7mi5")]
 layout_mode = 0

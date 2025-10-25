@@ -39,7 +39,8 @@ input_y_add = 3.0
 server_typename = &"RunModel"
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
-&"branches": {}
+&"branches": {},
+&"mapped": {}
 })
 
 [node name="o2" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("11_0iy4y")]

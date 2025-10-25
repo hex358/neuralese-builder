@@ -106,7 +106,7 @@ func push_meta(who: Graph, data: Dictionary):
 	if not who or data.name == "":
 		$ColorRect/root/Label.position.y = 9
 		set_pellets([])
-		$dataset.text = ""
+		$ColorRect/root/dataset.text = ""
 		return
 	else:
 		$ColorRect/root/Label.position.y = 3
@@ -115,7 +115,7 @@ func push_meta(who: Graph, data: Dictionary):
 		#print(i)
 		gathered.append({"text": i.label, "datatype": i.datatype, "x": i.x, "y": i.get("y", 0)})
 	set_pellets(gathered)
-	$dataset.text = data["name"]
+	$ColorRect/root/dataset.text = data["name"]
 
 func unpush_meta():
 	#meta_owner = null

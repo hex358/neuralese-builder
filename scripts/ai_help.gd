@@ -3,7 +3,6 @@ class_name AIHelpMenu
 
 @export var _user_message: HBoxContainer
 @export var _ai_message: HBoxContainer
-@export var persistent: bool = false
 
 var chat_id: int = 0
 
@@ -99,6 +98,7 @@ func send_message(text: String):
 	add_message({"user": true, "text": text})
 	glob.update_chat_cache(str(chat_id), _message_list[-1])
 	$ColorRect/Label2.disable()
+	fixed_mode = true
 	add_message({"user": false, "text": "", "_pending": true})
 	$ColorRect/Label2._guard = false
 	$ColorRect/Label2._clear_text_and_reset()
@@ -138,6 +138,7 @@ func add_message(message: Dictionary):
 func _just_splash():
 	ui.blur.set_tuning(Color(0,0,0,0.5))
 
+var fixed_mode: bool = false
 @onready var bs = $ColorRect/ScrollContainer.size.y
 func _process(delta: float) -> void:
 	if not visible: return
@@ -148,6 +149,13 @@ func _process(delta: float) -> void:
 	$ColorRect/root/TextureRect2.visible = bar.value > 0.1
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().max_value )
 	#print($ColorRect/ScrollContainer.get_v_scroll_bar().value )
+	#print(fixed_mode)
+	if get_last_message():
+		get_last_message().get_or_add("timing", [0.0])[0] += delta
+	if get_last_message() and get_last_message().get("_pending") and fixed_mode:
+		$ColorRect/ScrollContainer.set("scroll_vertical", bar.max_value)
+	if glob.mouse_scroll == -1:
+		fixed_mode = false
 	tr.visible = bar.max_value - bar.page > bar.value or $ColorRect/Label2.size.y > 46.5
 	
 	var scrolling = bar.max_value - bar.page > bar.value
@@ -180,14 +188,26 @@ func _on_train_hovering() -> void:
 func get_last_message():
 	return _message_list[-1] if _message_list else null
 
+func get_my_ws():
+	return glob.message_sockets.get(chat_id)
 
 func on_send(txt: String) -> void:
 	#if get_last_message().has("_pending"):
 	#	return
 	#print(get_last_message())
+
+	if trect.texture == stop and get_last_message() and get_last_message().has("_pending") and get_my_ws() and not txt and get_last_message().get("timing", [0.0])[0] > 0.1:
+		get_my_ws().send(glob.compress_dict_zstd({"stop": true}))
+		get_last_message().object.queue_free()
+		_message_list.remove_at(-1)
+		glob.rem_chat_cache(str(chat_id))
+		
+		#print("ff")
+
 	if (not get_last_message() or not get_last_message().has("_pending")) and $ColorRect/Label2.text:
 		send_message($ColorRect/Label2.text)
 		trect.texture = stop
+var can_enter: bool = false
 
 @onready var trect = $ColorRect/Label2/train/TextureRect
 @onready var mic_texture = $ColorRect/Label2/train/TextureRect.texture

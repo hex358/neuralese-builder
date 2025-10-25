@@ -6,6 +6,7 @@ var indexed = []
 @export var typename: String = "login"
 @export var accept: BlockComponent = null
 @export var first_line: Control = null
+@export var persistent: bool = false
 
 var t: float = 0.0
 var target_mod: float = 0.0

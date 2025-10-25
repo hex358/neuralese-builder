@@ -7,6 +7,7 @@ func _can_drag() -> bool:
 func _config_field(field: StringName, value: Variant):
 	if field == "name":
 		if not upd:
+			if not value: value = "[none]"
 			$LabelAutoResize.text = value
 			$LabelAutoResize.resize()
 

@@ -397,6 +397,18 @@ scale = Vector2(0.355093, 0.355093)
 theme = ExtResource("8_10eqb")
 text = "SGD"
 
+[node name="n" type="Label" parent="sgd_tab" index="2"]
+self_modulate = Color(0.65, 0.65, 0.65, 1)
+z_index = 1
+layout_mode = 0
+offset_left = 27.0
+offset_top = 72.00001
+offset_right = 220.0
+offset_bottom = 116.00001
+scale = Vector2(0.24072652, 0.24072652)
+theme = ExtResource("8_10eqb")
+text = "0.0"
+
 [node name="adam_tab" type="Control" parent="." index="8"]
 anchors_preset = 0
 offset_right = 40.0
@@ -444,14 +456,16 @@ context_menu_enabled = false
 emoji_menu_enabled = false
 virtual_keyboard_type = 2
 script = ExtResource("11_wnw3a")
-min_value = 1
-max_value = 50
+min_value = 0.0
+max_value = 65536.0
+allow_float = false
+decimal_places = 2
 resize_after = 4
 change_always_accepted = false
 
 [connection signal="child_button_release" from="optimizer" to="." method="_on_optimizer_child_button_release"]
-[connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="child_button_release" from="lr" to="." method="_on_lr_child_button_release"]
+[connection signal="child_button_release" from="lr" to="." method="_on_loss_child_button_release"]
 [connection signal="released" from="switch" to="." method="_on_switch_released"]
 [connection signal="value_changed" from="sgd_tab/Label4/HSlider" to="." method="_on_h_slider_value_changed"]
 [connection signal="released" from="train" to="." method="_on_train_released"]

@@ -57,6 +57,7 @@ func get_last_value() -> float:
 
 func push_input(time: float, value: float, last: int = 0) -> void:
 	#print(value)
+	if killed: return
 	if alive:
 		if value > max_value:
 			max_value = value
@@ -71,10 +72,11 @@ func _process(delta: float) -> void:
 	if tweener:
 		_draw_offset_x = lerp(0.0, -spacing, t_last_frame / snapshot_every)
 		_reline()
-		if not alive and _draw_offset_x > -1:
+		if not alive and _draw_offset_x > -0.1:
 			_draw_offset_x = 0
 			killed = true
 			_point_step()
+			_reline()
 			return
 
 	if t_last_frame <= snapshot_every:

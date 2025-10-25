@@ -49,7 +49,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def):
 	training_sockets[train_input] = a
 	a.connected.connect(func():
 		a.send(compressed))
-	a.closed.connect(func(...x):
+	a.kill.connect(func(...x):
 		train_input.train_stop())
 
 func stop_train(train_input: Graph):
@@ -70,6 +70,7 @@ func _infer_state_received(bytes: PackedByteArray) -> void:
 			var node: Graph = graphs._graphs.get(int(i))
 			if not node: continue
 			for to_push in _dict["result"][i].values():
+				print(to_push)
 				if node.is_head:
 					node.push_values(glob.flatten_array(to_push), node.per)
 	#print(_dict)
@@ -78,7 +79,7 @@ func _infer_state_received(bytes: PackedByteArray) -> void:
 func is_infer_channel(input: Graph) -> bool:
 	return input in inference_sockets and is_instance_valid(inference_sockets[input])
 
-func open_infer_channel(input: Graph) -> void:
+func open_infer_channel(input: Graph, on_close: Callable = glob.def) -> void:
 	if input in inference_sockets and is_instance_valid(inference_sockets[input]):
 		return # already open
 	request_save()
@@ -93,9 +94,10 @@ func open_infer_channel(input: Graph) -> void:
 	sock.connected.connect(func() -> void:
 		sock.send(glob.compress_dict_zstd(init_payload))
 	)
-	sock.closed.connect(func(...x) -> void:
+	sock.kill.connect(func(...x) -> void:
 		if input in inference_sockets:
 			inference_sockets.erase(input)
+		on_close.call()
 	)
 
 
