@@ -1,6 +1,6 @@
 
 instance uniform vec4 extents = vec4(0.0, 0.0, 0.0, 0.0);
-const float smoothness = 20.0;
+uniform float smoothness = 20.0;
 
 float alphamult(vec2 v){
 	float a = 1.0;

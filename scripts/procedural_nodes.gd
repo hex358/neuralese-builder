@@ -1,7 +1,11 @@
 extends Node
 class_name ProceduralNodes
 
+@export var easy: bool = false
 @export var instance: Node = null
+@export var parent_call: String = ""
+@export var parent_easy: Node
+@export var one_shot: bool = false
 
 func _get_nodes(args, kwargs = {}) -> Array[Node]:
 	var output: Array[Node] = []
@@ -32,6 +36,9 @@ func _unroll_deferred(args = [], kwargs = {}):
 	for child in prev_unrolled:
 		#var new = frozen_duplicate.duplicate()
 		#print(i)
+		if one_shot:
+			parent.expanded_size += child.size.y + parent.arrangement_padding.y
+			#parent.max_size += child.size.y + parent.arrangement_padding.y
 
 		child.placeholder = false
 		child.auto_wrap = false
@@ -40,7 +47,8 @@ func _unroll_deferred(args = [], kwargs = {}):
 		
 		parent.add_child(child)
 		#child.parent = parent
-		parent.dynamic_child_enter(child)
+		if not one_shot:
+			parent.dynamic_child_enter(child)
 		child._create_scaler_wrapper()
 		#child.reparent(child.scaler)
 		#(func(): parent.dynamic_child_enter(child._wrapped_in)).call_deferred()
@@ -49,6 +57,10 @@ func _unroll_deferred(args = [], kwargs = {}):
 		
 		
 		#print(new)
+	if one_shot:
+		parent.max_size = parent.expanded_size
 	parent.arrange()
+	#if one_shot:
+		#parent.max_size -= 75
 	
 	

@@ -223,6 +223,7 @@ func initialize() -> void:
 	
 	if button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU:
 		scroll.size = Vector2(base_size.x - scrollbar_padding, expanded_size if not max_size else max_size - base_size.y - 10)
+		#scroll.size.y += 900
 		if not dynamic_size:
 			for child in get_children():
 				if not child is BlockComponent:
@@ -247,20 +248,24 @@ func initialize() -> void:
 func dynamic_child_exit(child: BlockComponent):
 	if child in _contained:
 		_unclamped_expanded_size -= floor(child.base_size.y + arrangement_padding.y)
-		expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
+		expanded_size = _unclamped_expanded_size+lerp_size_offset#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
 		scroll.size.y = max_size-base_size.y-10
+		#if max_size and max_size < _unclamped_expanded_size:
+		#	scroll.size.y += 10
 		_contained.erase(child)
 		if button_by_hint[child.hint] == child:
 			button_by_hint.erase(child.hint)
 	
 		
-
+@export var lerp_size_offset: float = 0.0
 func dynamic_child_enter(child: BlockComponent):
 	#if not c is Wrapper: return
 	#var child = c.wrapping_target
 	_unclamped_expanded_size += floor(child.base_size.y + arrangement_padding.y)
-	expanded_size = _unclamped_expanded_size#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
+	expanded_size = _unclamped_expanded_size+lerp_size_offset#min(_unclamped_expanded_size, max_size if max_size else _unclamped_expanded_size)
 	scroll.size.y = max_size-base_size.y-10
+	#if max_size and max_size < _unclamped_expanded_size:
+	#	scroll.size.y += 10
 
 	contain(child)
 
@@ -319,27 +324,38 @@ func resize(_size: Vector2) -> void:
 
 var wrapped: bool = false
 
-
+@export var arrange_offset: float = 0
 func arrange():
 	# Arrange children above or below based on expand_upwards
+	#arrangement_padding.x *= 0
 	vbox.add_theme_constant_override("separation", arrangement_padding.y)
 	var maxsize: int = 0
 	
 	var y = base_size.y * 0.9 if !expand_upwards else expanded_size / 2 - base_size.y * 1.45
-	scroll.position = Vector2(arrangement_padding.x, y)
+	var add = 0
+	#if max_size < _unclamped_expanded_size:
+	#	add = arrange_offset / 2 - 2
+	y += add
+	scroll.position = Vector2( arrangement_padding.x, 
+	y)
 	var is_shrinked: bool = max_size < expanded_size and max_size
 	var b_size = base_size.x - 2.2 * arrangement_padding.x
-	if is_shrinked:
-		b_size -= 14
+	for node:BlockComponent in _contained:
+		var size_y = node.size.y
+		maxsize += (size_y + arrangement_padding.y)
+		#scroll.position.x /= 2
 	#print(_contained)
+	if expanded_size > max_size and max_size:
+		b_size -= 14
 	for node:BlockComponent in _contained:
 		#node._wrapped_in.position = Vector2(arrangement_padding.x, y)
 		var size_y = node.size.y
 		node.resize(Vector2(b_size/node.scale.x, round(size_y)))
 		node.text = node.text
 		y += (size_y + arrangement_padding.y)
-		maxsize += (size_y + arrangement_padding.y)
+		#maxsize += (size_y + arrangement_padding.y)
 		#print(maxsize)
+	#maxsize += arrange_offset
 
 func _enter_tree() -> void:
 	if !Engine.is_editor_hint() and (button_type == ButtonType.CONTEXT_MENU) and menu_name:
@@ -468,6 +484,9 @@ func _process_dropout_menu(delta: float) -> void:
 		if graph:
 			base_pos = position
 		_process_block_button(delta)
+		#if name == "loss":
+		#	print(state.pressing)
+		#print(name)
 		#print(glob.opened_menu)
 		var graph = graph if graph and graph is Graph else graph_root
 		if glob.mouse_just_pressed and (!graph or not graph.dragging) and state.pressing and not state.tween_hide and ButtonType.BLOCK_BUTTON == current_type:
@@ -480,6 +499,7 @@ func _process_dropout_menu(delta: float) -> void:
 			prev_z_index = z_index
 			z_index = RenderingServer.CANVAS_ITEM_Z_MAX
 			ab = true
+			#print("f")
 			menu_show(anchor)
 			reparent(glob.follow_menus)
 			
@@ -643,13 +663,13 @@ func _process_block_button(delta: float) -> void:
 	
 	var ins = (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	#if is_contained:
+
 		#print(glob.get_occupied("menu_inside"))
 	#ins = ins or (graph_root and not graph_root.visible)
 	var blocked = (is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)) or is_blocking \
 	or ins
 	var frozen = is_contained and parent.is_frozen or is_frozen
-	blocked = blocked or (ui.active_splashed() and not in_splash)
-	
+	blocked = blocked or (ui.active_splashed() and not in_splash) or ui.topr_inside
 	if not frozen:
 		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins or (is_contained and is_contained.scrolling)))
 		mouse_pressed = glob.mouse_pressed and not blocked
@@ -668,7 +688,8 @@ func _process_block_button(delta: float) -> void:
 			glob.un_occupy(self, "block_button_inside")
 	if ins_request:
 		ins_request = false; inside = true
-
+	#if name == "loss":
+	#	print(blocked)
 	if inside:
 		if mouse_pressed:
 			hover_scale = hover_scale.lerp(base_scale * config._press_scale, delta * 30)
@@ -877,6 +898,7 @@ func menu_hide() -> void:
 	state.tween_progress = 0.0
 	state.expanding = false
 	state.holding = false
+	unblock_input()
 
 func menu_expand() -> void:
 	state.holding = false

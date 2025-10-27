@@ -10,13 +10,25 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	if kw["features"]["type"] == "class":
 		dup.get_node("loss").graph = dup
 		dup.get_node("loss").auto_ready = true
-		for child in dup.get_node("loss").get_children():
-			if child is BlockComponent:
-				child.auto_ready = true
 	if kw["features"]["type"] == "bool":
 		dup.get_node("bool").graph = dup
 		dup.get_node("bool").auto_ready = true
 	return dup
+
+func class_unroll(frozen_duplicate: BlockComponent, args, kwargs):
+	var output: Array[Node] = []
+	var lines = []
+	var i: int = 0
+	for _i in args:
+		i += 1
+		var new: BlockComponent = frozen_duplicate.duplicate()
+		new.placeholder = false
+		new.text = _i
+		new.auto_ready = true
+		new.hint = _i
+		output.append(new)
+	return output
+
 
 var hsliders = {}
 func _adding_unit(who: Control, kw: Dictionary):
@@ -37,6 +49,8 @@ func _adding_unit(who: Control, kw: Dictionary):
 	match kw["features"].get("type"):
 		"int":
 			who.get_node("val").show()
+			who.get_node("val").min_value = features.get_or_add("min", 0)
+			who.get_node("val").max_value = features.get_or_add("max", 80)
 			hsliders[idx] = who.get_node("val")
 			who.get_node("val").tree_exiting.connect(func(): hsliders.erase(idx))
 		#	who.get_node("ColorRect").size.y -= 5
@@ -49,19 +63,74 @@ func _adding_unit(who: Control, kw: Dictionary):
 			hslider.tree_exiting.connect(func(): hsliders.erase(idx))
 			hsliders[idx] = hslider
 			#await get_tree().process_frame
+			kw["min"] = 0.0
+			kw["max"] = 1.0
 			hslider_val_changed(0.0, hslider, kw)
 		"class":
-			who.get_node("loss").show()
+			var got = who.get_node("loss")
+			got.show()
 			hsliders[idx] = who.get_node("loss")
+			got.predelete.connect(func(): hsliders.erase(idx))
+			who.get_node("loss").released.connect(set_class.bind(kw, who.get_node("loss")))
+			await get_tree().process_frame
+			kw["n"] = -1
+			set_class(kw, got)
+			#set_class(kw, got)
 			#who.get_node("loss").predelete.connect(func(): hsliders.erase(idx))
 		"bool":
-			who.get_node("bool").show()
+			var got = who.get_node("bool")
+			got.show()
 			hsliders[idx] = who.get_node("bool")
+			got.predelete.connect(func(): hsliders.erase(idx))
+			who.get_node("bool").released.connect(set_weight_dec.bind(kw, who.get_node("bool")))
+			await get_tree().process_frame
+			set_weight_dec(kw, got)
+			set_weight_dec(kw, got)
 			#who.get_node("bool").predelete.connect(func(): hsliders.erase(idx))
+
+func set_class(kw: Dictionary, switch):
+	kw = kw["features"]
+	switch.text = kw["classes"][kw["n"]]
+	kw["n"] += 1
+	if kw["n"] == len(kw["classes"]):
+		kw["n"] = 0
+
+
+func set_weight_dec(kw: Dictionary, switch):
+	var on: bool = kw.get("on", true)
+	if on:
+		switch.base_modulate = Color(0.85, 0.85, 0.85, 1.0) * 1.3
+		switch.text = "I"
+	else:
+		switch.base_modulate = Color(0.85, 0.85, 0.85, 1.0) * 0.7
+		switch.text = "O"
+	kw["on"] = !on
+
+
+func to_tensor():
+	var a = []
+	for i in units:
+		var features = i.get_meta("kw")["features"]
+		match features.type:
+			"float":
+				a.append(i.get_value())
+			"int":
+				a.append(i.get_value())
+			"bool":
+				a.append(1.0 if features.on else 0.0)
+			"class":
+				var slices = []
+				slices.resize(len(features["classes"]))
+				slices.fill(0.0)
+				slices[features["n"]-1] = 1.0
+				a.append_array(slices)
+	return a
+
+
 
 func hslider_val_changed(val: float, slider: HSlider, kw: Dictionary):
 	var k = (val / slider.max_value)
-	var fit = lerp(kw["features"].get("min", 0.0), kw["features"].get("max", 1.0), k)
+	var fit = k
 	var capped = str(glob.cap(fit, 2))
 	if len(capped.split(".")[-1]) == 1: capped += "0"
 	slider.get_parent().get_node("Label2").text = capped
@@ -86,6 +155,8 @@ func unit_set(unit, value, text):
 func _config_field(field: StringName, value: Variant):
 	#print(cfg)
 	if not manually and field == "input_features":
+		for i in len(units):
+			remove_unit(0)
 		for i in len(value):
 			if value[i] is Dictionary: pass
 			else: continue
@@ -98,11 +169,13 @@ func _config_field(field: StringName, value: Variant):
 
 
 func something_focus() -> bool:
-	if ui.is_focus($input/tabs/float/min): return true
-	if ui.is_focus($input/tabs/float/max): return true
+	if ui.is_focus($input/tabs/int/min): return true
+	if ui.is_focus($input/tabs/int/max): return true
 	return false
 
 func _can_drag() -> bool:
+	if features["type"] == "class" and ui.is_focus($input/tabs/class/Control/HFlowContainer.line_edit):
+		return false
 	if not super(): return false
 	if something_focus(): return false
 	if run_but.is_mouse_inside(): return false
@@ -115,6 +188,10 @@ func _can_drag() -> bool:
 #	return super() and not ui.is_focus($ColorRect/root/Label)
 
 func _proceed_hold() -> bool:
+	#if prev_adding_size:
+	#	return true
+	if features["type"] == "class" and ui.is_focus($input/tabs/class/Control/HFlowContainer.line_edit):
+		return true
 	if something_focus(): return true
 	for i in hsliders.values():
 		if ui.is_focus(i):
@@ -180,8 +257,11 @@ func push_result_meta(meta: Dictionary):
 	res_meta = meta
 	ch()
 
+
 var target_tab: String = ""
 func _after_process(delta: float):
+#	print(adding_size_y)
+	#print(to_tensor())
 	super(delta)
 	if target_tab:
 		for i in input.get_node("tabs").get_children():
@@ -190,6 +270,7 @@ func _after_process(delta: float):
 					i.modulate.a = lerpf(i.modulate.a, 0.0, delta * 20.0)
 					if i.modulate.a < 0.01:
 						i.hide()
+						
 						adding_size_y = tg
 			else:
 				i.show()
@@ -198,6 +279,12 @@ func _after_process(delta: float):
 	#push_values(range(len(units)), true)
 	if nn.is_infer_channel(self) and glob.space_just_pressed:
 		nn.send_inference_data(self, useful_properties())
+	if features["type"] == "class":
+		var hflow = $input/tabs/class/Control/HFlowContainer
+		adding_size_y = 18 + max((hflow.size.y-18)*$input/tabs/class/Control.scale.y, 0)
+	
+	
+	#print($input/tabs/class/Control.custom_minimum_size.y)
 
 func ch():
 	var target = graphs._reach_input(self)
@@ -207,14 +294,20 @@ func ch():
 		graphs.model_updated.emit(got)
 
 func _on_color_rect_2_pressed() -> void:
+	if features["type"] == "class":
+		if not $input/tabs/class/Control/HFlowContainer.tags:
+			return
 	if line_edit.is_valid:
 		await get_tree().process_frame
 		#ui.click_screen(line_edit.global_position + Vector2(10,10))
-		var maximal = float($input/tabs/float/max.text) if $input/tabs/float/max.text else 1.0
-		var minimal = float($input/tabs/float/min.text) if $input/tabs/float/min.text else 0.0
+		var maximal = float($input/tabs/int/max.text) if $input/tabs/int/max.text else 80
+		var minimal = float($input/tabs/int/min.text) if $input/tabs/int/min.text else 0.0
 		features["min"] = min(maximal, minimal)
 		features["max"] = max(maximal, minimal)
-		line_edit.grab_focus()
+	#	line_edit.grab_focus()
+		if features["type"] == "class":
+			features["classes"] = $input/tabs/class/Control/HFlowContainer.tags.duplicate()
+			$input/tabs/class/Control/HFlowContainer.clear()
 		add_unit({"text": line_edit.text, "features": features.duplicate()})
 		line_edit.clear()
 
@@ -235,10 +328,12 @@ func _on_label_changed() -> void:
 func _ready() -> void:
 	super()
 	await get_tree().process_frame
-	if not features.get("type"):
-		_on_type_child_button_release($input/type.button_by_hint["int"])
+	await get_tree().process_frame
+	await get_tree().process_frame
+	#if not features.get("type"):
+	#	_on_type_child_button_release($input/type.button_by_hint["float"])
 
-var features = {"type": ""}
+var features = {"type": "float"}
 
 var tg: float = 0.0
 func _on_type_child_button_release(button: BlockComponent) -> void:
@@ -247,8 +342,11 @@ func _on_type_child_button_release(button: BlockComponent) -> void:
 	target_tab = str(button.hint)
 	#var other = input.get_node("tabs").get_node(NodePath(button.hint))
 	#if other: other.show()
+	if button.hint == "class":
+		#features["classes"] = ["hello", "hi", "returtttn"]
+		features["n"] = 0
 	features["type"] = button.hint
-	if button.hint == "class" or button.hint == "float":
+	if button.hint == "class" or button.hint == "int":
 		tg = 30.0
 		adding_size_y = tg
 	else:

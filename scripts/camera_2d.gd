@@ -56,7 +56,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == drag_button:
 			dragging = event.pressed
-		elif not ui.active_splashed() and not paused and event.pressed and not glob.is_occupied(self, &"scroll"):
+		elif not ui.active_splashed() and not ui.topr_inside and not paused and event.pressed and not glob.is_occupied(self, &"scroll"):
 			var factor = zoom_speed * event.factor * zoom.x
 			var prev_zoom = target_zoom
 			match event.button_index:
@@ -99,6 +99,10 @@ func mouse_range(pos: float, edge_start: float, edge_end: float, axis: int):
 	var t = inverse_lerp(edge_min, edge_max, pos)
 	return clamp(t, 0.0, 1.0)
 
+func change_cam(zoom, center):
+	target_position = center
+	target_zoom = zoom
+
 var rise_mult := 0.0
 func _process(delta: float) -> void:
 	if glob.mouse_middle_just_pressed and not paused:
@@ -139,7 +143,7 @@ func _process(delta: float) -> void:
 			1.0
 		) if !glob.is_occupied(self,&"scroll") else 0.0
 
-		if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult:
+		if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult and not ui.topr_inside:
 			var dir = glob.window_middle.direction_to(display_mouse)
 			drag_move_vec = drag_move_vec.lerp(
 				1000 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5),

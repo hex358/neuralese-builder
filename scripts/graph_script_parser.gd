@@ -254,21 +254,24 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 	return best_pos
 
 
-func model_changes_apply(actions: Dictionary):
+func model_changes_apply(actions: Dictionary, txt: String):
 	cookies.open_or_create("test.bin").store_var(actions)
 	actions = preprocess(actions)
 	if not actions["connect_ports"] and not actions["change_nodes"] and\
 	not actions["delete_nodes"] and not actions["disconnect_ports"]:
 		return
+	ui.set_topr_text(txt)
 	#actions["connect_ports"][-1].remove_at(1)
 #	actions["connect_ports"][-1].remove_at(1)
 	var creating: Dictionary[String, Graph] = {}
-
+	for i in ui.splashed:
+		i.go_away()
+	
+	var has_structure_change: bool = false
+	#print(actions)
+	var skip = []
 	# --- create or reuse nodes
 	if actions["change_nodes"]:
-		for i in ui.splashed:
-			i.go_away()
-		await glob.wait(0.05)
 
 		for pack in actions["change_nodes"]:
 			for node in pack:
@@ -276,16 +279,19 @@ func model_changes_apply(actions: Dictionary):
 				if not typename:
 					continue
 
-				var existing: Graph = _tag_index.get(node.tag, null)
-				if existing:
+				var existing: Graph = glob.tags_1d.get(node.tag, null)
+				if is_instance_valid(existing):
 					creating[node.tag] = existing
+					skip.append(node.tag)
 					existing.set_meta("llm_pack", node)
 					existing.hold_for_frame()
 					continue
+				else:
+					has_structure_change = true
 
 				var g = graphs.get_graph(typename, Graph.Flags.NEW, 0, node.tag)
 				creating[node.tag] = g
-				_tag_index[node.tag] = g
+				#_tag_index[node.tag] = g
 				g.set_meta("llm_pack", node)
 				g.set_meta("llm_tag", node.tag)
 				g.hold_for_frame()
@@ -296,8 +302,8 @@ func model_changes_apply(actions: Dictionary):
 	if actions["connect_ports"]:
 		for pack in actions["connect_ports"]:
 			for connection in pack:
-				var from_graph = glob.tags_1d.get(connection.from.tag, _tag_index.get(connection.from.tag, null))
-				var to_graph = glob.tags_1d.get(connection.to.tag,   _tag_index.get(connection.to.tag, null))
+				var from_graph = glob.tags_1d.get(connection.from.tag, glob.tags_1d.get(connection.from.tag, null))
+				var to_graph = glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag, null))
 				if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
 					printerr("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
 					continue
@@ -319,8 +325,8 @@ func model_changes_apply(actions: Dictionary):
 					var tmp = connection.from
 					connection.from = connection.to
 					connection.to = tmp
-					from_graph =  glob.tags_1d.get(connection.from.tag, _tag_index.get(connection.from.tag))
-					to_graph   =  glob.tags_1d.get(connection.to.tag,   _tag_index.get(connection.to.tag))
+					from_graph =  glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
+					to_graph   =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
 					out_ports = from_graph.output_keys
 					in_ports  = to_graph.input_keys
 					from_port = int(connection.from.port)
@@ -331,7 +337,8 @@ func model_changes_apply(actions: Dictionary):
 				if not (valid_from and valid_to):
 					printerr("[Axon] Invalid connection skipped:", connection)
 					continue
-
+				
+				has_structure_change = true
 				out_ports[from_port].connect_to(in_ports[to_port])
 				var from_tag = from_graph.llm_tag
 				var to_tag = to_graph.llm_tag
@@ -355,8 +362,11 @@ func model_changes_apply(actions: Dictionary):
 				return v
 		cfg = glob.deep_map(cfg, map)
 		real_node.llm_map(cfg)
+	for i in skip:
+		creating.erase(i)
 	
-	_auto_layout(creating, to_rearrange, 100)
+	if has_structure_change:
+		_auto_layout(creating, to_rearrange, 100)
 var _subgraph_slots: Array = []
 var _next_spawn_x: float = 0.0
 
@@ -448,6 +458,7 @@ func _layout_subgraph(nodes: Array, origins: Array, padding: float):
 				base_pos.y = from_rect.position.y - to_rect.size.y - padding
 			
 			to_graph.global_position = base_pos - to_graph.rect.position
+			to_graph.reposition_splines()
 		
 		graphs.reach(origin, reach_func)
 
@@ -465,6 +476,7 @@ func _position_special_nodes(node: Graph):
 				min_y = min(min_y, i.rect.global_position.y)
 			if min_y != INF:
 				node.position = Vector2(middle_x, min_y - 100)
+				node.reposition_splines()
 	
 	if graphs.is_node(node, "ModelName"):
 		var descendants = node.get_first_descendants()
@@ -476,6 +488,7 @@ func _position_special_nodes(node: Graph):
 			for i in descendants:
 				min_y = min(min_y, i.rect.global_position.y)
 			node.position = Vector2(middle_x - 80, min_y - 150)
+			node.reposition_splines()
 	
 	if graphs.is_node(node, "DatasetName"):
 		var descendants = node.get_first_descendants()
@@ -487,6 +500,7 @@ func _position_special_nodes(node: Graph):
 			for i in descendants:
 				min_y = min(min_y, i.rect.global_position.y)
 			node.position = Vector2(middle_x - 200, min_y - 20)
+			node.reposition_splines()
 
 func _bbox_of(nodes) -> Rect2:
 	var any = true
@@ -510,6 +524,7 @@ func _place_subgraph_non_overlapping(nodes: Array, padding: float) -> Vector2:
 	
 	for node in nodes:
 		node.global_position = node.global_position + offset
+		node.reposition_splines()
 	
 	var new_bbox = _bbox_of(nodes)
 	_subgraph_slots.append(new_bbox)
@@ -526,29 +541,53 @@ func _place_subgraph_non_overlapping(nodes: Array, padding: float) -> Vector2:
 func _auto_layout(creating: Dictionary[String, Graph], to_rearrange, padding: float = 100.0):
 	if not creating:
 		return
-	
+
+	# --- classify config-type nodes
+	var is_config_node = func(g: Graph) -> bool:
+		return graphs.is_node(g, "LayerConfig") \
+			or graphs.is_node(g, "ModelName") \
+			or graphs.is_node(g, "DatasetName") \
+			or graphs.is_node(g, "Activation")
+
 	for tag in creating.keys():
 		var g = creating[tag]
 		g.hold_for_frame()
-	
+
 	var subgraphs = _find_subgraphs(creating)
-	
 	var leftover_groups = []
+	var all_changed_nodes: Array = []
+	var config_nodes: Array[Graph] = []
+
+	# collect config nodes separately (so we can reposition them later)
 	for subgraph in subgraphs:
+		for g in subgraph:
+			if is_config_node.call(g):
+				config_nodes.append(g)
+
+	# --- relayout only subgraphs that contain structural nodes
+	for subgraph in subgraphs:
+		var has_non_config = false
+		for g in subgraph:
+			if not is_config_node.call(g):
+				has_non_config = true
+				break
+		if not has_non_config:
+			continue  # skip config-only group layout
+
 		var nodes_dict = {}
 		for node in subgraph:
 			var tag = node.get_meta("llm_tag") if node.has_meta("llm_tag") else ""
 			if tag:
 				nodes_dict[tag] = node
-		
+
 		var origins = _choose_origins(nodes_dict)
-		
 		for origin in origins:
 			if graphs.is_node(origin, "TrainBegin"):
 				origin.position.y -= 310
-		
+				origin.reposition_splines()
+
 		_layout_subgraph(subgraph, origins, padding)
-		
+
 		var leftover = []
 		for node in subgraph:
 			var was_visited = false
@@ -564,39 +603,79 @@ func _auto_layout(creating: Dictionary[String, Graph], to_rearrange, padding: fl
 					break
 			if not was_visited:
 				leftover.append(node)
-		
 		leftover_groups.append(leftover)
-		
+
 		for origin in origins:
 			if graphs.is_node(origin, "TrainBegin"):
 				origin.position.y += 0
-		
+
 		_place_subgraph_non_overlapping(subgraph, padding)
-	
+		all_changed_nodes.append_array(subgraph)
+
+	# --- selective rearrangement (config → non-config)
 	for connection in to_rearrange:
-		var from_graph =  glob.tags_1d.get(connection.from.tag, _tag_index.get(connection.from.tag))
-		var to_graph   =  glob.tags_1d.get(connection.to.tag,   _tag_index.get(connection.to.tag))
+		var from_graph = glob.tags_1d.get(connection.from.tag, null)
+		var to_graph   = glob.tags_1d.get(connection.to.tag, null)
+		if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
+			continue
+
+		var from_is_cfg = is_config_node.call(from_graph)
+		var to_is_cfg = is_config_node.call(to_graph)
+
+		# Case 1: config → structural
+		if from_is_cfg and not to_is_cfg:
+			_position_special_nodes(from_graph)
+			from_graph.reposition_splines()
+			all_changed_nodes.append(from_graph)
+			continue
+
+		# Case 2: structural → config (rare, but possible)
+		if to_is_cfg and not from_is_cfg:
+			_position_special_nodes(to_graph)
+			to_graph.reposition_splines()
+			all_changed_nodes.append(to_graph)
+			continue
+
+		# Case 3: both structural → do normal offset layout
 		var out_ports = from_graph.output_keys
 		var in_ports  = to_graph.input_keys
 		var from_rect = from_graph.rect.get_global_rect()
 		var to_rect = to_graph.rect.get_global_rect()
-		
+
 		var new_to_pos = Vector2(
 			from_rect.end.x + padding,
 			from_rect.position.y + (from_rect.size.y - to_rect.size.y) / 2.0
 		)
-		
+
 		new_to_pos = _grid_snap(new_to_pos)
-		
+
 		var current_to_pos = to_graph.rect.get_global_rect().position
 		var offset = new_to_pos - current_to_pos
-		
-		var subgraph_to_move = _get_all_descendants(to_graph)
-		
-		for node in subgraph_to_move:
-			node.global_position = node.global_position + offset
-			node.hold_for_frame()
 
+		var subgraph_to_move = _get_all_descendants(to_graph)
+		for node in subgraph_to_move:
+			node.global_position += offset
+			node.hold_for_frame()
+			node.reposition_splines()
+
+		all_changed_nodes.append_array(subgraph_to_move)
+
+	# --- apply special positioning for config nodes that were newly created
+	for cfg in config_nodes:
+		_position_special_nodes(cfg)
+		cfg.reposition_splines()
+		all_changed_nodes.append(cfg)
+
+	# --- apply special positioning for leftovers (orphans etc.)
 	for leftover in leftover_groups:
 		for node in leftover:
 			_position_special_nodes(node)
+			all_changed_nodes.append(node)
+
+	# --- smart viewport zoom/focus
+	if all_changed_nodes.size() > 0 and glob.cam is GraphViewport:
+		var bbox = _bbox_of(all_changed_nodes)
+		var center = bbox.position + bbox.size / 2.0
+		var span = max(bbox.size.x, bbox.size.y)
+		var zoom = clamp(800.0 / max(span, 100.0), 0.4, 1.5)
+		glob.cam.change_cam(zoom, center)

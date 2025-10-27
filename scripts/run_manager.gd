@@ -50,7 +50,8 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def):
 	a.connected.connect(func():
 		a.send(compressed))
 	a.kill.connect(func(...x):
-		train_input.train_stop())
+		#print("AA")
+		train_input_origin.train_stop(true))
 
 func stop_train(train_input: Graph):
 	if not train_input in training_sockets:

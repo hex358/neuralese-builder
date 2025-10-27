@@ -11,9 +11,9 @@ func get_value():
 	var features = get_meta("kw")["features"]
 	match features.type:
 		"float":
-			return lerpf(features.min, features.max, $HSlider.value / $HSlider.max_value)
+			return $HSlider.value / $HSlider.max_value
 		"int":
-			return $val.get_value() if $val.text else 0
+			return ($val.get_value() - $val.min_value) / ($val.max_value - $val.min_value)
 		
 
 func set_weight(text: String):

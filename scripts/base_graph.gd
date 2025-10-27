@@ -28,7 +28,8 @@ func _new_animate(delta: float): # virtual
 	scale = glob.spring(base_scale * 0.5, base_scale, exist_time, 3.5, 16, 0.5)
 
 func hold_for_frame(): 
-	#print_stack()
+	#\print_stack()
+	
 	hold_process = true
 
 @export_group("Base Config")
@@ -95,7 +96,9 @@ func _config_field(field: StringName, value: Variant):
 func _layout_size() -> Vector2:
 	return rect.size
 
+var base = base_config.duplicate(true)
 func llm_map(pack: Dictionary):
+	update_config(base)
 	_llm_map(pack)
 
 #func llm_property(name: String) -> :
@@ -972,6 +975,7 @@ func _process(delta: float) -> void:
 	#print( glob.get_occupied(&"menu"))
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
+		not ui.topr_inside and 
 		not glob.is_occupied(self, &"graph") and 
 		not glob.is_occupied(self, &"menu_inside") and 
 		not glob.is_occupied(self, &"conn_active") and
@@ -989,7 +993,8 @@ func _process(delta: float) -> void:
 		else:
 			var vec = get_global_mouse_position() + attachement_position + Vector2(0, take_offset_y)
 			take_offset_y = lerpf(take_offset_y, -4.0, delta*15.0)
-			shadow.modulate.a = take_offset_y/ -4
+			if is_instance_valid(shadow):
+				shadow.modulate.a = take_offset_y/ -4
 			#graphs.mark_rect(self)
 			#vec = graphs.can_move(self, vec)
 			global_position = global_position.lerp(vec, delta*40.0)

@@ -20,7 +20,7 @@ animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="menus" type="CanvasLayer"]
-layer = 126
+layer = 125
 script = ExtResource("1_chs3c")
 
 [node name="Node2D" type="Node2D" parent="."]
@@ -41,6 +41,8 @@ scale_anim = true
 arrangement_padding = Vector2(10, 8)
 menu_name = &"add_graph"
 max_size = 250
+lerp_size_offset = null
+arrange_offset = null
 
 [node name="5" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -59,6 +61,7 @@ text = "NodeInput"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="2" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -77,6 +80,7 @@ text = "ActivationFunc"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="1" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -95,6 +99,7 @@ text = "DenseLayer"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="6" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -113,6 +118,7 @@ text = "TrainInput"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="7" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -131,6 +137,7 @@ text = "SoftmaxTensor"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="8" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -149,6 +156,7 @@ text = "ReshapeTo2D"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="9" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -167,6 +175,7 @@ text = "FlattenTo1D"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="10" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -185,6 +194,7 @@ text = "Conv2DLayer"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="11" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -203,6 +213,7 @@ text = "MaxPoolLayer"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="12" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -221,6 +232,7 @@ text = "OutClassifier"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="13" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -239,6 +251,7 @@ text = "TrainBegin"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="14" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -257,6 +270,7 @@ text = "ModelName"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="15" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -275,6 +289,7 @@ text = "DatasetName"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="16" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -293,6 +308,7 @@ text = "RunModel"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="17" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -311,6 +327,7 @@ text = "AugmentTf"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="18" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -329,6 +346,7 @@ text = "OutputMap"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="19" parent="add_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -347,6 +365,7 @@ text = "Input1D"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
@@ -366,6 +385,8 @@ mouse_open = false
 menu_name = &"detatch"
 dynamic_size = true
 max_size = 210
+lerp_size_offset = null
+arrange_offset = null
 
 [node name="delete" parent="detatch" instance=ExtResource("2_rnbi1")]
 z_index = 2
@@ -385,6 +406,7 @@ base_size = Vector2(236, 41.000015)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_77dp3")
+special = false
 
 [node name="ProceduralNodes" type="Node" parent="detatch" node_paths=PackedStringArray("instance")]
 script = ExtResource("8_6how5")
@@ -409,6 +431,8 @@ mouse_open = false
 menu_name = &"edit_graph"
 max_size = 0
 config = null
+lerp_size_offset = null
+arrange_offset = null
 
 [node name="neuron" parent="edit_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -426,6 +450,7 @@ text = "Delete"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
+special = false
 
 [node name="delete_i" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
@@ -446,6 +471,8 @@ mouse_open = false
 menu_name = &"delete_i"
 max_size = 0
 config = null
+lerp_size_offset = null
+arrange_offset = null
 
 [node name="delete" parent="delete_i" instance=ExtResource("2_rnbi1")]
 z_index = 2
@@ -464,3 +491,4 @@ base_size = Vector2(101, 41)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_77dp3")
+special = false

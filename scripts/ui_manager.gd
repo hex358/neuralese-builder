@@ -7,6 +7,14 @@ func is_focus(control: Control):
 func get_focus():
 	return get_viewport().gui_get_focus_owner()
 
+var topr: Control = null
+
+func set_topr_text(text: String):
+	topr.show_text(text)
+
+func hide_topr():
+	topr.hide()
+
 var _active_splashed: bool = false
 
 func active_splashed() -> bool:
@@ -74,6 +82,7 @@ func move_mouse(pos: Vector2) -> void:
 	vp.push_input(motion)
 
 
+var topr_inside: bool = false
 #var _parent_graphs = {}
 func reg_button(b: BlockComponent):
 	pass
@@ -127,6 +136,8 @@ func _ready():
 	#inst.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	inst.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_KEEP_HEIGHT, 39)
 	inst.z_index = 90
+	
+	configure_richtext_theme_auto(header_theme, header_font, base_font)
 
 var splashed = {}
 
@@ -170,6 +181,7 @@ func splash(menu: String, splashed_from = null, emitter_ = null, inner = false, 
 	else:
 		m = splash_menus[menu].instantiate()
 	m.inner = inner
+	hide_topr()
 	if passed_data: m.passed_data = passed_data
 	if not menu in already_splashed:
 		cl.add_child(m)
@@ -207,6 +219,7 @@ func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, 
 	else:
 		m = splash_menus[menu].instantiate()
 	m.inner = inner
+	hide_topr()
 	if passed_data: m.passed_data = passed_data
 	if not menu in already_splashed:
 		cl.add_child(m)
@@ -220,6 +233,198 @@ func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, 
 	m.tree_exited.connect(func(): already_splashed.erase(menu))
 	var a = await emitter.res
 	return a
+
+
+func configure_richtext_theme_auto(theme: Theme, base_font: FontFile, monospaced_font: FontFile) -> void:
+	if theme == null or base_font == null:
+		push_warning("configure_richtext_theme_auto: theme/base_font must be non-null")
+		return
+	if monospaced_font == null:
+		monospaced_font = base_font
+	var has_axes := func(f: Font, tag: String) -> bool:
+		if f and f.has_method(&"get_supported_variation_list"):
+			var axes: Dictionary = f.get_supported_variation_list()
+			return axes.has(tag)
+		return false
+
+	var make_bold := func(f: Font) -> Font:
+		var v := FontVariation.new()
+		v.base_font = f
+		if has_axes.call(f, "wght"):
+			var coords := v.variation_opentype
+			coords["wght"] = 700.0
+			v.variation_opentype = coords
+		else:
+			v.variation_embolden = 0.8
+		return v
+
+	var make_italic := func(f: Font) -> Font:
+		var v := FontVariation.new()
+		v.base_font = f
+		if has_axes.call(f, "ital"):
+			var coords := v.variation_opentype
+			coords["ital"] = 1.0
+			v.variation_opentype = coords
+		elif has_axes.call(f, "slnt"):
+			var coords := v.variation_opentype
+			coords["slnt"] = -12.0
+			v.variation_opentype = coords
+		else:
+			v.variation_transform = Transform2D(Vector2(1, 0.2), Vector2(0, 1), Vector2.ZERO)
+		return v
+
+	var make_bold_italic := func(f: Font) -> Font:
+		var v := FontVariation.new()
+		v.base_font = f
+		var used_axes := false
+		if has_axes.call(f, "wght"):
+			var coords := v.variation_opentype
+			coords["wght"] = 700.0
+			v.variation_opentype = coords
+			used_axes = true
+		if has_axes.call(f, "ital") or has_axes.call(f, "slnt"):
+			var coords := v.variation_opentype
+			if has_axes.call(f, "ital"):
+				coords["ital"] = 1.0
+			elif has_axes.call(f, "slnt"):
+				coords["slnt"] = -12.0
+			v.variation_opentype = coords
+			used_axes = true
+		if not used_axes:
+			v.variation_embolden = 0.8
+			v.variation_transform = Transform2D(Vector2(1, 0.2), Vector2(0, 1), Vector2.ZERO)
+		return v
+
+	var normal_font: Font = base_font
+	var bold_font: Font = make_bold.call(base_font)
+	var italics_font: Font = make_italic.call(base_font)
+	var bold_italics_font: Font = make_bold_italic.call(base_font)
+	var mono_font: Font = monospaced_font
+
+
+	theme.set_font(&"normal_font", &"RichTextLabel", normal_font)
+	theme.set_font(&"bold_font", &"RichTextLabel", bold_font)
+	theme.set_font(&"italics_font", &"RichTextLabel", italics_font)
+	theme.set_font(&"bold_italics_font", &"RichTextLabel", bold_italics_font)
+	theme.set_font(&"mono_font", &"RichTextLabel", mono_font)
+
+
+
+
+const _CODEBLOCK_TOKEN = "\uF000CODEBLOCK%03d\uF000"
+const _CODESPAN_TOKEN  = "\uF001CODESPAN%03d\uF001"
+
+func markdown_to_bbcode(md: String) -> String:
+	var codeblocks: Array[String] = []
+	var codespans: Array[String] = []
+	var text = md
+
+	# ---------- 1) Extract fenced code blocks: ```...```
+	var re_block = RegEx.new()
+	re_block.compile("(?s)```(?:[A-Za-z0-9_+-]+)?\\s*(.*?)\\s*```")
+	while true:
+		var m = re_block.search(text)
+		if m == null: break
+		var code = m.get_string(1)
+		codeblocks.append(code)
+		var token = _CODEBLOCK_TOKEN % (codeblocks.size() - 1)
+		text = text.substr(0, m.get_start()) + token + text.substr(m.get_end())
+
+	# ---------- 2) Extract inline code: `...`
+	var re_span = RegEx.new()
+	re_span.compile("`([^`\\n]+?)`")
+	while true:
+		var m2 = re_span.search(text)
+		if m2 == null: break
+		var span = m2.get_string(1)
+		codespans.append(span)
+		var token2 = _CODESPAN_TOKEN % (codespans.size() - 1)
+		text = text.substr(0, m2.get_start()) + token2 + text.substr(m2.get_end())
+
+	# ---------- 3) Links: [text](url)
+	var re_link = RegEx.new()
+	re_link.compile("\\[([^\\]]+)\\]\\(([^)\\s]+)\\)")
+	while true:
+		var ml = re_link.search(text)
+		if ml == null: break
+		var label = ml.get_string(1)
+		var url = ml.get_string(2)
+		var rep = "[url=%s]%s[/url]" % [url, label]
+		text = text.substr(0, ml.get_start()) + rep + text.substr(ml.get_end())
+
+	# ---------- 4) Headings: #..######  → just make them bold + newline
+	# (Top to bottom to avoid double-processing)
+	for level in range(6, 0, -1):
+		var pfx = String("#").repeat(level)
+		var re_h = RegEx.new()
+		re_h.compile("(?m)^%s\\s+(.*)$" % pfx)
+		while true:
+			var mh = re_h.search(text)
+			if mh == null: break
+			var body = mh.get_string(1).strip_edges()
+			var rep_h = "[b]%s[/b]" % body
+			text = text.substr(0, mh.get_start()) + rep_h + text.substr(mh.get_end())
+
+	# ---------- 5) Strikethrough: ~~text~~
+	var re_s = RegEx.new()
+	re_s.compile("~~(.+?)~~")
+	while true:
+		var ms = re_s.search(text)
+		if ms == null: break
+		text = text.substr(0, ms.get_start()) + "[s]" + ms.get_string(1) + "[/s]" + text.substr(ms.get_end())
+
+	# ---------- 6) Bold: **text** and __text__
+	for pat in ["\\*\\*(.+?)\\*\\*", "__(.+?)__"]:
+		var re_b = RegEx.new()
+		re_b.compile(pat)
+		while true:
+			var mb = re_b.search(text)
+			if mb == null: break
+			text = text.substr(0, mb.get_start()) + "[b]" + mb.get_string(1) + "[/b]" + text.substr(mb.get_end())
+
+	# ---------- 7) Italic: *text* and _text_  (avoid touching ** already handled)
+	for pat_i in ["(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)"]:
+		var re_i = RegEx.new()
+		re_i.compile(pat_i)
+		while true:
+			var mi = re_i.search(text)
+			if mi == null: break
+			text = text.substr(0, mi.get_start()) + "[i]" + mi.get_string(1) + "[/i]" + text.substr(mi.get_end())
+
+	# ---------- 8) Simple bullets: lines starting with "- " or "* "
+	for pat_bullet in ["(?m)^-\\s+", "(?m)^\\*\\s+"]:
+		var re_bu = RegEx.new()
+		re_bu.compile(pat_bullet)
+		text = re_bu.sub(text, "• ", true)
+
+	# ---------- 9) Restore code spans and blocks as [code]...[/code]
+	# Escape BBCode brackets inside code so they render literally.
+	var esc = func(s: String) -> String:
+		return s.replace("[", "\\[").replace("]", "\\]")
+
+	# Spans first (so blocks can contain tokens without conflict)
+	for idx in range(codespans.size()):
+		var token = _CODESPAN_TOKEN % idx
+		var repl = "[code]" + esc.call(codespans[idx]) + "[/code]"
+		text = text.replace(token, repl)
+
+	for idxb in range(codeblocks.size()):
+		var tokenb = _CODEBLOCK_TOKEN % idxb
+		var body = esc.call(codeblocks[idxb])
+		# Ensure code blocks are separated by blank lines for RTL auto-parsing
+		var replb = "\n[code]\n%s\n[/code]\n" % body
+		text = text.replace(tokenb, replb)
+
+	return text
+
+
+
+
+
+var base_theme = preload("res://resources/theme.tres")
+var header_theme = preload("res://resources/theme_headers.tres")
+var header_font = preload("res://game_assets/fonts/JetBrainsSans[wght]-VF.ttf") as FontFile
+var base_font = preload("res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf") as FontFile
 
 
 

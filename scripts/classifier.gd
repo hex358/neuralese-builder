@@ -8,6 +8,8 @@ func unit_set(unit, value, text):
 
 func _config_field(field: StringName, value: Variant):
 	if not manually and field == "label_names":
+		for i in len(units):
+			remove_unit(0)
 		for i in len(value):
 			add_unit({"text": value[i]})
 		#	units[i].get_node("Label").text = value[i]

@@ -2,9 +2,13 @@ extends ProceduralNodes
 
 func _ready():
 	initialize()
-	glob.ref(self, "detatch_unroll")
+	if not easy:
+		glob.ref(self, "detatch_unroll")
 
 func _get_nodes(args, kwargs = {}) -> Array[Node]:
+	if easy:
+		return parent_easy.call(parent_call, frozen_duplicate, args, kwargs)
+	
 	var output: Array[Node] = []
 	var lines = []
 	var i: int = 0

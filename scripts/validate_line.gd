@@ -50,6 +50,12 @@ func _gui_input(event: InputEvent) -> void:
 		event.pressed):
 		get_viewport().set_input_as_handled()
 		return
+	if not auto_enter and event is InputEventKey and event.pressed and event.keycode == KEY_ENTER:
+		text_submitted.emit(text)
+		set_line("") # or whatever you want
+		get_viewport().set_input_as_handled()
+		call_deferred("grab")
+		return
 
 	#super(event)
 
@@ -153,14 +159,22 @@ func _resize_monospace():
 
 
 
+
+
 func _input_submit(input: String):
 	pass
 
 
+func grab():
+	grab_focus()
+	grab_click_focus()
+	ui.click_screen(global_position + Vector2(2,2))
 
+var auto_enter: bool = true
 signal changed
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.keycode == KEY_ENTER and ui.is_focus(self):
+	if auto_enter and event is InputEventKey and event.keycode == KEY_ENTER and ui.is_focus(self):
+	#	print("ff")
 		if accept_button:
 			accept_button.press(0.1)
 		grab_focus()

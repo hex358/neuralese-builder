@@ -559,15 +559,20 @@ var time: float = 0.0
 var space_pressed: bool = false
 var space_just_pressed: bool = false
 
+var enter_just_pressed: bool = false
+
 func _process(delta: float) -> void:
 	
 	
 	
 	space_just_pressed = Input.is_action_just_pressed("ui_accept")
 	space_pressed = Input.is_action_pressed("ui_accept")
+	
+	
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
+	enter_just_pressed = Input.is_action_just_pressed("ui_enter")
 	if not is_instance_valid(_menu_type_occupator):
 		menu_type = ""
 		_menu_type_occupator = null
@@ -761,12 +766,12 @@ var llm_name_unmapping = (func():
 func test_place():
 	pass
 	var a = cookies.open_or_create("test.bin").get_var()
-	parser.model_changes_apply(a)
+	parser.model_changes_apply(a, "hi")
 
 func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 	#print(message_sockets[chat_id].cache.get("message", [""])[0])
-	glob.update_chat_cache(str(chat_id), {"role": "ai", "text": 
-		message_sockets[chat_id].cache.get("message", [""])[0]})
+	var txt = message_sockets[chat_id].cache.get("message", [""])[0]
+	glob.update_chat_cache(str(chat_id), {"role": "ai", "text": txt})
 	message_sockets.erase(chat_id)
 	on_close.call()
 	var acts = sock.cache.get("actions", {})
@@ -774,7 +779,9 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 	#for action in acts:
 	#	for el in len(acts[action]):
 	#		acts[action][el] = JSON.parse_string(acts[action][el])
-	parser.model_changes_apply(acts)
+	#print("text, ", txt)
+	await glob.wait(0.5)
+	parser.model_changes_apply(acts, txt)
 		#print()
 
 

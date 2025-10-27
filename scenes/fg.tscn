@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=26 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
@@ -18,6 +18,7 @@
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="12_thedb"]
 [ext_resource type="Texture2D" uid="uid://df28yjqauh4ub" path="res://game_assets/icons/help.png" id="12_v7s1j"]
 [ext_resource type="Texture2D" uid="uid://cfllvhawyqi4x" path="res://game_assets/icons/wonder.png" id="12_x67tc"]
+[ext_resource type="PackedScene" uid="uid://bsbdls0nw0uf2" path="res://scenes/topr.tscn" id="14_v7s1j"]
 
 [sub_resource type="Gradient" id="Gradient_5k5he"]
 interpolation_mode = 2
@@ -62,6 +63,7 @@ shader = ExtResource("1_5k5he")
 shader_parameter/shape = 0
 shader_parameter/mult_tuning = Color(1, 1, 1, 1)
 shader_parameter/color_mult = Color(1, 1, 1, 1)
+shader_parameter/smoothness = 20.0
 shader_parameter/corner_radius = 0.0
 shader_parameter/blurred_background = true
 shader_parameter/outline_width = 1.688
@@ -83,7 +85,7 @@ animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="fg" type="CanvasLayer"]
-layer = 125
+layer = 126
 
 [node name="ColorRect" type="ColorRect" parent="." node_paths=PackedStringArray("menus")]
 material = ExtResource("1_s7ao5")
@@ -169,6 +171,7 @@ text_offset = Vector2(37, 0)
 base_size = Vector2(108.23486, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
+special = false
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/login"]
 position = Vector2(20.670837, 17.999998)
@@ -195,6 +198,7 @@ text = "  Export"
 base_size = Vector2(119.231445, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
+special = false
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/export"]
 position = Vector2(20.670837, 17.999998)
@@ -221,6 +225,7 @@ text = "  Test"
 base_size = Vector2(97.857666, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
+special = false
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/play"]
 position = Vector2(20.670837, 17.999998)
@@ -248,6 +253,7 @@ text_offset = Vector2(2, 0)
 base_size = Vector2(98.50604, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
+special = false
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/ai"]
 position = Vector2(21.795776, 17.999996)
@@ -273,6 +279,7 @@ hint = &"layer"
 base_size = Vector2(34.804443, 32.624138)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_gbf2a")
+special = false
 
 [node name="i" type="TextureRect" parent="ColorRect/9"]
 layout_mode = 1
@@ -289,6 +296,18 @@ grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1.3652097, 1.3652097)
 texture = ExtResource("10_4mxf5")
+
+[node name="Control2" parent="ColorRect" instance=ExtResource("14_v7s1j")]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -304.0
+offset_top = 59.0
+offset_right = -264.0
+offset_bottom = 99.0
+grow_horizontal = 0
 
 [node name="submenu" type="ColorRect" parent="." node_paths=PackedStringArray("top")]
 visible = false
@@ -348,6 +367,7 @@ offset_bottom = 262.0
 button_type = 2
 top = true
 mouse_open = false
+special = false
 
 [node name="ColorRect2" parent="submenu/ColorRect2" instance=ExtResource("4_5k5he")]
 material = ExtResource("9_4033n")
@@ -365,6 +385,7 @@ text = "Add"
 base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
+special = false
 
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
 [connection signal="released" from="ColorRect/Control/play" to="ColorRect" method="_on_play_released"]

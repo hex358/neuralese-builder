@@ -50,8 +50,10 @@ func _useful_properties() -> Dictionary:
 var running: bool = false
 func _process(delta: float) -> void:
 	super(delta)
-	if glob.space_just_pressed:
-		web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self)})
+	#if glob.space_just_pressed:
+		#print("export")
+	#	web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self),
+	#	"context": self.context_id, "scene_id": glob.get_project_id()})
 	if nn.is_infer_channel(self) and glob.space_just_pressed:
 		nn.send_inference_data(self, useful_properties())
 	#if glob.space_just_pressed:

@@ -106,13 +106,15 @@ func _config_field(field: StringName, value: Variant):
 			var res = {}
 			var rev = {}
 			var desc = get_descendant()
-			for i in desc.unit_labels:
-				rev[desc.unit_labels[i]] = i
-			for u in unit_titles.keys():
-				if not is_instance_valid(unit_titles[u]): unit_titles.erase(u); continue
-				if not unit_titles[u] in res and unit_titles[u] in value:
-					res[unit_titles[u]] = true
-					u.get_node("i").connect_to(rev[value[unit_titles[u]]].get_node("i"))
+			if not graphs.is_node(desc, "TrainInput"):
+				for i in desc.unit_labels:
+					rev[desc.unit_labels[i]] = i
+				#print(unit_titles)
+				for u in unit_titles.keys():
+					if not is_instance_valid(u): unit_titles.erase(u); continue
+					if not unit_titles[u] in res and unit_titles[u] in value:
+						res[unit_titles[u]] = true
+						u.get_node("i").connect_to(rev[value[unit_titles[u]]].get_node("i"))
 		#	var trimmed = field.trim_prefix("mapped/")
 		#	set_loss_type(trimmed, value, true)
 
