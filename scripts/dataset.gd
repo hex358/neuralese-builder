@@ -9,14 +9,23 @@ func _process(delta: float) -> void:
 	super(delta)
 	if !glob.is_vec_approx(prev_s, $ColorRect.scale):
 		list.update_children_reveal()
-		
+
+var loaded_datasets = {}
 var parsed = {}
 func _ready() -> void:
 	super()
 	await get_tree().process_frame
 	#$ColorRect/Label.text = cookies.get_username()
 	ui.hourglass_on()
-	var a = {"n/mnist": {"some data": 1}, "n/iris": {"some data": 1}}#await glob.request_projects()
+	#"name": "", "outputs": [], "input_format": {}}
+	loaded_datasets = {"n/mnist": 
+		{"name": "mnist", "outputs": [
+		{"label": "digit", "x": 10, "datatype": "1d"}],
+		"inputs": {"x": 28, "y": 28, "datatype": "2d"}}, 
+	"n/iris": {"name": "iris", "outputs": [
+		{"label": "digit", "x": 3, "datatype": "1d"}],
+		"inputs": {"x": 28, "datatype": "1d"}}}#await glob.request_projects()
+	#print(loaded_datasets)
 	ui.hourglass_off()
 	$ColorRect/list.passed_who = passed_data.get("with_who", "")
 	#quitting.connect(
@@ -27,7 +36,7 @@ func _ready() -> void:
 	#})
 	#if a.body:
 		#parsed = JSON.parse_string(a.body.get_string_from_utf8())["list"]
-	list.show_up(a)
+	list.show_up(loaded_datasets)
 	await get_tree().process_frame
 
 func _resultate(data: Dictionary):
@@ -36,7 +45,7 @@ func _resultate(data: Dictionary):
 
 
 func _on_list_child_button_release(button: BlockComponent) -> void:
-	resultate({"ds": button.hint})
+	resultate({"ds": button.hint, "meta": loaded_datasets[button.hint]})
 
 
 func _on_add() -> void:

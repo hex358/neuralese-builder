@@ -5,10 +5,24 @@ func get_training_data():
 
 var dataset_meta: Dictionary = {}
 
+func display_ds_meta():
+	pass
+
 func set_dataset_meta(meta: Dictionary):
 	dataset_meta = meta
+	display_ds_meta()
 	for i in graphs.get_cache("", self):
 		i.push_meta(self, dataset_meta)
+	#print(dataset_meta)
+	set_meta("input_features", dataset_meta.get("inputs", {}))
+	await get_tree().process_frame
+#	print(get_descendant())
+#	print(get_descendant().input_keys[0].hint)
+	if get_descendant() and not get_descendant()._is_suitable_other_conn(outputs[0], get_descendant().input_keys[0]):
+		#print(get_descendant()._is_suitable_conn(outputs[0], get_descendant().input_keys[0]))
+		#await get_tree().process_frame
+		#print(dataset_meta["name"])
+		outputs[0].disconnect_all()
 
 #func _just_attached(other_conn: Connection, my_conn: Connection):
 		#set_dataset_meta({"name": "mnist", "outputs": [
@@ -23,19 +37,30 @@ func _ready() -> void:
 	graphs.spline_connected.connect(func(from: Connection, to: Connection):
 		if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
 			var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
-			graphs.bind_cache(to.parent_graph, "", self)
 			if reached and reached == self:
+				graphs.bind_cache(to.parent_graph, "", self)
 				to.parent_graph.push_meta(self, dataset_meta)
+		#else:
+			#var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
+			#if reached and reached == self:
+				#graphs.bind_cache(to.parent_graph, "", self)
+			##	to.parent_graph.push_meta(self, dataset_meta)
+				#to.parent_graph.set_meta("input_features", dataset_meta.get("inputs", {}))
+				#to.parent_graph.set_meta("inputs_owner", self)
 			)
 	graphs.spline_disconnected.connect(func(from: Connection, to: Connection):
 		if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
 			if to.parent_graph.meta_owner == self:
 				graphs.uncache(to.parent_graph, "", self)
 				to.parent_graph.unpush_meta()
-				
-			#var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
-			#if reached and reached == self and not to.virtual:
-			#	to.parent_graph.push_meta(dataset_meta["outputs"])
+		#elif to.parent_graph.get_meta("input_owner") == self:
+			#
+			#to.parent_graph.set_meta("input_features", {})
+			#to.parent_graph.set_meta("inputs_owner", null)
+				#
+			##var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
+			##if reached and reached == self and not to.virtual:
+			##	to.parent_graph.push_meta(dataset_meta["outputs"])
 			)
 	
 

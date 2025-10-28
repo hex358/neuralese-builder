@@ -49,6 +49,12 @@ func _llm_map(pack: Dictionary):
 		#else:
 		#	print("Skipping one...")
 
+func _just_connected(who: Connection, to: Connection):
+	if not who.virtual:
+		var rc = graphs._reach_input(self, "TrainBegin")
+		if rc:
+			to.parent_graph.push_meta(rc, rc.dataset_meta)
+
 
 func _request_save():
 	set_name_graph(name_graph)
@@ -138,14 +144,37 @@ func _process(delta: float) -> void:
 		#print(_useful_properties())
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
-	pass
+	if get_descendant():
+		var rc = graphs._reach_input(self, "TrainBegin")
+
+		if rc:
+			get_descendant().push_meta(rc, rc.dataset_meta)
+
+func _is_suitable_other_conn(other: Connection, mine: Connection) -> bool:
+	if mine.hint == 1: return true
+	var anc = graphs.get_input_graph_by_name(name_graph)
+	if not is_instance_valid(anc):
+		return false
+#	print(anc)
+	return anc.validate(other.parent_graph.get_meta("input_features", {"x": -1, "y": -1, "datatype": ""}))
+
+
+
+func get_input_format(who: Graph) -> String:
+	return who.repr()
+	#if who.base_dt == "1d":
+		#return "1d(" + str(len(who.to_tensor())) + ")"
+	#else:
+		#return "2d" + str(len(who.get_raw_values()))
 
 
 
 func set_name_graph(st: String, remove = null):
 	if st:
 		$ColorRect/root/Label.position.y = 3
+		$ColorRect/root/input_fmt.show()
 	else:
+		$ColorRect/root/input_fmt.hide()
 		$ColorRect/root/Label.position.y = 9
 		
 	hold_for_frame()
@@ -167,6 +196,8 @@ func set_name_graph(st: String, remove = null):
 			remove_unit(len(units)-1)
 		dis()
 		return
+	
+	$ColorRect/root/input_fmt.text = get_input_format(input_graph)
 	graphs.reach(input_graph, cachify)
 	var prev_by_title := {}
 	for id in cfg["branches"]:

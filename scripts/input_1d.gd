@@ -32,6 +32,7 @@ func class_unroll(frozen_duplicate: BlockComponent, args, kwargs):
 
 var hsliders = {}
 func _adding_unit(who: Control, kw: Dictionary):
+	
 	who.set_meta("kw", kw)
 	var idx = who
 
@@ -88,6 +89,10 @@ func _adding_unit(who: Control, kw: Dictionary):
 			set_weight_dec(kw, got)
 			#who.get_node("bool").predelete.connect(func(): hsliders.erase(idx))
 
+	await get_tree().process_frame
+	if get_ancestor():
+		graphs.model_updated.emit(get_ancestor().cfg["name"])
+
 func set_class(kw: Dictionary, switch):
 	kw = kw["features"]
 	switch.text = kw["classes"][kw["n"]]
@@ -107,23 +112,29 @@ func set_weight_dec(kw: Dictionary, switch):
 	kw["on"] = !on
 
 
-func to_tensor():
+func to_tensor(cells: bool = false):
 	var a = []
 	for i in units:
 		var features = i.get_meta("kw")["features"]
 		match features.type:
 			"float":
-				a.append(i.get_value())
+				a.append(i.get_value() if !cells else [i.get_value()])
 			"int":
-				a.append(i.get_value())
+				a.append(i.get_value() if !cells else [i.get_value()])
 			"bool":
-				a.append(1.0 if features.on else 0.0)
+				if !cells:
+					a.append(1.0 if features.get("on", false) else 0.0)
+				else:
+					a.append([1.0 if features.get("on", false) else 0.0])
 			"class":
 				var slices = []
 				slices.resize(len(features["classes"]))
 				slices.fill(0.0)
 				slices[features["n"]-1] = 1.0
-				a.append_array(slices)
+				if not cells:
+					a.append_array(slices)
+				else:
+					a.append(slices)
 	return a
 
 
@@ -258,6 +269,15 @@ func push_result_meta(meta: Dictionary):
 	ch()
 
 
+func repr():
+	var tensorified: PackedStringArray = []
+	#for i in to_tensor(true):
+	#	tensorified.append(str(len(i)))
+	return base_dt + "(" +str( len(to_tensor())) + ")"
+
+func validate(pack: Dictionary):
+	return base_dt == pack.get("datatype", "") and pack.get("x", 0) == len(to_tensor())
+
 var target_tab: String = ""
 func _after_process(delta: float):
 #	print(adding_size_y)
@@ -285,6 +305,11 @@ func _after_process(delta: float):
 	
 	
 	#print($input/tabs/class/Control.custom_minimum_size.y)
+
+func _unit_removal(id: int):
+	await get_tree().process_frame
+	if get_ancestor():
+		graphs.model_updated.emit(get_ancestor().cfg["name"])
 
 func ch():
 	var target = graphs._reach_input(self)

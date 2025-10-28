@@ -288,6 +288,7 @@ func is_suitable(conn: Connection) -> bool:
 		and conn._accepts(self)
 		and _is_suitable(conn)
 		and parent_graph._is_suitable_conn(self, conn)
+		and conn.parent_graph._is_suitable_other_conn(self, conn)
 		and (custom_expression == null or custom_expression.execute([conn], self)))
 	
 	if cond_1:

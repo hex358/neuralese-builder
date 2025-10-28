@@ -6,18 +6,45 @@ class_name LabelAutoResize
 @export var min_scale: float = 0.1
 @export var parent_indep: bool = false
 @export var base_size: Vector2
+@export var simple: bool = false
+@export var simple_letters: int = 0 
 
 func _ready() -> void:
-	resize.call_deferred()
+	if not simple:
+		resize.call_deferred()
+
+
+@onready var _font = get_theme_font("font")
+@onready var base_font_size = get_theme_font_size("font")
+
+func _resize_simple() -> void:
+	var txt = text
+	if txt.is_empty():
+		add_theme_font_size_override("font_size", base_font_size)
+		return
+	
+	var n = txt.length()
+	if n <= simple_letters:
+		add_theme_font_size_override("font_size", base_font_size)
+		return
+
+	# Shrink proportionally to how many letters exceed the limit
+	var ratio = float(simple_letters) / float(n)
+	var new_fs = int(round(base_font_size * ratio))
+	new_fs = clamp(new_fs, 6, base_font_size)
+	add_theme_font_size_override("font_size", new_fs)
 
 func resize() -> void:
+	if simple:
+		_resize_simple()
+		return
 	if !parent_indep: resize_dep(); return
 	var available: Vector2
 	
 	if parent_indep:
 		available = base_size
 	else:
-		var parent_ctrl := get_parent()
+		var parent_ctrl = get_parent()
 		if not (parent_ctrl is Control):
 			return
 		available = parent_ctrl.size - position
@@ -41,7 +68,7 @@ func resize() -> void:
 
 
 func resize_dep() -> void:
-	var parent_ctrl := get_parent()
+	var parent_ctrl = get_parent()
 	if not (parent_ctrl is Control):
 		return
 	var parent_size: Vector2 = parent_ctrl.size

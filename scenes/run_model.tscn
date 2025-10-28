@@ -115,6 +115,23 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="input_fmt" type="Label" parent="ColorRect/root"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 19.0
+offset_right = 434.66522
+offset_bottom = 108.0
+scale = Vector2(0.2025424, 0.2025424)
+theme = ExtResource("3_4mecg")
+text = "1d(200)"
+horizontal_alignment = 1
+script = ExtResource("7_cs7cw")
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(169.107, 43)
+metadata/_custom_type_script = "uid://bjncugq5805ty"
+
 [node name="Label" type="Label" parent="ColorRect/root"]
 layout_mode = 0
 offset_left = 24.0
@@ -189,9 +206,9 @@ offset_bottom = 20.0
 [node name="Label" type="Label" parent="connection/Control"]
 z_index = 1
 layout_mode = 0
-offset_top = 4.0
+offset_top = 3.0
 offset_right = 169.1065
-offset_bottom = 47.0
+offset_bottom = 46.0
 scale = Vector2(0.2838448, 0.2838448)
 theme = ExtResource("3_4mecg")
 text = "0"

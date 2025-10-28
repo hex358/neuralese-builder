@@ -63,7 +63,8 @@ func set_pellets(pellets):
 	for unit in len(units):
 		remove_unit(0)
 	for pellet in pellets:
-		add_unit(pellet)
+		add_unit(pellet, true)
+	hold_for_frame()
 	#print(prev_branches)
 	#print(old_units)
 	#print(prev_branches)
@@ -99,10 +100,15 @@ func _unit_removal(id: int):
 	units[id].get_node("i").queue_free()
 	unit_labels.erase(units[id])
 
-
+var old_ds = ""
 var meta_owner: Graph = null
 func push_meta(who: Graph, data: Dictionary):
+	if "name" in data:
+		if old_ds == data["name"]: return
+		old_ds = data["name"]
 	meta_owner = who
+	#print_stack()
+	#await get_tree().process_frame
 	if not who or data.name == "":
 		$ColorRect/root/Label.position.y = 9
 		set_pellets([])

@@ -27,6 +27,9 @@ var hold_process: bool = false
 func _new_animate(delta: float): # virtual
 	scale = glob.spring(base_scale * 0.5, base_scale, exist_time, 3.5, 16, 0.5)
 
+func _is_suitable_other_conn(other: Connection, mine: Connection) -> bool:
+	return true
+
 func hold_for_frame(): 
 	#\print_stack()
 	

@@ -47,6 +47,17 @@ func _useful_properties() -> Dictionary:
 	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28, 
 		"subname": "Input2D"},}
 
+func repr():
+	var tensorified: PackedStringArray = []
+	tensorified.append(str(image_dims.x))
+	tensorified.append(str(image_dims.y))
+	return base_dt + "(" + "x".join(tensorified) + ")"
+
+func validate(pack: Dictionary):
+#	print(pack)
+	return base_dt == pack.get("datatype", "") and pack.get("x", 0) == image_dims.x and pack.get("y", 0) == image_dims.y
+
+
 var running: bool = false
 func _process(delta: float) -> void:
 	super(delta)
