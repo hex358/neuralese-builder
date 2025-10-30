@@ -85,8 +85,6 @@ mouse_open = false
 dynamic_size = true
 max_size = 306
 config = null
-lerp_size_offset = null
-arrange_offset = null
 
 [node name="name" parent="ColorRect/list" instance=ExtResource("2_5t588")]
 z_index = 5

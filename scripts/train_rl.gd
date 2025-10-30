@@ -22,7 +22,6 @@ func _after_ready():
 		n.hide()
 		_fade_targets[n] = 0.0
 	select_optimizer(current_optimizer)
-	set_weight_dec(true)
 	is_training = true
 	_target_size_y = base_size + tab_size_adds.get(current_optimizer, 0.0)
 
@@ -49,7 +48,6 @@ func _after_process(delta: float):
 		else:
 			$ColorRect2/acc.text = str(glob.cap($ColorRect2.get_last_value()*100, 1)) + "%"
 
-@onready var train_button = $train
 var learning_rates = {"adam": ["1e-2", "1e-3", "1e-4"], "sgd": ["1e-1","1e-2","1e-3"]}
 
 @onready var base_size: float = $ColorRect.size.y
@@ -60,8 +58,7 @@ func _proceed_hold() -> bool:
 	return training
 
 func _can_drag() -> bool:
-	return not switch.is_mouse_inside() \
-		and not ui.is_focus($sgd_tab/Label4/HSlider)
+	return not ui.is_focus($sgd_tab/Label4/HSlider) and not ui.is_focus($YY)
 
 @onready var optimizer = $optimizer
 func _opt_selected(opt: StringName):
@@ -105,26 +102,14 @@ func _on_lr_child_button_release(button: BlockComponent) -> void:
 	update_config({"lr": int(button.hint)})
 	button.is_contained.menu_hide()
 
-func set_weight_dec(on: bool):
-	if on:
-		switch.base_modulate = Color(0.583, 0.578, 0.85) * 1.3
-		switch.text = "I"
-	else:
-		switch.base_modulate = Color(0.583, 0.578, 0.85) * 0.7
-		switch.text = "O"
 
-@onready var switch = $switch
-func _on_switch_released() -> void:
-	update_config({"weight_decay": switch.text != "I"})
-	#@set_weight_dec(switch.text != "I")
+
 
 func _map_properties(pack: Dictionary):
 	update_config({"lr": cfg["lr"]})
 
 func _config_field(field: StringName, value: Variant):
 	match field:
-		"weight_decay":
-			set_weight_dec(value)
 		"momentum":
 			#print(value)
 			$sgd_tab/Label4/HSlider.value = float(value) * (100.0 / 0.9)

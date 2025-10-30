@@ -385,6 +385,7 @@ func load_graph(state: Dictionary, reg: Dictionary):
 	for i in len(chain):
 		type_layers[chain[i]] = i
 		sequence[i] = []
+
 		
 	for id in state:
 		var pack = state[id]
@@ -592,6 +593,16 @@ signal spline_connected(from_conn: Connection, to_conn: Connection)
 signal spline_disconnected(from_conn: Connection, to_conn: Connection)
 
 
+func simple_reach(from_graph: Graph) -> Dictionary:
+	var gathered = {}
+	var callable = func(from: Connection, to: Connection, branch_cache: Dictionary):
+		gathered[to.parent_graph] = true
+		gathered[from.parent_graph] = true
+	reach(from_graph, callable)
+	return gathered
+
+
+
 func reach(from_graph: Graph, call: Callable = def_call):
 	reach_mode = true
 	
@@ -720,6 +731,8 @@ var graph_types = {
 	"augment_tf": gload("res://scenes/augment_transform.tscn"),
 	"output_map": gload("res://scenes/branch_mapping.tscn"),
 	"input_1d": gload("res://scenes/input_1d.tscn"),
+	"lua_env": gload("res://scenes/env_tag.tscn"),
+	"train_rl": gload("res://scenes/train_rl.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
@@ -862,7 +875,7 @@ func _process(delta: float) -> void:
 				if graph.process_mode != PROCESS_MODE_DISABLED:
 					#print("GJKGJ")
 		#			print(graph.get_title())
-					graph._stopped_processing()
+					graph.stopped_processing()
 				graph.process_mode = PROCESS_MODE_DISABLED
 			graph.show()
 		elif not graph.hold_process:
@@ -870,7 +883,7 @@ func _process(delta: float) -> void:
 			graph.hide()
 			if graph.process_mode != PROCESS_MODE_DISABLED:
 			#	print("GJKGJ")
-				graph._stopped_processing()
+				graph.stopped_processing()
 			graph.process_mode = PROCESS_MODE_DISABLED
 
 		if graph.hold_process and !force_held:

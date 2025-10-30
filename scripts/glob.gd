@@ -176,6 +176,22 @@ func get_global_z_index(init_node: CanvasItem) -> int:
 		node = node.get_parent()
 	return z
 
+var scroll_imp: Dictionary = {}
+
+func set_scroll_possible(who: Control):
+	scroll_imp.erase(who)
+
+func set_scroll_impossible(who: Control):
+	scroll_imp[who] = true
+
+func is_scroll_possible() -> bool:
+	return len(scroll_imp) == 0
+
+func get_label_text_size_unscaled(lbl: Control, _unused: float = 1.0) -> Vector2:
+	var font = lbl.get_theme_font("font")
+	var size = lbl.get_theme_font_size("font_size")  # no scale multiplier here
+	return font.get_string_size(lbl.text, 0, -1, size)
+
 func get_label_text_size(lbl: Control, use_scale: float = 1.0) -> Vector2:
 	# Measure label text size
 	var font = lbl.get_theme_font("font")
@@ -352,6 +368,11 @@ func compact(n: int) -> String:
 var iterables: Dictionary[int, bool] = arrays.merged({
 TYPE_DICTIONARY:true,})
 
+func to_set(arr) -> Dictionary:
+	var a: Dictionary = {}
+	for i in arr:
+		a[i] = true
+	return a
 func is_array(a) -> bool: return typeof(a) in arrays
 func is_iterable(a) -> bool: return typeof(a) in iterables
 
@@ -724,12 +745,15 @@ var llm_name_mapping = {
 	augment_tf = "augment_tf",
 	output_map = "output_map",
 	input_1d = "input_1d",
+	load_environment = "lua_env",
+	train_rl = "train_rl",
 }
 
 var tag_types = {}
-var tags_1d = {}
+var tags_1d: Dictionary[String, Graph] = {}
 
 func get_llm_tag(who: Graph) -> String:
+	#print(who.llm_tag)
 	var g: String = who.get_meta("created_with")
 	if not g in tag_types:
 		tag_types[g] = {}
@@ -742,7 +766,7 @@ func get_llm_tag(who: Graph) -> String:
 	var res: String = "%s_%d" % [base, counter]
 
 	tag_types[g][res] = true
-	tags_1d[who.llm_tag] = who
+	tags_1d[res] = who
 	return res
 
 
@@ -825,6 +849,13 @@ func clear_all():
 	#cached_chats.clear()
 
 
+func clear_chats():
+	cached_chats.clear()
+	if ai_help_menu:
+		ai_help_menu.clear_all()
+		ai_help_menu.re_recv()
+var ai_help_menu: AIHelpMenu
+
 
 var env_dump = {}
 var cached_projects = {}
@@ -840,13 +871,13 @@ func load_scene(from: String):
 	var dat = bytes_to_var(Marshalls.base64_to_raw(a["scene"]))
 	if !dat: return
 	clear_all()
+	set_var("last_id", 0)
 	fg.go_into_graph()
 	await graphs.delete_all()
-	set_var("last_id", project_id)
 	tree_windows["env"].reset()
 	
 	fg.set_scene_name(a["name"])
-	cached_chats.clear()
+	clear_chats()
 	graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
@@ -857,6 +888,10 @@ func load_scene(from: String):
 		#else:
 		cam.zoom = Vector2(dat.camera.z, dat.camera.z)
 		cam.position = Vector2(dat.camera.x, dat.camera.y)
+
+	for i in 15:
+		await get_tree().process_frame
+	set_var("last_id", project_id)
 	return true
 
 
@@ -910,6 +945,7 @@ func request_chat(chat_id: String):
 
 func load_empty_scene(pr_id: int, name: String):
 	fg.go_into_graph()
+	cached_chats.clear()
 	project_id = pr_id
 	clear_all()
 	set_var("last_id", project_id)

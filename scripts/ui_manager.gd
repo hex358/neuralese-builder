@@ -93,7 +93,8 @@ func unreg_button(b: BlockComponent):
 
 func _process(delta: float):
 	var ct: int = 0
-	for i in splashed:
+	for i in splashed.keys():
+		if not is_instance_valid(i): splashed.erase(i); continue
 		if i.persistent and not i.visible:
 			ct += 1
 	_active_splashed = len(splashed) != ct

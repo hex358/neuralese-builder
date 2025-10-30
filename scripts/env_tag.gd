@@ -42,7 +42,7 @@ func _just_disconnected(who: Connection, to: Connection):
 @onready var run = $run
 func _on_run_released() -> void:
 	run.block_input()
-	var res = await ui.splash_and_get_result("select_dataset", run, null, false, {"with_who": cfg["name"]})
+	var res = await ui.splash_and_get_result("select_dataset", run, null, false, {"with_who": cfg["name"], "env": true})
 	hold_for_frame()
 	if res:
 		update_config({"name": res["ds"]})

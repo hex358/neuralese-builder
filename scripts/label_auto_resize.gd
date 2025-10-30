@@ -1,6 +1,10 @@
+@tool
+
 extends Label
 class_name LabelAutoResize
 
+
+@export var auto_get_base_size: bool = false
 @onready var base_scale: float = scale.x
 @export var padding: Vector2 = Vector2(4, 4) # optional extra spacing
 @export var min_scale: float = 0.1
@@ -10,15 +14,32 @@ class_name LabelAutoResize
 @export var simple_letters: int = 0 
 
 func _ready() -> void:
+	if auto_get_base_size:
+		base_size = size
 	if not simple:
 		resize.call_deferred()
+	if debug and !Engine.is_editor_hint():
+		item_rect_changed.connect(resize)
+	if Engine.is_editor_hint():
+		get_tree().process_frame.connect(frame)
+	#if pivoting:
+	#	position.y -= size.y * scale.y * 0.5
+	#	position.y += 4
+
+func frame() -> void:
+	if pivoting:
+		pivot_offset.y = size.y * 0.5
+	else:
+		pivot_offset.y = 0
 
 
 @onready var _font = get_theme_font("font")
 @onready var base_font_size = get_theme_font_size("font")
 
 func _resize_simple() -> void:
+	base_font_size = 32
 	var txt = text
+	add_theme_font_size_override("font_size", base_font_size)
 	if txt.is_empty():
 		add_theme_font_size_override("font_size", base_font_size)
 		return
@@ -33,6 +54,11 @@ func _resize_simple() -> void:
 	var new_fs = int(round(base_font_size * ratio))
 	new_fs = clamp(new_fs, 6, base_font_size)
 	add_theme_font_size_override("font_size", new_fs)
+
+@export var unscaled_size: bool = false
+@export var debug: bool = false
+@export var pivoting: bool = false
+
 
 func resize() -> void:
 	if simple:
@@ -50,7 +76,8 @@ func resize() -> void:
 		available = parent_ctrl.size - position
 	
 	padding = Vector2.ZERO
-	var text_size: Vector2 = glob.get_label_text_size(self, base_scale if !parent_indep else 1.0)
+	var text_size: Vector2 = glob.get_label_text_size_unscaled(self) if unscaled_size else glob.get_label_text_size(self, base_scale if !parent_indep else 1.0)
+	#print(text_size)
 	if !parent_indep:
 		text_size += padding / scale
 	else:
@@ -63,7 +90,11 @@ func resize() -> void:
 	var ky: float = available.y / text_size.y
 	var k: float = min(kx, ky)
 	var new_scale: float = clamp(base_scale * k, min_scale, base_scale)
+	if pivoting:
+		pivot_offset.y = (size.y) * 0.5
 	scale = Vector2.ONE * new_scale
+	#custom_minimum_size.y = size.y/scale.y
+	
 
 
 

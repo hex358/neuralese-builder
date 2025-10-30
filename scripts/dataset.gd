@@ -12,19 +12,34 @@ func _process(delta: float) -> void:
 
 var loaded_datasets = {}
 var parsed = {}
+var env_mode: bool = false
 func _ready() -> void:
+	if "env" in passed_data:
+		$ColorRect/Label.text = "Select environment"
+		$ColorRect/root/Label.text = "/environments"
+		env_mode = true
 	super()
 	await get_tree().process_frame
 	#$ColorRect/Label.text = cookies.get_username()
 	ui.hourglass_on()
 	#"name": "", "outputs": [], "input_format": {}}
-	loaded_datasets = {"n/mnist": 
-		{"name": "mnist", "outputs": [
-		{"label": "digit", "x": 10, "datatype": "1d"}],
-		"inputs": {"x": 28, "y": 28, "datatype": "2d"}}, 
-	"n/iris": {"name": "iris", "outputs": [
-		{"label": "digit", "x": 3, "datatype": "1d"}],
-		"inputs": {"x": 28, "datatype": "1d"}}}#await glob.request_projects()
+	if env_mode:
+		loaded_datasets = {"n/gym": 
+			{"name": "gym", "outputs": [
+			{"label": "digit", "x": 10, "datatype": "1d"}],
+			"inputs": {"is_env": {}},
+			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}],
+			"env": true}}
+	else:
+		loaded_datasets = {"n/mnist": 
+			{"name": "mnist", "outputs": [
+			{"label": "digit", "x": 10, "datatype": "1d"}],
+			"inputs": {"x": 28, "y": 28, "datatype": "2d"},
+			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]}, 
+		"n/iris": {"name": "iris", "outputs": [
+			{"label": "digit", "x": 3, "datatype": "1d"}],
+			"inputs": {"x": 28, "datatype": "1d"}, 
+			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]},}#await glob.request_projects()
 	#print(loaded_datasets)
 	ui.hourglass_off()
 	$ColorRect/list.passed_who = passed_data.get("with_who", "")

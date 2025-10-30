@@ -244,6 +244,13 @@ func get_target() -> Connection:
 	return null
 
 
+func disconnect_from(target: Connection, force: bool = false):
+	for i in outputs.duplicate():
+		if outputs[i].tied_to == target:
+			outputs[i].tied_to.detatch_spline(outputs[i])
+	#end_spline(i)
+
+
 func connect_to(target: Connection, force: bool = false) -> bool:
 	if not is_instance_valid(target) or target == self:
 		return false

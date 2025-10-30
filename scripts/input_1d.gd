@@ -154,7 +154,7 @@ func _useful_properties() -> Dictionary:
 	return {
 		"raw_values": [0.0],
 		"config": {"input_features": input_features,
-		"subname": "Input1D"},
+		"subname": "Input1D"}, "shape": len(to_tensor())
 	}
 
 

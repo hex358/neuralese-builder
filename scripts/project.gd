@@ -26,7 +26,10 @@ func _enter_tree() -> void:
 @export var importance_chain: Array[StringName] = []
 
 func _ready() -> void:
-	pass
+	var c = glob.to_set(importance_chain)
+	for i in graphs.graph_types:
+		if not i in c:
+			importance_chain.append(i)
 
 
 

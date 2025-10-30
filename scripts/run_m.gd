@@ -13,8 +13,9 @@ func _useful_properties() -> Dictionary:
 		body[real] = cfg["branches"].get(str(who), "mse")
 	#print(body)
 	var branch_maps = {}
-	for i in get_mapped(false):
-		branch_maps[i.out_labels_title] = i.got_label
+	for i in get_mapped(false, true):
+		var who = i.orig.get_parent().get_meta("points_to").get_ancestor().graph_id
+		branch_maps[who] = i.got_label
 	return {
 		"config": {"branch_losses": body, "branch_maps": branch_maps}
 	}
@@ -52,6 +53,7 @@ func _llm_map(pack: Dictionary):
 func _just_connected(who: Connection, to: Connection):
 	if not who.virtual:
 		var rc = graphs._reach_input(self, "TrainBegin")
+	#	print(rc.dataset_meta)
 		if rc:
 			to.parent_graph.push_meta(rc, rc.dataset_meta)
 
@@ -112,7 +114,7 @@ func _config_field(field: StringName, value: Variant):
 			var res = {}
 			var rev = {}
 			var desc = get_descendant()
-			if not graphs.is_node(desc, "TrainInput"):
+			if not graphs.is_nodes(desc, "TrainInput", "TrainRL"):
 				for i in desc.unit_labels:
 					rev[desc.unit_labels[i]] = i
 				#print(unit_titles)
@@ -120,7 +122,8 @@ func _config_field(field: StringName, value: Variant):
 					if not is_instance_valid(u): unit_titles.erase(u); continue
 					if not unit_titles[u] in res and unit_titles[u] in value:
 						res[unit_titles[u]] = true
-						u.get_node("i").connect_to(rev[value[unit_titles[u]]].get_node("i"))
+						if value[unit_titles[u]] in rev:
+							u.get_node("i").connect_to(rev[value[unit_titles[u]]].get_node("i"))
 		#	var trimmed = field.trim_prefix("mapped/")
 		#	set_loss_type(trimmed, value, true)
 
@@ -139,9 +142,9 @@ func edit_unit(node: Graph, u: Control):
 
 func _process(delta: float) -> void:
 	super(delta)
-	#if glob.space_just_pressed:
+	if glob.space_just_pressed:
 	#	print(get_mapped())
-		#print(_useful_properties())
+		print(_useful_properties())
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	if get_descendant():
@@ -152,6 +155,8 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 
 func _is_suitable_other_conn(other: Connection, mine: Connection) -> bool:
 	if mine.hint == 1: return true
+	if other.parent_graph.get_meta("input_features", {}).has("is_env"):
+		return true
 	var anc = graphs.get_input_graph_by_name(name_graph)
 	if not is_instance_valid(anc):
 		return false

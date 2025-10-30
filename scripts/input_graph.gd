@@ -45,7 +45,7 @@ func _just_disconnected(who: Connection, to: Connection):
 func _useful_properties() -> Dictionary:
 	#print("A")
 	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28, 
-		"subname": "Input2D"},}
+		"subname": "Input2D"}, "shape": 28*28}
 
 func repr():
 	var tensorified: PackedStringArray = []
@@ -61,10 +61,10 @@ func validate(pack: Dictionary):
 var running: bool = false
 func _process(delta: float) -> void:
 	super(delta)
-	#if glob.space_just_pressed:
+	if glob.space_just_pressed:
 		#print("export")
-	#	web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self),
-	#	"context": self.context_id, "scene_id": glob.get_project_id()})
+		web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self),
+		"context": str(self.context_id), "scene_id": glob.get_project_id()})
 	if nn.is_infer_channel(self) and glob.space_just_pressed:
 		nn.send_inference_data(self, useful_properties())
 	#if glob.space_just_pressed:

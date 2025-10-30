@@ -12,6 +12,7 @@ func train_state_received(bytes: PackedByteArray, additional: Callable):
 			return
 		var data = dict["data"]["data"]
 		var loss = data["val_loss"]
+		#print(loss)
 		graphs._training_head.push_acceptance(1.0 - loss, 0.0)
 
 
@@ -43,7 +44,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def):
 		"graph": graphs.get_syntax_tree(execute_input_origin),
 		"train_graph": graphs.get_syntax_tree(train_input_origin),
 		"scene_id": str(glob.get_project_id()),
-		"context": execute_input_origin.context_id
+		"context": str(execute_input_origin.context_id)
 	}.merged(train_input_origin.get_training_data()))
 	var a = sockets.connect_to("ws/train", train_state_received.bind(additional_call), cookies.get_auth_header())
 	training_sockets[train_input] = a
@@ -88,7 +89,7 @@ func open_infer_channel(input: Graph, on_close: Callable = glob.def) -> void:
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(input),
 		"scene_id": str(glob.get_project_id()),
-		"context": input.context_id,
+		"context": str(input.context_id),
 	}
 	var sock = sockets.connect_to("ws/infer", _infer_state_received, cookies.get_auth_header())
 	inference_sockets[input] = sock

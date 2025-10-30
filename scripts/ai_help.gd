@@ -1,6 +1,9 @@
 extends SplashMenu
 class_name AIHelpMenu
 
+func _enter_tree() -> void:
+	glob.ai_help_menu = self
+
 @export var _user_message: HBoxContainer
 @export var _ai_message: HBoxContainer
 
@@ -36,15 +39,7 @@ func quit(data: Dictionary = {}):
 		emitter.res.emit(data)
 		#get_parent().remove_child(self)
 
-func _ready() -> void:
-	super()
-	#get_stuff()
-	#quitting.connect(reparent_stuff)
-	_user_message.queue_free()
-	_ai_message.queue_free()
-	#set_messages([
-	#	{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"},
-	#	])
+func re_recv():
 	var received = await glob.request_chat(str(chat_id))
 	if received:
 		for i in received:
@@ -81,6 +76,19 @@ func _ready() -> void:
 	#ui.force_layout_update(scroller)
 	$ColorRect/ScrollContainer.set("scroll_vertical", $ColorRect/ScrollContainer.get_v_scroll_bar().max_value)
 
+
+
+
+func _ready() -> void:
+	super()
+	#get_stuff()
+	#quitting.connect(reparent_stuff)
+	_user_message.queue_free()
+	_ai_message.queue_free()
+	#set_messages([
+	#	{"user": false, "text": "Hi! My name is Axon. I'm here to help & teach you Neural Networks!"},
+	#	])
+	re_recv()
 
 func text_receive(arr):
 	if arr[1]:

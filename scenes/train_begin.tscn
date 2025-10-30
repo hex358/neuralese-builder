@@ -112,15 +112,17 @@ offset_right = 44.0
 offset_bottom = 36.0
 color = Color(0.34, 0.34, 0.34, 0.5882353)
 
-[node name="Control" type="Control" parent="ColorRect2"]
+[node name="Control" type="Control" parent="ColorRect2" node_paths=PackedStringArray("base")]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("5_8dwpr")
+base = NodePath("ScrollContainer/VBoxContainer/Control")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ColorRect2/Control"]
 layout_mode = 0
-offset_right = 117.0
+offset_top = 18.0
+offset_right = 115.0
 offset_bottom = 129.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ColorRect2/Control/ScrollContainer"]
@@ -130,70 +132,110 @@ layout_mode = 2
 custom_minimum_size = Vector2(90, 30)
 layout_mode = 2
 
-[node name="Label" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control"]
+[node name="name" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control"]
 layout_mode = 0
-offset_right = 193.0
-offset_bottom = 43.0
-scale = Vector2(0.35089132, 0.35089132)
+offset_left = 5.0
+offset_top = -8.0
+offset_right = 125.65209
+offset_bottom = 35.0
+scale = Vector2(0.48072103, 0.48072103)
+pivot_offset = Vector2(0, 21.5)
 theme = ExtResource("6_qoxl0")
-text = "PelletSize"
+theme_override_font_sizes/font_size = 27
+text = "hiiiii"
 script = ExtResource("6_bo1ga")
+auto_get_base_size = true
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(120.65209, 43)
+simple_letters = 10
+unscaled_size = true
+pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
-[node name="Control2" type="Control" parent="ColorRect2/Control/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(90, 30)
-layout_mode = 2
-
-[node name="Label" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control2"]
+[node name="dtype" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control"]
+self_modulate = Color(0.77, 0.77, 0.77, 1)
 layout_mode = 0
-offset_right = 193.0
-offset_bottom = 43.0
-scale = Vector2(0.35089132, 0.35089132)
+offset_left = 4.9999995
+offset_top = 4.0
+offset_right = 168.36394
+offset_bottom = 47.0
+scale = Vector2(0.31218642, 0.31218642)
+pivot_offset = Vector2(0, 21.5)
 theme = ExtResource("6_qoxl0")
-text = "PelletSize"
+theme_override_font_sizes/font_size = 27
+text = "bool"
 script = ExtResource("6_bo1ga")
+auto_get_base_size = true
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(163.36394, 43)
+simple_letters = 10
+unscaled_size = true
+pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
-[node name="Control3" type="Control" parent="ColorRect2/Control/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(90, 30)
-layout_mode = 2
-
-[node name="Label" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control3"]
+[node name="value" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control"]
 layout_mode = 0
-offset_right = 193.0
-offset_bottom = 43.0
-scale = Vector2(0.35089132, 0.35089132)
+offset_left = 65.0
+offset_top = 5.0
+offset_right = 194.08492
+offset_bottom = 64.16392
+scale = Vector2(0.37184826, 0.37184826)
 theme = ExtResource("6_qoxl0")
-text = "PelletSize"
+theme_override_font_sizes/font_size = 27
+text = "0/1"
+autowrap_mode = 3
+
+[node name="Label2" type="Label" parent="ColorRect2/Control"]
+modulate = Color(0.88, 0.76, 1, 1)
+layout_mode = 0
+offset_left = 3.0
+offset_top = -9.0
+offset_right = 123.345665
+offset_bottom = 34.0
+scale = Vector2(0.58996725, 0.58996725)
+pivot_offset = Vector2(0, 21.5)
+theme = ExtResource("6_qoxl0")
+theme_override_font_sizes/font_size = 27
+text = "mnistgt"
 script = ExtResource("6_bo1ga")
+auto_get_base_size = true
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(120.345665, 43)
+simple_letters = 10
+unscaled_size = true
+debug = true
+pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
-[node name="Control4" type="Control" parent="ColorRect2/Control/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(90, 30)
-layout_mode = 2
-
-[node name="Label" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control4"]
+[node name="Label3" type="Label" parent="ColorRect2/Control"]
+self_modulate = Color(0.76862746, 0.76862746, 0.76862746, 1)
 layout_mode = 0
-offset_right = 193.0
-offset_bottom = 43.0
-scale = Vector2(0.35089132, 0.35089132)
+offset_left = 78.0
+offset_top = -9.0
+offset_right = 208.64719
+offset_bottom = 34.0
+scale = Vector2(0.2755513, 0.2755513)
+pivot_offset = Vector2(0, 21.5)
 theme = ExtResource("6_qoxl0")
-text = "PelletSize"
+theme_override_font_sizes/font_size = 27
+text = "32kk"
+horizontal_alignment = 2
 script = ExtResource("6_bo1ga")
-metadata/_custom_type_script = "uid://bjncugq5805ty"
-
-[node name="Control5" type="Control" parent="ColorRect2/Control/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(90, 30)
-layout_mode = 2
-
-[node name="Label" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control5"]
-layout_mode = 0
-offset_right = 193.0
-offset_bottom = 43.0
-scale = Vector2(0.35089132, 0.35089132)
-theme = ExtResource("6_qoxl0")
-text = "PelletSize"
-script = ExtResource("6_bo1ga")
+auto_get_base_size = true
+padding = Vector2(0, 0)
+min_scale = 0.0
+parent_indep = true
+base_size = Vector2(130.64719, 43)
+simple_letters = 10
+unscaled_size = true
+debug = true
+pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="train" parent="." node_paths=PackedStringArray("graph") instance=ExtResource("5_v08dh")]

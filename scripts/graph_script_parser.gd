@@ -255,8 +255,11 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 
 
 func model_changes_apply(actions: Dictionary, txt: String):
-	cookies.open_or_create("test.bin").store_var(actions)
 	actions = preprocess(actions)
+	#print(actions)
+	#return
+	cookies.open_or_create("debug_changes.bin").store_var(actions)
+
 	if not actions["connect_ports"] and not actions["change_nodes"] and\
 	not actions["delete_nodes"] and not actions["disconnect_ports"]:
 		return
@@ -325,14 +328,14 @@ func model_changes_apply(actions: Dictionary, txt: String):
 					var tmp = connection.from
 					connection.from = connection.to
 					connection.to = tmp
-					from_graph =  glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
-					to_graph   =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
+					from_graph = glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
+					to_graph =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
 					out_ports = from_graph.output_keys
-					in_ports  = to_graph.input_keys
+					in_ports = to_graph.input_keys
 					from_port = int(connection.from.port)
-					to_port   = int(connection.to.port)
+					to_port = int(connection.to.port)
 					valid_from = out_ports.has(from_port)
-					valid_to   = in_ports.has(to_port)
+					valid_to = in_ports.has(to_port)
 
 				if not (valid_from and valid_to):
 					printerr("[Axon] Invalid connection skipped:", connection)
@@ -345,8 +348,56 @@ func model_changes_apply(actions: Dictionary, txt: String):
 				if not (creating.has(from_tag) and creating.has(to_tag)):
 					to_rearrange.append(connection)
 
-	await get_tree().process_frame
+	
+	if actions["disconnect_ports"]:
+		await get_tree().process_frame
+		for pack in actions["disconnect_ports"]:
+			for connection in pack:
+				var from_graph = glob.tags_1d.get(connection.from.tag, glob.tags_1d.get(connection.from.tag, null))
+				var to_graph = glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag, null))
+				if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
+					printerr("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
+					continue
 
+				var out_ports = from_graph.output_keys
+				var in_ports  = to_graph.input_keys
+				if len(out_ports) == 1:
+					connection.from.port = out_ports.keys()[0]
+				if len(in_ports) == 1:
+					connection.to.port = in_ports.keys()[0]
+
+				var from_port = int(connection.from.port)
+				var to_port = int(connection.to.port)
+				var valid_from = out_ports.has(from_port)
+				var valid_to = in_ports.has(to_port)
+
+				if not valid_from and valid_to:
+					print("[Axon] Swapped reversed connection")
+					var tmp = connection.from
+					connection.from = connection.to
+					connection.to = tmp
+					from_graph = glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
+					to_graph =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
+					out_ports = from_graph.output_keys
+					in_ports = to_graph.input_keys
+					from_port = int(connection.from.port)
+					to_port = int(connection.to.port)
+					valid_from = out_ports.has(from_port)
+					valid_to = in_ports.has(to_port)
+
+				if not (valid_from and valid_to):
+					printerr("[Axon] Invalid connection skipped:", connection)
+					continue
+				
+				out_ports[from_port].disconnect_from(in_ports[to_port])
+	
+	
+	if actions["delete_nodes"]:
+		await get_tree().process_frame
+		for pack in actions["delete_nodes"]:
+			for i in pack:
+				if glob.tags_1d.has(i):
+					glob.tags_1d[i].delete()
 
 	for tag in creating.keys():
 		var real_node: Graph = creating[tag]
@@ -490,7 +541,7 @@ func _position_special_nodes(node: Graph):
 			node.position = Vector2(middle_x - 80, min_y - 150)
 			node.reposition_splines()
 	
-	if graphs.is_node(node, "DatasetName"):
+	if graphs.is_nodes(node, "DatasetName", "LuaEnv"):
 		var descendants = node.get_first_descendants()
 		if descendants:
 			var middle_x = INF
@@ -546,7 +597,7 @@ func _auto_layout(creating: Dictionary[String, Graph], to_rearrange, padding: fl
 	var is_config_node = func(g: Graph) -> bool:
 		return graphs.is_node(g, "LayerConfig") \
 			or graphs.is_node(g, "ModelName") \
-			or graphs.is_node(g, "DatasetName") \
+			or graphs.is_nodes(g, "DatasetName", "LuaEnv") \
 			or graphs.is_node(g, "Activation")
 
 	for tag in creating.keys():

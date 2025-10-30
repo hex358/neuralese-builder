@@ -1,5 +1,13 @@
 extends RichTextLabel
 
+func _normalize_newlines(s: String) -> String:
+	# Collapse all sequences of 2+ newlines into a single one.
+	while "\n\n" in s:
+		s = s.replace("\n\n", "\n")
+	# Trim accidental newlines inside BBCode tags like [/color]\n[...]
+	s = s.replace("[/color]\n[", "[/color][")
+	return s.strip_edges()
+
 
 var actual_text = ""
 func push_text(new: String):
@@ -8,7 +16,7 @@ func push_text(new: String):
 	if thinking: text += (actual_text + "\n[color=gray]Thinking...[/color]").strip_edges()
 	else: text = actual_text
 	text = ui.markdown_to_bbcode(text)
-	text = text.replace("\n\n", "\n")
+	text = _normalize_newlines(text)
 	text = text.strip_edges()
 
 var thinking: bool = false
@@ -20,7 +28,7 @@ func set_txt(text_: String):
 	actual_text = text_
 	text = actual_text
 	text = ui.markdown_to_bbcode(text)
-	text = text.replace("\n\n", "\n")
+	text = _normalize_newlines(text)
 	text = text.strip_edges()
 
 func _process(delta: float) -> void:

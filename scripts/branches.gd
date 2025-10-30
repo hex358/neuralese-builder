@@ -49,6 +49,8 @@ func _just_deattached(other_conn: Connection, my_conn: Connection):
 	pass
 	if my_conn.virtual:
 		def(my_conn.get_parent())
+	else:
+		unpush_meta()
 		#my_conn.get_parent().modulate = Color.WHITE * 1 #.get_node("ColorRect")
 
 func def(who):
@@ -102,8 +104,16 @@ func _unit_removal(id: int):
 
 var old_ds = ""
 var meta_owner: Graph = null
-func push_meta(who: Graph, data: Dictionary):
-	if "name" in data:
+func aw():
+	await get_tree().process_frame
+	hold_for_frame()
+
+func push_meta(who: Graph, data: Dictionary, force: bool = false):
+	#print(data)
+	#var f = func()
+	#get_tree().process_frame.connect()
+	aw()
+	if "name" in data and not force:
 		if old_ds == data["name"]: return
 		old_ds = data["name"]
 	meta_owner = who

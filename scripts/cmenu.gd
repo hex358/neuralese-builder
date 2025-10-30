@@ -47,6 +47,10 @@ func _menu_handle_release(button: BlockComponent):
 			type = "augment_clean"
 		"augment_fit":
 			type = "augment_fit"
+		"lua_env":
+			type = "lua_env"
+		"train_rl":
+			type = "train_rl"
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

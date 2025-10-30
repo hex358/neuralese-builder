@@ -325,6 +325,7 @@ func just_disconnected(who: Connection, from: Connection):
 
 
 func disconnecting(who: Connection, from: Connection):
+	#print(server_typename)
 	graphs.spline_disconnected.emit(who, from)
 	#graphs.update_dependencies(who.parent_graph)
 	from.parent_graph.deattaching(who, from)
@@ -602,6 +603,7 @@ func _useful_properties() -> Dictionary:
 	return {}
 
 func _ready() -> void:
+	#print("FWRJFPKWEPFJ")
 	if not llm_tag:
 		llm_tag = glob.get_llm_tag(self)
 	position -= rect.position
@@ -870,8 +872,7 @@ func drag_ended():
 	graphs.stop_drag(self)
 	#shadow_rect
 
-
-func _stopped_processing():
+func stopped_processing():
 	if glob.hovered_connection in input_key_by_conn:
 		glob.hovered_connection = null
 	glob.reset_menu_type(self, &"edit_graph")
@@ -881,6 +882,12 @@ func _stopped_processing():
 		glob.reset_menu_type(glob.get_occupator(), "detatch")
 	if glob.is_occupied(self, "conn_active"):
 		glob.un_occupy(glob.occ_layers["conn_active"], "conn_active")
+	_stopped_processing()
+
+
+
+func _stopped_processing():
+	pass
 		#hold_for_frame()
 	#for i in graphs.conns_active:
 		#if i in output_key_by_conn:

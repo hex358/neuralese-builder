@@ -6,19 +6,29 @@ func get_training_data():
 var dataset_meta: Dictionary = {}
 
 func display_ds_meta():
-	pass
+	$ColorRect2/Control.push_cfg(dataset_meta)
 
 func set_dataset_meta(meta: Dictionary):
+	var old_meta = dataset_meta
 	dataset_meta = meta
 	display_ds_meta()
-	for i in graphs.get_cache("", self):
-		i.push_meta(self, dataset_meta)
+	var a 
+	#print(meta)
+	#print(graphs.simple_reach(self))
+	for i in graphs.simple_reach(self):
+		if graphs.is_node(i, "OutputMap"):
+			i.push_meta(self, dataset_meta)
+	#for i in graphs.get_cache("", self):
+	#	i.push_meta(self, dataset_meta)
 	#print(dataset_meta)
 	set_meta("input_features", dataset_meta.get("inputs", {}))
+	if dataset_meta.get("inputs", {}).has("is_env"):
+		dataset_meta = dataset_meta.duplicate()
+		dataset_meta["inputs"] = {}
 	await get_tree().process_frame
 #	print(get_descendant())
 #	print(get_descendant().input_keys[0].hint)
-	if get_descendant() and not get_descendant()._is_suitable_other_conn(outputs[0], get_descendant().input_keys[0]):
+	if not "env" in old_meta and get_descendant() and not get_descendant()._is_suitable_other_conn(outputs[0], get_descendant().input_keys[0]):
 		#print(get_descendant()._is_suitable_conn(outputs[0], get_descendant().input_keys[0]))
 		#await get_tree().process_frame
 		#print(dataset_meta["name"])
@@ -38,21 +48,23 @@ func _ready() -> void:
 		if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
 			var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
 			if reached and reached == self:
-				graphs.bind_cache(to.parent_graph, "", self)
-				to.parent_graph.push_meta(self, dataset_meta)
-		#else:
-			#var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
-			#if reached and reached == self:
-				#graphs.bind_cache(to.parent_graph, "", self)
-			##	to.parent_graph.push_meta(self, dataset_meta)
-				#to.parent_graph.set_meta("input_features", dataset_meta.get("inputs", {}))
-				#to.parent_graph.set_meta("inputs_owner", self)
-			)
-	graphs.spline_disconnected.connect(func(from: Connection, to: Connection):
-		if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
-			if to.parent_graph.meta_owner == self:
-				graphs.uncache(to.parent_graph, "", self)
+		#		print(reached)
 				to.parent_graph.unpush_meta()
+				#graphs.bind_cache(to.parent_graph, "", self)
+				to.parent_graph.push_meta(self, dataset_meta, true))
+		##else:
+			##var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
+			##if reached and reached == self:
+				##graphs.bind_cache(to.parent_graph, "", self)
+			###	to.parent_graph.push_meta(self, dataset_meta)
+				##to.parent_graph.set_meta("input_features", dataset_meta.get("inputs", {}))
+				##to.parent_graph.set_meta("inputs_owner", self)
+			#)
+	#graphs.spline_disconnected.connect(func(from: Connection, to: Connection):
+		#if to.parent_graph.server_typename == "OutputMap" and not to.virtual:
+			#if to.parent_graph.meta_owner == self:
+				##graphs.uncache(to.parent_graph, "", self)
+				#to.parent_graph.unpush_meta()
 		#elif to.parent_graph.get_meta("input_owner") == self:
 			#
 			#to.parent_graph.set_meta("input_features", {})
@@ -61,7 +73,7 @@ func _ready() -> void:
 			##var reached = graphs._reach_input(to.parent_graph, "TrainBegin")
 			##if reached and reached == self and not to.virtual:
 			##	to.parent_graph.push_meta(dataset_meta["outputs"])
-			)
+
 	
 
 func get_training_head():
@@ -107,13 +119,29 @@ func train_stop(force: bool = false):
 		if int($YY.text) <= 1:
 			$YY.set_line("")
 
+func vbox_focus():
+	return vbox_vis() and glob.mouse_pressed and $ColorRect2/Control/ScrollContainer.get_v_scroll_bar().get_global_rect().has_point(get_global_mouse_position())
+func vbox_vis():
+	return $ColorRect2/Control/ScrollContainer.get_v_scroll_bar().visible
+
 func _can_drag() -> bool:
-	return not train.is_mouse_inside() and not ui.is_focus($YY)
+	return not train.is_mouse_inside() and not ui.is_focus($YY) and not vbox_focus()
+
+func _stopped_processing():
+	glob.set_scroll_possible(self)
+
+func _process(delta: float) -> void:
+	super(delta)
+	if $ColorRect2.get_global_rect().has_point(get_global_mouse_position()) and vbox_vis():
+		glob.set_scroll_impossible(self)
+	else:
+		glob.set_scroll_possible(self)
+		
 
 func _proceed_hold() -> bool:
 	#if glob.space_just_pressed:
 	#	set_dataset_meta({"outputs": [{"label": "hii"}]})
-	return ui.is_focus($YY)
+	return ui.is_focus($YY) or vbox_focus()
 
 var old_head = null
 func train_start():

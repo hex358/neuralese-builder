@@ -56,7 +56,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.button_index == drag_button:
 			dragging = event.pressed
-		elif not ui.active_splashed() and not ui.topr_inside and not paused and event.pressed and not glob.is_occupied(self, &"scroll"):
+		elif not ui.active_splashed() and not ui.topr_inside and not paused and event.pressed and not glob.is_occupied(self, &"scroll") and glob.is_scroll_possible():
 			var factor = zoom_speed * event.factor * zoom.x
 			var prev_zoom = target_zoom
 			match event.button_index:
@@ -105,6 +105,8 @@ func change_cam(zoom, center):
 
 var rise_mult := 0.0
 func _process(delta: float) -> void:
+	if not glob.is_scroll_possible():
+		target_zoom = zoom.x
 	if glob.mouse_middle_just_pressed and not paused:
 		acc = glob.get_display_mouse_position().x < glob.space_end.x
 
