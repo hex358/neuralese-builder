@@ -206,9 +206,9 @@ func on_send(txt: String) -> void:
 
 	if trect.texture == stop and get_last_message() and get_last_message().has("_pending") and get_my_ws() and not txt and get_last_message().get("timing", [0.0])[0] > 0.1:
 		get_my_ws().send(glob.compress_dict_zstd({"stop": true}))
-		get_last_message().object.queue_free()
-		_message_list.remove_at(-1)
-		glob.rem_chat_cache(str(chat_id))
+		#get_last_message().object.queue_free()
+		#_message_list.remove_at(-1)
+		#glob.rem_chat_cache(str(chat_id))
 		
 		#print("ff")
 

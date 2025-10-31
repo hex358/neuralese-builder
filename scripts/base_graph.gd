@@ -99,10 +99,13 @@ func _config_field(field: StringName, value: Variant):
 func _layout_size() -> Vector2:
 	return rect.size
 
+var llm_mapping: bool = false
 var base = base_config.duplicate(true)
 func llm_map(pack: Dictionary):
+	llm_mapping = true
 	update_config(base)
 	_llm_map(pack)
+	llm_mapping = false
 
 #func llm_property(name: String) -> :
 	#pass

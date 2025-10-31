@@ -255,10 +255,12 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 
 
 func model_changes_apply(actions: Dictionary, txt: String):
-	actions = preprocess(actions)
+	#print(actions)
+	if not (actions.get("change_nodes", []).size() > 0 and actions.get("change_nodes", [""])[0] is not String):
+		actions = preprocess(actions)
 	#print(actions)
 	#return
-	cookies.open_or_create("debug_changes.bin").store_var(actions)
+	#cookies.open_or_create("debug_changes.bin").store_var(actions)
 
 	if not actions["connect_ports"] and not actions["change_nodes"] and\
 	not actions["delete_nodes"] and not actions["disconnect_ports"]:
@@ -273,6 +275,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 	var has_structure_change: bool = false
 	#print(actions)
 	var skip = []
+	var to_map = {}
 	# --- create or reuse nodes
 	if actions["change_nodes"]:
 
@@ -281,7 +284,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 				var typename = glob.llm_name_mapping.get(node.type)
 				if not typename:
 					continue
-
+				
 				var existing: Graph = glob.tags_1d.get(node.tag, null)
 				if is_instance_valid(existing):
 					creating[node.tag] = existing
@@ -290,129 +293,137 @@ func model_changes_apply(actions: Dictionary, txt: String):
 					existing.hold_for_frame()
 					continue
 				else:
+					#await get_tree().process_frame
 					has_structure_change = true
 
 				var g = graphs.get_graph(typename, Graph.Flags.NEW, 0, node.tag)
 				creating[node.tag] = g
 				#_tag_index[node.tag] = g
+				#print(node.tag)
 				g.set_meta("llm_pack", node)
 				g.set_meta("llm_tag", node.tag)
+				if graphs.is_nodes(g, "ModelName", "DatasetName"):
+					print("MAP!!")
+					prop_map(g)
 				g.hold_for_frame()
 
 	await get_tree().process_frame
-	
 	var to_rearrange = []
-	if actions["connect_ports"]:
-		for pack in actions["connect_ports"]:
-			for connection in pack:
-				var from_graph = glob.tags_1d.get(connection.from.tag, glob.tags_1d.get(connection.from.tag, null))
-				var to_graph = glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag, null))
-				if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
-					printerr("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
-					continue
+	for pack: Array in actions["connect_ports"]:
+		var front: Array = []
+		var back: Array = []
+		for c in pack:
+			var from_graph = glob.tags_1d.get(c.from.tag, null)
+			if from_graph and graphs.is_nodes(from_graph, "DatasetName", "LuaEnv", "ModelName"):
+				front.append(c)
+				#c["_wait"] = true
+			else:
+				back.append(c)
+		pack = front + back
+		print(front)
+		
+		#pack.sort_custom()
+		for connection in pack:
+			#print(connection)
+			var from_graph = glob.tags_1d.get(connection.from.tag, creating.get(connection.from.tag))
+			var to_graph = glob.tags_1d.get(connection.to.tag, creating.get(connection.to.tag))
+			if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
+				print("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
+				continue
+			print(graphs.get_input_graph_by_name("mnist_cnn"))
+			#if "_wait" in connection:
+			#	await get_tree().process_frame
 
-				var out_ports = from_graph.output_keys
-				var in_ports  = to_graph.input_keys
-				if len(out_ports) == 1:
-					connection.from.port = out_ports.keys()[0]
-				if len(in_ports) == 1:
-					connection.to.port = in_ports.keys()[0]
+			var out_ports = from_graph.output_keys
+			var in_ports  = to_graph.input_keys
+			if len(out_ports) == 1:
+				connection.from.port = out_ports.keys()[0]
+			if len(in_ports) == 1:
+				connection.to.port = in_ports.keys()[0]
 
-				var from_port = int(connection.from.port)
-				var to_port   = int(connection.to.port)
-				var valid_from = out_ports.has(from_port)
-				var valid_to   = in_ports.has(to_port)
+			var from_port = int(connection.from.port)
+			var to_port   = int(connection.to.port)
+			var valid_from = out_ports.has(from_port)
+			var valid_to   = in_ports.has(to_port)
 
-				if not valid_from and valid_to:
-					print("[Axon] Swapped reversed connection")
-					var tmp = connection.from
-					connection.from = connection.to
-					connection.to = tmp
-					from_graph = glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
-					to_graph =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
-					out_ports = from_graph.output_keys
-					in_ports = to_graph.input_keys
-					from_port = int(connection.from.port)
-					to_port = int(connection.to.port)
-					valid_from = out_ports.has(from_port)
-					valid_to = in_ports.has(to_port)
+			if not valid_from and valid_to:
+				print("[Axon] Swapped reversed connection")
+				var tmp = connection.from
+				connection.from = connection.to
+				connection.to = tmp
+				from_graph = glob.tags_1d.get(connection.from.tag, null)
+				to_graph =  glob.tags_1d.get(connection.to.tag,null)
+				out_ports = from_graph.output_keys
+				in_ports = to_graph.input_keys
+				from_port = int(connection.from.port)
+				to_port = int(connection.to.port)
+				valid_from = out_ports.has(from_port)
+				valid_to = in_ports.has(to_port)
 
-				if not (valid_from and valid_to):
-					printerr("[Axon] Invalid connection skipped:", connection)
-					continue
-				
-				has_structure_change = true
-				out_ports[from_port].connect_to(in_ports[to_port])
-				var from_tag = from_graph.llm_tag
-				var to_tag = to_graph.llm_tag
-				if not (creating.has(from_tag) and creating.has(to_tag)):
-					to_rearrange.append(connection)
+			if not (valid_from and valid_to):
+				print("[Axon] Invalid connection skipped:", connection)
+				continue
+			
+			has_structure_change = true
+			if graphs.is_node(from_graph, "TrainBegin"):
+				await get_tree().process_frame
+			var o = out_ports[from_port].connect_to(in_ports[to_port])
+			if not o:
+				print("skipping connection ", connection)
+			var from_tag = from_graph.llm_tag
+			var to_tag = to_graph.llm_tag
+			if not (creating.has(from_tag) and creating.has(to_tag)):
+				to_rearrange.append(connection)
 
 	
-	if actions["disconnect_ports"]:
-		await get_tree().process_frame
-		for pack in actions["disconnect_ports"]:
-			for connection in pack:
-				var from_graph = glob.tags_1d.get(connection.from.tag, glob.tags_1d.get(connection.from.tag, null))
-				var to_graph = glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag, null))
-				if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
-					printerr("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
-					continue
+	await get_tree().process_frame
+	for pack in actions["disconnect_ports"]:
+		for connection in pack:
+			var from_graph = glob.tags_1d.get(connection.from.tag, creating.get(connection.from.tag))
+			var to_graph = glob.tags_1d.get(connection.to.tag,  creating.get(connection.to.tag))
+			if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
+				continue
 
-				var out_ports = from_graph.output_keys
-				var in_ports  = to_graph.input_keys
-				if len(out_ports) == 1:
-					connection.from.port = out_ports.keys()[0]
-				if len(in_ports) == 1:
-					connection.to.port = in_ports.keys()[0]
+			var out_ports = from_graph.output_keys
+			var in_ports  = to_graph.input_keys
+			if len(out_ports) == 1:
+				connection.from.port = out_ports.keys()[0]
+			if len(in_ports) == 1:
+				connection.to.port = in_ports.keys()[0]
 
-				var from_port = int(connection.from.port)
-				var to_port = int(connection.to.port)
-				var valid_from = out_ports.has(from_port)
-				var valid_to = in_ports.has(to_port)
+			var from_port = int(connection.from.port)
+			var to_port = int(connection.to.port)
+			var valid_from = out_ports.has(from_port)
+			var valid_to = in_ports.has(to_port)
 
-				if not valid_from and valid_to:
-					print("[Axon] Swapped reversed connection")
-					var tmp = connection.from
-					connection.from = connection.to
-					connection.to = tmp
-					from_graph = glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
-					to_graph =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
-					out_ports = from_graph.output_keys
-					in_ports = to_graph.input_keys
-					from_port = int(connection.from.port)
-					to_port = int(connection.to.port)
-					valid_from = out_ports.has(from_port)
-					valid_to = in_ports.has(to_port)
+			if not valid_from and valid_to:
+				var tmp = connection.from
+				connection.from = connection.to
+				connection.to = tmp
+				from_graph = glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
+				to_graph =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
+				out_ports = from_graph.output_keys
+				in_ports = to_graph.input_keys
+				from_port = int(connection.from.port)
+				to_port = int(connection.to.port)
+				valid_from = out_ports.has(from_port)
+				valid_to = in_ports.has(to_port)
 
-				if not (valid_from and valid_to):
-					printerr("[Axon] Invalid connection skipped:", connection)
-					continue
-				
-				out_ports[from_port].disconnect_from(in_ports[to_port])
+			if not (valid_from and valid_to):
+				continue
+			
+			out_ports[from_port].disconnect_from(in_ports[to_port])
 	
 	
-	if actions["delete_nodes"]:
-		await get_tree().process_frame
-		for pack in actions["delete_nodes"]:
-			for i in pack:
-				if glob.tags_1d.has(i):
-					glob.tags_1d[i].delete()
+	await get_tree().process_frame
+	for pack in actions["delete_nodes"]:
+		for i in pack:
+			if glob.tags_1d.has(i):
+				glob.tags_1d[i].delete()
 
 	for tag in creating.keys():
-		var real_node: Graph = creating[tag]
-		var cfg = real_node.get_meta("llm_pack").config
-		var map = func(...args):
-			var k = args[0]
-			var v = args[1] if args.size() > 1 else k
-			if real_node.base_config.size() == 1:
-				k = real_node.base_config.keys()[0]
-			if k in real_node.base_config:
-				return glob.cast_variant(v, typeof(real_node.base_config[k]))
-			else:
-				return v
-		cfg = glob.deep_map(cfg, map)
-		real_node.llm_map(cfg)
+	#	var real_node: Graph = creating[tag]
+		prop_map( creating[tag])
 	for i in skip:
 		creating.erase(i)
 	
@@ -421,6 +432,21 @@ func model_changes_apply(actions: Dictionary, txt: String):
 var _subgraph_slots: Array = []
 var _next_spawn_x: float = 0.0
 
+
+func prop_map(real_node):
+	#var real_node: Graph = creating[tag]
+	var cfg = real_node.get_meta("llm_pack").config
+	var map = func(...args):
+		var k = args[0]
+		var v = args[1] if args.size() > 1 else k
+		if real_node.base_config.size() == 1:
+			k = real_node.base_config.keys()[0]
+		if k in real_node.base_config:
+			return glob.cast_variant(v, typeof(real_node.base_config[k]))
+		else:
+			return v
+	cfg = glob.deep_map(cfg, map)
+	real_node.llm_map(cfg)
 
 func _get_all_descendants(start_node: Graph) -> Array[Graph]:
 	var descendants: Array[Graph] = []
@@ -638,6 +664,10 @@ func _auto_layout(creating: Dictionary[String, Graph], to_rearrange, padding: fl
 				origin.reposition_splines()
 
 		_layout_subgraph(subgraph, origins, padding)
+		for g in subgraph:
+			if is_config_node.call(g):
+				_position_special_nodes(g)
+				g.reposition_splines()
 
 		var leftover = []
 		for node in subgraph:

@@ -80,7 +80,7 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[node name="Node2D" type="Control" node_paths=PackedStringArray("_user_message", "_ai_message")]
+[node name="Node2D" type="Control" node_paths=PackedStringArray("_user_message", "_ai_message", "first_line")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 0
@@ -88,6 +88,7 @@ script = ExtResource("1_tb6sx")
 _user_message = NodePath("ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer")
 _ai_message = NodePath("ColorRect/ScrollContainer/MarginContainer2/MarginContainer/VBoxContainer/HBoxContainer2")
 typename = "ai_help"
+first_line = NodePath("ColorRect/Label2")
 persistent = true
 
 [node name="ColorRect" type="ColorRect" parent="."]

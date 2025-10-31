@@ -13,7 +13,7 @@ var actual_text = ""
 func push_text(new: String):
 	actual_text += new
 	text = actual_text
-	if thinking: text += (actual_text + "\n[color=gray]Thinking...[/color]").strip_edges()
+	if thinking: text += (actual_text + "\n[color=gray]Building...[/color]").strip_edges()
 	else: text = actual_text
 	text = ui.markdown_to_bbcode(text)
 	text = _normalize_newlines(text)

@@ -746,10 +746,10 @@ func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: St
 	var last = storage.get_child(-1) if storage.get_child_count() else null
 	z_count += last.z_space if last else 0
 	new.z_index = z_count
-	storage.add_child(new)
-	add(new)
 	if tag:
 		glob.set_llm_tag(new, tag)
+	storage.add_child(new)
+	add(new)
 	return new
 
 var graph_layers: Dictionary[int, CanvasLayer] = {}

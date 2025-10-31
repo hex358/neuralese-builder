@@ -770,6 +770,33 @@ func get_llm_tag(who: Graph) -> String:
 	return res
 
 
+
+
+func load_dataset(name: String) -> Dictionary:
+	return get_loaded_datasets().get(name, {})
+
+func get_loaded_datasets() -> Dictionary:
+	return{"mnist":
+			{"name": "mnist", "outputs": [
+			{"label": "digit", "x": 10, "datatype": "1d"}],
+			"inputs": {"x": 28, "y": 28, "datatype": "2d"},
+			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]}, 
+		"iris": {"name": "iris", "outputs": [
+			{"label": "digit", "x": 3, "datatype": "1d"}],
+			"inputs": {"x": 28, "datatype": "1d"}, 
+			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]},}#await glob.request_projects()
+	#print(loaded_datasets)
+
+
+
+
+
+
+
+
+
+
+
 func set_llm_tag(who: Graph, val: String):
 	if who.llm_tag in tags_1d:
 		tags_1d.erase(who.llm_tag)
@@ -789,7 +816,7 @@ var llm_name_unmapping = (func():
 
 func test_place():
 	pass
-	var a = cookies.open_or_create("test.bin").get_var()
+	var a = cookies.open_or_create("debug_changes.bin").get_var()
 	parser.model_changes_apply(a, "hi")
 
 func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
@@ -1029,9 +1056,9 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
-	open_last_project()
+	#open_last_project()
 	#await wait(1)
-	#test_place()
+	test_place()
 
 func disconnect_all(from_signal: Signal):
 	for i in from_signal.get_connections():

@@ -31,15 +31,7 @@ func _ready() -> void:
 			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}],
 			"env": true}}
 	else:
-		loaded_datasets = {"n/mnist": 
-			{"name": "mnist", "outputs": [
-			{"label": "digit", "x": 10, "datatype": "1d"}],
-			"inputs": {"x": 28, "y": 28, "datatype": "2d"},
-			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]}, 
-		"n/iris": {"name": "iris", "outputs": [
-			{"label": "digit", "x": 3, "datatype": "1d"}],
-			"inputs": {"x": 28, "datatype": "1d"}, 
-			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]},}#await glob.request_projects()
+		loaded_datasets = glob.get_loaded_datasets()#await glob.request_projects()
 	#print(loaded_datasets)
 	ui.hourglass_off()
 	$ColorRect/list.passed_who = passed_data.get("with_who", "")

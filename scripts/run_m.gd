@@ -54,7 +54,7 @@ func _just_connected(who: Connection, to: Connection):
 	if not who.virtual:
 		var rc = graphs._reach_input(self, "TrainBegin")
 	#	print(rc.dataset_meta)
-		if rc:
+		if rc and graphs.is_node(rc, "OutputMap"):
 			to.parent_graph.push_meta(rc, rc.dataset_meta)
 
 
@@ -155,11 +155,14 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 
 func _is_suitable_other_conn(other: Connection, mine: Connection) -> bool:
 	if mine.hint == 1: return true
+	print("is_emv")
 	if other.parent_graph.get_meta("input_features", {}).has("is_env"):
 		return true
+	print("anc")
 	var anc = graphs.get_input_graph_by_name(name_graph)
 	if not is_instance_valid(anc):
 		return false
+	print("validd")
 #	print(anc)
 	return anc.validate(other.parent_graph.get_meta("input_features", {"x": -1, "y": -1, "datatype": ""}))
 

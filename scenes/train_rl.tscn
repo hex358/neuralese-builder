@@ -30,7 +30,7 @@ offset_bottom = 50.0
 script = ExtResource("1_a5g2m")
 tab_size_adds = Dictionary[StringName, float]({
 &"adam": 0.0,
-&"sgd": 13.0
+&"sgd": 26.0
 })
 server_typename = &"TrainRL"
 area_padding = 0.0
