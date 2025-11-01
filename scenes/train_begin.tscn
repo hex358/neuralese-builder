@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://274a5p56vhfv"]
+[gd_scene load_steps=14 format=3 uid="uid://274a5p56vhfv"]
 
 [ext_resource type="Script" uid="uid://c0nii2r70t0mx" path="res://scripts/train_begin.gd" id="1_oiu5h"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_oiu5h"]
@@ -20,6 +20,20 @@ hover_mult = 1.3
 _hover_scale = 1.05
 press_color = Color(0.72, 0.72, 0.72, 1)
 _press_scale = 0.98
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_qoxl0"]
+script = ExtResource("6_8dwpr")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.0
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 1.0
 animation_scale = 19.697
 animation_speed = 3.473
 animation_decay = 6.0
@@ -285,5 +299,34 @@ allow_float = false
 decimal_places = 2
 resize_after = 4
 change_always_accepted = false
+
+[node name="train2" parent="." instance=ExtResource("5_v08dh")]
+z_index = 5
+instance_shader_parameters/corner_radius_width_add = Vector2(-8, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 1.0
+offset_top = -113.0
+offset_right = 51.976013
+offset_bottom = -93.660446
+scale = Vector2(0.7415975, 0.7415975)
+pivot_offset = Vector2(25.488007, 9.669777)
+mouse_filter = 1
+color = Color(0.59, 0.59, 0.59, 1)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 4
+text = "Clear"
+base_size = Vector2(50.976013, 19.339554)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_qoxl0")
+in_splash = true
 
 [connection signal="released" from="train" to="." method="_on_train_released"]

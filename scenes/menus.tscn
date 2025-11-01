@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://8u7275kgyen4"]
+[gd_scene load_steps=13 format=3 uid="uid://8u7275kgyen4"]
 
 [ext_resource type="Script" uid="uid://bnmswwbafj7fb" path="res://scripts/menus.gd" id="1_chs3c"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_rnbi1"]
@@ -9,6 +9,8 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_w6445"]
 [ext_resource type="Script" uid="uid://ynrhp2d5ge1o" path="res://scripts/detatch.gd" id="8_6how5"]
 [ext_resource type="Script" uid="uid://cb40vkd5uu1g1" path="res://scripts/edit_graph.gd" id="9_rxqxn"]
+[ext_resource type="Script" uid="uid://51dbrgobgi36" path="res://scripts/subctx_menu.gd" id="10_gygdu"]
+[ext_resource type="Script" uid="uid://c1u1irg2f37v8" path="res://scripts/subctx.gd" id="10_rnbi1"]
 
 [sub_resource type="Resource" id="Resource_77dp3"]
 script = ExtResource("7_w6445")
@@ -384,6 +386,24 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
+[node name="22" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 302.667
+offset_top = -258.667
+offset_right = 521.667
+offset_bottom = -217.66699
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.463817, 0.4505, 0.85, 1)
+button_type = 1
+hint = &"dropout"
+text = "Dropout"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
 material = ExtResource("3_gygdu")
@@ -395,6 +415,7 @@ offset_right = 159.0
 offset_bottom = 96.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("6_r44s1")
+hint = &"detatch"
 text = "Detatch   -"
 base_size = Vector2(160, 50)
 scale_anim = true
@@ -500,3 +521,45 @@ base_size = Vector2(101, 41)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_77dp3")
+
+[node name="detatch3" parent="." instance=ExtResource("2_rnbi1")]
+material = ExtResource("3_gygdu")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
+offset_left = -1.0
+offset_top = 46.0
+offset_right = 159.0
+offset_bottom = 96.0
+scale = Vector2(0.75, 0.75)
+script = ExtResource("10_gygdu")
+text = "Group     -"
+base_size = Vector2(160, 50)
+secondary = true
+mouse_open = false
+menu_name = &"subctx"
+max_size = 210
+config = null
+
+[node name="delete" parent="detatch3" instance=ExtResource("2_rnbi1")]
+z_index = 2
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.95, 0.418, 0.418, 1)
+instance_shader_parameters/tuning = Color(0.44, 0.2244, 0.2244, 0.639216)
+layout_mode = 0
+offset_left = 200.0
+offset_top = 221.333
+offset_right = 436.0
+offset_bottom = 262.333
+pivot_offset = Vector2(118, 20.500008)
+button_type = 1
+placeholder = true
+text = "Hello!!"
+base_size = Vector2(236, 41.000015)
+alignment = Vector2(0.5, 0.5)
+mouse_open = false
+config = SubResource("Resource_77dp3")
+
+[node name="ProceduralNodes2" type="Node" parent="detatch3" node_paths=PackedStringArray("instance")]
+script = ExtResource("10_rnbi1")
+instance = NodePath("../delete")
+metadata/_custom_type_script = "uid://cppqde4187p8n"

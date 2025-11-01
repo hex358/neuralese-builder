@@ -857,7 +857,8 @@ func menu_show(at_position: Vector2) -> void:
 	if graphs.conns_active: return
 	if not _proceed_show(at_position): return
 	if glob.get_display_mouse_position().y < glob.space_begin.y: return
-	if button_type == ButtonType.CONTEXT_MENU and _is_not_menu(): return
+	if button_type == ButtonType.CONTEXT_MENU and not secondary and _is_not_menu(): 
+		return
 	_arm_menu_hit_tests()
 	bar.self_modulate.a = 0.0
 	state.expanded = false
@@ -1093,7 +1094,7 @@ func _process_context_menu(delta: float) -> void:
 			if (show_request or right_click) and not do_reset and not left_click:
 				scrolling = false
 				menu_show(pos)
-			elif visible and !static_mode:
+			elif visible and !static_mode and not secondary:
 				scrolling = false
 				menu_hide()
 	else:

@@ -1,14 +1,18 @@
-[gd_scene load_steps=11 format=3 uid="uid://e3l6g3u21slb"]
+[gd_scene load_steps=12 format=3 uid="uid://e3l6g3u21slb"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_6ucvy"]
 [ext_resource type="Script" uid="uid://fnk1i461e1xi" path="res://scripts/input_graph.gd" id="2_02not"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_m1bro"]
 [ext_resource type="Script" uid="uid://cp7e4eeuykhnt" path="res://scripts/image_draw.gd" id="3_53i8k"]
-[ext_resource type="Material" uid="uid://dxhlqb1yd1my2" path="res://resources/rounded_corners.tres" id="4_h273u"]
+[ext_resource type="Shader" uid="uid://xdax0svtqhn4" path="res://shaders/rounded.gdshader" id="4_6o5ig"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="6_6o5ig"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_g0n8j"]
 
-[sub_resource type="Image" id="Image_6o5ig"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g0n8j"]
+shader = ExtResource("4_6o5ig")
+shader_parameter/corner_radius = 2.000000095
+
+[sub_resource type="Image" id="Image_0qcdd"]
 data = {
 "data": PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 "format": "Lum8",
@@ -18,7 +22,7 @@ data = {
 }
 
 [sub_resource type="ImageTexture" id="ImageTexture_g0n8j"]
-image = SubResource("Image_6o5ig")
+image = SubResource("Image_0qcdd")
 
 [sub_resource type="Resource" id="Resource_0qcdd"]
 script = ExtResource("7_g0n8j")
@@ -65,9 +69,9 @@ gradient_color = Color(0.7019608, 0.4, 1, 1)
 [node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
 offset_left = 42.0
-offset_top = 29.0
+offset_top = 34.0
 offset_right = 58.0
-offset_bottom = 50.0
+offset_bottom = 55.0
 color = Color(1, 0.988235, 0.6, 1)
 _accepted_datatypes = "input2d"
 server_name = &"input_out"
@@ -87,12 +91,12 @@ instance_shader_parameters/outline_color = Color(0.89, 0.88703334, 0.80099994, 1
 instance_shader_parameters/tuning = Color(0.0509804, 0.0509804, 0.0509804, 0.541176)
 offset_top = -35.0
 offset_right = 48.0
-offset_bottom = 116.0
+offset_bottom = 126.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
-offset_left = 9.0
-offset_top = 4.9999995
-offset_right = 144.0
+offset_left = 7.0
+offset_top = 5.0
+offset_right = 142.0
 offset_bottom = 48.0
 scale = Vector2(0.5097783, 0.5097783)
 theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
@@ -100,7 +104,7 @@ text = "Input2D"
 
 [node name="TextureRect" type="TextureRect" parent="." index="3"]
 texture_filter = 1
-material = ExtResource("4_h273u")
+material = SubResource("ShaderMaterial_g0n8j")
 layout_mode = 0
 offset_left = -77.0
 offset_top = -4.0
@@ -120,10 +124,10 @@ headroom_power = 1.0
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
-offset_left = -7.253317
-offset_top = -29.999998
-offset_right = 45.897293
-offset_bottom = -5.000002
+offset_left = -5.253317
+offset_top = -30.999996
+offset_right = 47.897293
+offset_bottom = -6.0
 scale = Vector2(0.733764, 0.733764)
 pivot_offset = Vector2(26.575306, 12.499998)
 mouse_filter = 1

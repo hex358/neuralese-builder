@@ -360,11 +360,12 @@ func _process(delta: float) -> void:
 	var unpadded := is_mouse_inside(Vector4())
 	if unpadded:
 		glob.set_menu_type(self, "detatch", low)
+		#print("f")
 	else:
 		glob.reset_menu_type(self, "detatch")
 
 	var occ := glob.is_occupied(self, "conn_active")
-	var chosen_activate := graphs.chosen_conn("activate") == self
+	var chosen_activate = graphs.chosen_conn("activate") == self
 	var hover_target: Connection = graphs.chosen_conn("hover")
 
 	if chosen_activate:
@@ -377,7 +378,8 @@ func _process(delta: float) -> void:
 			elif glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(outputs, self)
 
-		elif connection_type == INPUT and inside and not occ and graphs.conns_active.is_empty() and not glob.is_occupied(self, &"menu_inside"):
+		elif connection_type == INPUT and inside and not occ and graphs.conns_active.is_empty() and (
+			not glob.is_occupied(self, "menu_inside") or glob.get_occupied(&"menu_inside").hint == "detatch"):
 			if glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(inputs, self)
 			elif mouse_just_pressed and inputs:
@@ -385,6 +387,7 @@ func _process(delta: float) -> void:
 				glob.activate_spline(detatch)
 				detatch_spline(detatch)
 
+	#print(glob.is_occupied(self, &"menu_inside"))
 	var to_end: Array = []
 	var to_attach: Array = []
 

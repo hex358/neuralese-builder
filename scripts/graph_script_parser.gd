@@ -303,7 +303,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 				g.set_meta("llm_pack", node)
 				g.set_meta("llm_tag", node.tag)
 				if graphs.is_nodes(g, "ModelName", "DatasetName"):
-					print("MAP!!")
+				#	print("MAP!!")
 					prop_map(g)
 				g.hold_for_frame()
 
@@ -320,7 +320,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 			else:
 				back.append(c)
 		pack = front + back
-		print(front)
+	#	print(front)
 		
 		#pack.sort_custom()
 		for connection in pack:

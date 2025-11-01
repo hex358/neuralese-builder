@@ -693,7 +693,7 @@ func get_llm_summary():
 					{"port": j.outputs[o].tied_to.hint, "tag": j.outputs[o].tied_to.parent_graph.llm_tag}})
 			outputs[j.hint] = output_splines
 		summary["nodes"][node.llm_tag] = {"type": glob.llm_name_unmapping[node.get_meta("created_with")],
-		"config": node.cfg, "outputs": outputs}
+		"config": node.llm_config(), "outputs": outputs}
 	return summary
 	#print(JSON.stringify(summary, "\t"))
 
@@ -728,11 +728,12 @@ var graph_types = {
 	"model_name": gload("res://scenes/netname.tscn"),
 	"dataset": gload("res://scenes/dataset.tscn"),
 	"run_model": gload("res://scenes/run_model.tscn"),
-	"augment_tf": gload("res://scenes/augment_transform.tscn"),
+	"augment_tf": gload("res://scenes/augment_tune.tscn"),
 	"output_map": gload("res://scenes/branch_mapping.tscn"),
 	"input_1d": gload("res://scenes/input_1d.tscn"),
 	"lua_env": gload("res://scenes/env_tag.tscn"),
 	"train_rl": gload("res://scenes/train_rl.tscn"),
+	"dropout": gload("res://scenes/dropout.tscn"),
 }
 
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN

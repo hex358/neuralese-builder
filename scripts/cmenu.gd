@@ -1,8 +1,14 @@
 @tool
 extends BlockComponent
 
+
 func _menu_handle_release(button: BlockComponent):
 	#freeze_input()
+	glob.menus["subctx"].pos = Vector2(position.x - glob.menus["subctx"].base_size.x * 0.75, get_global_mouse_position().y)
+	glob.menus["subctx"].show_up(["hi", "hello"], null)
+	
+	
+	return
 	var type = null
 	match button.hint:
 		"layer":
@@ -41,16 +47,12 @@ func _menu_handle_release(button: BlockComponent):
 			type = "augment_tf"
 		"output_map":
 			type = "output_map"
-		"augment_tune":
-			type = "augment_tune"
-		"augment_clean":
-			type = "augment_clean"
-		"augment_fit":
-			type = "augment_fit"
 		"lua_env":
 			type = "lua_env"
 		"train_rl":
 			type = "train_rl"
+		"dropout":
+			type = "dropout"
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

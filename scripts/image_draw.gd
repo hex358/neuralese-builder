@@ -20,7 +20,7 @@ func _ready() -> void:
 	image = Image.create(size_pix.x, size_pix.y, false, Image.FORMAT_L8)
 	image.fill(Color.BLACK)
 	if Engine.is_editor_hint():
-		image.set_pixelv(size_pix/2, Color.WHITE/3)
+		image.set_pixelv(size_pix/2, Color.WHITE/2)
 	
 	image_texture = ImageTexture.create_from_image(image)
 	texture = image_texture

@@ -1,10 +1,11 @@
-[gd_scene load_steps=26 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=28 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
 [ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="3_xwiyo"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="4_5k5he"]
+[ext_resource type="Texture2D" uid="uid://e3v60pbtb0op" path="res://game_assets/icons/splines.png" id="5_luhqm"]
 [ext_resource type="Script" uid="uid://b8ehbcul6kgbc" path="res://scripts/submenu_neuron.gd" id="5_m4erh"]
 [ext_resource type="Script" uid="uid://bdl80c5ge01pa" path="res://scripts/graphic.gd" id="6_5i506"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="7_5i506"]
@@ -12,11 +13,9 @@
 [ext_resource type="Texture2D" uid="uid://kdt71jk5swyh" path="res://game_assets/icons/user.png" id="7_gbf2a"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_x5ox8"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_4033n"]
-[ext_resource type="Texture2D" uid="uid://djv0q0o525mww" path="res://game_assets/icons/game.png" id="9_gbf2a"]
 [ext_resource type="Texture2D" uid="uid://da35wdaqy728m" path="res://game_assets/icons/save.png" id="10_4mxf5"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="12_thedb"]
-[ext_resource type="Texture2D" uid="uid://df28yjqauh4ub" path="res://game_assets/icons/help.png" id="12_v7s1j"]
 [ext_resource type="Texture2D" uid="uid://cfllvhawyqi4x" path="res://game_assets/icons/wonder.png" id="12_x67tc"]
 [ext_resource type="PackedScene" uid="uid://bsbdls0nw0uf2" path="res://scenes/topr.tscn" id="14_v7s1j"]
 
@@ -54,6 +53,45 @@ _hover_scale = 1.05
 press_color = Color(0.84, 0.84, 0.84, 1)
 _press_scale = 0.98
 animation_speed = 2.657
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_x67tc"]
+script = ExtResource("10_5i506")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_luhqm"]
+script = ExtResource("10_5i506")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_v7s1j"]
+script = ExtResource("10_5i506")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_speed = 3.473
 animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
@@ -135,7 +173,7 @@ offset_top = 8.0
 offset_right = 49.0
 offset_bottom = 48.0
 scale = Vector2(1.0126857, 1.0126857)
-texture = ExtResource("12_v7s1j")
+texture = ExtResource("5_luhqm")
 
 [node name="Control" type="Control" parent="ColorRect"]
 layout_mode = 1
@@ -154,27 +192,25 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
 layout_mode = 0
-offset_left = 278.00003
+offset_left = 339.9999
 offset_top = 7.0000005
-offset_right = 386.2349
+offset_right = 381.24014
 offset_bottom = 43.0
 scale = Vector2(0.8889408, 0.8889408)
-pivot_offset = Vector2(54.11743, 18)
+pivot_offset = Vector2(21.069885, 18)
 color = Color(0.49019608, 0.627451, 0.83137256, 1)
 button_type = 1
 top = true
 hint = &"layer"
 resize_after = 5
-text = "Login"
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(37, 0)
-base_size = Vector2(108.23486, 36)
+base_size = Vector2(41.240234, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
-special = false
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/login"]
-position = Vector2(20.670837, 17.999998)
+position = Vector2(20.546005, 17.999998)
 scale = Vector2(1.1249341, 1.1249341)
 texture = ExtResource("7_gbf2a")
 
@@ -184,9 +220,9 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
 layout_mode = 0
-offset_left = 164.00003
+offset_left = 221.00003
 offset_top = 7.0000005
-offset_right = 283.23148
+offset_right = 340.23148
 offset_bottom = 43.0
 scale = Vector2(0.8889408, 0.8889408)
 pivot_offset = Vector2(59.615723, 18)
@@ -198,39 +234,11 @@ text = "  Export"
 base_size = Vector2(119.231445, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
-special = false
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/export"]
 position = Vector2(20.670837, 17.999998)
 scale = Vector2(1.1249341, 1.1249341)
 texture = ExtResource("7_frmgw")
-
-[node name="play" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
-material = ExtResource("12_thedb")
-instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
-layout_mode = 0
-offset_left = 71.000046
-offset_top = 7.0000005
-offset_right = 168.85771
-offset_bottom = 43.0
-scale = Vector2(0.8889408, 0.8889408)
-pivot_offset = Vector2(48.928833, 18)
-color = Color(0.49019608, 0.627451, 0.83137256, 1)
-button_type = 1
-top = true
-hint = &"play_tab"
-text = "  Test"
-base_size = Vector2(97.857666, 36)
-alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_5i506")
-special = false
-
-[node name="i" type="Sprite2D" parent="ColorRect/Control/play"]
-position = Vector2(20.670837, 17.999998)
-scale = Vector2(1.1249341, 1.1249341)
-texture = ExtResource("9_gbf2a")
 
 [node name="ai" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
 material = ExtResource("12_thedb")
@@ -238,9 +246,9 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
 layout_mode = 0
-offset_left = -26.000015
-offset_top = 7.0000005
-offset_right = 72.50603
+offset_left = 126.999985
+offset_top = 7.0
+offset_right = 225.50603
 offset_bottom = 43.0
 scale = Vector2(0.8889408, 0.8889408)
 pivot_offset = Vector2(49.25302, 18)
@@ -253,7 +261,6 @@ text_offset = Vector2(2, 0)
 base_size = Vector2(98.50604, 36)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
-special = false
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/ai"]
 position = Vector2(21.795776, 17.999996)
@@ -266,20 +273,19 @@ instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
 layout_mode = 0
-offset_left = 252.0
-offset_top = 10.999999
-offset_right = 286.80444
-offset_bottom = 43.624138
+offset_left = 243.99995
+offset_top = 2.9999995
+offset_right = 305.53223
+offset_bottom = 55.865612
 scale = Vector2(0.6480339, 0.6480339)
-pivot_offset = Vector2(17.402222, 16.312069)
+pivot_offset = Vector2(30.766144, 26.432806)
 color = Color(0.49019608, 0.627451, 0.83137256, 1)
 button_type = 1
 top = true
 hint = &"layer"
-base_size = Vector2(34.804443, 32.624138)
+base_size = Vector2(61.532272, 52.865612)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_gbf2a")
-special = false
 
 [node name="i" type="TextureRect" parent="ColorRect/9"]
 layout_mode = 1
@@ -288,13 +294,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -11.422577
-offset_top = -14.06115
-offset_right = 12.577423
-offset_bottom = 9.93885
+offset_left = -20.157116
+offset_top = -19.861073
+offset_right = 3.842884
+offset_bottom = 4.1389294
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(1.3652097, 1.3652097)
+scale = Vector2(1.6298693, 1.6298693)
 texture = ExtResource("10_4mxf5")
 
 [node name="Control2" parent="ColorRect" instance=ExtResource("14_v7s1j")]
@@ -308,6 +314,131 @@ offset_top = 59.0
 offset_right = -264.0
 offset_bottom = 99.0
 grow_horizontal = 0
+
+[node name="Control3" type="Control" parent="ColorRect"]
+anchors_preset = 0
+offset_left = 577.0
+offset_right = 617.0
+offset_bottom = 40.0
+
+[node name="graphs" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -158.99997
+offset_top = -25.0
+offset_right = -80.422455
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.2450968, 1.2450968)
+pivot_offset = Vector2(39.288757, 12.5)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 0)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 9
+text = "Graphs"
+base_size = Vector2(78.577515, 25)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_x67tc")
+in_splash = true
+
+[node name="datasets" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 67.0
+offset_top = -25.0
+offset_right = 145.57751
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.2450968, 1.2450968)
+pivot_offset = Vector2(39.288773, 12.5)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 0)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 9
+text = "Datasets"
+base_size = Vector2(78.577515, 25)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_luhqm")
+in_splash = true
+
+[node name="minigames" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -48.370483
+offset_top = -25.0
+offset_right = 30.207031
+offset_bottom = 0.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.2450968, 1.2450968)
+pivot_offset = Vector2(39.288757, 12.5)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 0)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 9
+text = "Minigames"
+base_size = Vector2(78.577515, 25)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_v7s1j")
+in_splash = true
+
+[node name="ColorRect" type="ColorRect" parent="ColorRect/Control3"]
+layout_mode = 0
+offset_left = -33.0
+offset_right = -32.0
+offset_bottom = 54.0
+color = Color(0.5, 0.5, 0.5, 0.59607846)
+
+[node name="ColorRect2" type="ColorRect" parent="ColorRect/Control3"]
+layout_mode = 0
+offset_left = 89.0
+offset_right = 90.0
+offset_bottom = 54.0
+color = Color(0.5, 0.5, 0.5, 0.59607846)
 
 [node name="submenu" type="ColorRect" parent="." node_paths=PackedStringArray("top")]
 visible = false
@@ -367,7 +498,6 @@ offset_bottom = 262.0
 button_type = 2
 top = true
 mouse_open = false
-special = false
 
 [node name="ColorRect2" parent="submenu/ColorRect2" instance=ExtResource("4_5k5he")]
 material = ExtResource("9_4033n")
@@ -385,9 +515,10 @@ text = "Add"
 base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
-special = false
 
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
-[connection signal="released" from="ColorRect/Control/play" to="ColorRect" method="_on_play_released"]
 [connection signal="released" from="ColorRect/Control/ai" to="ColorRect" method="_on_ai_released"]
 [connection signal="released" from="ColorRect/9" to="ColorRect" method="_on__released"]
+[connection signal="released" from="ColorRect/Control3/graphs" to="ColorRect" method="_on_graphs_released"]
+[connection signal="released" from="ColorRect/Control3/datasets" to="ColorRect" method="_on_datasets_released"]
+[connection signal="released" from="ColorRect/Control3/minigames" to="ColorRect" method="_on_minigames_released"]

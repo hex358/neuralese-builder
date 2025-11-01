@@ -1,54 +1,47 @@
 extends TabWindow
 
 @onready var list = $Control/scenes/list
+
 func _ready() -> void:
 	window_hide()
 	await get_tree().process_frame
-	glob.reset_menu_type(list, "list")
+	glob.reset_menu_type(list, "list2")
 	$CanvasLayer.hide()
 	glob.un_occupy(list, &"menu")
 	glob.un_occupy(list, "menu_inside")
+
 	border_rect_1 = ColorRect.new()
-	border_rect_1.color.a = 0; border_rect_1.mouse_default_cursor_shape = Control.CURSOR_HSIZE
+	border_rect_1.color.a = 0
+	border_rect_1.mouse_default_cursor_shape = Control.CURSOR_HSIZE
 	add_child(border_rect_1)
+
 	border_rect_2 = ColorRect.new()
-	border_rect_2.color.a = 0; border_rect_2.mouse_default_cursor_shape = Control.CURSOR_HSIZE
+	border_rect_2.color.a = 0
+	border_rect_2.mouse_default_cursor_shape = Control.CURSOR_HSIZE
 	add_child(border_rect_2)
-	
+
 	repos()
 
+
 func repos():
-	border_rect_1.position = Vector2($Control/scenes.size.x - border_hit, 
-	$Control/scenes.global_position.y)
-	border_rect_1.size = Vector2(border_hit*2, $Control/scenes.size.y)
-	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, 
-	$Control/scenes.global_position.y)
+	border_rect_1.position = Vector2($Control/scenes.size.x - border_hit, $Control/scenes.global_position.y)
+	border_rect_1.size = Vector2(border_hit * 2, $Control/scenes.size.y)
+	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, $Control/scenes.global_position.y)
 	border_rect_2.size = Vector2(border_hit, $Control/scenes.size.y)
+
 
 var border_rect_1: ColorRect
 var border_rect_2: ColorRect
 
+
 func _window_hide():
 	process_mode = Node.PROCESS_MODE_DISABLED
 	hide()
-	glob.reset_menu_type(list, "list")
+	glob.reset_menu_type(list, "list2")
 	$CanvasLayer.hide()
 	glob.un_occupy(list, &"menu")
 	glob.un_occupy(list, "menu_inside")
-	
-func reload_scenes():
-	$Control/scenes/list.show_up(request_texts())
-	if not current_lua_env:
-		if not received_texts:
-			$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
-		else:
-			$Control/CodeEdit.text = "-- Select your scene from the Scenes menu."
-	await get_tree().process_frame
-	if !is_instance_valid(last_button):
-		if last_hint in $Control/scenes/list.button_by_hint:
-			_on_list_child_button_release($Control/scenes/list.button_by_hint[last_hint])
-		elif received_texts and $Control/scenes/list._contained:
-			_on_list_child_button_release($Control/scenes/list._contained[0])
+
 
 @onready var base_size = $Control.size
 func _window_show():
@@ -60,22 +53,17 @@ func _window_show():
 	$Control/scenes/list.menu_show($Control/scenes/list.global_position)
 	prev_win = Vector2()
 	tick()
-	reload_scenes()
 	await get_tree().process_frame
-	if last_hint != null:
-		if last_hint in $Control/scenes/list.button_by_hint:
-			_on_list_child_button_release($Control/scenes/list.button_by_hint[last_hint])
-	elif $Control/scenes/list._contained:
-		_on_list_child_button_release($Control/scenes/list._contained[0])
-	for i in 5:
-		await get_tree().process_frame
 	$Control/scenes/list.update_children_reveal()
+
 
 func _process(delta: float) -> void:
 	tick()
 
+
+# ---- division settings ----
 var division_ratio: Array[float] = [0.2, 0.6]
-var min_scenes_size: float = 150.0
+var min_scenes_size: float = 180.0
 var max_scenes_size: float = 300.0
 var min_game_size: float = 150.0
 var max_game_size: float = 500.0
@@ -83,9 +71,9 @@ var prev_win: Vector2 = Vector2()
 var border_hit = 10.0
 var _dragging: int = -1
 var _drag_anchor: float = 0.0
-
 var code_hidden: bool = false
 var max_game_size_ncode: float = 1800.0
+
 
 func set_code_hidden(hidden: bool) -> void:
 	code_hidden = hidden
@@ -95,22 +83,16 @@ func set_code_hidden(hidden: bool) -> void:
 
 
 func tick(force: bool = false) -> void:
-	
 	if not visible:
 		return
 	handle_division_drag()
 
 	var win: float = glob.window_size.x
-	if get_global_mouse_position().x > border_rect_2.position.x:
-		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_DISABLED
-	else:
-		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_INHERIT
 	if prev_win != glob.window_size or _dragging != -1 or force:
 		$Control.position.y = glob.space_begin.y
 		$Control.size.y = glob.window_size.y - $Control.position.y
 
 		var scenes_w = clamp(win * division_ratio[0], min_scenes_size, max_scenes_size)
-
 		var codeedit_target = win * division_ratio[1]
 		var codeedit_w = 0.0 if code_hidden else codeedit_target
 
@@ -133,41 +115,15 @@ func tick(force: bool = false) -> void:
 		$Control/view.position.x = scenes_w + codeedit_w
 		$Control/view.size.x = game_w
 
-		var rect = $Control/view/TextureRect
-		var game_window = $Control/view
-		if rect.size.x > 0.0:
-			rect.scale = Vector2.ONE * ((game_w-4) / float(rect.size.x))
-		else:
-			rect.scale = Vector2.ONE
-		var max_y = game_window.size.y - 0.2 * (glob.window_size.y + 60)
-		var x = 2
-		var y = 0
-		if rect.size.y * rect.scale.y > max_y:
-			rect.scale = Vector2.ONE * max_y / rect.size.y
-			x += game_w / 2 - rect.scale.x * rect.size.x / 2
-			y += 15
-			y -= glob.window_size.y * 0.02
-		y += 5
-		rect.position = Vector2(x, game_window.size.y / 2 - rect.scale.y * rect.size.y / 2 + y)
-
-
-		var scenes_size_y = $Control/scenes.size.y
 		list.set_menu_size(
 			($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
-			(scenes_size_y - list.position.y - 10) / list.scale.y
+			($Control/scenes.size.y - list.position.y - 10) / list.scale.y
 		)
-		
+
 		if code_hidden:
 			$Control/scenes.size.x += 2
 		prev_win = glob.window_size
 		repos()
-	
-	
-	$Control/view/Label.resize()
-
-
-
-
 
 
 func handle_division_drag() -> void:
@@ -189,8 +145,6 @@ func handle_division_drag() -> void:
 	var mp = get_global_mouse_position()
 	var ctrl = $Control
 	var in_y = mp.y >= ctrl.position.y and mp.y <= (ctrl.position.y + ctrl.size.y)
-	
-
 
 	if glob.mouse_just_pressed and in_y:
 		if abs(mp.x - border1) <= border_hit:
@@ -225,73 +179,14 @@ func handle_division_drag() -> void:
 	if not glob.mouse_pressed and _dragging != -1:
 		_dragging = -1
 		_drag_anchor = 0.0
+	$Control/view/Label.resize()
 
 
 func _on__released() -> void:
 	set_code_hidden(!code_hidden)
 
 
-func get_current_game_name() -> String:
-	return "Lua_process_1"
-
-
-func get_current_game_code() -> String:
-	return $Control/CodeEdit.text
-
-
-var received_texts = {}
-func request_texts() -> Dictionary:
-	var texts = glob.env_dump
-	received_texts = texts
-	$Control/CodeEdit.editable = len(texts) > 0
-	return texts
-
-
-func get_texts():
-	return received_texts
-
-
-func _on_run_released() -> void:
-	var viewport = $Control/view/game
-	var process = luas.create_process(get_current_game_name(), get_current_game_code())
-	viewport.add_child(process)
-	process.position.y = viewport.size.y
-
-func reset():
-	current_lua_env = null
-	last_button = null
-	last_hint = null
-	cursors.clear()
-
-
-var last_hint = null
-var last_button: BlockComponent = null
-var current_lua_env = null
-var cursors: Dictionary[String, Vector2i] =  {}
-func _on_list_child_button_release(button: BlockComponent) -> void:
-	var code = $Control/CodeEdit
-	if last_button:
-		cursors[current_lua_env] = Vector2i(code.get_caret_column(), code.get_caret_line())
-		last_button.set_tuning(last_button.base_tuning)
-	button.set_tuning(button.base_tuning * 2)
-	last_button = button
-	current_lua_env = button.hint
-	last_hint = button.hint
-	$Control/CodeEdit.text = received_texts[button.hint]
-	if current_lua_env and current_lua_env in cursors:
-		code.set_caret_column(cursors[current_lua_env].x)
-		code.set_caret_line(cursors[current_lua_env].y)
-
-
-func _on_code_edit_text_changed() -> void:
-	await get_tree().process_frame
-	if current_lua_env:
-		received_texts[current_lua_env] = $Control/CodeEdit.text
-		
-		#$Control/scenes/list.button_by_hint[current_lua_env].metadata["content"] = $Control/CodeEdit.text
-	
-
+# simplified “+” button
 @onready var plus = $Control/scenes/plus
 func _on_plus_released() -> void:
-	var a = await ui.splash_and_get_result("scene_create", plus, null, false)
-	#print(a)
+	ui.splash_and_get_result("scene_create", plus, null, false)

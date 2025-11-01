@@ -1,7 +1,9 @@
 extends Graph
 
 func get_training_data():
-	return {"epochs": epochs if epochs else 1, "dataset": "datasets/mnist.ds", "test_dataset": "datasets/mnist_test.ds"}
+	return {"epochs": epochs if epochs else 1, "dataset": "mnist", "test_dataset": "1"}
+
+@onready var clearbut = $train2
 
 var dataset_meta: Dictionary = {}
 
@@ -125,7 +127,7 @@ func vbox_vis():
 	return $ColorRect2/Control/ScrollContainer.get_v_scroll_bar().visible
 
 func _can_drag() -> bool:
-	return not train.is_mouse_inside() and not ui.is_focus($YY) and not vbox_focus()
+	return not train.is_mouse_inside() and not ui.is_focus($YY) and not vbox_focus() and not clearbut.is_mouse_inside()
 
 func _stopped_processing():
 	glob.set_scroll_possible(self)

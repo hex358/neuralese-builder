@@ -91,13 +91,19 @@ func update_config_subfield(update: Dictionary):
 	check_valid(update)
 
 func get_config_dict() -> Dictionary:
-	return cfg.duplicate()
+	return cfg.duplicate(true)
 
 func _config_field(field: StringName, value: Variant):
 	pass
 
 func _layout_size() -> Vector2:
 	return rect.size
+
+func _llm_config(prev: Dictionary) -> Dictionary:
+	return prev
+
+func llm_config() -> Dictionary:
+	return _llm_config(get_config_dict())
 
 var llm_mapping: bool = false
 var base = base_config.duplicate(true)

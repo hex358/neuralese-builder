@@ -583,7 +583,8 @@ var space_just_pressed: bool = false
 var enter_just_pressed: bool = false
 
 func _process(delta: float) -> void:
-	
+	#if space_just_pressed:
+		#(graphs.get_llm_summary())
 	
 	
 	space_just_pressed = Input.is_action_just_pressed("ui_accept")
@@ -742,11 +743,12 @@ var llm_name_mapping = {
 	train_begin = "train_begin",
 	train_step = "train_input",
 	load_dataset = "dataset",
-	augment_tf = "augment_tf",
+	augment_tune = "augment_tf",
 	output_map = "output_map",
 	input_1d = "input_1d",
 	load_environment = "lua_env",
 	train_rl = "train_rl",
+	dropout = "dropout",
 }
 
 var tag_types = {}
@@ -878,9 +880,10 @@ func clear_all():
 
 func clear_chats():
 	cached_chats.clear()
+	#print("nigga")
 	if ai_help_menu:
 		ai_help_menu.clear_all()
-		ai_help_menu.re_recv()
+		#ai_help_menu.re_recv()
 var ai_help_menu: AIHelpMenu
 
 
@@ -888,23 +891,24 @@ var env_dump = {}
 var cached_projects = {}
 func load_scene(from: String):
 	project_id = int(from)
+	cached_chats.clear()
+	clear_chats()
+	clear_all()
 	var answer = await web.POST("project", {"scene": from, 
 	 "user": "n", 
 	"pass": "1"})
 	if not "body" in answer: return
 	var a = JSON.parse_string(answer["body"].get_string_from_utf8())
 	if not a: return
+	set_var("last_id", 0)
 	if not "scene" in a: return
 	var dat = bytes_to_var(Marshalls.base64_to_raw(a["scene"]))
 	if !dat: return
-	clear_all()
-	set_var("last_id", 0)
 	fg.go_into_graph()
 	await graphs.delete_all()
 	tree_windows["env"].reset()
 	
 	fg.set_scene_name(a["name"])
-	clear_chats()
 	graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
@@ -918,6 +922,8 @@ func load_scene(from: String):
 
 	for i in 15:
 		await get_tree().process_frame
+	if ai_help_menu:
+		ai_help_menu.re_recv()
 	set_var("last_id", project_id)
 	return true
 
@@ -973,11 +979,11 @@ func request_chat(chat_id: String):
 func load_empty_scene(pr_id: int, name: String):
 	fg.go_into_graph()
 	cached_chats.clear()
+	clear_chats()
 	project_id = pr_id
 	clear_all()
 	set_var("last_id", project_id)
 	tree_windows["env"].reset()
-	cached_chats.clear()
 	await graphs.delete_all()
 	
 	fg.set_scene_name(name)
@@ -1035,6 +1041,7 @@ func _window_scenes() -> Dictionary:
 	return {
 	"graph": $"../base/WIN_GRAPH",
 	"env": loaded("res://scenes/env_tab.tscn"),
+	"ds": loaded("res://scenes/dataset_tab.tscn"),
 	}
 
 var space_begin: Vector2 = Vector2()
@@ -1056,9 +1063,9 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
-	#open_last_project()
+	open_last_project()
 	#await wait(1)
-	test_place()
+	#test_place()
 
 func disconnect_all(from_signal: Signal):
 	for i in from_signal.get_connections():

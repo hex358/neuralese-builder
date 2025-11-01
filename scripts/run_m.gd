@@ -37,8 +37,10 @@ func get_mapped(targets: bool = true, origins: bool = false) -> Array:
 func _llm_map(pack: Dictionary):
 	await get_tree().process_frame
 	await get_tree().process_frame
+	#print(pack)
+	update_config({"mapped": pack["mapped"]})
 	#cfg["branches"].clear()
-	for i in pack["loss_heads"]:
+	for i in pack["branches"]:
 		#i = cfg[""]
 		#var node = glob.tags_1d.get(i)
 		#print(node)
@@ -46,7 +48,7 @@ func _llm_map(pack: Dictionary):
 			#print(pack["loss_heads"][i])
 			if not int(branch_str) in graphs._graphs: continue
 			if graphs._graphs[int(branch_str)].get_title() == i:
-				set_loss_type(branch_str, pack["loss_heads"][i])
+				set_loss_type(branch_str, pack["branches"][i])
 		#else:
 		#	print("Skipping one...")
 
@@ -82,6 +84,15 @@ func loss_button(bt: BlockComponent):
 	set_loss_type(got, bt.hint)
 	bt.is_contained.text = bt.text
 	bt.is_contained.menu_hide()
+
+func _llm_config(prev: Dictionary) -> Dictionary:
+	var res = prev
+	res["branch_res"] = {}
+	for branch_str in prev["branches"].keys():
+		res["branch_res"][graphs._graphs[int(branch_str)].get_title()] = prev["branches"][branch_str]
+	res["branches"] = res["branch_res"]
+	#print(res)
+	return res
 
 var manually: bool = false
 func set_loss_type(of_id, loss: String, inner=false):
@@ -128,6 +139,8 @@ func _config_field(field: StringName, value: Variant):
 		#	set_loss_type(trimmed, value, true)
 
 
+
+
 func edit_unit(node: Graph, u: Control):
 	u.get_node("Control/Label").text = node.get_title()
 	u.get_node("Control/Label").resize()
@@ -142,9 +155,9 @@ func edit_unit(node: Graph, u: Control):
 
 func _process(delta: float) -> void:
 	super(delta)
-	if glob.space_just_pressed:
+	#if glob.space_just_pressed:
 	#	print(get_mapped())
-		print(_useful_properties())
+		#print(_useful_properties())
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	if get_descendant():
@@ -155,14 +168,14 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 
 func _is_suitable_other_conn(other: Connection, mine: Connection) -> bool:
 	if mine.hint == 1: return true
-	print("is_emv")
+	#print("is_emv")
 	if other.parent_graph.get_meta("input_features", {}).has("is_env"):
 		return true
-	print("anc")
+	#print("anc")
 	var anc = graphs.get_input_graph_by_name(name_graph)
 	if not is_instance_valid(anc):
 		return false
-	print("validd")
+	#print("validd")
 #	print(anc)
 	return anc.validate(other.parent_graph.get_meta("input_features", {"x": -1, "y": -1, "datatype": ""}))
 
@@ -205,7 +218,7 @@ func set_name_graph(st: String, remove = null):
 		dis()
 		return
 	
-	$ColorRect/root/input_fmt.text = get_input_format(input_graph)
+	$ColorRect/root/input_fmt.text = "in " + get_input_format(input_graph)
 	graphs.reach(input_graph, cachify)
 	var prev_by_title := {}
 	for id in cfg["branches"]:
