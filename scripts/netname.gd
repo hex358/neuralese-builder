@@ -9,7 +9,6 @@ func _proceed_hold() -> bool:
 var do_push: bool = true
 func _just_connected(who: Connection, to: Connection):
 	if to.parent_graph.server_typename == "InputNode":
-		#print(graphs.get_input_graph_by_name(cfg["name"]))
 		if graphs.get_input_graph_by_name(cfg["name"]) and graphs.get_input_graph_by_name(cfg["name"]) != to:
 			#print("ret")
 			do_push = false
@@ -19,6 +18,7 @@ func _just_connected(who: Connection, to: Connection):
 			graphs.add_input_graph_name(to.parent_graph, cfg["name"])
 		#graphs.set_graph_name(graphs._reach_input(to.parent_graph), cfg["name"])
 	if to.parent_graph.server_typename == "RunModel":
+		#print(graphs.get_input_graph_by_name(cfg["name"]))
 		to.parent_graph.set_name_graph(cfg["name"])
 
 func _disconnecting(who: Connection, to: Connection):

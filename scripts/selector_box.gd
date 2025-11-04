@@ -63,8 +63,8 @@ func _process(delta: float) -> void:
 	position = position.lerp(target_pos, lerp_speed * delta)
 	size = size.lerp(target_size, lerp_speed * delta)
 	
-	if (glob.mouse_alt_just_pressed or glob.mouse_just_pressed) and !visible and not glob.get_occupied("graph"):
-		graphs.unselect_all()
+	#if (glob.mouse_alt_just_pressed or glob.mouse_just_pressed) and !visible and not glob.get_occupied("graph"):
+	#	graphs.unselect_all()
 	
 	if visible:
 		var raw = get_global_rect()

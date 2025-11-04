@@ -81,9 +81,9 @@ var _undo_active: bool = false
 var undo_redo_opened: bool = false
 
 var right_away: bool = false
-func open_undo_redo(a: bool = false):
+func open_undo_redo(no_batch: bool = false):
 	undo_redo_opened = true
-	right_away = a
+	right_away = no_batch
 
 
 func close_undo_redo():
@@ -716,6 +716,7 @@ func _useful_properties() -> Dictionary:
 var invoked_with: Callable
 
 func _ready() -> void:
+	#print(invoked_with.get_bound_arguments())
 	glob.add_action(delete, invoked_with)
 	#glob.open_action(self, "create_graph")
 	#glob.push_action(self, invoked_with, delete)
@@ -973,6 +974,7 @@ func drag_start():
 	putting_back = 0.0
 	take_offset_y = 0.0
 	graphs.drag(self)
+
 	shadow = graphs.shadow_rect.instantiate()
 	add_child(shadow)
 	shadow.position = rect.position + Vector2(0,12)
@@ -981,12 +983,78 @@ func drag_start():
 	shadow.modulate.a = 0.0
 	move_child(shadow, 0)
 
+	var sel = graphs.selected_nodes
+	if selected and sel.size() > 1:
+		group_dragging = true
+		group_drag_leader = self
+		group_drag_nodes = sel.duplicate()
+		group_drag_nodes.erase(self)
+		group_drag_start_mouse = get_global_mouse_position()
+		group_drag_start_positions.clear()
+		group_drag_before_positions.clear()
+
+		group_drag_start_positions[self] = global_position
+		group_drag_before_positions[self] = position
+		for n in group_drag_nodes:
+			if not is_instance_valid(n): continue
+			n._enter_group_drag(self)
+			n.take_offset_y = take_offset_y  # sync immediately
+			n.shadow.modulate.a = 0.0
+			group_drag_start_positions[n] = n.global_position
+			group_drag_before_positions[n] = n.position
+
+	
+
+
+
 func drag_ended():
 	putting_back_anchor = global_position.y
 	if shadow:
 		putting_back = 1.0
 		hold_for_frame()
+	# sync start of put-back for all followers
+	if group_dragging and group_drag_leader == self:
+		for n in group_drag_nodes:
+			if not is_instance_valid(n): continue
+			n.putting_back = putting_back
+			n.take_offset_y = take_offset_y
+			n.putting_back_anchor = n.global_position.y
+			n.hold_for_frame()
+
 	graphs.stop_drag(self)
+
+	# --- group drag finalize ---
+	if group_dragging and group_drag_leader == self:
+		# capture after positions for undo
+		var after_positions: Dictionary = {}
+		for g in group_drag_start_positions.keys():
+			if not is_instance_valid(g): continue
+			after_positions[g] = g.position
+
+		# build one combined undo entry
+		var before_positions := group_drag_before_positions.duplicate(true)
+		glob.add_action(
+			(func():
+				for g in before_positions.keys():
+					if is_instance_valid(g):
+						g.push_position(before_positions[g])),
+			(func():
+				for g in after_positions.keys():
+					if is_instance_valid(g):
+						g.push_position(after_positions[g]))
+		)
+
+		for n in group_drag_nodes:
+			if is_instance_valid(n):
+				#print(n.get_title())
+				n._exit_group_drag()
+
+		group_dragging = false
+		group_drag_leader = null
+		group_drag_nodes.clear()
+		group_drag_start_positions.clear()
+		group_drag_before_positions.clear()
+
 	#shadow_rect
 
 func stopped_processing():
@@ -1013,16 +1081,24 @@ func _stopped_processing():
 		#	glob.un_occupy(i, "conn_active")
 
 func delete():
+	graphs.unselect(self)
 	_stopped_processing()
 	for conn in output_key_by_conn:
-		for i in conn.outputs.duplicate():
-			conn.outputs[i].tied_to.detatch_spline(conn.outputs[i])
-			conn.end_spline(i)
+		conn.disconnect_all()
 	for conn in input_key_by_conn:
-		var dup =  conn.inputs.duplicate()
-		for i in dup:
-			conn.detatch_spline(i)
-			i.origin.end_spline(dup[i])
+		conn.disconnect_all()
+		#conn.dele
+		#for i in conn.outputs.duplicate():
+		#	conn.outputs[i].tied_to.detatch_spline(conn.outputs[i])
+		#	conn.end_spline(i)
+	#for conn in input_key_by_conn:
+	#	var dup =  conn.inputs.duplicate()
+	#	pass
+		#print(dup)
+		#for i in dup:
+		#	conn.detatch_spline(i)
+		#	i.origin.end_spline(dup[i])
+	await get_tree().process_frame
 	queue_free()
 
 
@@ -1055,7 +1131,9 @@ var putting_back_anchor: float = 0.0
 func put_back():
 	if is_instance_valid(shadow):
 		shadow.queue_free()
-	putting_back = 0.0; global_position.y = putting_back_anchor - take_offset_y
+		shadow = null   # prevent stale pointer
+	putting_back = 0.0
+	global_position.y = putting_back_anchor - take_offset_y
 
 
 func push_position(pos: Vector2):
@@ -1088,10 +1166,83 @@ func _commit_batched_undo():
 	_undo_active = false
 
 
+var group_dragging: bool = false
+var group_drag_leader: Graph = null
+var group_drag_nodes = {}
+var group_drag_start_mouse: Vector2
+var group_drag_start_positions: Dictionary = {}
+var group_drag_before_positions: Dictionary = {}
+
+func _selected_nodes():
+	return graphs.selected_nodes
+
+
+func _enter_group_drag(leader: Graph) -> void:
+	group_dragging = true
+	group_drag_leader = leader
+
+	if shadow:
+		shadow.queue_free()
+	shadow = graphs.shadow_rect.instantiate()
+	add_child(shadow)
+	shadow.position = rect.position + Vector2(0, 12)
+	shadow.outline = true
+	shadow.extents = rect.size
+	shadow.modulate.a = 0.0
+	move_child(shadow, 0)
+
+	# cache the local Y offset for put_back animation later
+	take_offset_y = 0.0
+	putting_back_anchor = global_position.y
+
+
+
+func _exit_group_drag() -> void:
+	if shadow:
+		putting_back_anchor = global_position.y
+		take_offset_y = -4.0
+		putting_back = 1.0
+		hold_for_frame()
+	group_dragging = false
+	group_drag_leader = null
+
+
+
+func sync_group_visuals():
+	if not group_dragging or group_drag_leader == null or group_drag_leader == self:
+		return
+	var leader := group_drag_leader
+	if is_instance_valid(leader):
+		take_offset_y = leader.take_offset_y
+		putting_back = leader.putting_back
+		putting_back_anchor = leader.putting_back_anchor
+		if is_instance_valid(shadow) and is_instance_valid(leader.shadow):
+			shadow.modulate.a = leader.shadow.modulate.a
+
+
+func delete_call():
+	if selected:
+		glob.open_action_batch()
+		for i in graphs.selected_nodes.keys():
+			var pos = i.position
+			glob.add_action(glob.bound.bind(i.invoked_with, pos), 
+			i.delete)
+			#print(i)
+			i.delete()
+		glob.close_action_batch()
+	else:
+		glob.open_action_batch()
+		var pos = position
+		glob.add_action(glob.bound.bind(invoked_with, pos), delete)
+		delete()
+		glob.close_action_batch()
+
+
 var first_drag: bool = false
 var beginned_at: Vector2 = Vector2()
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
+	var follower_in_group := group_dragging and group_drag_leader != null and group_drag_leader != self
 	exist_ticks += 1
 	if _undo_timer > 0.0:
 		_undo_timer -= delta
@@ -1115,7 +1266,8 @@ func _process(delta: float) -> void:
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed and not dragging:
-			glob.menus["edit_graph"].menu_call = delete
+			glob.menus["edit_graph"].menu_call = func():
+				delete_call()
 			glob.show_menu("edit_graph")
 	else:
 		glob.reset_menu_type(self, &"edit_graph")
@@ -1126,17 +1278,18 @@ func _process(delta: float) -> void:
 	if conn_active_layer:
 		if !conn_active_layer.active_outputs:
 			glob.un_occupy(conn_active_layer, "conn_active")
-	if putting_back > 0.1: 
+	if putting_back > 0.1:
 		hold_for_frame()
 		putting_back = lerp(putting_back, 0.0, delta * 15.0)
-		shadow.modulate.a = putting_back
+		if is_instance_valid(shadow):
+			shadow.modulate.a = putting_back
 		reposition_splines()
-		if putting_back < 0.1: 
+		if putting_back < 0.1:
 			put_back()
 			reposition_splines()
 		else:
 			global_position.y = lerp(putting_back_anchor - take_offset_y, putting_back_anchor, putting_back)
-	
+
 	var unp_inside = is_mouse_inside(0)
 	#print( glob.get_occupied(&"menu"))
 	#print(glob.is_occupied(self, &"dropout_inside"))
@@ -1159,22 +1312,43 @@ func _process(delta: float) -> void:
 		hold_for_frame()
 		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
 			dragging = false
-			#print(position.distance_squared_to(beginned_at))
-			if 1:#position.distance_squared_to(beginned_at) > 1_000:
+			# use combined undo for group (handled in drag_ended); for single, keep existing
+			if not group_dragging:
 				glob.add_action(push_position.bind(beginned_at), push_position.bind(position))
 				beginned_at = position
 			drag_ended()
 		else:
-			var vec = get_global_mouse_position() + attachement_position + Vector2(0, take_offset_y)
+			var target_vec = get_global_mouse_position() + attachement_position + Vector2(0, take_offset_y)
 			take_offset_y = lerpf(take_offset_y, -4.0, delta*15.0)
 			if is_instance_valid(shadow):
-				shadow.modulate.a = take_offset_y/ -4
-			#graphs.mark_rect(self)
-			#vec = graphs.can_move(self, vec)
-			global_position = global_position.lerp(vec, delta*40.0)
-			#graphs.collider(rect)
-		reposition_splines()
+				shadow.modulate.a = take_offset_y/ -4.0
+
+			var leader_before := global_position
+			var leader_after := global_position.lerp(target_vec, delta*40.0)
+			global_position = leader_after
+
+			if group_dragging and group_drag_leader == self:
+				var d := leader_after - leader_before
+				if d.length_squared() > 0.0:
+					for n in group_drag_nodes:
+						if not is_instance_valid(n): continue
+						n.global_position += d
+				for n in group_drag_nodes:
+					if is_instance_valid(n):
+						n.hold_for_frame()
+						n.sync_group_visuals()
+
+			# splines for everyone
+			reposition_splines()
+			if group_dragging and group_drag_leader == self:
+				for n in group_drag_nodes:
+					# keep their shadow fade in sync
+					if is_instance_valid(n.shadow):
+						n.shadow.modulate.a = shadow.modulate.a
+					n.reposition_splines()
+
 		_dragged()
+
 	
 	_after_process(delta)
 	if changed_size_frame:

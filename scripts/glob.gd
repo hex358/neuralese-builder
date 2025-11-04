@@ -1060,18 +1060,30 @@ func is_auto_action() -> bool:
 #func config_action(who: Graph, field: String):
 	#pass
 
+func bound(callable: Callable, pos: Vector2):
+	var a = callable.call()
+	a.position = pos
+
 func add_action(undo: Callable, redo: Callable, ...args):
 	if is_auto_action(): return
 	if batch_permanent: return
 
 	var undo_callable = func():
 		is_undoing = true
-		undo.callv(args)
+		if undo.is_valid():
+			if args:
+				undo.callv(args)
+			else:
+				undo.call()
 		call_deferred("_end_auto_action", "undo")   # ← defer flag reset to next idle frame
 
 	var redo_callable = func():
 		is_redoing = true
-		redo.callv(args)
+		if redo.is_valid():
+			if args:
+				redo.callv(args)
+			else:
+				redo.call()
 		call_deferred("_end_auto_action", "redo")   # ← defer flag reset
 
 	if in_batch:

@@ -48,6 +48,7 @@ func _process(delta: float) -> void:
 	queue_redraw()
 	if _unit == null:
 		return
+	#print("fjfj")
 	
 	var cw = _unit.size.x + grid_padding
 	var ch = _unit.size.y + grid_padding

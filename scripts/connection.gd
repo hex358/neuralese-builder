@@ -198,13 +198,16 @@ func _init() -> void:
 func detatch_spline(spline: Spline):
 	var other = spline.origin
 	other.parent_graph.disconnecting(other, self)
-	if not other.outputs.has(inputs[spline]): 
+
+	if not other.outputs.has(inputs[spline]):
 		return
 	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
 	other.start_spline(inputs[spline])
 	graphs.remove_edge(spline.origin, spline.tied_to)
 	forget_spline(spline, other)
 	other.parent_graph.just_disconnected(other, self)
+	#if parent_graph.server_typename == "InputNode":
+	#	print("AAA")
 
 var conn_counts: Dictionary = {&"": [0]}
 func _ready() -> void:

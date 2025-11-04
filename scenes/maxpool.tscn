@@ -154,6 +154,8 @@ virtual_keyboard_type = 2
 script = ExtResource("7_melkw")
 min_value = 2
 max_value = 8
+allow_float = false
+decimal_places = 2
 resize_after = 4
 change_always_accepted = false
 

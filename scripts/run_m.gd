@@ -198,10 +198,12 @@ func get_input_format(who: Graph) -> String:
 
 
 func set_name_graph(st: String, remove = null):
-	if st:
+	var input_graph = graphs.get_input_graph_by_name(st)
+	if st and input_graph:
 		$ColorRect/root/Label.position.y = 3
 		$ColorRect/root/input_fmt.show()
 	else:
+		
 		$ColorRect/root/input_fmt.hide()
 		$ColorRect/root/Label.position.y = 9
 		
@@ -216,7 +218,6 @@ func set_name_graph(st: String, remove = null):
 		#if desc[0].is_head:
 		#	branch_ends[to.parent_graph] = true
 	name_graph = st
-	var input_graph = graphs.get_input_graph_by_name(name_graph)
 	#print(graphs.graph_map)
 	#print(input_graph)
 	if !is_instance_valid(input_graph): 
