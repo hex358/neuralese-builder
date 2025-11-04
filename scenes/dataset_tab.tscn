@@ -1,70 +1,19 @@
-[gd_scene load_steps=23 format=3 uid="uid://cuuew2v4inm7k"]
+[gd_scene load_steps=20 format=3 uid="uid://cuuew2v4inm7k"]
 
 [ext_resource type="Script" uid="uid://cir1i2gbr8pjh" path="res://scripts/dataset_tab.gd" id="1_hsuaq"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_fn1yt"]
-[ext_resource type="Script" uid="uid://cq08akbnuqpp8" path="res://scripts/lua_highliter.gd" id="3_wg51w"]
-[ext_resource type="Script" uid="uid://ccj76bxg1fb4t" path="res://scripts/code_edit.gd" id="4_6hcr6"]
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="5_rckiu"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="6_mbiqq"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="7_q5lcu"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_jf34i"]
+[ext_resource type="Script" uid="uid://cd1e7nh0qym86" path="res://scripts/procedural_nodes22.gd" id="9_3m244"]
 [ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://resources/context_menu.tres" id="9_b545l"]
 [ext_resource type="Script" uid="uid://c8207sv1hbg2e" path="res://scripts/unr.gd" id="10_8ivn3"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="11_j7vbt"]
-[ext_resource type="Script" uid="uid://bp7pwtmatlnkp" path="res://scripts/procedural_nodes1.gd" id="12_hsuaq"]
+[ext_resource type="Material" uid="uid://b32bkwpidhiyp" path="res://resources/font_alphamult.tres" id="13_3m244"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="13_51ak0"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="14_bwfib"]
 [ext_resource type="Texture2D" uid="uid://cc0gwf51gfory" path="res://game_assets/icons/hide.png" id="14_empbn"]
-[ext_resource type="Texture2D" uid="uid://bhoh7goms7dw2" path="res://game_assets/icons/flag.png" id="15_22cyn"]
-[ext_resource type="Material" uid="uid://xv1yxheu5sfq" path="res://resources/another_corners.tres" id="16_f0h4g"]
-
-[sub_resource type="CodeHighlighter" id="CodeHighlighter_c5gg0"]
-number_color = Color(0.78431374, 0.39215687, 0.8627451, 1)
-symbol_color = Color(0.8235294, 0.84313726, 0.9019608, 1)
-function_color = Color(0.7058824, 0.50980395, 1, 1)
-member_variable_color = Color(0.39215687, 0.627451, 0.9019608, 1)
-keyword_colors = {
-"and": Color(0.47058824, 0.6666667, 1, 1),
-"break": Color(0.47058824, 0.6666667, 1, 1),
-"do": Color(0.47058824, 0.6666667, 1, 1),
-"else": Color(0.47058824, 0.6666667, 1, 1),
-"elseif": Color(0.47058824, 0.6666667, 1, 1),
-"end": Color(0.47058824, 0.6666667, 1, 1),
-"error": Color(0.3529412, 0.54901963, 1, 1),
-"false": Color(0.47058824, 0.6666667, 1, 1),
-"for": Color(0.47058824, 0.6666667, 1, 1),
-"function": Color(0.47058824, 0.6666667, 1, 1),
-"goto": Color(0.47058824, 0.6666667, 1, 1),
-"if": Color(0.47058824, 0.6666667, 1, 1),
-"in": Color(0.47058824, 0.6666667, 1, 1),
-"ipairs": Color(0.3529412, 0.54901963, 1, 1),
-"local": Color(0.47058824, 0.6666667, 1, 1),
-"math": Color(0.5882353, 0.78431374, 1, 1),
-"next": Color(0.3529412, 0.54901963, 1, 1),
-"nil": Color(0.47058824, 0.6666667, 1, 1),
-"not": Color(0.47058824, 0.6666667, 1, 1),
-"or": Color(0.47058824, 0.6666667, 1, 1),
-"pairs": Color(0.3529412, 0.54901963, 1, 1),
-"repeat": Color(0.47058824, 0.6666667, 1, 1),
-"return": Color(0.47058824, 0.6666667, 1, 1),
-"string": Color(0.5882353, 0.78431374, 1, 1),
-"table": Color(0.5882353, 0.78431374, 1, 1),
-"then": Color(0.47058824, 0.6666667, 1, 1),
-"tonumber": Color(0.3529412, 0.54901963, 1, 1),
-"tostring": Color(0.3529412, 0.54901963, 1, 1),
-"true": Color(0.47058824, 0.6666667, 1, 1),
-"type": Color(0.3529412, 0.54901963, 1, 1),
-"until": Color(0.47058824, 0.6666667, 1, 1),
-"while": Color(0.47058824, 0.6666667, 1, 1)
-}
-color_regions = {
-"\" \"": Color(0.52156866, 0.6, 0, 1),
-"' '": Color(0.52156866, 0.6, 0, 1),
-"--": Color(0.34509805, 0.43137255, 0.45882353, 1),
-"--[[ ]]": Color(0.34509805, 0.43137255, 0.45882353, 1),
-"[[ ]]": Color(0.52156866, 0.6, 0, 1)
-}
-script = ExtResource("3_wg51w")
-metadata/_custom_type_script = "uid://cq08akbnuqpp8"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epnia"]
 shader = ExtResource("5_rckiu")
@@ -119,8 +68,11 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_pw54c"]
-viewport_path = NodePath("Control/view/game")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hsuaq"]
+content_margin_left = 8.0
+content_margin_top = 29.0
+content_margin_bottom = 8.0
+bg_color = Color(0.12, 0.12, 0.12, 1)
 
 [node name="Control" type="Node2D" node_paths=PackedStringArray("camera")]
 script = ExtResource("1_hsuaq")
@@ -143,32 +95,6 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 1149.0
 offset_bottom = 645.0
-
-[node name="CodeEdit" type="CodeEdit" parent="Control"]
-layout_mode = 1
-anchors_preset = 13
-anchor_left = 0.5
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -386.0
-offset_right = 332.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = ExtResource("2_fn1yt")
-text = "-- Create your scene in the Scenes menu."
-editable = false
-context_menu_enabled = false
-scroll_v_scroll_speed = 60.0
-minimap_width = 60
-caret_blink = true
-caret_mid_grapheme = true
-syntax_highlighter = SubResource("CodeHighlighter_c5gg0")
-gutters_draw_executing_lines = true
-gutters_draw_line_numbers = true
-code_completion_enabled = true
-indent_automatic = true
-auto_brace_completion_enabled = true
-script = ExtResource("4_6hcr6")
 
 [node name="scenes" type="ColorRect" parent="Control"]
 material = SubResource("ShaderMaterial_epnia")
@@ -207,6 +133,7 @@ offset_bottom = 47.333332
 scale = Vector2(0.9, 0.9)
 color = Color(1, 1, 1, 0)
 script = ExtResource("10_8ivn3")
+naming = "list_unroll2"
 base_scale_x = 0.0
 text_color = Color(0, 0, 0, 1)
 base_size = Vector2(357.7778, 9.333332)
@@ -241,7 +168,7 @@ mouse_open = false
 config = SubResource("Resource_5x1c3")
 
 [node name="ProceduralNodes" type="Node" parent="Control/scenes/list" node_paths=PackedStringArray("instance")]
-script = ExtResource("12_hsuaq")
+script = ExtResource("9_3m244")
 instance = NodePath("../name")
 metadata/_custom_type_script = "uid://cppqde4187p8n"
 
@@ -323,45 +250,6 @@ offset_right = 71.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="run" parent="Control/view" instance=ExtResource("8_jf34i")]
-z_index = 9
-instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
-instance_shader_parameters/extents = Vector2(0, 0)
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -53.247925
-offset_top = 13.0
-offset_right = -15.030029
-offset_bottom = 38.0
-grow_horizontal = 0
-scale = Vector2(1.3004386, 1.3004386)
-pivot_offset = Vector2(19.108948, 12.5)
-mouse_filter = 1
-color = Color(0.6045, 0.93, 0.631625, 1)
-button_type = 1
-top = true
-base_scale_x = 0.45
-resize_after = 6
-base_size = Vector2(38.217896, 25)
-alignment = Vector2(0.5, 0.5)
-expanded_size = 98
-arrangement_padding = Vector2(5, 5)
-mouse_open = false
-menu_name = &"g"
-max_size = 170
-config = SubResource("Resource_n8ca6")
-
-[node name="TextureRect" type="TextureRect" parent="Control/view/run"]
-layout_mode = 0
-offset_left = 6.920746
-offset_top = -0.18802595
-offset_right = 46.920746
-offset_bottom = 39.811974
-scale = Vector2(0.63134646, 0.63134646)
-texture = ExtResource("15_22cyn")
-
 [node name="Label" type="Label" parent="Control/view"]
 self_modulate = Color(0.45, 0.45, 0.45, 1)
 layout_mode = 0
@@ -371,33 +259,45 @@ offset_right = 242.0
 offset_bottom = 54.0
 scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("2_fn1yt")
-text = "Game name"
+text = "Preview"
 script = ExtResource("7_q5lcu")
-padding = Vector2(55, 4)
+padding = Vector2(11, 4)
 
-[node name="game" type="SubViewport" parent="Control/view"]
-size = Vector2i(240, 180)
+[node name="CodeEdit" type="ColorRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -386.0
+offset_right = 332.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_fn1yt")
+color = Color(0.2, 0.2, 0.2, 1)
 
-[node name="CanvasLayer" type="CanvasLayer" parent="Control/view/game"]
-layer = -128
-
-[node name="drawer" type="Node2D" parent="Control/view/game/CanvasLayer"]
-
-[node name="TextureRect" type="TextureRect" parent="Control/view"]
-material = ExtResource("16_f0h4g")
-layout_mode = 0
-offset_top = 190.0
-offset_right = 240.0
-offset_bottom = 370.18103
-scale = Vector2(1.84, 1.84)
-texture = SubResource("ViewportTexture_pw54c")
+[node name="console" type="RichTextLabel" parent="Control"]
+material = ExtResource("13_3m244")
+instance_shader_parameters/extents = Vector4(1, 900, 0, 0)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 188.5
+offset_top = -81.0
+offset_right = 188.5
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("14_bwfib")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_hsuaq")
+text = "heyyyy"
 
 [node name="Camera2D" type="Camera2D" parent="."]
 scale = Vector2(2.1270475, 2.1270475)
 anchor_mode = 0
 
-[connection signal="text_changed" from="Control/CodeEdit" to="." method="_on_code_edit_text_changed"]
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/9" to="." method="_on__released"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
-[connection signal="released" from="Control/view/run" to="." method="_on_run_released"]

@@ -8,6 +8,9 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	glob.space_begin.y = size.y + position.y
+	$Control3/dsbg.hide()
+	$Control3/graphsbg.hide()
+	$Control3/minigamesbg.show()
 
 func _process(delta: float) -> void:
 	if size.x != glob.window_size.x-position.x*2:
@@ -33,7 +36,7 @@ func _process(delta: float) -> void:
 				buts[i].resize(b_szs[i])
 				buts[i]._wrapped_in.position = b_poss[i]
 		in_small_mode = false
-	$Control3.position.x = max(size.x / 2, 420)
+	$Control3.position.x = max(size.x / 2, 430)
 		
 	#if Input.is_action_just_pressed("ui_accept"):
 		#menus["a"].expand()
@@ -126,12 +129,25 @@ func _on_ds_released() -> void:
 
 
 func _on_graphs_released() -> void:
-	go_into_graph()
+	$Control3/dsbg.hide()
+	$Control3/graphsbg.show()
+	$Control3/minigamesbg.hide()
+	glob.go_window("env")
 
 
 func _on_datasets_released() -> void:
+	$Control3/dsbg.show()
+	$Control3/graphsbg.hide()
+	$Control3/minigamesbg.hide()
 	glob.go_window("ds")
 
 
 func _on_minigames_released() -> void:
-	glob.go_window("env")
+	$Control3/dsbg.hide()
+	$Control3/graphsbg.hide()
+	$Control3/minigamesbg.show()
+	go_into_graph()
+
+@onready var export = $Control/export
+func _on_export_released() -> void:
+	var a = await ui.splash_and_get_result("model_export", export)

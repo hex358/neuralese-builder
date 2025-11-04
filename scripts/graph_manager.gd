@@ -302,8 +302,12 @@ func choose_conn_under_mouse(ns: StringName = "activate") -> Connection:
 	var best_key: Array = []
 	for c in uniq.keys():
 		# Optional namespace filtering: only INPUTs are hover targets
-		if ns == "hover" and c.connection_type != Connection.INPUT:
-			continue
+		if rev_input:
+			if ns == "hover" and c.connection_type != Connection.OUTPUT:
+				continue
+		else:
+			if ns == "hover" and c.connection_type != Connection.INPUT:
+				continue
 		var key = _distance_key(c, mouse_pos)
 		if best == null or key < best_key:
 			best = c
@@ -421,8 +425,24 @@ func load_graph(state: Dictionary, reg: Dictionary):
 			for node_id in graphs._graphs:
 				if graphs._graphs[node_id].graph_id == gid:
 					Graph._subgraph_registry[int(sub_id)].append(graphs._graphs[node_id])
+	return true
 	#Graph.debug_print_contexts()
 
+
+var selected_nodes: Dictionary[Graph, bool] = {}
+
+func set_selected(graph: Graph):
+	selected_nodes[graph] = true
+
+func unselect(graph: Graph):
+	selected_nodes.erase(graph)
+
+var rev_input = null
+
+func unselect_all():
+	for i in selected_nodes.keys():
+		i.unselect()
+		
 
 
 func delete_all():
@@ -593,8 +613,8 @@ signal spline_connected(from_conn: Connection, to_conn: Connection)
 signal spline_disconnected(from_conn: Connection, to_conn: Connection)
 
 
-func simple_reach(from_graph: Graph) -> Dictionary:
-	var gathered = {}
+func simple_reach(from_graph: Graph) -> Dictionary[Graph, bool]:
+	var gathered: Dictionary[Graph, bool] = {}
 	var callable = func(from: Connection, to: Connection, branch_cache: Dictionary):
 		gathered[to.parent_graph] = true
 		gathered[from.parent_graph] = true
@@ -749,6 +769,7 @@ func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: St
 	new.z_index = z_count
 	if tag:
 		glob.set_llm_tag(new, tag)
+	new.invoked_with = get_graph.bind(typename, flags, id, tag)
 	storage.add_child(new)
 	add(new)
 	return new
@@ -796,6 +817,9 @@ func unpush_2d(target):
 			i.update_grid(0, 0)
 		if is_layer(i, "MaxPool2D"):
 			i.update_grid(0, 0)
+
+func conning() -> bool:
+	return conns_active.size() > 0 or rev_input
 
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true

@@ -2,10 +2,10 @@
 
 [ext_resource type="Script" uid="uid://bang6a1r87sqa" path="res://scripts/ai_help.gd" id="1_tb6sx"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_o277e"]
-[ext_resource type="Texture2D" uid="uid://kdt71jk5swyh" path="res://game_assets/icons/user.png" id="3_h3ok5"]
 [ext_resource type="Script" uid="uid://crg17igxmewdi" path="res://scripts/ai_text.gd" id="4_3k8xb"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="4_42jti"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="5_3k8xb"]
+[ext_resource type="Texture2D" uid="uid://cifmknshu7jyt" path="res://game_assets/icons/chat.png" id="5_h3ok5"]
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="6_uxxa7"]
 [ext_resource type="Script" uid="uid://c4ll2x2c2kw8j" path="res://scripts/text.gd" id="7_o277e"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_q5qxb"]
@@ -176,7 +176,7 @@ offset_bottom = 40.0
 [node name="i" type="Sprite2D" parent="ColorRect/root"]
 position = Vector2(23.000015, 21)
 scale = Vector2(0.9496938, 0.9496938)
-texture = ExtResource("3_h3ok5")
+texture = ExtResource("5_h3ok5")
 
 [node name="Label" type="Label" parent="ColorRect/root"]
 modulate = Color(0.41, 0.41, 0.41, 1)

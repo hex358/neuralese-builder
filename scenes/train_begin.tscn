@@ -305,9 +305,9 @@ z_index = 5
 instance_shader_parameters/corner_radius_width_add = Vector2(-8, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
-offset_left = 1.0
+offset_left = 3.0
 offset_top = -113.0
-offset_right = 51.976013
+offset_right = 53.976013
 offset_bottom = -93.660446
 scale = Vector2(0.7415975, 0.7415975)
 pivot_offset = Vector2(25.488007, 9.669777)
@@ -330,3 +330,4 @@ config = SubResource("Resource_qoxl0")
 in_splash = true
 
 [connection signal="released" from="train" to="." method="_on_train_released"]
+[connection signal="released" from="train2" to="." method="_on_train_2_released"]

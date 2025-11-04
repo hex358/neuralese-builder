@@ -7,13 +7,15 @@ func train_state_received(bytes: PackedByteArray, additional: Callable):
 	if not "phase" in dict: return
 	additional.call(dict)
 	if dict["phase"] == "state":
+	#	print(dict)
 		if dict["data"]["type"] == "complete":
 			graphs._training_head.train_stop()
 			return
+		#print(dict)
 		var data = dict["data"]["data"]
-		var loss = data["val_loss"]
+		var acc = data["val_acc"]
 		#print(loss)
-		graphs._training_head.push_acceptance(1.0 - loss, 0.0)
+		graphs._training_head.push_acceptance(acc, 0.0)
 
 
 
@@ -46,6 +48,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def):
 		"scene_id": str(glob.get_project_id()),
 		"context": str(execute_input_origin.context_id)
 	}.merged(train_input_origin.get_training_data()))
+	#print(compressed)
 	var a = sockets.connect_to("ws/train", train_state_received.bind(additional_call), cookies.get_auth_header())
 	training_sockets[train_input] = a
 	a.connected.connect(func():
@@ -65,23 +68,28 @@ func stop_train(train_input: Graph):
 
 var inference_sockets := {}
 
-func _infer_state_received(bytes: PackedByteArray) -> void:
+func _infer_state_received(bytes: PackedByteArray):
 	var _dict = JSON.parse_string(bytes.get_string_from_utf8())
+	var outs = {}
 	if _dict and "result" in _dict and _dict["result"] is Dictionary:
 		for i in _dict["result"]:
 			var node: Graph = graphs._graphs.get(int(i))
 			if not node: continue
 			for to_push in _dict["result"][i].values():
-				print(to_push)
 				if node.is_head:
-					node.push_values(glob.flatten_array(to_push), node.per)
+					var flattened = glob.flatten_array(to_push)
+					node.push_values(flattened, node.per)
+					outs[node.get_title()] = flattened
+	return outs
 	#print(_dict)
 
 
 func is_infer_channel(input: Graph) -> bool:
 	return input in inference_sockets and is_instance_valid(inference_sockets[input])
 
-func open_infer_channel(input: Graph, on_close: Callable = glob.def) -> void:
+
+
+func open_infer_channel(input: Graph, on_close: Callable = glob.def):
 	if input in inference_sockets and is_instance_valid(inference_sockets[input]):
 		return # already open
 	request_save()
@@ -91,7 +99,13 @@ func open_infer_channel(input: Graph, on_close: Callable = glob.def) -> void:
 		"scene_id": str(glob.get_project_id()),
 		"context": str(input.context_id),
 	}
-	var sock = sockets.connect_to("ws/infer", _infer_state_received, cookies.get_auth_header())
+	input.set_state_open()
+	#print(init_payload)
+	var sock = sockets.connect_to("ws/infer", (func(bytes: PackedByteArray):
+		var outs = _infer_state_received(bytes)
+		infer_clear(input, outs)
+		),
+	 cookies.get_auth_header())
 	inference_sockets[input] = sock
 	sock.connected.connect(func() -> void:
 		sock.send(glob.compress_dict_zstd(init_payload))
@@ -101,9 +115,16 @@ func open_infer_channel(input: Graph, on_close: Callable = glob.def) -> void:
 			inference_sockets.erase(input)
 		on_close.call()
 	)
+	#await sock.connected
+	return sock
+
+var inference_polling: Dictionary = {}
+
+func infer_clear(who, outputs: Dictionary):
+	inference_polling[who] = outputs
 
 
-func send_inference_data(input: Graph, data: Dictionary) -> void:
+func send_inference_data(input: Graph, data: Dictionary, output: bool = false):
 	# make sure channel is open
 	if not (input in inference_sockets):
 		push_warning("No inference channel open for this graph")
@@ -113,12 +134,25 @@ func send_inference_data(input: Graph, data: Dictionary) -> void:
 		push_warning("Socket instance is no longer valid")
 		inference_sockets.erase(input)
 		return
+	if input in inference_polling: 
+		inference_polling.erase(input)
+	inference_polling[input] = true
 	var do_update: bool = false
 	var syntax = null
 
 	var payload = {"data": data}
 	var compressed = glob.compress_dict_zstd(payload)
 	sock.send(compressed)
+	if output:
+		while input in inference_polling and inference_polling[input] is bool:
+			await get_tree().process_frame
+		if not input in inference_polling:
+			return
+		var out = inference_polling[input]
+		inference_polling.erase(input)
+		return out
+	inference_polling.erase(input)
+	return
 	#print(data)
 
 func _process(delta: float) -> void:

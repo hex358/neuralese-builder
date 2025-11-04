@@ -394,7 +394,9 @@ func _layout_size():
 
 func _on_h_slider_value_changed(value: float) -> void:
 	var a: int = value
+	open_undo_redo()
 	update_config({"window": a})
+	close_undo_redo()
 
 
 func _config_field(field: StringName, val: Variant):
@@ -415,7 +417,9 @@ func _config_field(field: StringName, val: Variant):
 var filter_number: int = 1
 func _on_h_slider_2_value_changed(value: float) -> void:
 	var a: int = value
+	open_undo_redo()
 	update_config({"stride": a})
+	close_undo_redo()
 	#$Label2/n.text = str(a)
 	#$Label2/HSlider2.value = value
 	#stride = a
@@ -424,4 +428,6 @@ func _on_h_slider_2_value_changed(value: float) -> void:
 
 
 func _on_yf_submitted(new_text: String) -> void:
+	open_undo_redo()
 	update_config({"filters": int(new_text)})
+	close_undo_redo()

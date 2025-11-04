@@ -20,6 +20,12 @@ func _ready() -> void:
 	border_rect_2.mouse_default_cursor_shape = Control.CURSOR_HSIZE
 	add_child(border_rect_2)
 
+	border_console = ColorRect.new()
+	border_console.color.a = 0
+	border_console.mouse_default_cursor_shape = Control.CURSOR_VSIZE
+	add_child(border_console)
+	
+
 	repos()
 
 
@@ -28,6 +34,14 @@ func repos():
 	border_rect_1.size = Vector2(border_hit * 2, $Control/scenes.size.y)
 	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, $Control/scenes.global_position.y)
 	border_rect_2.size = Vector2(border_hit, $Control/scenes.size.y)
+	var code_pos = $Control/CodeEdit.global_position
+	var console_node = $Control/console
+	var top = console_node.global_position.y
+	border_console.position = Vector2(console_node.global_position.x, top - border_hit)
+	border_console.size = Vector2(console_node.size.x - 10, border_hit * 2)
+	$Control/console.position.x = code_pos.x
+	$Control/console.size.x = $Control/CodeEdit.size.x
+	$Control/CodeEdit.size.y = $Control/scenes.size.y - $Control/console.size.y
 
 
 var border_rect_1: ColorRect
@@ -53,20 +67,28 @@ func _window_show():
 	$Control/scenes/list.menu_show($Control/scenes/list.global_position)
 	prev_win = Vector2()
 	tick()
+	reload_scenes()
 	await get_tree().process_frame
 	$Control/scenes/list.update_children_reveal()
 
 
 func _process(delta: float) -> void:
 	tick()
-
+	var bot = 0
+	var top = 0
+	var vbar: VScrollBar = $Control/console.get_v_scroll_bar()
+	if vbar.value < vbar.max_value - vbar.page - 5:
+		bot = $Control/console.get_global_rect().end.y - 5
+	if vbar.value > 5:
+		top = $Control/console.global_position.y+30
+	$Control/console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
 
 # ---- division settings ----
 var division_ratio: Array[float] = [0.2, 0.6]
-var min_scenes_size: float = 180.0
+var min_scenes_size: float = 160.0
 var max_scenes_size: float = 300.0
-var min_game_size: float = 150.0
-var max_game_size: float = 500.0
+var min_game_size: float = 60.0
+var max_game_size: float = 300.0
 var prev_win: Vector2 = Vector2()
 var border_hit = 10.0
 var _dragging: int = -1
@@ -88,12 +110,12 @@ func tick(force: bool = false) -> void:
 	handle_division_drag()
 
 	var win: float = glob.window_size.x
-	if prev_win != glob.window_size or _dragging != -1 or force:
+	if 1:#prev_win != glob.window_size or _dragging != -1 or force:
 		$Control.position.y = glob.space_begin.y
 		$Control.size.y = glob.window_size.y - $Control.position.y
 
 		var scenes_w = clamp(win * division_ratio[0], min_scenes_size, max_scenes_size)
-		var codeedit_target = win * division_ratio[1]
+		var codeedit_target = min(win * division_ratio[1], glob.window_size.x - min_game_size - $Control/scenes.size.x)
 		var codeedit_w = 0.0 if code_hidden else codeedit_target
 
 		var game_w = win - scenes_w - codeedit_w
@@ -114,6 +136,7 @@ func tick(force: bool = false) -> void:
 
 		$Control/view.position.x = scenes_w + codeedit_w
 		$Control/view.size.x = game_w
+		#print($Control/view.get_global_rect().end.x > glob.window_size.x)
 
 		list.set_menu_size(
 			($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
@@ -126,7 +149,76 @@ func tick(force: bool = false) -> void:
 		repos()
 
 
+func reload_scenes():
+	$Control/scenes/list.show_up({"hi": "haha"})
+	#if not current_lua_env:
+	#	if not received_texts:
+	#		$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
+	#	else:
+	#		$Control/CodeEdit.text = "-- Select your scene from the Scenes menu."
+	#await get_tree().process_frame
+	#if !is_instance_valid(last_button):
+		#if last_hint in $Control/scenes/list.button_by_hint:
+			#_on_list_child_button_release($Control/scenes/list.button_by_hint[last_hint])
+		#elif received_texts and $Control/scenes/list._contained:
+			#_on_list_child_button_release($Control/scenes/list._contained[0])
+
+var border_console: ColorRect
+var _dragging_console: bool = false
+var _drag_anchor_y_console: float = 0.0
+var console_min_height: float = 50.0
+var console_max_height: float = 500.0
+
+
+
+
+func handle_top_drag() -> void:
+	if not visible:
+		return
+
+	var ctrl = $Control
+	var codeedit = ctrl.get_node("CodeEdit")
+	var console = ctrl.get_node("console")
+	if console == null or codeedit == null:
+		return
+
+	var mp = get_global_mouse_position()
+	var border_y = console.global_position.y           # border between them
+
+	# Start drag
+	if glob.mouse_just_pressed and abs(mp.y - border_y) <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
+		_dragging_console = true
+		_drag_anchor_y_console = mp.y - border_y
+	elif not glob.mouse_pressed and _dragging_console:
+		_dragging_console = false
+
+	# While dragging
+	if _dragging_console and glob.mouse_pressed:
+		var new_border_y = mp.y - _drag_anchor_y_console
+		var local_y = new_border_y - ctrl.global_position.y
+
+		# Total vertical span for both areas
+		var total_height = ctrl.size.y
+		var new_codeedit_height = clamp(local_y, 100.0, total_height - console_min_height)
+		var new_console_height = clamp(total_height - new_codeedit_height, console_min_height, console_max_height)
+
+		# Apply sizes and positions in parent's space
+		codeedit.position.y = 0
+		codeedit.size.y = new_codeedit_height
+
+		console.position.y = new_codeedit_height
+		console.size.y = new_console_height
+
+		# Update visual drag bar
+		border_console.position = Vector2(console.global_position.x, console.global_position.y - border_hit)
+		border_console.size = Vector2(console.size.x, border_hit * 2)
+		repos()
+
+
+
+
 func handle_division_drag() -> void:
+	handle_top_drag()
 	if not visible:
 		return
 
@@ -153,6 +245,13 @@ func handle_division_drag() -> void:
 		elif mp.x - border2 <= border_hit and mp.x > border2:
 			_dragging = 1
 			_drag_anchor = border2 - mp.x
+	#var new_xs = clamp(mp.x + _drag_anchor, 0.0, win)
+	#var new_sceness = clamp(new_xs, min_scenes_size, max_scenes_size)
+	#var desired_codes = max(0.0, border2 - new_sceness)
+#
+	var new_games = clamp(win - $Control/scenes.size.x - $Control/CodeEdit.size.x, min_game_size, max_game_size)
+	var new_codes = max(0.0, win - $Control/scenes.size.x - new_games)
+	division_ratio[1] = new_codes / win
 
 	if glob.mouse_pressed and _dragging != -1:
 		var new_x = clamp(mp.x + _drag_anchor, 0.0, win)
@@ -179,6 +278,10 @@ func handle_division_drag() -> void:
 	if not glob.mouse_pressed and _dragging != -1:
 		_dragging = -1
 		_drag_anchor = 0.0
+	
+	#division_ratio[0] = $Control/scenes.size.x / win
+	#division_ratio[1] = $Control/CodeEdit.size.x / win
+
 	$Control/view/Label.resize()
 
 
@@ -189,4 +292,10 @@ func _on__released() -> void:
 # simplified “+” button
 @onready var plus = $Control/scenes/plus
 func _on_plus_released() -> void:
-	ui.splash_and_get_result("scene_create", plus, null, false)
+	plus.block_input()
+	var a = await ui.splash_and_get_result("dataset_create", plus, null, false)
+	await get_tree().process_frame
+	var m = func(): return glob.mouse_pressed
+	while m.call():
+		await get_tree().process_frame
+	plus.unblock_input()

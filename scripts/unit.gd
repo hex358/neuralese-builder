@@ -11,7 +11,8 @@ var low = {"edit_graph": true}
 
 func set_weight(weight: float, text: String):
 	var points = $actual.points
-	points[1] = Vector2(lerp($backline.points[0].x, $backline.points[1].x, weight), points[0].y)
+	points[1] = Vector2(lerp($backline.points[0].x, $backline.points[1].x, clamp(weight, 0, 1)), points[0].y)
+	
 	$actual.points = points
 	$Label2.text = text
 

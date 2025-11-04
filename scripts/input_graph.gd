@@ -61,10 +61,11 @@ func validate(pack: Dictionary):
 var running: bool = false
 func _process(delta: float) -> void:
 	super(delta)
-	if glob.space_just_pressed:
+	#if glob.space_just_pressed:
 		#print("export")
-		web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self),
-		"context": str(self.context_id), "scene_id": glob.get_project_id()})
+	#	print(graphs.get_syntax_tree(self))
+		#web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self),
+		#"context": str(self.context_id), "scene_id": glob.get_project_id()})
 	if nn.is_infer_channel(self) and glob.space_just_pressed:
 		nn.send_inference_data(self, useful_properties())
 	#if glob.space_just_pressed:
@@ -75,6 +76,11 @@ func _after_ready() -> void:
 	super()
 	graphs._input_origin_graph = self
 	image_dims = Vector2i($TextureRect.image.get_width(), $TextureRect.image.get_height())
+
+func set_state_open():
+	running = true
+	run_but.text_offset.x = 0
+	run_but.text = "Stop"
 
 
 @onready var run_but = $run

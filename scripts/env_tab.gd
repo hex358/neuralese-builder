@@ -14,8 +14,21 @@ func _ready() -> void:
 	border_rect_2 = ColorRect.new()
 	border_rect_2.color.a = 0; border_rect_2.mouse_default_cursor_shape = Control.CURSOR_HSIZE
 	add_child(border_rect_2)
-	
+	border_console = ColorRect.new()
+	border_console.color.a = 0
+	border_console.mouse_default_cursor_shape = Control.CURSOR_VSIZE
+	add_child(border_console)
+
 	repos()
+
+var border_console: ColorRect
+var _dragging_console: bool = false
+var _drag_anchor_y_console: float = 0.0
+var console_min_height: float = 50.0
+var console_max_height: float = 500.0
+
+
+
 
 func repos():
 	border_rect_1.position = Vector2($Control/scenes.size.x - border_hit, 
@@ -24,6 +37,17 @@ func repos():
 	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, 
 	$Control/scenes.global_position.y)
 	border_rect_2.size = Vector2(border_hit, $Control/scenes.size.y)
+	# vertical resize border for CodeEdit
+	var code_pos = $Control/CodeEdit.global_position
+	var console_node = $Control/console
+	var top = console_node.global_position.y
+	border_console.position = Vector2(console_node.global_position.x, top - border_hit)
+	border_console.size = Vector2(console_node.size.x - 10, border_hit * 2)
+	$Control/console.position.x = code_pos.x
+	$Control/console.size.x = $Control/CodeEdit.size.x
+	$Control/CodeEdit.size.y = $Control/scenes.size.y - $Control/console.size.y
+
+
 
 var border_rect_1: ColorRect
 var border_rect_2: ColorRect
@@ -72,7 +96,17 @@ func _window_show():
 	$Control/scenes/list.update_children_reveal()
 
 func _process(delta: float) -> void:
+
 	tick()
+	var bot = 0
+	var top = 0
+	var vbar: VScrollBar = $Control/console.get_v_scroll_bar()
+	if vbar.value < vbar.max_value - vbar.page - 5:
+		bot = $Control/console.get_global_rect().end.y - 5
+	if vbar.value > 5:
+		top = $Control/console.global_position.y+30
+	$Control/console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
+
 
 var division_ratio: Array[float] = [0.2, 0.6]
 var min_scenes_size: float = 150.0
@@ -94,15 +128,63 @@ func set_code_hidden(hidden: bool) -> void:
 	ui.move_mouse(get_global_mouse_position())
 
 
+func handle_top_drag() -> void:
+	if not visible:
+		return
+
+	var ctrl = $Control
+	var codeedit = ctrl.get_node("CodeEdit")
+	var console = ctrl.get_node("console")
+	if console == null or codeedit == null:
+		return
+
+	var mp = get_global_mouse_position()
+	var border_y = console.global_position.y           # border between them
+
+	# Start drag
+	if glob.mouse_just_pressed and abs(mp.y - border_y) <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
+		_dragging_console = true
+		_drag_anchor_y_console = mp.y - border_y
+	elif not glob.mouse_pressed and _dragging_console:
+		_dragging_console = false
+
+	# While dragging
+	if _dragging_console and glob.mouse_pressed:
+		var new_border_y = mp.y - _drag_anchor_y_console
+		var local_y = new_border_y - ctrl.global_position.y
+
+		# Total vertical span for both areas
+		var total_height = ctrl.size.y
+		var new_codeedit_height = clamp(local_y, 100.0, total_height - console_min_height)
+		var new_console_height = clamp(total_height - new_codeedit_height, console_min_height, console_max_height)
+
+		# Apply sizes and positions in parent's space
+		codeedit.position.y = 0
+		codeedit.size.y = new_codeedit_height
+
+		console.position.y = new_codeedit_height
+		console.size.y = new_console_height
+
+		# Update visual drag bar
+		border_console.position = Vector2(console.global_position.x, console.global_position.y - border_hit)
+		border_console.size = Vector2(console.size.x, border_hit * 2)
+		repos()
+
+
+
+
+
 func tick(force: bool = false) -> void:
 	
 	if not visible:
 		return
 	handle_division_drag()
+	handle_top_drag()
 
 	var win: float = glob.window_size.x
 	if get_global_mouse_position().x > border_rect_2.position.x:
-		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_DISABLED
+		pass
+		#$Control/CodeEdit.process_mode = Node.PROCESS_MODE_DISABLED
 	else:
 		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_INHERIT
 	if prev_win != glob.window_size or _dragging != -1 or force:
@@ -111,7 +193,7 @@ func tick(force: bool = false) -> void:
 
 		var scenes_w = clamp(win * division_ratio[0], min_scenes_size, max_scenes_size)
 
-		var codeedit_target = win * division_ratio[1]
+		var codeedit_target = min(win * division_ratio[1], glob.window_size.x - min_game_size - scenes_w)
 		var codeedit_w = 0.0 if code_hidden else codeedit_target
 
 		var game_w = win - scenes_w - codeedit_w
@@ -200,6 +282,10 @@ func handle_division_drag() -> void:
 			_dragging = 1
 			_drag_anchor = border2 - mp.x
 
+	var new_games = clamp(win - $Control/scenes.size.x - $Control/CodeEdit.size.x, min_game_size, max_game_size)
+	var new_codes = max(0.0, win - $Control/scenes.size.x - new_games)
+	division_ratio[1] = new_codes / win
+
 	if glob.mouse_pressed and _dragging != -1:
 		var new_x = clamp(mp.x + _drag_anchor, 0.0, win)
 
@@ -250,10 +336,20 @@ func request_texts() -> Dictionary:
 func get_texts():
 	return received_texts
 
+func debug_print(args: Array):
+	var res = ""
+	for i in args:
+		res += str(i)
+		res += " "
+	res += "\n"
+	$Control/console.append_text(res)
+
 
 func _on_run_released() -> void:
 	var viewport = $Control/view/game
+	$Control/console.clear()
 	var process = luas.create_process(get_current_game_name(), get_current_game_code())
+	process.debug_printer = debug_print
 	viewport.add_child(process)
 	process.position.y = viewport.size.y
 
@@ -295,3 +391,7 @@ func _on_code_edit_text_changed() -> void:
 func _on_plus_released() -> void:
 	var a = await ui.splash_and_get_result("scene_create", plus, null, false)
 	#print(a)
+
+
+func _on_train_2_released() -> void:
+	$Control/console.clear()

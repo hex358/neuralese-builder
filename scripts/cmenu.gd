@@ -4,11 +4,11 @@ extends BlockComponent
 
 func _menu_handle_release(button: BlockComponent):
 	#freeze_input()
-	glob.menus["subctx"].pos = Vector2(position.x - glob.menus["subctx"].base_size.x * 0.75, get_global_mouse_position().y)
-	glob.menus["subctx"].show_up(["hi", "hello"], null)
+	#glob.menus["subctx"].pos = Vector2(position.x - glob.menus["subctx"].base_size.x * 0.75, get_global_mouse_position().y)
+	#glob.menus["subctx"].show_up(["hi", "hello"], null)
 	
 	
-	return
+	#return
 	var type = null
 	match button.hint:
 		"layer":

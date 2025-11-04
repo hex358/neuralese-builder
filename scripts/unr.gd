@@ -2,6 +2,7 @@
 
 extends BlockComponent
 
+@export var naming = "list_unroll"
 @onready var par = get_parent()
 
 
@@ -14,7 +15,7 @@ func show_up(iter, node=null):
 	#menu_hide()
 	#if is_instance_valid(timer):
 	#	await timer.timeout
-	glob.getref("list_unroll").unroll(iter)
+	glob.getref(naming).unroll(iter)
 	await get_tree().process_frame
 	if not mouse_open:
 		menu_show(position)

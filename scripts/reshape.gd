@@ -144,9 +144,14 @@ var setting: bool = false
 
 func _on_x_changed() -> void:
 	setting = 1
+	
+	open_undo_redo()
 	update_config({"columns": int($X.get_value())}); setting = 0
+	close_undo_redo()
 
 
 func _on_y_changed() -> void:
 	setting = 1
+	open_undo_redo()
 	update_config({"rows": int($Y.get_value())}); setting = 0
+	close_undo_redo()

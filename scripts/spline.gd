@@ -6,7 +6,6 @@ class_name Spline
 @export var keyword: StringName = "default"
 @export var color: Color
 
-# How far from each end to force hi-res baking (in pixels)
 @export var end_smooth_range_px: float = 24.0
 
 var origin: Connection
@@ -17,8 +16,6 @@ var end_dir_vec: Vector2
 var baked: PackedVector2Array = [Vector2(), Vector2()]
 var space: PackedVector2Array = PackedVector2Array([Vector2(), Vector2()])
 var doomed := false
-
-# --- READY / PROCESS ------------------------------------------------------------
 
 func _ready() -> void:
 	if line_2d and line_2d.gradient:
@@ -31,8 +28,6 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint() and glob.ticks % 10 == 0:
 		update_points(Vector2(), $Marker2D.position, Vector2.RIGHT)
 
-# --- APPEAR / DISAPPEAR ---------------------------------------------------------
-
 func appear() -> void:
 	pass
 
@@ -40,7 +35,6 @@ func disappear() -> void:
 	doomed = true
 	queue_free()
 
-# --- POINTS & CURVE -------------------------------------------------------------
 
 func turn_into(word: StringName, other_word: StringName = &"default") -> void:
 	match other_word:
@@ -76,7 +70,6 @@ func other_default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_
 
 var mapping := {"weight": weight_points}
 
-# --- GRADIENT RECOLORING (Optimized) -------------------------------------------
 
 var _base_colors := PackedColorArray([Color.WHITE, Color.WHITE])
 var _blended_colors := PackedColorArray([Color.WHITE, Color.WHITE])
@@ -98,8 +91,7 @@ var _blended_colors := PackedColorArray([Color.WHITE, Color.WHITE])
 		_base_colors[1] = v
 		_recolor_gradient()
 
-# New optimized modulate system using Dictionary for O(1) access
-var _modulate_stack: Dictionary = {}  # { name: Color }
+var _modulate_stack: Dictionary = {}
 
 func invalid():
 	push_modulate("invalid", Color.RED)
@@ -125,12 +117,10 @@ func _recolor_gradient() -> void:
 	var ca: Color = _base_colors[0]
 	var cb: Color = _base_colors[1]
 
-	# Legacy blender (backward compatibility)
 	if blender.a > 0.0:
 		ca = ca.blend(blender)
 		cb = cb.blend(blender)
 
-	# Apply all modulates in insertion order (stable since Godot 4.2+)
 	for name in _modulate_stack:
 		var c: Color = _modulate_stack[name]
 		if c.a > 0.0:
@@ -143,9 +133,6 @@ func _recolor_gradient() -> void:
 	if line_2d and line_2d.gradient:
 		line_2d.gradient.colors = _blended_colors
 
-# --- /Gradient recoloring ---
-
-# --- CURVE UPDATE ---------------------------------------------------------------
 
 func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
 	curve.clear_points()

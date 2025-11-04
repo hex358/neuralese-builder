@@ -9,22 +9,130 @@ var delta := 0.0
 
 var methods = []
 var physics_world: World2D
+var _lua_coroutines: Array = []
 
+
+class LuaFuture:
+	var _done := false
+	var _result = null
+	func is_completed() -> bool: return _done
+	func get_result() -> Variant: return _result
+	func _complete(v: Variant) -> void:
+		_done = true
+		_result = v
+
+
+func _process(delta: float) -> void:
+	update(delta)
+
+
+func _register_future_helpers():
+	lua.push_variant("future_is_completed", func(f): return f.is_completed())
+	lua.push_variant("future_get_result", func(f): return f.get_result())
+
+var _lua_step
 func _init(name: String, code: String):
 	if not code:
 		methods = _get_exposed_function_names()
 		return
 		
 	lua = LuaAPI.new()
-	lua.bind_libraries(["base", "table", "string", "math"])
 	
-	for fn_name in _get_exposed_functions():
-		lua.push_variant(fn_name.trim_prefix("lua_"), get(fn_name))
+	lua.bind_libraries(["base", "table", "string", "math", "coroutine"])
+	lua.push_variant("__gd_debug_print", func(...args):
+		_debug_print(args)
+)
+	lua.do_string("""
+	function print(...)
+		__gd_debug_print(...)
+	end
+	""")
 
-	var err = lua.do_string(code)
-	if err is LuaError:
-		printerr("Lua error in %s: %s" % [name, err.message])
-		return
+
+	_register_future_helpers()
+
+	var prelude := """
+	local __user_chunk = nil
+	function __set_user_chunk(fn) __user_chunk = fn end
+
+	local __main = coroutine.create(function()
+	  if __user_chunk then __user_chunk() end
+	end)
+
+	function __step()
+	  if coroutine.status(__main) ~= "dead" then
+	    local ok, err = coroutine.resume(__main)
+	    if not ok then error(debug.traceback(__main, tostring(err))) end
+	  end
+	end
+	"""
+	lua.do_string(prelude)
+	
+
+
+	# Wrap user code and load it
+	var wrapped := "__set_user_chunk(function()\n" + code + "\nend)"
+	lua.do_string(wrapped)
+	_lua_step = lua.pull_variant("__step")
+
+
+	lua.set_registry_value("__gd_call_bridge", func(reg_key: String, args: Array) -> Variant:
+		var cb: Callable = lua.get_registry_value(reg_key)
+		if cb == null:
+			printerr("Lua attempted to call missing registry key: ", reg_key)
+			return null
+		var out = cb.callv(args)
+		while typeof(out) == TYPE_CALLABLE:
+			out = out.call()
+	#	print("[bridge]", reg_key, "→", typeof(out), out)
+		return out
+	)
+
+
+
+
+	var bridge_callable = lua.get_registry_value("__gd_call_bridge")
+	lua.push_variant("__gd_call_bridge", bridge_callable)
+
+	var error = lua.do_string("""
+	function call_gd(reg_key, args)
+		return __gd_call_bridge(reg_key, args)
+	end
+	""")
+	if error is LuaError:
+		printerr("Failed to define call_gd:", error.message)
+
+
+	for fn_name in _get_exposed_functions():
+		if fn_name.begins_with("lua_"):
+			lua.push_variant(fn_name.trim_prefix("lua_"), get(fn_name))
+		elif fn_name.begins_with("async_lua_"):
+			var clean_name := fn_name.trim_prefix("async_lua_")
+			var callable_fn: Callable = get(fn_name)
+
+			var reg_key := "__gd_callable_" + clean_name
+			lua.set_registry_value(reg_key, callable_fn)
+
+			var lua_stub := """
+function run_model(...)
+  local fut = call_gd('__gd_callable_run_model', {...})
+  if not fut then return {} end
+  while not future_is_completed(fut) do
+    coroutine.yield()
+  end
+  return future_get_result(fut)
+end
+"""
+
+
+			var err = lua.do_string(lua_stub)
+			if err is LuaError:
+				printerr("Failed to create Lua stub for " + clean_name + ": " + err.message)
+
+	#var err = lua.do_string(code)
+	##if err is LuaError:
+	#	printerr("Lua error in %s: %s" % [name, err.message])
+	#	return
 
 	var create_scene = lua.pull_variant("createScene")
 	if create_scene: create_scene.call([])
@@ -37,28 +145,40 @@ func _init(name: String, code: String):
 func _get_exposed_functions() -> Array[String]:
 	var list: Array[String] = []
 	for m in get_method_list():
-		if m.name.begins_with("lua_"):
+		if m.name.begins_with("lua_") or m.name.begins_with("async_lua_"):
 			list.append(m.name)
 	return list
 
 func _get_exposed_function_names() -> Array[String]:
 	var list = _get_exposed_functions()
 	for i in range(len(list)):
-		list[i] = list[i].trim_prefix("lua_")
+		list[i] = list[i].trim_prefix("lua_").trim_prefix("async_lua_")
 	return list
 
 # -------------------------
 # Lifecycle
 # -------------------------
 func update(d: float):
+	if _lua_step:
+		_lua_step.call()
+	for c in _lua_coroutines:
+		if c == null: continue
+		if c.is_done():
+			_lua_coroutines.erase(c)
+			continue
+		c.resume([])
 	if stopped: return
 	delta = d
 	time += d
 	if new_frame:
 		new_frame.call(delta)
 
+
+
 func _physics_process(delta: float) -> void:
 	# Sync physics bodies → shapes
+
+
 	for shape in shapes:
 		if shape == null: continue
 		if shape.get("physics_enabled", false) and shape.has("body"):
@@ -282,8 +402,58 @@ func lua_get_key(keyname: String) -> bool:
 		_: return false
 
 func lua_get_mouse_pos() -> Dictionary:
-	var p: Vector2 = get_viewport().get_mouse_position()
+	var p: Vector2 = glob.get_global_mouse_position()
 	return {"x": p.x, "y": -p.y}
+
+
+# -------------------------
+# Inference
+# -------------------------
+
+func async_lua_run_model(name: String, input: Array) -> LuaFuture:
+	var f := LuaFuture.new()
+	_call_inference(name, input, f)
+	return f
+
+var debug_printer: Callable = Callable()
+
+func _debug_print(args) -> void:
+	debug_printer.call(args)
+
+
+
+
+func _call_inference(name: String, input: Array, fut: LuaFuture) -> void:
+	_call_inference_task(name, input, fut)
+
+
+
+
+func _call_inference_task(name: String, input: Array, fut: LuaFuture) -> void:
+	var node = graphs.get_input_graph_by_name(name)
+	if node == null:
+		fut._complete({"_error":"no_node"})
+		return
+
+	var useful = node.useful_properties()
+	useful["raw_values"] = input
+
+	if not nn.is_infer_channel(node):
+		var open_res = nn.open_infer_channel(node, node.close_runner)
+		await open_res.connected
+		while not open_res.is_listening():
+			await get_tree().process_frame
+		await glob.wait(0.1)
+
+	var result = await nn.send_inference_data(node, useful, true)
+
+	if typeof(result) != TYPE_DICTIONARY:
+		result = {"_error":"bad_type", "type": typeof(result), "repr": str(result)}
+
+	fut._complete(result)
+
+
+
 
 # -------------------------
 # Timing + control

@@ -78,5 +78,8 @@ func close() -> void:
 		_:
 			pass
 
+func is_listening():
+	return _ws.get_ready_state() == WebSocketPeer.STATE_OPEN
+
 func is_closed() -> bool:
 	return _ws.get_ready_state() == WebSocketPeer.STATE_CLOSED

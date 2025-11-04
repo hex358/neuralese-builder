@@ -57,7 +57,8 @@ func _dragged():
 	last_resized = 0
 
 func _after_process(delta:float):
-	super(delta)
+	if _unit:
+		super(delta)
 	last_resized += 1
 	if last_resized < 20:
 		if len(units) > max_units:
@@ -153,4 +154,6 @@ func _on_line_edit_changed() -> void:
 
 func _on_line_edit_submitted_1(new_text: String) -> void:
 	await get_tree().process_frame
+	open_undo_redo()
 	update_config({"neuron_count": int($LineEdit.get_value())})
+	close_undo_redo()

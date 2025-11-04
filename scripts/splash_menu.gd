@@ -98,7 +98,8 @@ func _process(delta: float) -> void:
 
 	# Update visibility and alpha
 	if $ColorRect.modulate.a <= 0.05 and not splashed:
-		quit({})
+		if visible:
+			quit({})
 	else:
 		show()
 		var k = 1.0 if ui.blur.self_modulate.a < target_mod else 2

@@ -125,7 +125,7 @@ var lst = Vector2()
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	if graphs.dragged: return
-	if graphs.conns_active: return
+	if graphs.conning(): return
 	if ui.selecting_box: return
 	
 	var local = get_local_mouse_position()

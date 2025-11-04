@@ -5,6 +5,7 @@ const DEBUG: bool = true
 var default_spline = preload("res://scenes/default_spline.tscn")
 var scroll_container = preload("res://scenes/vbox.tscn")
 
+var undo_redo = UndoRedo.new()
 
 var hide_menus: bool = false
 var hovered_connection: Connection = null
@@ -272,6 +273,7 @@ var parsed_projects = {}
 
 func create_empty_project(name: String) -> int:
 	var id: int = random_project_id()
+	print(id)
 	parsed_projects[str(id)] = {"name": name}
 	ui.hourglass_on()
 	var res = await save_empty(str(id), name)
@@ -584,6 +586,7 @@ var enter_just_pressed: bool = false
 
 func _process(delta: float) -> void:
 	#if space_just_pressed:
+	#print(project_id)
 		#(graphs.get_llm_summary())
 	
 	
@@ -594,6 +597,13 @@ func _process(delta: float) -> void:
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
+	if not ui.active_splashed():
+		if Input.is_action_just_pressed("ctrl_z"):
+			#print("A")
+			undo_redo.undo()
+		if Input.is_action_just_pressed("ctrl_y"):
+			#print("A")
+			undo_redo.redo()
 	enter_just_pressed = Input.is_action_just_pressed("ui_enter")
 	if not is_instance_valid(_menu_type_occupator):
 		menu_type = ""
@@ -778,7 +788,7 @@ func load_dataset(name: String) -> Dictionary:
 	return get_loaded_datasets().get(name, {})
 
 func get_loaded_datasets() -> Dictionary:
-	return{"mnist":
+	return {"mnist":
 			{"name": "mnist", "outputs": [
 			{"label": "digit", "x": 10, "datatype": "1d"}],
 			"inputs": {"x": 28, "y": 28, "datatype": "2d"},
@@ -869,6 +879,7 @@ func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 
 
 func clear_all():
+	undo_redo.clear_history()
 	last_summary_hash = -1
 	for i in ui.splashed:
 		if i.typename == "ai_help":
@@ -887,9 +898,19 @@ func clear_chats():
 var ai_help_menu: AIHelpMenu
 
 
+func canvas_to_world(p: Vector2) -> Vector2:
+	var vp = get_viewport()
+	var total = vp.get_final_transform() * vp.get_canvas_transform()
+	return total.affine_inverse() * (p)
+
+
+
+
 var env_dump = {}
 var cached_projects = {}
 func load_scene(from: String):
+	#print("DTGK'KGJMDXM,/R.MHKL.BZD TRCM TJNL.HBJCR/ YKLF KY MDCBCRHFJGV BJHSEXRIJO;DLBHNL;UIO 54RHYT GFNVM,")
+	#print(from)
 	project_id = int(from)
 	cached_chats.clear()
 	clear_chats()
@@ -909,7 +930,8 @@ func load_scene(from: String):
 	tree_windows["env"].reset()
 	
 	fg.set_scene_name(a["name"])
-	graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
+	open_action_batch(true)
+	var r = await graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
 	if "camera" in dat and dat["camera"]:
@@ -925,6 +947,9 @@ func load_scene(from: String):
 	if ai_help_menu:
 		ai_help_menu.re_recv()
 	set_var("last_id", project_id)
+	await glob.wait(0.5)
+	
+	close_action_batch()
 	return true
 
 
@@ -1000,7 +1025,8 @@ func save(from: String):
 	var blob = Marshalls.raw_to_base64(bytes)
 	var acc = cookies.open_or_create("cached_projects/%s.scn" % from)
 	acc.store_var(bytes)
-	print("save...")
+	#print("save...")
+	#print(Graph.get_ctx_groups().keys())
 	#print(get_project_data())
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
@@ -1021,6 +1047,85 @@ func save_empty(from: String, name: String):
 	"name": name,
 	 "user": "n", 
 	"pass": "1"})
+
+
+var action_batch = []
+
+var is_redoing: bool = false
+var is_undoing: bool = false
+
+func is_auto_action() -> bool:
+	return is_redoing or is_undoing
+
+#func config_action(who: Graph, field: String):
+	#pass
+
+func add_action(undo: Callable, redo: Callable, ...args):
+	if is_auto_action(): return
+	if batch_permanent: return
+
+	var undo_callable = func():
+		is_undoing = true
+		undo.callv(args)
+		call_deferred("_end_auto_action", "undo")   # ← defer flag reset to next idle frame
+
+	var redo_callable = func():
+		is_redoing = true
+		redo.callv(args)
+		call_deferred("_end_auto_action", "redo")   # ← defer flag reset
+
+	if in_batch:
+		action_batch.append([redo_callable, undo_callable])
+	else:
+		undo_redo.create_action("Action")
+		undo_redo.add_do_method(redo_callable)
+		undo_redo.add_undo_method(undo_callable)
+		undo_redo.commit_action(false)
+
+
+func _end_auto_action(kind: String):
+	if kind == "undo":
+		is_undoing = false
+	elif kind == "redo":
+		is_redoing = false
+
+
+
+var in_batch: bool = false; var batch_permanent: bool = false
+func open_action_batch(permanent: bool = false):
+	in_batch = true; batch_permanent = permanent
+
+func close_action_batch():
+	if !batch_permanent:
+		undo_redo.create_action("Action")
+		var batch = action_batch.duplicate()
+		undo_redo.add_do_method(func():
+			for i in batch:
+				i[0].call())
+		undo_redo.add_undo_method(func():
+			#print("AA")
+			for i in batch:
+				i[1].call())
+		undo_redo.commit_action(false)
+		
+	action_batch.clear()
+	in_batch = false; batch_permanent = false
+
+
+
+
+func close_action(owner):
+	#print("clos")
+	var batch = action_batch.duplicate()
+	undo_redo.add_do_method(func():
+		for i in batch:
+			i[0].call())
+	undo_redo.add_undo_method(func():
+		#print("AA")
+		for i in batch:
+			i[1].call())
+	action_batch.clear()
+	undo_redo.commit_action(false)
 
 
 
@@ -1044,9 +1149,22 @@ func _window_scenes() -> Dictionary:
 	"ds": loaded("res://scenes/dataset_tab.tscn"),
 	}
 
+func connect_action(from: Connection, to: Connection):
+#	print("AA")
+	add_action(from.disconnect_from.bind(to, true), from.connect_to.bind(to, true))
+
+
+func disconnect_action(from: Connection, to: Connection):
+#	print("AA")
+	#print("ff")
+	add_action(from.connect_to.bind(to, true), from.disconnect_from.bind(to, true))
+
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
+	graphs.spline_connected.connect(connect_action)
+	#graphs.spline_disconnected.connect(disconnect_action)
+
 	OS.low_processor_usage_mode = true
 	splines_layer = CanvasLayer.new()
 	splines_layer.layer = -124

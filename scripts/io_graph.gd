@@ -11,7 +11,7 @@ class_name DynamicGraph
 @export var wait_enclose: bool = false
 @export var enclose_pad: float = 0.0
 
-@onready var _unit = unit.duplicate()
+@onready var _unit = unit.duplicate() if unit else null
 
 
 func _unit_modulate_updated(unit: Control, fin: bool = false, diss: bool = false):
@@ -19,9 +19,10 @@ func _unit_modulate_updated(unit: Control, fin: bool = false, diss: bool = false
 
 var connection_paths = []
 func _enter_tree():
-	for i in unit.get_children():
-		if i is Connection:
-			connection_paths.append(NodePath(i.name))
+	if unit:
+		for i in unit.get_children():
+			if i is Connection:
+				connection_paths.append(NodePath(i.name))
 
 @export var target_size: float = 94
 var total_size: float = 0.0
@@ -29,10 +30,10 @@ var hint_counter: int = 5
 var unit_script = null
 func _after_ready():
 	#total_size += input.size.y
-	
-	unit.queue_free()
-	unit_script = unit.get_script()
-	size_changed()
+	if unit:
+		unit.queue_free()
+		unit_script = unit.get_script()
+		size_changed()
 	#for i in 100:
 	#	add_unit({"text": "hif"})
 
@@ -61,6 +62,7 @@ func _unit_removal(id: int):
 	pass
 
 func remove_unit(id: int):
+	hold_for_frame()
 	_unit_removal(id)
 	var unit = units[id]; var dec = unit.size.y + padding
 	appear_units.erase(unit)
@@ -84,6 +86,7 @@ func remove_unit(id: int):
 
 var target_y: float = 0.0
 func add_unit(kw: Dictionary = {}, instant=false):
+	hold_for_frame()
 	if !instant:
 		add_q.append(_add_q.bind(kw))
 	else:
@@ -98,6 +101,7 @@ func _unit_just_added() -> void: # virtual
 	
 func _add_q(kw: Dictionary):
 	var new_unit = _get_unit(kw)
+	new_unit.set_meta("keyw", kw)
 	_adding_unit(new_unit, kw)
 	appear_units[new_unit] = true
 	new_unit.set_script(unit_script)

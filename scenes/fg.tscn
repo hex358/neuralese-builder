@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=34 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
@@ -15,9 +15,10 @@
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_4033n"]
 [ext_resource type="Texture2D" uid="uid://da35wdaqy728m" path="res://game_assets/icons/save.png" id="10_4mxf5"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
+[ext_resource type="Texture2D" uid="uid://cifmknshu7jyt" path="res://game_assets/icons/chat.png" id="11_x67tc"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="12_thedb"]
-[ext_resource type="Texture2D" uid="uid://cfllvhawyqi4x" path="res://game_assets/icons/wonder.png" id="12_x67tc"]
 [ext_resource type="PackedScene" uid="uid://bsbdls0nw0uf2" path="res://scenes/topr.tscn" id="14_v7s1j"]
+[ext_resource type="Script" uid="uid://bunhhg1bg443j" path="res://scripts/selector_box.gd" id="19_v7s1j"]
 
 [sub_resource type="Gradient" id="Gradient_5k5he"]
 interpolation_mode = 2
@@ -56,6 +57,26 @@ animation_speed = 2.657
 animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Gradient" id="Gradient_x67tc"]
+offsets = PackedFloat32Array(0, 0.75555557, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.7777778, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_v7s1j"]
+gradient = SubResource("Gradient_x67tc")
+height = 2
+fill_from = Vector2(1, 0)
+fill_to = Vector2(0, 0)
+
+[sub_resource type="Gradient" id="Gradient_luhqm"]
+offsets = PackedFloat32Array(0, 0.29777777, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.8977778, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_3pl03"]
+gradient = SubResource("Gradient_luhqm")
+height = 2
+fill_from = Vector2(1, 0)
+fill_to = Vector2(0, 0)
 
 [sub_resource type="Resource" id="Resource_x67tc"]
 script = ExtResource("10_5i506")
@@ -122,6 +143,21 @@ animation_speed = 1.951
 animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v7s1j"]
+shader = ExtResource("1_5k5he")
+shader_parameter/shape = 0
+shader_parameter/mult_tuning = Color(1, 1, 1, 1)
+shader_parameter/color_mult = Color(1, 1, 1, 0.6627451)
+shader_parameter/smoothness = 20.0
+shader_parameter/corner_radius = 8.0
+shader_parameter/blurred_background = true
+shader_parameter/outline_width = 0.0
+shader_parameter/mult = 1.0
+shader_parameter/blur_level = 1.5220004047949995
+shader_parameter/gaussian_mix = 0.822000039045
+shader_parameter/gaussian_step = 1.8990000902025
+shader_parameter/use_bg = false
+
 [node name="fg" type="CanvasLayer"]
 layer = 126
 
@@ -168,11 +204,11 @@ metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
 [node name="ColorRect3" type="TextureRect" parent="ColorRect"]
 layout_mode = 0
-offset_left = 9.0
-offset_top = 8.0
-offset_right = 49.0
-offset_bottom = 48.0
-scale = Vector2(1.0126857, 1.0126857)
+offset_left = 15.0
+offset_top = 13.0
+offset_right = 55.0
+offset_bottom = 53.0
+scale = Vector2(0.7817295, 0.7817295)
 texture = ExtResource("5_luhqm")
 
 [node name="Control" type="Control" parent="ColorRect"]
@@ -197,7 +233,7 @@ offset_top = 7.0000005
 offset_right = 381.24014
 offset_bottom = 43.0
 scale = Vector2(0.8889408, 0.8889408)
-pivot_offset = Vector2(21.069885, 18)
+pivot_offset = Vector2(20.620117, 18)
 color = Color(0.49019608, 0.627451, 0.83137256, 1)
 button_type = 1
 top = true
@@ -263,8 +299,8 @@ alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_5i506")
 
 [node name="i" type="Sprite2D" parent="ColorRect/Control/ai"]
-position = Vector2(21.795776, 17.999996)
-texture = ExtResource("12_x67tc")
+position = Vector2(22.920776, 19.12493)
+texture = ExtResource("11_x67tc")
 
 [node name="9" parent="ColorRect" instance=ExtResource("4_5k5he")]
 self_modulate = Color(1, 1, 1, 0)
@@ -278,7 +314,7 @@ offset_top = 2.9999995
 offset_right = 305.53223
 offset_bottom = 55.865612
 scale = Vector2(0.6480339, 0.6480339)
-pivot_offset = Vector2(30.766144, 26.432806)
+pivot_offset = Vector2(30.766136, 26.432806)
 color = Color(0.49019608, 0.627451, 0.83137256, 1)
 button_type = 1
 top = true
@@ -321,6 +357,32 @@ offset_left = 577.0
 offset_right = 617.0
 offset_bottom = 40.0
 
+[node name="minigamesbg" type="ColorRect" parent="ColorRect/Control3"]
+visible = false
+layout_mode = 0
+offset_left = -32.0
+offset_right = 89.0
+offset_bottom = 54.0
+color = Color(0.37, 0.37, 0.37, 0.20784314)
+
+[node name="graphsbg" type="TextureRect" parent="ColorRect/Control3"]
+visible = false
+self_modulate = Color(0.37, 0.37, 0.37, 0.22745098)
+layout_mode = 0
+offset_left = -174.0
+offset_right = -33.0
+offset_bottom = 54.0
+texture = SubResource("GradientTexture2D_v7s1j")
+
+[node name="dsbg" type="TextureRect" parent="ColorRect/Control3"]
+visible = false
+self_modulate = Color(0.36862746, 0.36862746, 0.36862746, 0.22745098)
+layout_mode = 0
+offset_left = 90.0
+offset_right = 211.0
+offset_bottom = 54.0
+texture = SubResource("GradientTexture2D_3pl03")
+
 [node name="graphs" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -330,14 +392,14 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -158.99997
-offset_top = -25.0
-offset_right = -80.422455
-offset_bottom = 0.0
+offset_left = -180.37042
+offset_top = -33.93629
+offset_right = -86.401855
+offset_bottom = 7.82753
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(1.2450968, 1.2450968)
-pivot_offset = Vector2(39.288757, 12.5)
+pivot_offset = Vector2(46.984283, 20.88191)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 0)
 button_type = 1
@@ -345,8 +407,8 @@ top = true
 hint = &"login"
 base_scale_x = 0.45
 resize_after = 9
-text = "Graphs"
-base_size = Vector2(78.577515, 25)
+text = "Sandbox"
+base_size = Vector2(93.96857, 41.76382)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -365,14 +427,14 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 67.0
-offset_top = -25.0
-offset_right = 145.57751
-offset_bottom = 0.0
+offset_left = 59.629517
+offset_top = -32.93629
+offset_right = 160.82654
+offset_bottom = 8.82753
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(1.2450968, 1.2450968)
-pivot_offset = Vector2(39.288773, 12.5)
+pivot_offset = Vector2(50.59851, 20.88191)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 0)
 button_type = 1
@@ -381,7 +443,7 @@ hint = &"login"
 base_scale_x = 0.45
 resize_after = 9
 text = "Datasets"
-base_size = Vector2(78.577515, 25)
+base_size = Vector2(101.19702, 41.76382)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -400,14 +462,14 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -48.370483
-offset_top = -25.0
-offset_right = 30.207031
-offset_bottom = 0.0
+offset_left = -59.37046
+offset_top = -32.93629
+offset_right = 36.20443
+offset_bottom = 8.02438
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(1.2450968, 1.2450968)
-pivot_offset = Vector2(39.288757, 12.5)
+pivot_offset = Vector2(47.787445, 20.480335)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 0)
 button_type = 1
@@ -415,8 +477,8 @@ top = true
 hint = &"login"
 base_scale_x = 0.45
 resize_after = 9
-text = "Minigames"
-base_size = Vector2(78.577515, 25)
+text = "Graphs"
+base_size = Vector2(95.57489, 40.96067)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -516,7 +578,21 @@ base_size = Vector2(71, 42)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
 
+[node name="ColorRect2" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_v7s1j")
+instance_shader_parameters/corner_radius_width_add = Vector2(0, 2)
+instance_shader_parameters/outline_color = Color(0.87, 0.87, 0.87, 0.76862746)
+instance_shader_parameters/tuning = Color(0.8, 0.8, 0.8, 0.21176471)
+offset_left = 240.0
+offset_top = 160.0
+offset_right = 280.0
+offset_bottom = 200.0
+color = Color(0.79, 0.965, 1, 1)
+script = ExtResource("19_v7s1j")
+lerp_speed = 35.0
+
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
+[connection signal="released" from="ColorRect/Control/export" to="ColorRect" method="_on_export_released"]
 [connection signal="released" from="ColorRect/Control/ai" to="ColorRect" method="_on_ai_released"]
 [connection signal="released" from="ColorRect/9" to="ColorRect" method="_on__released"]
 [connection signal="released" from="ColorRect/Control3/graphs" to="ColorRect" method="_on_graphs_released"]

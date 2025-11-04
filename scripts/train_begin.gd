@@ -1,7 +1,7 @@
 extends Graph
 
 func get_training_data():
-	return {"epochs": epochs if epochs else 1, "dataset": "mnist", "test_dataset": "1"}
+	return {"epochs": epochs if epochs else 1, "dataset": "mnist", "test_dataset": ""}
 
 @onready var clearbut = $train2
 
@@ -133,6 +133,8 @@ func _stopped_processing():
 	glob.set_scroll_possible(self)
 
 func _process(delta: float) -> void:
+	if glob.space_just_pressed:
+		print(graphs.get_syntax_tree(self))
 	super(delta)
 	if $ColorRect2.get_global_rect().has_point(get_global_mouse_position()) and vbox_vis():
 		glob.set_scroll_impossible(self)
@@ -168,3 +170,14 @@ func _on_train_released() -> void:
 		train_stop()
 	else:
 		train_start()
+
+
+func _on_train_2_released() -> void:
+	var anc
+	for i in graphs.simple_reach(self):
+		if graphs.is_node(i, "RunModel"):
+			var a = i.get_named_ancestor("ModelName")
+			if a:
+				anc = graphs.get_input_graph_by_name(a.cfg["name"])
+	if anc:
+		await web.POST("delete_ctx", {"user": "n", "pass": "1", "scene": str(glob.get_project_id()), "contexts": [str(anc.context_id)]})

@@ -145,7 +145,7 @@ func _process(delta: float) -> void:
 			1.0
 		) if !glob.is_occupied(self,&"scroll") else 0.0
 
-		if (graphs.dragged or graphs.conns_active) and glob.mouse_pressed and rise_mult and not ui.topr_inside:
+		if (graphs.dragged or graphs.conning()) and glob.mouse_pressed and rise_mult and not ui.topr_inside:
 			var dir = glob.window_middle.direction_to(display_mouse)
 			drag_move_vec = drag_move_vec.lerp(
 				1000 * delta * dir * rise_mult / min(1.5, zoom.x * 1.5),

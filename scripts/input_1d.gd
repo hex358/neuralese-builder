@@ -235,12 +235,16 @@ func push_values(values: Array, percent: bool = false):
 			unit_set(unit, 0.0, "0%")
 		else:
 			unit_set(unit, 0.0, "0.0")
-	var res = []
-	for i in units: 
-		res.append(i.get_meta("kw"))
-	manually = true
-	update_config({"input_features": res})
-	manually = false
+
+	if not undo_redo_opened and not glob.is_auto_action() and not manually:
+		var res = []
+		for i in units: 
+			res.append(i.get_meta("kw"))
+		open_undo_redo()
+		manually = true
+		update_config({"input_features": res})
+		close_undo_redo()
+		manually = false
 
 
 
@@ -278,6 +282,15 @@ func repr():
 func validate(pack: Dictionary):
 	return base_dt == pack.get("datatype", "") and pack.get("x", 0) == len(to_tensor())
 
+
+
+func set_state_open():
+	running = true
+	run_but.text_offset.x = 0
+	run_but.text = "Stop"
+
+
+
 var target_tab: String = ""
 func _after_process(delta: float):
 #	print(adding_size_y)
@@ -307,9 +320,19 @@ func _after_process(delta: float):
 	#print($input/tabs/class/Control.custom_minimum_size.y)
 
 func _unit_removal(id: int):
+	if not undo_redo_opened and not glob.is_auto_action() and not manually:
+		var res = []
+		for i in units: 
+			res.append(i.get_meta("kw"))
+		open_undo_redo()
+		manually = true
+		update_config({"input_features": res})
+		close_undo_redo()
+		manually = false
 	await get_tree().process_frame
 	if get_ancestor():
 		graphs.model_updated.emit(get_ancestor().cfg["name"])
+		
 
 func ch():
 	var target = graphs._reach_input(self)

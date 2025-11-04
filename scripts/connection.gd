@@ -19,10 +19,10 @@ func repoll_accepted():
 	accepted_datatypes = {}
 	if _accepted_datatypes:
 		for i in _accepted_datatypes.split(" "):
-			if not datatype:#connection_type == OUTPUT:
+			if not datatype:
 				datatype = i
 			accepted_datatypes[i] = true
-		#print(connection_type == OUTPUT)
+
 @export var hint: int = 0
 @export var server_name: StringName = "":
 	set(v):
@@ -39,7 +39,6 @@ func repoll_accepted():
 @export var dir_vector: Vector2 = Vector2.RIGHT
 
 @export var parent_graph: Graph
-# @onready var spline = glob.get_spline(self) if connection_type == OUTPUT else null
 
 var outputs: Dictionary[int, Spline] = {}
 var active_outputs: Dictionary[int, Spline] = {}
@@ -49,12 +48,46 @@ var connected: Dictionary[Connection, bool] = {}
 var mouse_just_pressed: bool = false
 var mouse_pressed: bool = false
 
+# ---- NEW: reversed (INPUT-started) temp spline state ----
+var _rev_spline: Spline = null
+var _rev_slot: int = -1
+
+func _rev_start():
+	# Create a temporary spline that visually starts at INPUT and follows the mouse
+	_rev_slot = randi_range(111111, 999999)
+	_rev_spline = glob.get_spline(self)
+	_rev_spline.turn_into(keyword)
+	_rev_spline.origin = self
+	# keep tied_to=self to reuse existing styling logic that expects a non-null tied_to
+	_rev_spline.tied_to = self
+	_rev_spline.show()
+	_rev_spline.end_dir_vec = dir_vector
+	#_rev_spline.
+	_stylize_spline(_rev_spline, false)
+	# advertise “there’s an INPUT-driven drag” for other connections via metadata
+	# (safe, doesn’t require changing the graphs singleton’s script)
+	graphs.rev_input = self
+	parent_graph.hold_for_frame()
+	#print("AAAA")
+
+func _rev_end():
+	if _rev_spline:
+		glob.deactivate_spline(_rev_spline)
+		_rev_spline.disappear()
+	_rev_spline = null
+	_rev_slot = -1
+	if graphs.rev_input == self:
+		graphs.rev_input = null
+
+func _rev_active() -> bool:
+	return _rev_spline != null
+
 func disconnect_all():
 	delete()
 
 func delete():
 	if connection_type == INPUT:
-		var dup =  inputs.duplicate()
+		var dup = inputs.duplicate()
 		for i in dup:
 			detatch_spline(i)
 			i.origin.end_spline(dup[i])
@@ -64,8 +97,6 @@ func delete():
 			end_spline(i)
 
 func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
-	# padded hit area
-	#if glob.is_consumed(self, "conn_mouse_inside"): return false
 	if padding == -Vector4.ONE:
 		padding = Vector4.ONE * 20 * pow(glob.cam.zoom.x, -0.5)
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
@@ -73,7 +104,6 @@ func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
 	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale
 	var padded_size = size * parent_graph.scale * scale + Vector2(padding.x+padding.z, padding.y+padding.w)
 	var has: bool = Rect2(top_left, padded_size).has_point(get_global_mouse_position())
-	#if has: glob.consume_input(self, "conn_mouse_inside")
 	return has
 
 func reposition_splines():
@@ -86,7 +116,6 @@ func reposition_splines():
 			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), spline.origin.dir_vector, dir_vector)
 
 func add_spline() -> int:
-	
 	var slot = randi_range(111111,999999)
 	var spline = glob.get_spline(self)
 	spline.turn_into(keyword)
@@ -101,6 +130,7 @@ func start_spline(id: int):
 	var node = spline.tied_to
 	if is_instance_valid(node):
 		node.inputs.erase(spline)
+	spline.set_meta("old_tied_to", spline.tied_to)
 	spline.tied_to = null
 	parent_graph.active_output_connections[self] = true
 	spline.show()
@@ -117,6 +147,8 @@ func end_spline(id, hide: bool = true):
 			spline = id; id = key_by_spline[id]
 		glob.deactivate_spline(spline)
 		var node = spline.tied_to
+		if spline.get_meta("old_tied_to"):
+			glob.disconnect_action(spline.origin, spline.get_meta("old_tied_to"))
 		if node:
 			node.detatch_spline(spline)
 		spline.disappear()
@@ -174,7 +206,6 @@ func detatch_spline(spline: Spline):
 	forget_spline(spline, other)
 	other.parent_graph.just_disconnected(other, self)
 
-
 var conn_counts: Dictionary = {&"": [0]}
 func _ready() -> void:
 	if !Engine.is_editor_hint() and !is_instance_valid(parent_graph):
@@ -191,6 +222,7 @@ func _exit_tree() -> void:
 	if glob.hovered_connection == self:
 		glob.hovered_connection = null
 	graphs.del_conn(self)
+	_rev_end() # ensure cleanup if the node disappears mid-drag
 
 func get_origin() -> Vector2:
 	var global_rect = get_global_rect().size
@@ -219,10 +251,9 @@ func _accepts(conn: Connection) -> bool:
 	return true
 
 const default_max_splines: int = 1
-func multiple(conn: Connection) -> bool:
-	# If multiple_splines is disabled → hard-limit to one spline total
+func multiple(conn: Connection, is_rev: bool = false) -> bool:
 	if not multiple_splines:
-		return outputs.size() == 0 or (active_outputs and active_outputs.keys()[0] == outputs.keys()[0])
+		return outputs.size() == 0 or (is_rev or (active_outputs and active_outputs.keys()[0] == outputs.keys()[0]))
 
 	var kw: StringName = conn.conn_count_keyword
 	var allowed: int = default_max_splines
@@ -243,13 +274,10 @@ func get_target() -> Connection:
 			return outputs.values()[0].tied_to
 	return null
 
-
 func disconnect_from(target: Connection, force: bool = false):
 	for i in outputs.duplicate():
 		if outputs[i].tied_to == target:
 			outputs[i].tied_to.detatch_spline(outputs[i])
-	#end_spline(i)
-
 
 func connect_to(target: Connection, force: bool = false) -> bool:
 	if not is_instance_valid(target) or target == self:
@@ -270,27 +298,20 @@ func connect_to(target: Connection, force: bool = false) -> bool:
 	var slot = add_spline()
 	start_spline(slot)
 	attach_spline(slot, target)
-	
 	return true
 
 func dtype(conn: Connection):
-	#if not !conn.accepted_datatypes: return true
-	#print(conn.accepted_datatypes)
 	if len(accepted_datatypes) == 1: return conn.accepted_datatypes.has(datatype)
 	for i in accepted_datatypes:
 		if i in conn.accepted_datatypes:
 			return true
 	return false
 
-
-func is_suitable(conn: Connection) -> bool:
-#	print((!conn.accepted_datatypes or conn.accepted_datatypes.has(datatype)))
-	#print(custom_expression.get_error_text())
-	#print(dtype(conn))
+func is_suitable(conn: Connection, is_rev: bool = false) -> bool:
 	var cond_1: bool = (conn and conn != self and conn.connection_type == INPUT
 		and dtype(conn)
 		and not conn.connected.has(self) and (conn.multiple_splines or len(conn.inputs) == 0 or conn.conn_count_keyword == &"router")
-		and multiple(conn) #conn_counts.get_or_add(conn.conn_count_keyword, [0])[0] < 1 or true or conn.conn_count_keyword == &"router"
+		and multiple(conn, is_rev)
 		and graphs.validate_acyclic_edge(self, conn)
 		and conn._accepts(self)
 		and _is_suitable(conn)
@@ -303,6 +324,7 @@ func is_suitable(conn: Connection) -> bool:
 		var other_input = graphs._reach_input(conn.parent_graph)
 		cond_1 = cond_1 and (not is_instance_valid(my_input) or not is_instance_valid(other_input) or my_input == other_input)
 	
+	#print(cond_1)
 	return cond_1
 
 @export var gradient_color: Color = Color.WHITE
@@ -311,11 +333,9 @@ func _stylize_spline(spline: Spline, hovered_suitable: bool, finalize: bool = fa
 	hovered_suitable = hovered_suitable and is_instance_valid(glob.hovered_connection)
 	if hovered_suitable:
 		spline.modulate = Color(1.1, 1.1, 1.1)
-		#spline.end_dir_vec = glob.hovered_connection.dir_vector
 		spline.turn_into(keyword, glob.hovered_connection.keyword)
 		spline.color_a = spline.origin.gradient_color
 	else:
-		#spline.end_dir_vec = -dir_vector
 		spline.modulate = Color(0.8,0.8,0.8)
 		spline.turn_into(keyword)
 		spline.color_a = Color.WHITE
@@ -333,25 +353,32 @@ func hover():
 @onready var base_modulate = modulate
 
 var low = {"detatch": true, "edit_graph": true}
+var cached_other_rev = null
+
 func _process(delta: float) -> void:
 	if not visible or not parent_graph.visible:
 		return
 
 	var inside := is_mouse_inside()
 
-	# Resolve 'some' active output connection (normally single drag)
 	var active_out: Connection = null
 	for k in graphs.conns_active:
 		active_out = k
 		break
 
+	var rev_input: Connection = graphs.rev_input
+
 	if inside:
 		graphs.register_conn_candidate(self, "activate")
+
 		if connection_type == INPUT and active_out != null:
 			if active_out.is_suitable(self):
 				graphs.register_conn_candidate(self, "hover")
 
-	if active_outputs:
+		if connection_type == OUTPUT and is_instance_valid(rev_input) and rev_input != self:
+			if is_suitable_callable_for_output_to_input(self, rev_input):
+				graphs.register_conn_candidate(self, "hover")
+	if active_outputs or _rev_active():
 		parent_graph.hold_for_frame()
 
 	mouse_pressed = glob.mouse_pressed
@@ -360,7 +387,6 @@ func _process(delta: float) -> void:
 	var unpadded := is_mouse_inside(Vector4())
 	if unpadded:
 		glob.set_menu_type(self, "detatch", low)
-		#print("f")
 	else:
 		glob.reset_menu_type(self, "detatch")
 
@@ -371,27 +397,35 @@ func _process(delta: float) -> void:
 	if chosen_activate:
 		if connection_type == OUTPUT and inside and not occ and not glob.is_consumed(self, "mouse_press"):
 			if mouse_just_pressed:
-				if not glob.is_occupied(self, &"menu_inside") and graphs.conns_active.is_empty() and (multiple_splines or outputs.size() == 0):
-					var nspline = add_spline()
-					start_spline(nspline)
-					glob.activate_spline(outputs[nspline])
+				if not glob.is_occupied(self, &"menu_inside") and !graphs.conning():
+					if (multiple_splines or outputs.size() == 0):
+						if !graphs.conning():
+							var nspline = add_spline()
+							start_spline(nspline)
+							glob.activate_spline(outputs[nspline])
+					elif is_instance_valid(cached_other_rev) and (!multiple_splines and outputs.size() == 1):
+						disconnect_from(cached_other_rev)
+						#cached_other_rev._rev_start()
+						#for spline in active_outputs.keys():
+						#	end_spline(spline)
 			elif glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(outputs, self)
 
-		elif connection_type == INPUT and inside and not occ and graphs.conns_active.is_empty() and (
+		elif connection_type == INPUT and inside and not occ and !graphs.conning() and (
 			not glob.is_occupied(self, "menu_inside") or glob.get_occupied(&"menu_inside").hint == "detatch"):
-			if glob.mouse_alt_just_pressed and unpadded:
+			if mouse_just_pressed and inputs.size() == 0 and not _rev_active():
+				_rev_start()
+			elif glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(inputs, self)
 			elif mouse_just_pressed and inputs:
 				var detatch = inputs.keys()[-1]
 				glob.activate_spline(detatch)
 				detatch_spline(detatch)
 
-	#print(glob.is_occupied(self, &"menu_inside"))
 	var to_end: Array = []
 	var to_attach: Array = []
 
-	if active_outputs:
+	if active_outputs or _rev_active():
 		glob.occupy(self, &"conn_active")
 	else:
 		glob.un_occupy(self, &"conn_active")
@@ -420,26 +454,38 @@ func _process(delta: float) -> void:
 	else:
 		parent_graph.active_output_connections.erase(self)
 
-	# Update active splines and decide on release
+
 	for id in active_outputs:
 		var spline = active_outputs[id]
 		spline.update_points(spline.origin.get_origin(), get_global_mouse_position(), dir_vector)
 
 		if not mouse_pressed:
-			# On mouse-up, attach iff there is a hover target AND it is suitable
 			if suit and is_instance_valid(hover_target):
 				glob.occupy(hover_target, &"conn_active")
 				to_attach.append(id)
-				# Keep the target graph alive while its highlight lerps
 				hover_target.parent_graph.hold_for_frame()
 			else:
-				# End only if NO hover target at all; prevents detach-to-void in overlaps
 				if not is_instance_valid(hover_target):
 					to_end.append(id)
 
 		_stylize_spline(spline, suit)
 
-	if is_instance_valid(hover_target) and suit and active_outputs:
+	if _rev_active():
+		var hovered_ok := is_instance_valid(hover_target) and hover_target.connection_type == OUTPUT \
+			and is_suitable_callable_for_output_to_input(hover_target, self)
+		_rev_spline.update_points(get_origin() + Vector2.RIGHT, get_global_mouse_position(), dir_vector, -dir_vector)
+
+		if not mouse_pressed:
+			if hovered_ok:
+				hover_target.connect_to(self)
+				hover_target.cached_other_rev = self
+				_rev_end()
+			else:
+				_rev_end()
+		else:
+			_stylize_spline(_rev_spline, hovered_ok)
+
+	if is_instance_valid(hover_target) and (suit or (_rev_active() and hover_target.connection_type == OUTPUT)):
 		hover_target.hover()
 		hover_target.parent_graph.hold_for_frame()
 
@@ -452,7 +498,13 @@ func _process(delta: float) -> void:
 
 	hovered = false
 
-
-
 var _last_hovered_conn: Connection = null
 var _last_suit: bool = false
+
+static func is_suitable_callable_for_output_to_input(out_conn: Connection, in_conn: Connection) -> bool:
+	if not is_instance_valid(out_conn) or not is_instance_valid(in_conn): return false
+	if out_conn == in_conn: return false
+	if out_conn.connection_type != OUTPUT or in_conn.connection_type != INPUT: return false
+#	print("asa")
+	#print(out_conn.is_suitable(in_conn, true))
+	return out_conn.is_suitable(in_conn, true)

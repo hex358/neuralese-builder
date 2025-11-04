@@ -475,6 +475,7 @@ func _process_dropout_menu(delta: float) -> void:
 		graph_root.hold_for_frame()
 	var inside = is_mouse_inside()
 	if inside:
+		#print("aa")
 		glob.occupy(self, "dropout_inside")
 		#print(global_position)
 	else:
@@ -542,7 +543,8 @@ func is_mouse_inside() -> bool:
 	var graph = graph if graph and graph is Graph else graph_root
 	if graph:
 		var cons = glob.get_consumed("mouse")
-		if cons and graph != cons: return false
+		#print(cons)
+		if cons and graph != cons and not (button_type == ButtonType.DROPOUT_MENU and current_type == ButtonType.CONTEXT_MENU): return false
 	if !top and (glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x): return false
 	var height = base_size.y if (
@@ -854,7 +856,7 @@ func menu_show(at_position: Vector2) -> void:
 		await get_tree().process_frame
 		update_children_reveal()
 		return
-	if graphs.conns_active: return
+	if graphs.conning(): return
 	if not _proceed_show(at_position): return
 	if glob.get_display_mouse_position().y < glob.space_begin.y: return
 	if button_type == ButtonType.CONTEXT_MENU and not secondary and _is_not_menu(): 
@@ -1005,7 +1007,7 @@ func _process_context_menu(delta: float) -> void:
 	right_click = right_click and non_splashed
 	right_pressed = right_pressed and non_splashed
 	left_pressed = left_pressed and non_splashed
-	if graphs.conns_active and button_type == ButtonType.DROPOUT_MENU:
+	if graphs.conning() and button_type == ButtonType.DROPOUT_MENU:
 		left_click = false
 		right_click = false
 	

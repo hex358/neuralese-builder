@@ -21,7 +21,9 @@ var upd: bool = false
 
 func _on_line_edit_changed() -> void:
 	upd = true
+	open_undo_redo()
 	update_config({"name": $LineEdit.text})
+	close_undo_redo()
 	upd = false
 
 func _just_connected(who: Connection, to: Connection):

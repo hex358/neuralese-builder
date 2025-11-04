@@ -31,6 +31,7 @@ script = ExtResource("2_jap0d")
 server_typename = &"DatasetName"
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
+&"meta": {},
 &"name": ""
 })
 

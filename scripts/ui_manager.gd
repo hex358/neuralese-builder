@@ -106,10 +106,12 @@ var splash_menus = {
 	"login": preload("res://scenes/splash.tscn"),
 	"signup": preload("res://scenes/signup.tscn"),
 	"scene_create": preload("res://scenes/scene_create.tscn"),
+	"dataset_create": preload("res://scenes/dataset_create.tscn"),
 	"works": preload("res://scenes/works.tscn"),
 	"project_create": preload("res://scenes/project_create.tscn"),
 	"ai_help": preload("res://scenes/ai_help.tscn"),
 	"select_dataset": preload("res://scenes/select_dataset.tscn"),
+	"model_export": preload("res://scenes/model_export.tscn"),
 }
 
 

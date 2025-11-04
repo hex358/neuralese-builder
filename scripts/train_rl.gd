@@ -89,7 +89,9 @@ func select_optimizer(name: StringName):
 	_opt_selected(name)
 
 func _on_optimizer_child_button_release(button: BlockComponent) -> void:
+	open_undo_redo()
 	update_config({"optimizer": button.hint})
+	close_undo_redo()
 	button.is_contained.menu_hide()
 
 func _on_loss_child_button_release(button: BlockComponent) -> void:
@@ -99,7 +101,9 @@ func push_acceptance(acc: float, time: float):
 	$ColorRect2.push_input(time, acc, $ColorRect2._window_end)
 
 func _on_lr_child_button_release(button: BlockComponent) -> void:
+	open_undo_redo()
 	update_config({"lr": int(button.hint)})
+	close_undo_redo()
 	button.is_contained.menu_hide()
 
 
@@ -158,4 +162,7 @@ func _set_alpha(n: CanvasItem, a: float) -> void:
 
 
 func _on_h_slider_value_changed(value: float) -> void:
+	open_undo_redo()
+	
 	update_config({"momentum": value / (100.0 / 0.9)})
+	close_undo_redo()

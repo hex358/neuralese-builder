@@ -1,4 +1,8 @@
-extends Graph
+extends BaseNeuronLayer
+
+func _useful_properties() -> Dictionary:
+	return {"config": {"p": cfg["p"], "type": "dropout"},
+	"cache_tag": str(graph_id)}
 
 @export var img_size: Vector2i = Vector2i(14,8)
 var img: Image
@@ -31,7 +35,9 @@ func _config_field(field: StringName, value: Variant):
 		get_noise()
 
 func _on_h_slider_value_changed(value: float) -> void:
+	open_undo_redo()
 	update_config({"p": value / 100})
+	close_undo_redo()
 
 func _ready() -> void:
 	super()

@@ -89,8 +89,10 @@ func _llm_config(prev: Dictionary) -> Dictionary:
 	var res = prev
 	res["branch_res"] = {}
 	for branch_str in prev["branches"].keys():
+		if not int(branch_str) in graphs._graphs: continue
 		res["branch_res"][graphs._graphs[int(branch_str)].get_title()] = prev["branches"][branch_str]
 	res["branches"] = res["branch_res"]
+	#print(res)
 	#print(res)
 	return res
 
@@ -101,7 +103,9 @@ func set_loss_type(of_id, loss: String, inner=false):
 		return
 	if not inner:
 		manually = true
+		open_undo_redo()
 		update_config_subfield({"branches": {str(of_id): loss}})
+		close_undo_redo()
 	#print(of_id, unit_keys)
 	
 	if of_id in unit_keys:
@@ -158,6 +162,9 @@ func _process(delta: float) -> void:
 	#if glob.space_just_pressed:
 	#	print(get_mapped())
 		#print(_useful_properties())
+
+func _just_deattached(other_conn: Connection, my_conn: Connection):
+	input_keys[0].disconnect_all()
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	if get_descendant():

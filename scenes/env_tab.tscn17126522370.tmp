@@ -209,8 +209,6 @@ grow_vertical = 0
 theme = ExtResource("5_ngk34")
 theme_override_font_sizes/normal_font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_wmv5u")
-deselect_on_focus_loss_enabled = false
-drag_and_drop_selection_enabled = false
 script = ExtResource("7_kuefa")
 
 [node name="train2" parent="Control/console" instance=ExtResource("6_o688u")]

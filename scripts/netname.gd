@@ -6,8 +6,15 @@ func _can_drag() -> bool:
 func _proceed_hold() -> bool:
 	return ui.is_focus($LineEdit)
 
+var do_push: bool = true
 func _just_connected(who: Connection, to: Connection):
 	if to.parent_graph.server_typename == "InputNode":
+		#print(graphs.get_input_graph_by_name(cfg["name"]))
+		if graphs.get_input_graph_by_name(cfg["name"]) and graphs.get_input_graph_by_name(cfg["name"]) != to:
+			#print("ret")
+			do_push = false
+			return
+		do_push = true
 		if cfg["name"]:
 			graphs.add_input_graph_name(to.parent_graph, cfg["name"])
 		#graphs.set_graph_name(graphs._reach_input(to.parent_graph), cfg["name"])
@@ -15,15 +22,20 @@ func _just_connected(who: Connection, to: Connection):
 		to.parent_graph.set_name_graph(cfg["name"])
 
 func _disconnecting(who: Connection, to: Connection):
-	if to.parent_graph.server_typename == "InputNode":
+	if to.parent_graph.server_typename == "InputNode" and do_push:
 		graphs.forget_input_graph(to.parent_graph)
 	if to.parent_graph.server_typename == "RunModel":
 		to.parent_graph.set_name_graph("")
 
 
 func _is_valid() -> bool:
-	var d = get_descendant()
+	var d = get_named_descendant("InputNode")
 	#print(d)
+	#if d and d.base_dt == "2d":
+		#if graphs.get_input_graph_by_name(cfg["name"]):
+		#	print(graphs.get_input_graph_by_name(cfg["name"]).base_dt)
+	if d and graphs.get_input_graph_by_name(cfg["name"]) and graphs.get_input_graph_by_name(cfg["name"]) != d:
+		return false
 	#print(graphs.input_graph_name_exists(cfg["name"]))
 	#print(graphs.input_graph_name_exists(cfg["name"]))
 	return (!d) or ((cfg["name"]) and ((d and d.server_typename == "InputNode") \
@@ -36,16 +48,19 @@ func _visualise_valid(ok: bool):
 	else:
 		$LineEdit.modulate = Color.INDIAN_RED
 
+var prev_name = ""
 func _config_field(field: StringName, value: Variant):
 	if field == "name":
 		if not upd:
 			$LineEdit.set_line(value)
 		var desc = get_first_descendants()
 		for dess in desc: #deltarune
-			if dess.server_typename == "InputNode":
+			if dess.server_typename == "InputNode" and do_push:
 				if value:
 					if graphs.has_named_input_graph(dess):
-						graphs.rename_input_graph(dess, value)
+						if prev_name and (dess == graphs.get_input_graph_by_name(prev_name)) and not graphs.get_input_graph_by_name(value):
+							#print(prev_name)
+							graphs.rename_input_graph(dess, value)
 						#print(graphs.input_graph_name_exists(cfg["name"]))
 					else:
 						graphs.add_input_graph_name(dess, value)
@@ -56,6 +71,7 @@ func _config_field(field: StringName, value: Variant):
 		for dess in desc: #deltarune
 			if dess.server_typename == "RunModel":
 				dess.set_name_graph(value)
+		prev_name = value
 
 func _ready() -> void:
 	super()
@@ -79,12 +95,13 @@ func _ready() -> void:
 		if reached and reached == graphs.get_input_graph_by_name(cfg["name"]):
 			await get_tree().process_frame
 			update_config({"name": cfg["name"]})
-		if is_instance_valid(x):
-			if x.parent_graph.server_typename == "ModelName":
+		if is_instance_valid(x) and do_push:
+			if x.parent_graph.server_typename == "ModelName" and x.parent_graph.do_push:
 				if y.parent_graph.server_typename == "InputNode" and cfg["name"] == x.parent_graph.cfg.get("name", ""):
 					
 					for i in get_first_descendants():
 						if i.server_typename == "RunModel":
+							#print(do_push)
 							i.set_name_graph("")
 	)
 
@@ -104,7 +121,9 @@ var upd: bool = false
 func _on_line_edit_changed() -> void:
 	upd = true
 	var old_name = cfg["name"]
+	open_undo_redo()
 	update_config({"name": $LineEdit.text})
+	close_undo_redo()
 	upd = false
 	for j in graphs.nodes_of_type("ModelName"):
 		if j == self: continue

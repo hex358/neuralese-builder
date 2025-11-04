@@ -29,7 +29,9 @@ anchors_preset = 0
 offset_right = 200.0
 offset_bottom = 50.0
 script = ExtResource("1_i4g46")
-server_typename = &"Dropout"
+layer_name = "Dropout"
+target_size = 39.0
+server_typename = &"NeuronLayer"
 area_padding = 0.0
 base_config = Dictionary[StringName, Variant]({
 &"p": 0.0

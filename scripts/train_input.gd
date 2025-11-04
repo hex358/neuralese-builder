@@ -6,7 +6,7 @@ extends Graph
 func _useful_properties() -> Dictionary:
 	return {
 		"config":{
-			"optimizer":"adam", "lr": 1e-3
+			"optimizer":"adam", "lr": 1e-3, "weight_decay": "1",
 		}
 	}
 
@@ -92,7 +92,9 @@ func select_optimizer(name: StringName):
 	_opt_selected(name)
 
 func _on_optimizer_child_button_release(button: BlockComponent) -> void:
+	open_undo_redo()
 	update_config({"optimizer": button.hint})
+	close_undo_redo()
 	button.is_contained.menu_hide()
 
 func _on_loss_child_button_release(button: BlockComponent) -> void:
@@ -102,7 +104,9 @@ func push_acceptance(acc: float, time: float):
 	$ColorRect2.push_input(time, acc, $ColorRect2._window_end)
 
 func _on_lr_child_button_release(button: BlockComponent) -> void:
+	open_undo_redo()
 	update_config({"lr": int(button.hint)})
+	close_undo_redo()
 	button.is_contained.menu_hide()
 
 func set_weight_dec(on: bool):
@@ -115,7 +119,9 @@ func set_weight_dec(on: bool):
 
 @onready var switch = $switch
 func _on_switch_released() -> void:
+	open_undo_redo()
 	update_config({"weight_decay": switch.text != "I"})
+	close_undo_redo()
 	#@set_weight_dec(switch.text != "I")
 
 func _map_properties(pack: Dictionary):
@@ -173,4 +179,7 @@ func _set_alpha(n: CanvasItem, a: float) -> void:
 
 
 func _on_h_slider_value_changed(value: float) -> void:
+	open_undo_redo()
+	#print("ff")
 	update_config({"momentum": value / (100.0 / 0.9)})
+	close_undo_redo()

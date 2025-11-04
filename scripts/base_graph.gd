@@ -71,8 +71,72 @@ func request_save():
 func _request_save(): # virtual
 	pass
 
+var _pending_undo_update: Dictionary = {}
+var _undo_timer: float = 0.0
+var undo_delay: float = 0.2
+var _undo_start_snapshot: Dictionary = {}
+var _undo_active: bool = false
+
+
+var undo_redo_opened: bool = false
+
+var right_away: bool = false
+func open_undo_redo(a: bool = false):
+	undo_redo_opened = true
+	right_away = a
+
+
+func close_undo_redo():
+	undo_redo_opened = false
+
+@onready var base_outline = rect.get_instance_shader_parameter("outline_color")
+var selected: bool = false
+func select():
+	selected = true
+	graphs.set_selected(self)
+	rect.set_instance_shader_parameter("outline_color", Color.YELLOW)
+
+func unselect():
+	selected = false
+	graphs.unselect(self)
+	rect.set_instance_shader_parameter("outline_color", base_outline)
+
+
 @onready var cfg: Dictionary[StringName, Variant] = base_config.duplicate()
 func update_config(update: Dictionary):
+	#print(update)
+	#print(update)
+	#print(glob.is_auto_action())
+	#print(update)
+	#print("=========")
+	#print_stack()
+	#if not update.get("label_names"):
+	#	print("=======")
+		#print_stack()
+	#print(update)
+	if undo_redo_opened and not in_abstraction and not glob.is_auto_action():
+		#print("aa")
+	#	print(update)
+		# Merge into pending updates
+		if not _undo_active:
+			_undo_start_snapshot = cfg.duplicate(true)
+			_undo_active = true
+
+		# Merge into pending updates
+		_pending_undo_update.merge(update.duplicate(true), true)
+		_undo_timer = undo_delay
+		if right_away:
+			#print("========")
+			#print_stack()
+			_undo_timer = 0
+			_commit_batched_undo()
+		#var reversion = {}
+		#for i in update:
+			#if i in cfg:
+				#reversion[i] = cfg[i]
+			#else:
+				#reversion[i] = base_config[i]
+		#glob.add_action(update_config.bind(reversion.duplicate(true)), update_config.bind(update.duplicate(true)))
 	cfg.merge(update, true)
 	for field in update:
 		_config_field(field, update[field])
@@ -83,12 +147,42 @@ func has_config_subfield(query: String) -> bool:
 	return cfg.has(splt[0]) and cfg[splt[0]].has(splt[1])
 
 func update_config_subfield(update: Dictionary):
+	if undo_redo_opened and not in_abstraction and not glob.is_auto_action():
+		var reversion = {}
+		var erasure = {}
+		for i in update:
+			reversion[i] = {}
+			for subfield in update[i]:
+				if not subfield in cfg[i]:
+					if not i in erasure: erasure[i] = {}
+					erasure[i][subfield] = true; continue
+				reversion[i][subfield] = cfg[i][subfield]
+		glob.add_action(
+			(func(): 
+				for i in erasure:
+					for subfield in erasure[i]:
+						cfg[i].erase(subfield)
+				update_config_subfield(reversion)
+				),
+			update_config_subfield.bind(update.duplicate(true)))
 	for field in update:
 		if !cfg.has(field): continue
 		cfg[field].merge(update[field], true)
 		for subfield in update[field]:
 			_config_field(field + "/" + subfield, update[field][subfield])
 	check_valid(update)
+
+func get_named_ancestor(named: String) -> Graph:
+	for j in get_first_ancestors():
+		if graphs.is_node(j, named):
+			return j
+	return null
+
+func get_named_descendant(named: String) -> Graph:
+	for j in get_first_descendants():
+		if graphs.is_node(j, named):
+			return j
+	return null
 
 func get_config_dict() -> Dictionary:
 	return cfg.duplicate(true)
@@ -167,6 +261,7 @@ func collect_component_nodes(root: Graph) -> Array:
 
 
 
+var in_abstraction: bool = false
 func just_connected(who: Connection, to: Connection):
 	var a: Graph = who.parent_graph
 	var b: Graph = to.parent_graph
@@ -220,9 +315,11 @@ func just_connected(who: Connection, to: Connection):
 	var merged_sub: int = a.subgraph_id
 	_set_subgraph_context(merged_sub, winning_ctx)
 
+	in_abstraction = true
 	graphs.update_dependencies()
 	_just_connected(who, to)
 	graphs.spline_connected.emit(who, to)
+	in_abstraction = false
 
 
 
@@ -279,7 +376,9 @@ func _visualise_valid(ok: bool):
 	pass
 
 func just_deattached(other_conn: Connection, my_conn: Connection):
+	in_abstraction = true
 	_just_deattached(other_conn, my_conn)
+	in_abstraction = false
 
 
 
@@ -292,7 +391,9 @@ var context_id: int = 0
 var subgraph_occupied: bool = false
 
 func just_attached(other_conn: Connection, my_conn: Connection):
+	in_abstraction = true
 	_just_attached(other_conn, my_conn)
+	in_abstraction = false
 
 func reload_config():
 	update_config(cfg.duplicate())
@@ -322,6 +423,7 @@ func _deattaching(other_conn: Connection, my_conn: Connection):
 	pass
 
 func just_disconnected(who: Connection, from: Connection):
+	in_abstraction = true
 	from.parent_graph.just_deattached(who, from)
 	_just_disconnected(who, from)
 
@@ -329,7 +431,7 @@ func just_disconnected(who: Connection, from: Connection):
 	var b: Graph = from.parent_graph
 	if is_instance_valid(a): a.mark_new_subgraph()
 	if is_instance_valid(b): b.mark_new_subgraph()
-
+	in_abstraction = false
 
 
 
@@ -611,7 +713,13 @@ func useful_properties() -> Dictionary:
 func _useful_properties() -> Dictionary:
 	return {}
 
+var invoked_with: Callable
+
 func _ready() -> void:
+	glob.add_action(delete, invoked_with)
+	#glob.open_action(self, "create_graph")
+	#glob.push_action(self, invoked_with, delete)
+	#glob.close_action(self)
 	#print("FWRJFPKWEPFJ")
 	if not llm_tag:
 		llm_tag = glob.get_llm_tag(self)
@@ -884,6 +992,8 @@ func drag_ended():
 func stopped_processing():
 	if glob.hovered_connection in input_key_by_conn:
 		glob.hovered_connection = null
+	#for i in output_key_by_conn:
+#		i.cached_other_rev = null
 	glob.reset_menu_type(self, &"edit_graph")
 	glob.un_occupy(self, &"graph")
 	drag_ended()
@@ -948,11 +1058,48 @@ func put_back():
 	putting_back = 0.0; global_position.y = putting_back_anchor - take_offset_y
 
 
+func push_position(pos: Vector2):
+	position = pos
+	reposition_splines()
+	hold_for_frame()
+
+
+func _commit_batched_undo():
+	if _undo_start_snapshot.is_empty():
+		return
+	#if glob.is_auto_action(): return
+	var reversion = {}
+	for i in _pending_undo_update:
+		if i in _undo_start_snapshot:
+			reversion[i] = _undo_start_snapshot[i]
+		else:
+			reversion[i] = base_config[i]
+
+	var before_state = reversion.duplicate(true)
+	var after_state = _pending_undo_update.duplicate(true)
+
+	glob.add_action(
+		update_config.bind(before_state),
+		update_config.bind(after_state)
+	)
+
+	_pending_undo_update.clear()
+	_undo_start_snapshot.clear()
+	_undo_active = false
+
+
+var first_drag: bool = false
+var beginned_at: Vector2 = Vector2()
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
 	exist_ticks += 1
-	if position != prev_graph_pos:
-		reposition_conns()
+	if _undo_timer > 0.0:
+		_undo_timer -= delta
+		hold_for_frame()
+		if _undo_timer <= 0.0 and not _pending_undo_update.is_empty():
+			_commit_batched_undo()
+	#if position != prev_graph_pos:
+	#	reposition_conns()
 	
 	animate(delta)
 #	graphs.store_delta(self)
@@ -992,6 +1139,7 @@ func _process(delta: float) -> void:
 	
 	var unp_inside = is_mouse_inside(0)
 	#print( glob.get_occupied(&"menu"))
+	#print(glob.is_occupied(self, &"dropout_inside"))
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not ui.topr_inside and 
@@ -1002,12 +1150,19 @@ func _process(delta: float) -> void:
 		not glob.is_occupied(self, &"dropout_inside") and
 		conn_free) and not dragging:
 		drag_start()
+		if not first_drag:
+			beginned_at = position
+			first_drag = true
 		dragging = true; attachement_position = global_position - get_global_mouse_position()
 	
 	if dragging:
 		hold_for_frame()
 		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
 			dragging = false
+			#print(position.distance_squared_to(beginned_at))
+			if 1:#position.distance_squared_to(beginned_at) > 1_000:
+				glob.add_action(push_position.bind(beginned_at), push_position.bind(position))
+				beginned_at = position
 			drag_ended()
 		else:
 			var vec = get_global_mouse_position() + attachement_position + Vector2(0, take_offset_y)

@@ -11,7 +11,9 @@ func _config_field(field: StringName, value: Variant):
 var selected_activation: StringName = &"none"
 func _on_color_rect_2_child_button_release(button: BlockComponent) -> void:
 	#button.is_contained.text = button.text
+	open_undo_redo()
 	update_config({"activ": button.hint})
+	close_undo_redo()
 	#selected_activation = button.hint
 	button.is_contained.menu_hide()
 

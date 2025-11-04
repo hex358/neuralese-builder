@@ -108,9 +108,10 @@ func update_grid(x: int, y: int):
 
 func _on_yy_submitted(new_text: String) -> void:
 	updating = true
-
+	open_undo_redo()
 	update_config({"group": int($YY.get_value())})
 	updating = false
+	close_undo_redo()
 
 var updating: bool = false
 func _on_yy_changed() -> void:

@@ -265,6 +265,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 	if not actions["connect_ports"] and not actions["change_nodes"] and\
 	not actions["delete_nodes"] and not actions["disconnect_ports"]:
 		return
+	nn.request_save()
 	ui.set_topr_text(txt)
 	#actions["connect_ports"][-1].remove_at(1)
 #	actions["connect_ports"][-1].remove_at(1)
@@ -277,6 +278,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 	var skip = []
 	var to_map = {}
 	# --- create or reuse nodes
+	glob.open_action_batch()
 	if actions["change_nodes"]:
 
 		for pack in actions["change_nodes"]:
@@ -429,6 +431,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 	
 	if has_structure_change:
 		_auto_layout(creating, to_rearrange, 100)
+	glob.close_action_batch()
 var _subgraph_slots: Array = []
 var _next_spawn_x: float = 0.0
 
