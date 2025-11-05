@@ -53,15 +53,14 @@ var _rev_spline: Spline = null
 var _rev_slot: int = -1
 
 func _rev_start():
-	# Create a temporary spline that visually starts at INPUT and follows the mouse
 	_rev_slot = randi_range(111111, 999999)
 	_rev_spline = glob.get_spline(self)
 	_rev_spline.turn_into(keyword)
 	_rev_spline.origin = self
-	# keep tied_to=self to reuse existing styling logic that expects a non-null tied_to
 	_rev_spline.tied_to = self
 	_rev_spline.show()
 	_rev_spline.end_dir_vec = dir_vector
+	_rev_spline.top_level = true
 	#_rev_spline.
 	_stylize_spline(_rev_spline, false)
 	# advertise “there’s an INPUT-driven drag” for other connections via metadata
@@ -69,6 +68,7 @@ func _rev_start():
 	graphs.rev_input = self
 	parent_graph.hold_for_frame()
 	#print("AAAA")
+	glob.activate_spline(_rev_spline, false)
 
 func _rev_end():
 	if _rev_spline:
@@ -82,10 +82,12 @@ func _rev_end():
 func _rev_active() -> bool:
 	return _rev_spline != null
 
-func disconnect_all():
-	delete()
+func disconnect_all(disconn: bool = true):
+	delete(disconn)
 
-func delete():
+var reg_actions: bool = true
+func delete(disconn: bool = true):
+	reg_actions = disconn
 	if connection_type == INPUT:
 		var dup = inputs.duplicate()
 		for i in dup:
@@ -95,6 +97,7 @@ func delete():
 		for i in outputs.duplicate():
 			outputs[i].tied_to.detatch_spline(outputs[i])
 			end_spline(i)
+	reg_actions = true
 
 func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
 	if padding == -Vector4.ONE:
@@ -105,15 +108,52 @@ func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
 	var padded_size = size * parent_graph.scale * scale + Vector2(padding.x+padding.z, padding.y+padding.w)
 	var has: bool = Rect2(top_left, padded_size).has_point(get_global_mouse_position())
 	return has
-
 func reposition_splines():
 	for id in outputs.keys():
 		var spline = outputs[id]
-		if is_instance_valid(spline.tied_to):
-			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), dir_vector, spline.tied_to.dir_vector)
+		var a = spline.origin
+		var b = spline.tied_to
+		if !is_instance_valid(b):
+			continue
+
+		var ga = a.parent_graph
+		var gb = b.parent_graph
+		var both_dragging = ga.is_being_group_dragged() and gb.is_being_group_dragged() and ga.group_drag_leader == gb.group_drag_leader
+		if both_dragging:
+			# just shift by the delta of origin since last frame
+			var cur = a.get_origin()
+			var prev = spline._last_origin_pos
+			var offset = cur - prev
+			spline.update_points_fast(offset)
+			spline._last_origin_pos = cur
+			spline._last_target_pos = b.get_origin()
+			continue
+
+		spline.update_points(a.get_origin(), b.get_origin(), dir_vector, b.dir_vector)
+		spline._last_origin_pos = a.get_origin()
+		spline._last_target_pos = b.get_origin()
+
 	for spline in inputs.keys():
-		if is_instance_valid(spline.origin) and is_instance_valid(spline.tied_to):
-			spline.update_points(spline.origin.get_origin(), spline.tied_to.get_origin(), spline.origin.dir_vector, dir_vector)
+		var a = spline.origin
+		var b = spline.tied_to
+		if !is_instance_valid(a) or !is_instance_valid(b):
+			continue
+
+		var ga = a.parent_graph
+		var gb = b.parent_graph
+		var both_dragging = ga.is_being_group_dragged() and gb.is_being_group_dragged() and ga.group_drag_leader == gb.group_drag_leader
+		if both_dragging:
+			var cur = b.get_origin()
+			var prev = spline._last_target_pos
+			var offset = cur - prev
+			spline.update_points_fast(offset)
+			spline._last_origin_pos = a.get_origin()
+			spline._last_target_pos = cur
+			continue
+
+		spline.update_points(a.get_origin(), b.get_origin(), a.dir_vector, dir_vector)
+		spline._last_origin_pos = a.get_origin()
+		spline._last_target_pos = b.get_origin()
 
 func add_spline() -> int:
 	var slot = randi_range(111111,999999)
@@ -148,7 +188,8 @@ func end_spline(id, hide: bool = true):
 		glob.deactivate_spline(spline)
 		var node = spline.tied_to
 		if spline.get_meta("old_tied_to"):
-			glob.disconnect_action(spline.origin, spline.get_meta("old_tied_to"))
+			if reg_actions:
+				glob.disconnect_action(spline.origin, spline.get_meta("old_tied_to"))
 		if node:
 			node.detatch_spline(spline)
 		spline.disappear()
@@ -183,6 +224,10 @@ func attach_spline(id: int, target: Connection):
 	parent_graph.just_connected(self, target)
 	target.parent_graph.just_attached(self, target)
 	end_spline(id, false)
+	spline._last_origin_pos = spline.origin.get_origin()
+	spline._last_target_pos = target.get_origin()
+	spline._cached_points = spline.baked.duplicate()
+
 
 func update_conn_id(new: int):
 	graphs.del_conn(self)
@@ -362,7 +407,7 @@ func _process(delta: float) -> void:
 	if not visible or not parent_graph.visible:
 		return
 
-	var inside := is_mouse_inside()
+	var inside = is_mouse_inside()
 
 	var active_out: Connection = null
 	for k in graphs.conns_active:
@@ -385,15 +430,16 @@ func _process(delta: float) -> void:
 		parent_graph.hold_for_frame()
 
 	mouse_pressed = glob.mouse_pressed
-	var not_occ := not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
+	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	mouse_just_pressed = glob.mouse_just_pressed and not_occ
-	var unpadded := is_mouse_inside(Vector4())
-	if unpadded:
-		glob.set_menu_type(self, "detatch", low)
-	else:
-		glob.reset_menu_type(self, "detatch")
+	var unpadded = is_mouse_inside(Vector4())
+	if graphs.selected_nodes.size() <= 1:
+		if unpadded:
+			glob.set_menu_type(self, "detatch", low)
+		else:
+			glob.reset_menu_type(self, "detatch")
 
-	var occ := glob.is_occupied(self, "conn_active")
+	var occ = glob.is_occupied(self, "conn_active")
 	var chosen_activate = graphs.chosen_conn("activate") == self
 	var hover_target: Connection = graphs.chosen_conn("hover")
 
@@ -433,7 +479,7 @@ func _process(delta: float) -> void:
 	else:
 		glob.un_occupy(self, &"conn_active")
 
-	var chosen_hover := (hover_target == self)
+	var chosen_hover = (hover_target == self)
 	if chosen_hover or hovered:
 		prog = 0
 		modulate = modulate.lerp(Color(1.5, 1.5, 1.5), delta * 23.0)
@@ -446,7 +492,7 @@ func _process(delta: float) -> void:
 		else:
 			modulate = base_modulate
 
-	var suit := false
+	var suit = false
 	if active_outputs:
 		if hover_target != _last_hovered_conn:
 			_last_hovered_conn = hover_target
@@ -474,7 +520,7 @@ func _process(delta: float) -> void:
 		_stylize_spline(spline, suit)
 
 	if _rev_active():
-		var hovered_ok := is_instance_valid(hover_target) and hover_target.connection_type == OUTPUT \
+		var hovered_ok = is_instance_valid(hover_target) and hover_target.connection_type == OUTPUT \
 			and is_suitable_callable_for_output_to_input(hover_target, self)
 		_rev_spline.update_points(get_origin() + Vector2.RIGHT, get_global_mouse_position(), dir_vector, -dir_vector)
 

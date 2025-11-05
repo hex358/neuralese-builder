@@ -15,6 +15,8 @@ func _ready() -> void:
 var q: bool = false
 func _process(delta: float) -> void:
 	#print(graphs.conning())
+	if not visible:
+		ui.selecting_box = false
 	if not graphs.conning():
 		q = true
 	else:
@@ -25,7 +27,8 @@ func _process(delta: float) -> void:
 	if glob.curr_window != "graph":
 		hide()
 	if q and not ui.active_splashed() and glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
-	and not graphs.dragged and not graphs.conning() and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y:
+	and not graphs.dragged and not graphs.conning() and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y \
+	and not glob.is_occupied(self, "graph_buffer"):
 		select_origin = get_global_mouse_position()
 		selecting = true
 		ui.selecting_box = true
@@ -64,7 +67,7 @@ func _process(delta: float) -> void:
 	size = size.lerp(target_size, lerp_speed * delta)
 	
 	#if (glob.mouse_alt_just_pressed or glob.mouse_just_pressed) and !visible and not glob.get_occupied("graph"):
-	#	graphs.unselect_all()
+		#graphs.unselect_all()
 	
 	if visible:
 		var raw = get_global_rect()

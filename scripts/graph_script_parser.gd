@@ -278,7 +278,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 	var skip = []
 	var to_map = {}
 	# --- create or reuse nodes
-	glob.open_action_batch()
+	glob.open_action_batch(true)
 	if actions["change_nodes"]:
 
 		for pack in actions["change_nodes"]:
@@ -332,7 +332,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 			if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
 				print("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
 				continue
-			print(graphs.get_input_graph_by_name("mnist_cnn"))
+			#print(graphs.get_input_graph_by_name("mnist_cnn"))
 			#if "_wait" in connection:
 			#	await get_tree().process_frame
 

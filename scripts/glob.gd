@@ -48,8 +48,9 @@ func get_spline(for_connection: Connection, keyword: StringName = &"default") ->
 	return new
 
 var splines_active = {}
-func activate_spline(spline: Spline):
-	splines_active[spline] = true
+func activate_spline(spline: Spline, add: bool = true):
+	if add:
+		splines_active[spline] = true
 	if spline.get_parent() == top_splines_layer: return
 	spline.reparent(top_splines_layer)
 
@@ -921,7 +922,6 @@ func load_scene(from: String):
 	if not "body" in answer: return
 	var a = JSON.parse_string(answer["body"].get_string_from_utf8())
 	if not a: return
-	set_var("last_id", 0)
 	if not "scene" in a: return
 	var dat = bytes_to_var(Marshalls.base64_to_raw(a["scene"]))
 	if !dat: return
@@ -931,6 +931,7 @@ func load_scene(from: String):
 	
 	fg.set_scene_name(a["name"])
 	open_action_batch(true)
+	set_var("last_id", 0)
 	var r = await graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
@@ -1060,9 +1061,19 @@ func is_auto_action() -> bool:
 #func config_action(who: Graph, field: String):
 	#pass
 
-func bound(callable: Callable, pos: Vector2):
-	var a = callable.call()
+func bound(callable: Callable, pos: Vector2, cfg: Dictionary):
+	var args = callable.get_bound_arguments().duplicate()
+	if args.size() < 2:
+		push_error("Not enough bound args")
+		return
+	args[1] = Graph.Flags.NONE
+	var base: Callable
+	if callable.get_method() != "":
+		base = Callable(callable.get_object(), callable.get_method())
+	var a = base.callv(args)
 	a.position = pos
+	a.update_config(cfg)
+
 
 func add_action(undo: Callable, redo: Callable, ...args):
 	if is_auto_action(): return
@@ -1154,6 +1165,24 @@ func rget_children(from_root: Node) -> Array:
 	return result
 
 
+func create_conns(conns):
+	#print(conns)
+	await get_tree().process_frame
+	for i in conns:
+		var from: Graph = graphs._graphs.get(i.from_id); var to: Graph = graphs._graphs.get(i.to_id)
+		if not (from and to): continue
+		if from.output_keys.has(i.from_port) and to.input_keys.has(i.to_port):
+			from.output_keys[i.from_port].connect_to(to.input_keys[i.to_port])
+
+func destroy_conns(conns):
+	for i in conns:
+		var from: Graph = graphs._graphs.get(i.from_id); var to: Graph = graphs._graphs.get(i.to_id)
+		if not (from and to): continue
+		if from.output_keys.has(i.from_port) and to.input_keys.has(i.to_port):
+			from.output_keys[i.from_port].disconnect_from(to.input_keys[i.to_port])
+
+
+
 func _window_scenes() -> Dictionary:
 	return {
 	"graph": $"../base/WIN_GRAPH",
@@ -1162,14 +1191,53 @@ func _window_scenes() -> Dictionary:
 	}
 
 func connect_action(from: Connection, to: Connection):
-#	print("AA")
-	add_action(from.disconnect_from.bind(to, true), from.connect_to.bind(to, true))
+	if not(from.reg_actions and to.reg_actions):
+		return
+
+	var from_id = from.parent_graph.graph_id
+	var to_id = to.parent_graph.graph_id
+	var from_port = from.hint
+	var to_port = to.hint
+
+	add_action(
+		func():
+			var f = graphs._graphs.get(from_id)
+			var t = graphs._graphs.get(to_id)
+			if is_instance_valid(f) and is_instance_valid(t):
+				if f.output_keys.has(from_port) and t.input_keys.has(to_port):
+					f.output_keys[from_port].disconnect_from(t.input_keys[to_port], true),
+		func():
+			var f = graphs._graphs.get(from_id)
+			var t = graphs._graphs.get(to_id)
+			if is_instance_valid(f) and is_instance_valid(t):
+				if f.output_keys.has(from_port) and t.input_keys.has(to_port):
+					f.output_keys[from_port].connect_to(t.input_keys[to_port], true)
+	)
 
 
 func disconnect_action(from: Connection, to: Connection):
-#	print("AA")
-	#print("ff")
-	add_action(from.connect_to.bind(to, true), from.disconnect_from.bind(to, true))
+	if not(from.reg_actions and to.reg_actions):
+		return
+	
+	var from_id = from.parent_graph.graph_id
+	var to_id = to.parent_graph.graph_id
+	var from_port = from.hint
+	var to_port = to.hint
+
+	add_action(
+		func():
+			var f = graphs._graphs.get(from_id)
+			var t = graphs._graphs.get(to_id)
+			if is_instance_valid(f) and is_instance_valid(t):
+				if f.output_keys.has(from_port) and t.input_keys.has(to_port):
+					f.output_keys[from_port].connect_to(t.input_keys[to_port], true),
+		func():
+			var f = graphs._graphs.get(from_id)
+			var t = graphs._graphs.get(to_id)
+			if is_instance_valid(f) and is_instance_valid(t):
+				if f.output_keys.has(from_port) and t.input_keys.has(to_port):
+					f.output_keys[from_port].disconnect_from(t.input_keys[to_port], true)
+	)
 
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()

@@ -2,6 +2,7 @@
 extends BlockComponent
 
 var menu_call: Callable
+var menu_call_alt: Callable
 func show_up(input: String, call: Callable):
 	text = input if len(input) <= 9 else input.substr(0, 9) + ".."
 	menu_call = call
@@ -12,5 +13,9 @@ func _process(delta: float) -> void:
 	super(delta)
 
 func _menu_handle_release(button: BlockComponent):
-	menu_call.call()
-	menu_hide()
+	if button.hint == "copy":
+		menu_call_alt.call()
+		menu_hide()
+	else:
+		menu_call.call()
+		menu_hide()

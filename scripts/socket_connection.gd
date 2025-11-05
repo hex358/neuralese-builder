@@ -61,6 +61,8 @@ func _poll() -> void:
 func send_json(json: Dictionary):
 	send(JSON.stringify(json, "", true, true).to_utf8_buffer())
 
+signal ack
+
 func send(bytes: PackedByteArray) -> void:
 	if _ws.get_ready_state() == WebSocketPeer.STATE_OPEN:
 		_ws.send(bytes)

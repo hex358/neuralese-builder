@@ -104,39 +104,20 @@ func unselect():
 
 @onready var cfg: Dictionary[StringName, Variant] = base_config.duplicate()
 func update_config(update: Dictionary):
-	#print(update)
-	#print(update)
-	#print(glob.is_auto_action())
-	#print(update)
-	#print("=========")
-	#print_stack()
-	#if not update.get("label_names"):
-	#	print("=======")
-		#print_stack()
-	#print(update)
+
 	if undo_redo_opened and not in_abstraction and not glob.is_auto_action():
-		#print("aa")
-	#	print(update)
-		# Merge into pending updates
+
 		if not _undo_active:
 			_undo_start_snapshot = cfg.duplicate(true)
 			_undo_active = true
 
-		# Merge into pending updates
 		_pending_undo_update.merge(update.duplicate(true), true)
 		_undo_timer = undo_delay
 		if right_away:
-			#print("========")
-			#print_stack()
+
 			_undo_timer = 0
 			_commit_batched_undo()
-		#var reversion = {}
-		#for i in update:
-			#if i in cfg:
-				#reversion[i] = cfg[i]
-			#else:
-				#reversion[i] = base_config[i]
-		#glob.add_action(update_config.bind(reversion.duplicate(true)), update_config.bind(update.duplicate(true)))
+
 	cfg.merge(update, true)
 	for field in update:
 		_config_field(field, update[field])
@@ -716,6 +697,7 @@ func _useful_properties() -> Dictionary:
 var invoked_with: Callable
 
 func _ready() -> void:
+	#print(graph_flags)
 	#print(invoked_with.get_bound_arguments())
 	glob.add_action(delete, invoked_with)
 	#glob.open_action(self, "create_graph")
@@ -807,17 +789,22 @@ func _context_policy(a: Graph, b: Graph, a_nodes: Array, b_nodes: Array) -> Grap
 
 
 func is_mouse_inside(rectangle: float = area_padding) -> bool:
-	# padded hit area
-	#if glob.is_consumed(self, "mouse"): return false
-	if glob.get_display_mouse_position().y < glob.space_begin.y\
-	or glob.get_display_mouse_position().x > glob.space_end.x: return false
-	var top_left = rect.global_position - Vector2.ONE*rectangle
-	var padded_size = rect.size + Vector2(rectangle, rectangle)*2
+	# Only the manager-chosen top graph may claim the mouse
+	if graphs.top_graph_at_mouse != self:
+		return false
+
+	if glob.get_display_mouse_position().y < glob.space_begin.y \
+	or glob.get_display_mouse_position().x > glob.space_end.x:
+		return false
+
+	var top_left = rect.global_position - Vector2.ONE * rectangle
+	var padded_size = rect.size + Vector2(rectangle, rectangle) * 2.0
 	var bounds = Rect2(top_left, padded_size)
 	var has: bool = bounds.has_point(get_global_mouse_position())
 	if has:
 		glob.consume_input(self, "mouse")
 	return has
+
 
 var dragging: bool = false
 var attachement_position: Vector2 = Vector2()
@@ -1023,7 +1010,6 @@ func drag_ended():
 
 	graphs.stop_drag(self)
 
-	# --- group drag finalize ---
 	if group_dragging and group_drag_leader == self:
 		# capture after positions for undo
 		var after_positions: Dictionary = {}
@@ -1031,7 +1017,6 @@ func drag_ended():
 			if not is_instance_valid(g): continue
 			after_positions[g] = g.position
 
-		# build one combined undo entry
 		var before_positions := group_drag_before_positions.duplicate(true)
 		glob.add_action(
 			(func():
@@ -1080,13 +1065,14 @@ func _stopped_processing():
 		#if i in output_key_by_conn:
 		#	glob.un_occupy(i, "conn_active")
 
-func delete():
+func delete(disconn: bool = true):
 	graphs.unselect(self)
 	_stopped_processing()
+	
 	for conn in output_key_by_conn:
-		conn.disconnect_all()
+		conn.disconnect_all(disconn)
 	for conn in input_key_by_conn:
-		conn.disconnect_all()
+		conn.disconnect_all(disconn)
 		#conn.dele
 		#for i in conn.outputs.duplicate():
 		#	conn.outputs[i].tied_to.detatch_spline(conn.outputs[i])
@@ -1144,6 +1130,8 @@ func push_position(pos: Vector2):
 
 func _commit_batched_undo():
 	if _undo_start_snapshot.is_empty():
+		return
+	if glob.is_auto_action() or glob.in_batch:
 		return
 	#if glob.is_auto_action(): return
 	var reversion = {}
@@ -1220,27 +1208,78 @@ func sync_group_visuals():
 			shadow.modulate.a = leader.shadow.modulate.a
 
 
+
+
+func get_inputs() -> Array[Spline]:
+	var res: Array[Spline] = []
+	for i in input_key_by_conn:
+		for input in i.inputs:
+			res.append(input)
+	#print(input_key_by_conn)
+	return res
+
+
+func get_outputs() -> Array[Spline]:
+	var res: Array[Spline] = []
+	for i in output_key_by_conn:
+		for o in i.outputs:
+			res.append(i.outputs[o])
+	#print(res)
+	return res
+
 func delete_call():
+	var res = []
+	var dup = graphs.selected_nodes.duplicate()
+	dup[self] = true
+	var existed = {}
+	for g: Graph in dup:
+		for i in g.get_inputs() + g.get_outputs():
+			var dict = {}
+			dict["from_id"] = i.origin.parent_graph.graph_id
+			dict["from_port"] = i.origin.hint
+			dict["to_id"] = i.tied_to.parent_graph.graph_id
+			dict["to_port"] = i.tied_to.hint
+			var val = ""
+			for j in dict.values():
+				val += str(j)
+				val += ":"
+			if val in existed: continue
+			existed[val] = true
+			res.append(dict)
+	#print(res)
 	if selected:
 		glob.open_action_batch()
-		for i in graphs.selected_nodes.keys():
+		for i in dup:
 			var pos = i.position
-			glob.add_action(glob.bound.bind(i.invoked_with, pos), 
-			i.delete)
-			#print(i)
-			i.delete()
+			var callb = graphs.get_graph.bind(i.get_meta("created_with"), Flags.NEW, i.graph_id, i.llm_tag)
+			glob.add_action(glob.bound.bind(callb, pos, i.cfg.duplicate(true)), 
+			graphs.delete_graph_by_id.bind(i.graph_id))
+			#print(i.get_title())
+			i.delete(false)
+		glob.add_action(glob.create_conns.bind(res), glob.destroy_conns.bind(res))
 		glob.close_action_batch()
 	else:
 		glob.open_action_batch()
 		var pos = position
-		glob.add_action(glob.bound.bind(invoked_with, pos), delete)
-		delete()
+		var callb = graphs.get_graph.bind(get_meta("created_with"), Flags.NEW, graph_id, llm_tag)
+		glob.add_action(glob.bound.bind(callb, pos, cfg.duplicate(true)), graphs.delete_graph_by_id.bind(graph_id))
+		
+		glob.add_action(glob.create_conns.bind(res), glob.destroy_conns.bind(res))
+		delete(false)
 		glob.close_action_batch()
+
+func copy():
+	request_save()
+	var a = graphs.get_graph(get_meta("created_with"), Graph.Flags.NEW)
+	a.position = position + rect.size / 2
+	await get_tree().process_frame
+	a.update_config(cfg.duplicate(true))
 
 
 var first_drag: bool = false
 var beginned_at: Vector2 = Vector2()
 func _process(delta: float) -> void:
+#	print(group_dragging)
 	if Engine.is_editor_hint(): return
 	var follower_in_group := group_dragging and group_drag_leader != null and group_drag_leader != self
 	exist_ticks += 1
@@ -1251,6 +1290,10 @@ func _process(delta: float) -> void:
 			_commit_batched_undo()
 	#if position != prev_graph_pos:
 	#	reposition_conns()
+	if rect.get_global_rect().grow(10.0).has_point(get_global_mouse_position()):
+		glob.occupy(self, "graph_buffer")
+	else:
+		glob.un_occupy(self, "graph_buffer")
 	
 	animate(delta)
 #	graphs.store_delta(self)
@@ -1268,6 +1311,9 @@ func _process(delta: float) -> void:
 		if glob.mouse_alt_just_pressed and not dragging:
 			glob.menus["edit_graph"].menu_call = func():
 				delete_call()
+			glob.menus["edit_graph"].menu_call_alt = func():
+				copy()
+				
 			glob.show_menu("edit_graph")
 	else:
 		glob.reset_menu_type(self, &"edit_graph")
@@ -1313,6 +1359,12 @@ func _process(delta: float) -> void:
 		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
 			dragging = false
 			# use combined undo for group (handled in drag_ended); for single, keep existing
+			if group_dragging and group_drag_leader == self:
+				for n in group_drag_nodes:
+					# keep their shadow fade in sync
+					if is_instance_valid(n.shadow):
+						n.shadow.modulate.a = shadow.modulate.a
+					n.reposition_splines()
 			if not group_dragging:
 				glob.add_action(push_position.bind(beginned_at), push_position.bind(position))
 				beginned_at = position
@@ -1362,6 +1414,11 @@ func is_valid() -> bool:
 	return false if invalid_fields else true
 
 var prev_graph_pos: Vector2 = position
+
+
+func is_being_group_dragged() -> bool:
+	return group_dragging or (group_drag_leader and group_drag_leader.group_dragging)
+
 
 func reposition_conns():
 	pass

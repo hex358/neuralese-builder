@@ -440,9 +440,10 @@ func _call_inference_task(name: String, input: Array, fut: LuaFuture) -> void:
 
 	if not nn.is_infer_channel(node):
 		var open_res = nn.open_infer_channel(node, node.close_runner)
-		await open_res.connected
-		while not open_res.is_listening():
-			await get_tree().process_frame
+		#await open_res.connected
+		#while not open_res.is_listening():
+		#	await get_tree().process_frame
+		await open_res.ack
 		await glob.wait(0.1)
 
 	var result = await nn.send_inference_data(node, useful, true)

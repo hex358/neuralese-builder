@@ -134,6 +134,20 @@ func _recolor_gradient() -> void:
 		line_2d.gradient.colors = _blended_colors
 
 
+var _last_origin_pos: Vector2
+var _last_target_pos: Vector2
+var _cached_points: PackedVector2Array
+var _group_drag_mode: bool = false
+
+func update_points_fast(offset: Vector2):
+	if baked.is_empty():
+		return
+	for i in range(baked.size()):
+		baked[i] += offset
+	line_2d.points = baked
+
+
+
 func update_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = null) -> void:
 	curve.clear_points()
 	mapping.get(keyword, default_points).call(start, end, start_dir, end_dir)

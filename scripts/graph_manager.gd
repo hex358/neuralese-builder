@@ -756,6 +756,30 @@ var graph_types = {
 	"dropout": gload("res://scenes/dropout.tscn"),
 }
 
+
+var top_graph_at_mouse: Graph = null
+
+func _top_graph_under_mouse(pad: float = 10.0) -> Graph:
+	var mouse := get_global_mouse_position()
+	var best: Graph = null
+	var best_z := -INF
+	for g in storage.get_children():
+		if g is Graph:
+			var r: ColorRect = g.rect
+			var tl := r.global_position - Vector2.ONE * pad
+			var sz := r.size + Vector2(pad, pad) * 2.0
+			if Rect2(tl, sz).has_point(mouse):
+				# Pick highest z_index
+				if g.z_index > best_z:
+					best_z = g.z_index
+					best = g
+	return best
+
+
+func delete_graph_by_id(id: int):
+	if id in _graphs:
+		_graphs[id].delete()
+
 var z_count: int = RenderingServer.CANVAS_ITEM_Z_MIN
 func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: String = "") -> Graph:
 	var type = graph_types[typename]
@@ -772,6 +796,7 @@ func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: St
 	new.invoked_with = get_graph.bind(typename, flags, id, tag)
 	storage.add_child(new)
 	add(new)
+	#storage.move_child(new, -1)
 	return new
 
 var graph_layers: Dictionary[int, CanvasLayer] = {}
@@ -824,29 +849,30 @@ func conning() -> bool:
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
-	#if glob.space_just_pressed:
-		#print(get_llm_summary())
-	# 1) Pick winners for both namespaces from last frame's candidates
+	if glob.get_occupied("graph_buffer") and glob.get_occupied("graph_buffer").process_mode == Node.PROCESS_MODE_DISABLED:
+		glob.un_occupy(glob.get_occupied("graph_buffer"), "graph_buffer")
+
 	choose_conn_under_mouse("activate")
 	choose_conn_under_mouse("hover")
 
-	# 2) Publish hover winner globally (single source of truth)
-	var prev := glob.hovered_connection
-	var now  := chosen_conn("hover")
+	var prev = glob.hovered_connection
+	var now = chosen_conn("hover")
 	if prev != now:
 		glob.hovered_connection_changed = true
-		# Make sure the previously hovered connection's graph keeps processing
 		if is_instance_valid(prev) and is_instance_valid(prev.parent_graph):
 			prev.parent_graph.hold_for_frame()
 	glob.hovered_connection = now
-	# Also keep the *current* hovered graph alive while it lerps brighter
 	if is_instance_valid(now) and is_instance_valid(now.parent_graph):
 		now.parent_graph.hold_for_frame()
 
-	# 3) Expose winners and clear candidate arrays
 	advance_conn_frame("activate")
 	advance_conn_frame("hover")
-	
+
+	top_graph_at_mouse = _top_graph_under_mouse( 0 )
+
+	if is_instance_valid(top_graph_at_mouse):
+		top_graph_at_mouse.hold_for_frame()
+
 	if not last_frame_visible: 
 		last_frame_visible = visible; return
 	last_frame_visible = visible

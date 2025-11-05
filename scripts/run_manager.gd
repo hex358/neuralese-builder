@@ -68,18 +68,22 @@ func stop_train(train_input: Graph):
 
 var inference_sockets := {}
 
-func _infer_state_received(bytes: PackedByteArray):
+func _infer_state_received(bytes: PackedByteArray, ws: SocketConnection):
 	var _dict = JSON.parse_string(bytes.get_string_from_utf8())
 	var outs = {}
-	if _dict and "result" in _dict and _dict["result"] is Dictionary:
-		for i in _dict["result"]:
-			var node: Graph = graphs._graphs.get(int(i))
-			if not node: continue
-			for to_push in _dict["result"][i].values():
-				if node.is_head:
-					var flattened = glob.flatten_array(to_push)
-					node.push_values(flattened, node.per)
-					outs[node.get_title()] = flattened
+	if _dict and _dict is Dictionary:
+		if "ack" in _dict:
+			#print("ACK")
+			ws.ack.emit()
+		if "result" in _dict and _dict["result"] is Dictionary:
+			for i in _dict["result"]:
+				var node: Graph = graphs._graphs.get(int(i))
+				if not node: continue
+				for to_push in _dict["result"][i].values():
+					if node.is_head:
+						var flattened = glob.flatten_array(to_push)
+						node.push_values(flattened, node.per)
+						outs[node.get_title()] = flattened
 	return outs
 	#print(_dict)
 
@@ -100,12 +104,12 @@ func open_infer_channel(input: Graph, on_close: Callable = glob.def):
 		"context": str(input.context_id),
 	}
 	input.set_state_open()
-	#print(init_payload)
-	var sock = sockets.connect_to("ws/infer", (func(bytes: PackedByteArray):
-		var outs = _infer_state_received(bytes)
-		infer_clear(input, outs)
-		),
+	var sock = sockets.connect_to("ws/infer", Callable(),
 	 cookies.get_auth_header())
+	sock.packet.connect((func(bytes: PackedByteArray):
+		var outs = _infer_state_received(bytes, sock)
+		infer_clear(input, outs)
+		))
 	inference_sockets[input] = sock
 	sock.connected.connect(func() -> void:
 		sock.send(glob.compress_dict_zstd(init_payload))
