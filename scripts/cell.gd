@@ -6,7 +6,9 @@ extends Control
 
 signal changed
 
-# Base serialization entry point
+func _ready() -> void:
+	_resized()
+
 func get_data() -> Dictionary:
 	var base_data = {"type": cell_type}
 	base_data.merge(_get_data())

@@ -1,7 +1,6 @@
 [gd_scene load_steps=34 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
-[ext_resource type="Material" uid="uid://csd0434htqs0o" path="res://resources/panels_mat.tres" id="1_s7ao5"]
 [ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="3_xwiyo"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="4_5k5he"]
@@ -19,6 +18,21 @@
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="12_thedb"]
 [ext_resource type="PackedScene" uid="uid://bsbdls0nw0uf2" path="res://scenes/topr.tscn" id="14_v7s1j"]
 [ext_resource type="Script" uid="uid://bunhhg1bg443j" path="res://scripts/selector_box.gd" id="19_v7s1j"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x67tc"]
+shader = ExtResource("1_5k5he")
+shader_parameter/shape = 0
+shader_parameter/mult_tuning = Color(1, 1, 1, 1)
+shader_parameter/color_mult = Color(1, 1, 1, 1)
+shader_parameter/smoothness = 20.0
+shader_parameter/corner_radius = 0.0
+shader_parameter/blurred_background = true
+shader_parameter/outline_width = 0.0
+shader_parameter/mult = 1.5
+shader_parameter/blur_level = 3.870000183825
+shader_parameter/gaussian_mix = 1.0
+shader_parameter/gaussian_step = 1.8790000892525
+shader_parameter/use_bg = false
 
 [sub_resource type="Gradient" id="Gradient_5k5he"]
 interpolation_mode = 2
@@ -162,7 +176,7 @@ shader_parameter/use_bg = false
 layer = 126
 
 [node name="ColorRect" type="ColorRect" parent="." node_paths=PackedStringArray("menus")]
-material = ExtResource("1_s7ao5")
+material = SubResource("ShaderMaterial_x67tc")
 instance_shader_parameters/outline_color = Color(0.47, 0.47, 0.47, 0.521569)
 instance_shader_parameters/tuning = Color(0.3, 0.3, 0.3, 0.64705884)
 offset_left = -1.0

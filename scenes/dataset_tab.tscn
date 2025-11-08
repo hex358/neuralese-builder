@@ -280,7 +280,10 @@ content_margin = Vector4(0, 0, 0, 0)
 column_ratios = PackedFloat32Array(0.333, 0.333, 0.333)
 hscrollbar = NodePath("HScrollBar")
 column_width_mode = 0
-max_total_width_scale = 3.0
+max_total_width_scale = 1.3
+min_total_column_ratio = 0.30000000000000004
+min_column_width = 10.0
+min_vgrabber_ratio = 0.04
 
 [node name="VScrollBar" type="VScrollBar" parent="Control/CodeEdit"]
 z_index = 90

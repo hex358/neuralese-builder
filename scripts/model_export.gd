@@ -11,6 +11,10 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	super(delta)
 
+func _splash():
+	if $ColorRect/Label.text:
+		$ColorRect/Label.update_valid()
+
 func quit(data: Dictionary = {}):
 	quitting.emit()
 	if can_go:

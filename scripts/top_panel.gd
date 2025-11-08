@@ -7,9 +7,11 @@ func _enter_tree() -> void:
 	glob.fg = self
 
 func show_back():
+	material.set_shader_parameter("use_bg", true)
 	$back.show()
 
 func hide_back():
+	material.set_shader_parameter("use_bg", false)
 	$back.hide()
 
 func _ready() -> void:
