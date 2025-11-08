@@ -1145,6 +1145,7 @@ func bound(callable: Callable, pos: Vector2, cfg: Dictionary):
 	var a = base.callv(args)
 	a.position = pos
 	a.update_config(cfg)
+	a.select()
 
 
 func add_action(undo: Callable, redo: Callable, ...args):

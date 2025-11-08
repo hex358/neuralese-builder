@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://bu8yc76xlia1j"]
+[gd_scene load_steps=11 format=3 uid="uid://bu8yc76xlia1j"]
 
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="1_lh7aj"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="2_rr0bu"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="4_f8omn"]
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="5_15ju3"]
 [ext_resource type="Script" uid="uid://ynrhp2d5ge1o" path="res://scripts/detatch.gd" id="6_f8omn"]
+[ext_resource type="PackedScene" uid="uid://cuuew2v4inm7k" path="res://scenes/dataset_tab.tscn" id="7_f8omn"]
 
 [sub_resource type="Resource" id="Resource_qn57x"]
 script = ExtResource("2_rr0bu")
@@ -112,7 +113,7 @@ base_size = Vector2(99, 36)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("4_f8omn")
 
-[node name="loss" parent="." node_paths=PackedStringArray("graph_root") instance=ExtResource("1_lh7aj")]
+[node name="loss" parent="." instance=ExtResource("1_lh7aj")]
 z_index = 1
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -133,12 +134,11 @@ menu_name = &"g"
 dynamic_size = true
 max_size = 70
 config = SubResource("Resource_pf6i0")
-graph_root = NodePath("")
 lerp_size_offset = -4.0
 arrange_offset = -8.0
 auto_ready = false
 
-[node name="ColorRect3" parent="loss" node_paths=PackedStringArray("graph_root") instance=ExtResource("1_lh7aj")]
+[node name="ColorRect3" parent="loss" instance=ExtResource("1_lh7aj")]
 visible = false
 material = SubResource("ShaderMaterial_naukw")
 instance_shader_parameters/corner_radius_width_add = Vector2(-1, 0.3)
@@ -159,14 +159,14 @@ text = "CrossE"
 base_size = Vector2(120, 36)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("4_f8omn")
-graph_root = NodePath("")
 auto_ready = false
 
-[node name="Proc" type="Node" parent="loss" node_paths=PackedStringArray("instance", "parent_easy")]
+[node name="Proc" type="Node" parent="loss" node_paths=PackedStringArray("instance")]
 script = ExtResource("6_f8omn")
 easy = true
 instance = NodePath("../ColorRect3")
 parent_call = "class_unroll"
-parent_easy = NodePath("")
 one_shot = true
 metadata/_custom_type_script = "uid://cppqde4187p8n"
+
+[node name="Control" parent="." instance=ExtResource("7_f8omn")]

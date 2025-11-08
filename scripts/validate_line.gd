@@ -7,6 +7,7 @@ class_name ValidInput
 
 @export var resize_after: int = 0
 @export var auto_red: bool = false
+@export var scale_fix: bool = false
 func _ready() -> void:
 	
 	text_changed.connect(_input_changed)
@@ -33,8 +34,27 @@ func get_value():
 func _get_value():
 	return ""
 
+@onready var base_scale = scale
+@onready var base_pos = position
+@onready var base_olx = offset_left
+@onready var base_orx = offset_right
 func _process(delta: float) -> void:
-	pass
+	if scale_fix:
+		var parent = get_parent()
+		var s = base_scale.x
+		#anchor_left = 0.0
+		#anchor_right = 1.0
+		#anchor_top = 1.0
+		#anchor_bottom = 1.0
+		offset_left = 0.0
+		offset_right = 0.0
+
+		size.x = (parent.size.x) / s-28
+		position.x = base_pos.x
+
+
+
+
 
 @onready var base_text_color = get_theme_color(&"font_color")
 func set_text_color(color: Color):
@@ -117,20 +137,20 @@ func _string_width_px(s: String, fs: int) -> float:
 func _resize_label():
 	if monospaced:
 		_resize_monospace(); return
-	var s := text
+	var s = text
 	if s.is_empty() or resize_after <= 0:
 		add_theme_font_size_override("font_size", base_font_size)
 		return
-	var limit_px := float(resize_after)
-	var sb := get_theme_stylebox("normal", "LineEdit")
+	var limit_px = float(resize_after)
+	var sb = get_theme_stylebox("normal", "LineEdit")
 	if sb:
 		limit_px -= (sb.get_content_margin(SIDE_LEFT) + sb.get_content_margin(SIDE_RIGHT))
-	var w := _font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1.0, base_font_size).x
+	var w = _font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1.0, base_font_size).x
 	if w <= limit_px:
 		add_theme_font_size_override("font_size", base_font_size)
 		return
 	var ratio = clamp(limit_px / max(1.0, w), 0.05, 1.0)
-	var new_fs := int(floor(base_font_size * ratio))
+	var new_fs = int(floor(base_font_size * ratio))
 	add_theme_font_size_override("font_size", max(6, new_fs))
 
 

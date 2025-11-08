@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://cuuew2v4inm7k"]
+[gd_scene load_steps=27 format=3 uid="uid://cuuew2v4inm7k"]
 
 [ext_resource type="Script" uid="uid://cir1i2gbr8pjh" path="res://scripts/dataset_tab.gd" id="1_hsuaq"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_fn1yt"]
@@ -16,6 +16,8 @@
 [ext_resource type="Script" uid="uid://cpdndxaic5xca" path="res://scripts/virtualt.gd" id="13_bwfib"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="14_bwfib"]
 [ext_resource type="Texture2D" uid="uid://cc0gwf51gfory" path="res://game_assets/icons/hide.png" id="14_empbn"]
+[ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="17_wg51w"]
+[ext_resource type="Theme" uid="uid://6b4rxqrmq3yb" path="res://resources/theme_no_aa.tres" id="18_6hcr6"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epnia"]
 shader = ExtResource("5_rckiu")
@@ -70,14 +72,56 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hsuaq"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wg51w"]
 content_margin_left = 8.0
 content_margin_top = 29.0
 content_margin_bottom = 8.0
 bg_color = Color(0.12, 0.12, 0.12, 1)
 
-[node name="Control" type="Node2D" node_paths=PackedStringArray("camera")]
+[sub_resource type="Resource" id="Resource_hsuaq"]
+script = ExtResource("11_j7vbt")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.0
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 1.0
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rckiu"]
+bg_color = Color(0.3, 0.29880002, 0.27600002, 0.5137255)
+border_color = Color(0.8, 0.8, 0.8, 0)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+anti_aliasing_size = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mbiqq"]
+bg_color = Color(0.35, 0.345275, 0.31849998, 0.5137255)
+border_color = Color(0.8, 0.8, 0.8, 0)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 5.0
+expand_margin_top = 5.0
+expand_margin_right = 5.0
+expand_margin_bottom = 5.0
+anti_aliasing_size = 2.0
+
+[node name="Control" type="Node2D" node_paths=PackedStringArray("line_edit", "console", "camera")]
 script = ExtResource("1_hsuaq")
+line_edit = NodePath("Control/LineEdit")
+console = NodePath("Control/console")
 window_name = "ds"
 camera = NodePath("Camera2D")
 
@@ -273,6 +317,7 @@ anchors_preset = 0
 offset_left = 188.5
 offset_right = 913.0
 offset_bottom = 558.0
+theme = ExtResource("2_fn1yt")
 script = ExtResource("13_bwfib")
 vscrollbar = NodePath("VScrollBar")
 spawn_delay_threshold = 7000.0
@@ -283,6 +328,8 @@ column_width_mode = 0
 max_total_width_scale = 1.3
 min_total_column_ratio = 0.30000000000000004
 min_column_width = 10.0
+header_width = 28.0
+column_names = Array[String](["Input", "Output"])
 min_vgrabber_ratio = 0.04
 
 [node name="VScrollBar" type="VScrollBar" parent="Control/CodeEdit"]
@@ -317,14 +364,74 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 188.5
-offset_top = -81.0
+offset_top = -95.0
 offset_right = 188.5
+offset_bottom = -41.0
 grow_horizontal = 2
 grow_vertical = 0
 theme = ExtResource("14_bwfib")
 theme_override_font_sizes/normal_font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_hsuaq")
-text = "heyyyy"
+theme_override_styles/normal = SubResource("StyleBoxFlat_wg51w")
+text = "heyyyy
+ggg
+gg
+jjj
+jjj
+"
+
+[node name="train2" parent="Control/console" instance=ExtResource("8_jf34i")]
+z_index = 5
+instance_shader_parameters/corner_radius_width_add = Vector2(-8, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 6.5
+offset_top = 6.0
+offset_right = 57.476013
+offset_bottom = 25.339554
+scale = Vector2(1.091957, 1.091957)
+pivot_offset = Vector2(25.488007, 9.669777)
+mouse_filter = 1
+color = Color(0.59, 0.59, 0.59, 1)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 4
+text = "Clear"
+base_size = Vector2(50.976013, 19.339554)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_hsuaq")
+in_splash = true
+
+[node name="LineEdit" parent="Control" instance=ExtResource("17_wg51w")]
+z_index = 90
+layout_mode = 0
+offset_left = 194.99998
+offset_top = 478.0
+offset_right = 884.6411
+offset_bottom = 524.0
+scale = Vector2(0.61295277, 0.61295277)
+theme = ExtResource("18_6hcr6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_rckiu")
+theme_override_styles/focus = SubResource("StyleBoxFlat_mbiqq")
+placeholder_text = "Feature name"
+max_length = 14
+context_menu_enabled = false
+
+[node name="ColorRect" type="ColorRect" parent="Control"]
+z_index = -1
+layout_mode = 0
+offset_left = -145.0
+offset_top = 419.0
+offset_right = 1333.0
+offset_bottom = 1161.0
+mouse_filter = 2
+color = Color(0.12156863, 0.12156863, 0.12156863, 1)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 scale = Vector2(2.1270475, 2.1270475)

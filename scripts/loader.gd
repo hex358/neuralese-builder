@@ -4,16 +4,15 @@ extends Control
 
 func _ready() -> void:
 	var data := []
-	for r in 100_000:
+	for r in 10000:
 		var row := []
-		row.append({"type": "text", "text": str(r)})
 		for c in 2:
 			row.append({"type": "text", "text": "R%s C%s" % [r, c]})
 		data.append(row)
 
-	table.load_dataset(data, 3, 100000)
+	table.load_dataset(data, 2, 10000)
 	
-	table.set_column_ratios(PackedFloat32Array([0.1, 0.45, 0.45]))
+	table.set_column_ratios(PackedFloat32Array([0.5, 0.5]))
 
 func _process(delta: float) -> void:
 	if glob.space_just_pressed:

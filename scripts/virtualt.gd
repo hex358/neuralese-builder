@@ -13,6 +13,9 @@ var _scroll_cooldown: float = 0.0
 @onready var _content_area: Control = Control.new()
 const max_pool: int = 256
 @export var content_margin: Vector4 = Vector4(4, 4, 4, 4)
+@onready var _overlay: TableOverlay = TableOverlay.new()
+
+
 
 @export var column_ratios: PackedFloat32Array = PackedFloat32Array([])
 @export var hscrollbar: HScrollBar
@@ -21,6 +24,23 @@ enum ColumnWidthMode { FIT, RELAXED, FIXED }
 @export_range(0.1, 3.0, 0.1) var max_total_width_scale: float = 1.25
 @export_range(0.1, 3.0, 0.1) var min_total_column_ratio: float = 1.0
 @export_range(10.0, 2000.0, 1.0) var min_column_width: float = 48.0
+
+@export_group("Header")
+# Pseudo-header/column color configuration
+@export var header_bg_color: Color = Color(0.08, 0.08, 0.08, 1.0)
+@export var header_text_color: Color = Color(1, 1, 1, 0.85)
+@export var header_grid_color: Color = Color(1, 1, 1, 0.25)
+@export var header_font_size: int = 14
+@export var header_height: float = 28.0
+@export var header_width: float = 64.0
+
+@export var column_names: Array[String] = []
+
+
+func set_column_names(names: Array[String]) -> void:
+	column_names = names
+	queue_redraw()
+
 
 
 
@@ -80,13 +100,28 @@ func _update_content_area_rect() -> void:
 
 
 func _ready() -> void:
-	#_content_area.clip_contents = true
 	add_child(_content_area)
+	add_child(_overlay)
+	_overlay.table = self
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.z_index = 0
+	_overlay.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_overlay.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	content_margin.x += header_width
+	content_margin.y += header_height
+	content_margin.z -= header_width
+	#content_margin.w -= header_height
+	#_content_area.clip_contents = true
 	_update_content_area_rect()
 
 	if vscrollbar:
 		move_child(vscrollbar, -1)
 		vscrollbar.scale.x = 1.2
+		vscrollbar.anchor_top = 0
+		vscrollbar.anchor_bottom = 1
+		vscrollbar.offset_top = header_height
+		vscrollbar.offset_bottom = 0
 		#vscrollbar.offset_left = vscrollbar.size.x
 		vscrollbar.position.x -= vscrollbar.size.x * 0.3
 		vscrollbar.value_changed.connect(_on_vscrollbar_value_changed)
@@ -94,8 +129,13 @@ func _ready() -> void:
 	if hscrollbar:
 		move_child(hscrollbar, -1)
 		hscrollbar.scale.y = 1.2
+		hscrollbar.anchor_left = 0
+		hscrollbar.anchor_right = 1
+		hscrollbar.offset_left = header_width
+		hscrollbar.offset_right = 0
 		hscrollbar.position.y -= hscrollbar.size.y * 0.3
 		hscrollbar.value_changed.connect(_on_hscrollbar_value_changed)
+	move_child(_overlay, -1)
 
 
 func _update_hscrollbar_range() -> void:
@@ -153,15 +193,15 @@ var scroll_speed_horizontal: float = 48.0
 func _compute_visual_page(content_h: float, view_h: float) -> float:
 	if content_h <= 0.0:
 		return view_h
-	var track_len := (vscrollbar.size.y if vscrollbar else 0.0)
-	var px_ratio := 0.0
+	var track_len = (vscrollbar.size.y if vscrollbar else 0.0)
+	var px_ratio = 0.0
 	if track_len > 0.0 and min_vgrabber_pixels > 0.0:
 		px_ratio = clamp(min_vgrabber_pixels / track_len, 0.0, 0.95)
 
 	var target_ratio = max(min_vgrabber_ratio, px_ratio)
 
-	var R := content_h
-	var P_floor := 0.0
+	var R = content_h
+	var P_floor = 0.0
 	if target_ratio >= 0.999:
 		P_floor = R
 	else:
@@ -173,12 +213,12 @@ func _compute_visual_page(content_h: float, view_h: float) -> float:
 func _on_vscrollbar_value_changed(value: float) -> void:
 	var content_h: float = _sum_heights
 	var view_h: float = _content_area.size.y
-	var page_vis := _compute_visual_page(content_h, view_h)
+	var page_vis = _compute_visual_page(content_h, view_h)
 
 	var max_real = max(0.0, content_h - view_h)
 	var max_vis = max(0.0, content_h - page_vis)
 
-	var new_scroll := 0.0
+	var new_scroll = 0.0
 	if max_vis > 0.0 and max_real > 0.0:
 		new_scroll = clamp(value, 0.0, max_vis) * (max_real / max_vis)
 	else:
@@ -195,7 +235,7 @@ func _update_scrollbar_range() -> void:
 	var view_h: float    = _content_area.size.y
 
 	# визуальная страница для увеличения ручки
-	var page_vis := _compute_visual_page(content_h, view_h)
+	var page_vis = _compute_visual_page(content_h, view_h)
 
 	vscrollbar.min_value = 0.0
 	vscrollbar.max_value = max(content_h, 0.0)   # оставляем "тотал", как и было
@@ -206,7 +246,7 @@ func _update_scrollbar_range() -> void:
 	var max_vis  = max(0.0, content_h - page_vis) # допустимый value у ScrollBar
 
 	# проекция текущего scroll_y на бар
-	var bar_value := 0.0
+	var bar_value = 0.0
 	if max_real > 0.0 and max_vis > 0.0:
 		bar_value = clamp(scroll_y * (max_vis / max_real), 0.0, max_vis)
 	else:
@@ -235,7 +275,7 @@ func _init_row_metrics() -> void:
 	row_heights.resize(rows)
 	row_offsets.resize(rows + 1)
 	row_offsets[0] = 0.0
-	var acc := 0.0
+	var acc = 0.0
 	for r in range(rows):
 		row_heights[r] = 0.0
 		row_offsets[r + 1] = acc
@@ -243,7 +283,7 @@ func _init_row_metrics() -> void:
 func _ensure_row_metrics_visible(r0: int, r1: int) -> void:
 	for r in range(r0, r1 + 1):
 		if row_heights[r] == 0.0:
-			var max_h := 0.0
+			var max_h = 0.0
 			for c in range(cols):
 				var cell_info: Dictionary = _get_cell(r, c)
 				var cell_type: StringName = cell_info.type
@@ -271,6 +311,9 @@ func load_dataset(data, _cols: int, _rows: int) -> void:
 	if vscrollbar:
 		_update_scrollbar_range()
 	queue_redraw()
+
+
+
 
 
 func get_row_at_position(local_pos: Vector2) -> int:
@@ -372,10 +415,10 @@ func scroll_to_row(row_index: int, align: String = "top") -> void:
 		return
 	_extend_offsets_to(row_index + 1)
 
-	var target_y := row_offsets[row_index]
-	var row_h := row_heights[row_index]
-	var view_h := _content_area.size.y
-	var content_h := _sum_heights
+	var target_y = row_offsets[row_index]
+	var row_h = row_heights[row_index]
+	var view_h = _content_area.size.y
+	var content_h = _sum_heights
 
 	match align:
 		"center":
@@ -401,16 +444,16 @@ func _rebuild_row_heights_estimate() -> void:
 		return
 
 	row_heights.resize(rows)
-	var total := 0.0
+	var total = 0.0
 	for r in range(rows):
-		var max_h := 0.0
+		var max_h = 0.0
 		for c in range(cols):
 			var cell_info: Dictionary = adapter_data[r][c]
 			var cell_type: StringName = cell_info.type
 			var default_cell: TableCell = cell_defaults[cell_type]
 			if not cell_type in _height_cache:
 				_height_cache[cell_type] = {}
-			var key: String = default_cell._height_key(cell_info)
+			var key = default_cell._height_key(cell_info)
 			var h: float
 			if _height_cache[cell_type].has(key):
 				h = _height_cache[cell_type][key]
@@ -429,7 +472,7 @@ func _ensure_offsets_capacity() -> void:
 		row_offsets.resize(1)
 		row_offsets[0] = 0.0
 	if row_offsets.size() < rows + 1:
-		var old := row_offsets.size()
+		var old = row_offsets.size()
 		row_offsets.resize(rows + 1)
 		for i in range(old, rows + 1):
 			row_offsets[i] = row_offsets[i - 1]
@@ -444,7 +487,7 @@ func _extend_offsets_to(target: int) -> void:
 	target = clamp(target, 0, rows)
 	if _offset_valid_upto == 0:
 		row_offsets[0] = 0.0
-	var i := _offset_valid_upto
+	var i = _offset_valid_upto
 	while i < target:
 		row_offsets[i + 1] = row_offsets[i] + row_heights[i]
 		i += 1
@@ -471,7 +514,7 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 	rows += 1
 
 	# 2) height for the new row
-	var base_h := 0.0
+	var base_h = 0.0
 	for c in range(cols):
 		var cell_info = cells[c]
 		var t: StringName = cell_info.type
@@ -503,7 +546,7 @@ func remove_row(index: int) -> void:
 	if index < 0 or index >= rows:
 		return
 
-	var old_h := row_heights[index]
+	var old_h = row_heights[index]
 	_sum_heights -= old_h
 
 	adapter_data.remove_at(index)
@@ -545,7 +588,7 @@ func _rebuild_row_offsets(start_index: int = 0) -> void:
 func _update_row_height_if_needed(row: int, new_height: float) -> void:
 	if row < 0 or row >= rows: return
 	if new_height > row_heights[row] + 0.5:
-		var delta := new_height - row_heights[row]
+		var delta = new_height - row_heights[row]
 		row_heights[row] = new_height
 		_sum_heights += delta       # <<< keep range correct
 		_invalidate_offsets_from(row + 1)  # suffix depends on this row
@@ -588,7 +631,7 @@ var just_resized: bool = false
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
-		#if column_width_mode != ColumnWidthMode.RELAXED:
+		_set_scroll_y(scroll_y)
 		_update_content_area_rect()
 		just_resized = true
 		if column_width_mode != ColumnWidthMode.RELAXED:
@@ -643,10 +686,10 @@ func _refresh_visible_cells(allow_spawning: bool = true) -> void:
 		_hide_all_cells()
 		return
 
-	var inner_h := _content_area.size.y
-	var view_top := scroll_y
-	var view_bottom := scroll_y + inner_h
-	var pre := 2
+	var inner_h = _content_area.size.y
+	var view_top = scroll_y
+	var view_bottom = scroll_y + inner_h
+	var pre = 2
 
 	var r0 = clamp(_find_row_for_y(view_top) - pre, 0, max(0, rows - 1))
 	var r1 = clamp(_find_row_for_y(view_bottom) + pre, 0, rows - 1)
@@ -754,7 +797,7 @@ func _release_cell(cell: TableCell) -> void:
 
 
 func _layout_active_cells() -> void:
-	var changed := false
+	var changed = false
 	for key in active_cells.keys():
 		var row: int = key.x
 		var col: int = key.y
@@ -766,8 +809,8 @@ func _layout_active_cells() -> void:
 		var y = row_offsets[row] - scroll_y
 		var w = col_widths[col]
 		var h = row_heights[row]
-		var pos := Vector2(x, y).floor()
-		var size_rc := Vector2(w, h).floor()
+		var pos = Vector2(x, y).floor()
+		var size_rc = Vector2(w, h).floor()
 
 		if cell.position != pos or cell.size != size_rc:
 			cell.position = pos
@@ -786,6 +829,7 @@ func _position_cell(cell: TableCell, row: int, col: int, top_left: Vector2, size
 
 
 func _draw() -> void:
+	_overlay.queue_redraw()
 	var left = content_margin.x
 	var top = content_margin.y
 	var right = content_margin.z
@@ -793,7 +837,6 @@ func _draw() -> void:
 
 	var inner_size = _content_area.size
 	var content_w: float = (col_offsets[cols] if cols > 0 else 0.0)
-
 	var content_h: float = _sum_heights
 
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0), true)
@@ -826,6 +869,7 @@ func _draw() -> void:
 		draw_line(Vector2(left, yb), Vector2(left + content_w, yb), grid_line_color, grid_line_thickness)
 
 
+
 func _find_row_for_y(world_y: float) -> int:
 	if rows <= 0:
 		return 0
@@ -835,7 +879,7 @@ func _find_row_for_y(world_y: float) -> int:
 		_extend_offsets_to(_offset_valid_upto + 1)
 
 	# Binary search inside the known prefix [0 .. _offset_valid_upto]
-	var lo := 0
+	var lo = 0
 	var hi = max(1, _offset_valid_upto)  # offsets known up to this index
 	while lo < hi:
 		var mid = (lo + hi) >> 1

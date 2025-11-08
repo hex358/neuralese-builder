@@ -28,20 +28,33 @@ func _ready() -> void:
 
 	repos()
 
+# Add near other exports / config
+@export var console_bottom_offset: float = 41  # visual gap under console (only affects size/end)
 
 func repos():
 	border_rect_1.position = Vector2($Control/scenes.size.x - border_hit, $Control/scenes.global_position.y)
 	border_rect_1.size = Vector2(border_hit * 2, $Control/scenes.size.y)
 	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, $Control/scenes.global_position.y)
 	border_rect_2.size = Vector2(border_hit, $Control/scenes.size.y)
+
 	var code_pos = $Control/CodeEdit.global_position
 	var console_node = $Control/console
 	var top = console_node.global_position.y
 	border_console.position = Vector2(console_node.global_position.x, top)
 	border_console.size = Vector2(console_node.size.x - 10, border_hit)
+
 	$Control/console.position.x = code_pos.x
 	$Control/console.size.x = $Control/CodeEdit.size.x
-	$Control/CodeEdit.size.y = $Control/scenes.size.y - $Control/console.size.y
+
+	var total_h = $Control/scenes.size.y
+	var desired_codeedit_h = max(0.0, total_h - $Control/console.size.y - console_bottom_offset)
+	$Control/CodeEdit.position.y = 0.0
+	$Control/CodeEdit.size.y = desired_codeedit_h
+	$Control/console.position.y = desired_codeedit_h
+	console.position.x = $Control/scenes.size.x
+	line_edit.global_position.y = $Control/console.get_global_rect().end.y
+	line_edit.position.x = console.position.x + 10
+	line_edit.size.x = $Control/CodeEdit.size.x / line_edit.scale.x - 32
 
 
 var border_rect_1: ColorRect
@@ -73,7 +86,8 @@ func _window_show():
 	await get_tree().process_frame
 	$Control/scenes/list.update_children_reveal()
 
-
+@export var line_edit: LineEdit
+@export var console: RichTextLabel
 func _process(delta: float) -> void:
 	tick()
 	var bot = 0
@@ -84,6 +98,8 @@ func _process(delta: float) -> void:
 	if vbar.value > 5:
 		top = $Control/console.global_position.y+30
 	$Control/console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
+	$Control/ColorRect.position = $Control/console.position
+	$Control/ColorRect.size = $Control/console.size + Vector2(0,50)
 
 # ---- division settings ----
 var division_ratio: Array[float] = [0.2, 0.6]
@@ -147,6 +163,7 @@ func tick(force: bool = false) -> void:
 
 		if code_hidden:
 			$Control/scenes.size.x += 2
+		$Control/CodeEdit.position.x = scenes_w - 1
 		prev_win = glob.window_size
 		repos()
 
@@ -168,7 +185,7 @@ func reload_scenes():
 var border_console: ColorRect
 var _dragging_console: bool = false
 var _drag_anchor_y_console: float = 0.0
-var console_min_height: float = 50.0
+var console_min_height: float = 95.0
 var console_max_height: float = 500.0
 
 
@@ -199,8 +216,8 @@ func handle_top_drag() -> void:
 		var new_border_y = mp.y - _drag_anchor_y_console
 		var local_y = new_border_y - ctrl.global_position.y
 
-		var total_height = ctrl.size.y
-		var new_codeedit_height = clamp(local_y, 100.0, total_height - console_min_height)
+		var total_height = ctrl.size.y - console_bottom_offset
+		var new_codeedit_height = clamp(local_y, 100.0, max(100.0, total_height - console_min_height))
 		var new_console_height = clamp(total_height - new_codeedit_height, console_min_height, console_max_height)
 
 		codeedit.position.y = 0
@@ -212,6 +229,8 @@ func handle_top_drag() -> void:
 		border_console.position = Vector2(console.global_position.x, console.global_position.y)
 		border_console.size = Vector2(console.size.x, border_hit)
 		repos()
+
+	#console.size.y = new_console_height - 20
 
 
 

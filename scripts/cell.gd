@@ -14,7 +14,7 @@ func get_data() -> Dictionary:
 	base_data.merge(_get_data())
 	return base_data
 
-func _height_key(info: Dictionary) -> String:
+func _height_key(info: Dictionary):
 	return ""
 
 func _resized():

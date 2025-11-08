@@ -5,7 +5,7 @@ func _map_data(data: Dictionary) -> void:
 	$Label.text = data["text"]
 	$Label.resize.call_deferred()
 
-func _height_key(info: Dictionary) -> String:
+func _height_key(info: Dictionary) :
 	return ""
 
 func _resized():
