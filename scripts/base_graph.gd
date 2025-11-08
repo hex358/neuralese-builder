@@ -122,6 +122,10 @@ func update_config(update: Dictionary):
 	for field in update:
 		_config_field(field, update[field])
 	check_valid(update)
+	
+	if input_cached:
+		#print("A")
+		input_cached.graph_updated()
 
 func has_config_subfield(query: String) -> bool:
 	var splt = query.split("/")
@@ -152,6 +156,8 @@ func update_config_subfield(update: Dictionary):
 		for subfield in update[field]:
 			_config_field(field + "/" + subfield, update[field][subfield])
 	check_valid(update)
+	if input_cached:
+		input_cached.graph_updated()
 
 func get_named_ancestor(named: String) -> Graph:
 	for j in get_first_ancestors():
@@ -240,10 +246,25 @@ func collect_component_nodes(root: Graph) -> Array:
 		res.append(root)
 	return res
 
-
+func graph_updated():
+	pass
 
 var in_abstraction: bool = false
 func just_connected(who: Connection, to: Connection):
+	if input_cached:
+		input_cached.graph_updated()
+		var nodes = graphs.simple_reach(self)
+		for i in nodes:
+			i.input_cached = input_cached
+	if to.parent_graph.input_cached:
+		input_cached = to.parent_graph.input_cached
+		input_cached.graph_updated()
+	if is_input:
+		graph_updated()
+		var nodes = graphs.simple_reach(self)
+		for i in nodes:
+			i.input_cached = self
+
 	var a: Graph = who.parent_graph
 	var b: Graph = to.parent_graph
 
@@ -356,6 +377,8 @@ func check_valid(changed_fields: Dictionary) -> void:
 func _visualise_valid(ok: bool):
 	pass
 
+var input_cached: Graph = null
+
 func just_deattached(other_conn: Connection, my_conn: Connection):
 	in_abstraction = true
 	_just_deattached(other_conn, my_conn)
@@ -372,6 +395,7 @@ var context_id: int = 0
 var subgraph_occupied: bool = false
 
 func just_attached(other_conn: Connection, my_conn: Connection):
+
 	in_abstraction = true
 	_just_attached(other_conn, my_conn)
 	in_abstraction = false
@@ -392,6 +416,12 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 	pass
 
 func deattaching(other_conn: Connection, my_conn: Connection):
+	if input_cached:
+		input_cached.graph_updated()
+		#var nodes = graphs.simple_reach(self)
+		#for i in nodes:
+			#i.input_cached = null
+		#input_cached = null
 	_deattaching(other_conn, my_conn)
 
 func connecting(my_conn: Connection, other_conn: Connection):
@@ -1275,7 +1305,7 @@ func copy():
 	await get_tree().process_frame
 	a.update_config(cfg.duplicate(true))
 
-
+var low = {"detatch": true}
 var first_drag: bool = false
 var beginned_at: Vector2 = Vector2()
 func _process(delta: float) -> void:
@@ -1306,6 +1336,7 @@ func _process(delta: float) -> void:
 	var conn_free = (not glob.hovered_connection or glob.hovered_connection.connection_type == 0 or z_index >= glob.hovered_connection.parent_graph.z_index)
 	
 	if inside and conn_free:
+	#	print("AA")
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed and not dragging:

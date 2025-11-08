@@ -42,6 +42,11 @@ func _just_disconnected(who: Connection, to: Connection):
 	#	graphs._input_origin_graph = null
 	#graphs.unpush_2d(to.parent_graph)
 
+func graph_updated():
+	if running:
+	#	print("a")
+		nn.send_inference_data(self, {"full_graph": graphs.get_syntax_tree(self)})
+
 func _useful_properties() -> Dictionary:
 	#print("A")
 	return {"raw_values": get_raw_values(), "config": {"rows": 28, "columns": 28, 
@@ -86,15 +91,17 @@ func set_state_open():
 @onready var run_but = $run
 func _on_run_released() -> void:
 	if not nn.is_infer_channel(self):
-		running = true
-		run_but.text_offset.x = 0
-		run_but.text = "Stop"
-		nn.open_infer_channel(self, close_runner)
+		if await nn.open_infer_channel(self, close_runner, run_but):
+			running = true
+			run_but.text_offset.x = 0
+			run_but.text = "Stop"
 	else:
 		#run_but.text = "Run!"
 		#run.text_offset.x = 2
 		#running = false
 		nn.close_infer_channel(self)
+	await glob.wait(2, true)
+	hold_for_frame()
 
 func close_runner():
 	run_but.text_offset.x = 2

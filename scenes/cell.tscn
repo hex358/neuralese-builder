@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://bgkssjbgc6d7b"]
+
+[ext_resource type="Script" uid="uid://b38ywpj8on5ln" path="res://scripts/text_cell.gd" id="1_0s7o3"]
+[ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="2_0s7o3"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="2_nm02e"]
+
+[node name="Node2D" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 50.0
+offset_bottom = 50.0
+script = ExtResource("1_0s7o3")
+cell_type = &"text"
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_right = 409.99997
+offset_bottom = 209.99998
+scale = Vector2(1.3073666, 1.3826612)
+theme = ExtResource("2_nm02e")
+script = ExtResource("2_0s7o3")
+padding = Vector2(20, 0)
+metadata/_custom_type_script = "uid://bjncugq5805ty"

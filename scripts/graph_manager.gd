@@ -849,6 +849,11 @@ func conning() -> bool:
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
+	#for i in input_graph_names.keys():
+	#	if not is_instance_valid(input_graph_names[i]):
+	#		input_graphs.erase(input_graph_names[i])
+	#		input_graph_names.erase(i)
+	
 	if glob.get_occupied("graph_buffer") and glob.get_occupied("graph_buffer").process_mode == Node.PROCESS_MODE_DISABLED:
 		glob.un_occupy(glob.get_occupied("graph_buffer"), "graph_buffer")
 

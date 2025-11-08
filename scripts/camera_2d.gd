@@ -21,8 +21,18 @@ func _enter_tree() -> void:
 	glob.cam = self
 	glob.viewport = get_viewport()
 
+
+func _on_selector_pan(direction: Vector2):
+	if paused or ui.active_splashed():
+		return
+	var pan_speed := 200.0 * get_process_delta_time() / zoom.x
+	target_position += direction * pan_speed
+
+
+
 func _ready() -> void:
 
+	glob.selector_box.request_pan.connect(_on_selector_pan)
 	_last_disp = glob.get_display_mouse_position()
 
 func stop():
@@ -156,6 +166,9 @@ func _process(delta: float) -> void:
 			drag_move_vec = drag_move_vec.lerp(Vector2(), delta * 10.0)
 
 		target_position += drag_move_vec
+
+
+
 
 	target_position += zoom_move_vec * move_intensity
 	position = position.lerp(target_position, 20.0 * delta)

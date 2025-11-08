@@ -41,8 +41,8 @@ func repos():
 	var code_pos = $Control/CodeEdit.global_position
 	var console_node = $Control/console
 	var top = console_node.global_position.y
-	border_console.position = Vector2(console_node.global_position.x, top - border_hit)
-	border_console.size = Vector2(console_node.size.x - 10, border_hit * 2)
+	border_console.position = Vector2(console_node.global_position.x, top)
+	border_console.size = Vector2(console_node.size.x - 10, border_hit)
 	$Control/console.position.x = code_pos.x
 	$Control/console.size.x = $Control/CodeEdit.size.x
 	$Control/CodeEdit.size.y = $Control/scenes.size.y - $Control/console.size.y
@@ -142,7 +142,7 @@ func handle_top_drag() -> void:
 	var border_y = console.global_position.y           # border between them
 
 	# Start drag
-	if glob.mouse_just_pressed and abs(mp.y - border_y) <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
+	if glob.mouse_just_pressed and mp.y > border_y+1 and mp.y < border_hit+border_y+1 and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
 		_dragging_console = true
 		_drag_anchor_y_console = mp.y - border_y
 	elif not glob.mouse_pressed and _dragging_console:
@@ -166,8 +166,8 @@ func handle_top_drag() -> void:
 		console.size.y = new_console_height
 
 		# Update visual drag bar
-		border_console.position = Vector2(console.global_position.x, console.global_position.y - border_hit)
-		border_console.size = Vector2(console.size.x, border_hit * 2)
+		border_console.position = Vector2(console.global_position.x, console.global_position.y)
+		border_console.size = Vector2(console.size.x, border_hit)
 		repos()
 
 

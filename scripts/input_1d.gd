@@ -400,19 +400,27 @@ func _on_type_child_button_release(button: BlockComponent) -> void:
 	else:
 		tg = 0.0
 
+func graph_updated():
+	if running:
+		nn.send_inference_data(self, {"full_graph": graphs.get_syntax_tree(self)})
+
+
 @onready var run_but = $run
 var running: bool = false
 func _on_run_released() -> void:
 	if not nn.is_infer_channel(self):
-		running = true
-		run_but.text_offset.x = 0
-		run_but.text = "Stop"
-		nn.open_infer_channel(self, close_runner)
+		if await nn.open_infer_channel(self, close_runner, run_but):
+			running = true
+			run_but.text_offset.x = 0
+			run_but.text = "Stop"
+		
 	else:
 		#run_but.text = "Run!"
 		#run.text_offset.x = 2
 		#running = false
 		nn.close_infer_channel(self)
+	await glob.wait(2, true)
+	hold_for_frame()
 
 func close_runner():
 	run_but.text_offset.x = 2

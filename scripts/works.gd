@@ -14,6 +14,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	$ColorRect/Label.text = cookies.get_username()
 	ui.hourglass_on()
+	if !glob.loaded_project_once:
+		glob.loaded_project_once = true
+		await glob.save_empty(str(glob.project_id), glob.fg.get_scene_name())
 	var a = await glob.request_projects()
 	ui.hourglass_off()
 	quitting.connect(
@@ -49,4 +52,8 @@ func _on_add() -> void:
 
 
 func _on_logout() -> void:
-	pass # Replace with function body.
+	glob.reset_logged_in(true)
+	can_go = true
+	go_away()
+	await quitting
+	queue_free()

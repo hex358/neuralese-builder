@@ -153,7 +153,7 @@ shader_parameter/corner_radius = 8.0
 shader_parameter/blurred_background = true
 shader_parameter/outline_width = 0.0
 shader_parameter/mult = 1.0
-shader_parameter/blur_level = -0.006999667832499945
+shader_parameter/blur_level = -0.00699966783249994
 shader_parameter/gaussian_mix = 0.822000039045
 shader_parameter/gaussian_step = 1.8990000902025
 shader_parameter/use_bg = false
@@ -502,6 +502,17 @@ offset_right = 90.0
 offset_bottom = 54.0
 color = Color(0.5, 0.5, 0.5, 0.59607846)
 
+[node name="back" type="ColorRect" parent="ColorRect"]
+visible = false
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.16, 0.16, 0.16, 1)
+
 [node name="submenu" type="ColorRect" parent="." node_paths=PackedStringArray("top")]
 visible = false
 material = SubResource("ShaderMaterial_nwut5")
@@ -579,6 +590,7 @@ alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_thedb")
 
 [node name="ColorRect2" type="ColorRect" parent="."]
+z_index = -2
 material = SubResource("ShaderMaterial_v7s1j")
 instance_shader_parameters/corner_radius_width_add = Vector2(0, 2)
 instance_shader_parameters/outline_color = Color(0.87, 0.87, 0.87, 0.76862746)

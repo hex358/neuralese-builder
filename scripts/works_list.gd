@@ -38,6 +38,7 @@ func show_up(iter, node=null):
 	tune()
 
 func tune():
+
 	for i in _contained:
 		if i.metadata["project_id"] == glob.get_project_id():
 			i.set_tuning(i.base_tuning * 2.2)

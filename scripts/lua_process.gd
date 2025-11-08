@@ -31,112 +31,7 @@ func _register_future_helpers():
 	lua.push_variant("future_get_result", func(f): return f.get_result())
 
 var _lua_step
-func _init(name: String, code: String):
-	if not code:
-		methods = _get_exposed_function_names()
-		return
-		
-	lua = LuaAPI.new()
-	
-	lua.bind_libraries(["base", "table", "string", "math", "coroutine"])
-	lua.push_variant("__gd_debug_print", func(...args):
-		_debug_print(args)
-)
-	lua.do_string("""
-	function print(...)
-		__gd_debug_print(...)
-	end
-	""")
 
-
-	_register_future_helpers()
-
-	var prelude := """
-	local __user_chunk = nil
-	function __set_user_chunk(fn) __user_chunk = fn end
-
-	local __main = coroutine.create(function()
-	  if __user_chunk then __user_chunk() end
-	end)
-
-	function __step()
-	  if coroutine.status(__main) ~= "dead" then
-	    local ok, err = coroutine.resume(__main)
-	    if not ok then error(debug.traceback(__main, tostring(err))) end
-	  end
-	end
-	"""
-	lua.do_string(prelude)
-	
-
-
-	# Wrap user code and load it
-	var wrapped := "__set_user_chunk(function()\n" + code + "\nend)"
-	lua.do_string(wrapped)
-	_lua_step = lua.pull_variant("__step")
-
-
-	lua.set_registry_value("__gd_call_bridge", func(reg_key: String, args: Array) -> Variant:
-		var cb: Callable = lua.get_registry_value(reg_key)
-		if cb == null:
-			printerr("Lua attempted to call missing registry key: ", reg_key)
-			return null
-		var out = cb.callv(args)
-		while typeof(out) == TYPE_CALLABLE:
-			out = out.call()
-	#	print("[bridge]", reg_key, "→", typeof(out), out)
-		return out
-	)
-
-
-
-
-	var bridge_callable = lua.get_registry_value("__gd_call_bridge")
-	lua.push_variant("__gd_call_bridge", bridge_callable)
-
-	var error = lua.do_string("""
-	function call_gd(reg_key, args)
-		return __gd_call_bridge(reg_key, args)
-	end
-	""")
-	if error is LuaError:
-		printerr("Failed to define call_gd:", error.message)
-
-
-	for fn_name in _get_exposed_functions():
-		if fn_name.begins_with("lua_"):
-			lua.push_variant(fn_name.trim_prefix("lua_"), get(fn_name))
-		elif fn_name.begins_with("async_lua_"):
-			var clean_name := fn_name.trim_prefix("async_lua_")
-			var callable_fn: Callable = get(fn_name)
-
-			var reg_key := "__gd_callable_" + clean_name
-			lua.set_registry_value(reg_key, callable_fn)
-
-			var lua_stub := """
-function run_model(...)
-  local fut = call_gd('__gd_callable_run_model', {...})
-  if not fut then return {} end
-  while not future_is_completed(fut) do
-    coroutine.yield()
-  end
-  return future_get_result(fut)
-end
-"""
-
-
-			var err = lua.do_string(lua_stub)
-			if err is LuaError:
-				printerr("Failed to create Lua stub for " + clean_name + ": " + err.message)
-
-	#var err = lua.do_string(code)
-	##if err is LuaError:
-	#	printerr("Lua error in %s: %s" % [name, err.message])
-	#	return
-
-	var create_scene = lua.pull_variant("createScene")
-	if create_scene: create_scene.call([])
-	new_frame = lua.pull_variant("newFrame")
 
 
 # -------------------------
@@ -281,10 +176,131 @@ var ray_params: PhysicsRayQueryParameters2D
 var point_params: PhysicsPointQueryParameters2D
 @onready var space_state = get_world_2d().direct_space_state
 
+var _pending_name
+var _pending_code
+func _init(name: String = "", code: String = ""):
+	_pending_name = name
+	_pending_code = code
+	# Only collect method list in _init when there's no code
+	if code == "":
+		methods = _get_exposed_function_names()
+
+var _armed
 func _ready():
 	physics_world = get_world_2d()
 	point_params = PhysicsPointQueryParameters2D.new()
 	ray_params = PhysicsRayQueryParameters2D.new()
+	space_state = get_world_2d().direct_space_state
+
+	if _pending_code != "":
+		_init_lua_vm(_pending_name, _pending_code)
+		_armed = true
+
+
+func _init_lua_vm(name: String, code: String) -> void:
+	var prelude := """
+	local __user_chunk = nil
+	function __set_user_chunk(fn) __user_chunk = fn end
+
+	local __main = coroutine.create(function()
+	  if __user_chunk then __user_chunk() end
+	end)
+
+	__last_error = nil
+	__had_error = false
+
+	function __step()
+	  if __had_error then return end
+	  if coroutine.status(__main) ~= "dead" then
+	    local ok, err = coroutine.resume(__main)
+	    if not ok then
+	      __last_error = debug.traceback(__main, tostring(err))
+	      __had_error = true
+	      print("[lua runtime error]\\n" .. __last_error)
+	      __main = coroutine.create(function() end)
+	    end
+	  end
+	end
+	"""
+
+
+	lua = LuaAPI.new()
+	lua.bind_libraries(["base", "table", "string", "math", "coroutine"])
+
+	lua.push_variant("__gd_debug_print", func(...args): _debug_print(args))
+	lua.do_string("function print(...) __gd_debug_print(...) end")
+
+	_register_future_helpers()
+
+	var err = lua.do_string(prelude)
+	if err is LuaError:
+		printerr("Prelude error: ", err.message); return
+
+	var wrapped := "__set_user_chunk(function()\n" + code + "\nend)"
+	err = lua.do_string(wrapped)
+	if err is LuaError:
+		printerr("User chunk error: ", err.message); return
+
+	_lua_step = lua.pull_variant("__step")
+
+	lua.set_registry_value("__gd_call_bridge", func(reg_key: String, args: Array) -> Variant:
+		var cb: Callable = lua.get_registry_value(reg_key)
+		if cb == null:
+			printerr("Lua attempted to call missing registry key: ", reg_key)
+			return null
+		var out = cb.callv(args)
+		var guard := 0
+		while typeof(out) == TYPE_CALLABLE and guard < 8:
+			out = out.call()
+			guard += 1
+		if typeof(out) == TYPE_CALLABLE:
+			printerr("Bridge returned callable after guard; aborting to avoid recursion.")
+			return null
+		return out
+	)
+	var bridge_callable = lua.get_registry_value("__gd_call_bridge")
+	lua.push_variant("__gd_call_bridge", bridge_callable)
+
+	err = lua.do_string("""
+	function call_gd(reg_key, args)
+		return __gd_call_bridge(reg_key, args)
+	end
+	""")
+	if err is LuaError:
+		printerr("Failed to define call_gd:", err.message)
+
+	_expose_gd_to_lua()
+
+	# Defer user hooks until after Godot ready (ensures physics state exists)
+	call_deferred("_after_vm_ready")
+
+func _after_vm_ready():
+	var create_scene = lua.pull_variant("createScene")
+	if create_scene: create_scene.call([])
+	new_frame = lua.pull_variant("newFrame")
+
+func _expose_gd_to_lua():
+	for fn_name in _get_exposed_functions():
+		if fn_name.begins_with("lua_"):
+			lua.push_variant(fn_name.trim_prefix("lua_"), get(fn_name))
+		elif fn_name.begins_with("async_lua_"):
+			var clean_name := fn_name.trim_prefix("async_lua_")
+			var callable_fn: Callable = get(fn_name)
+
+			var reg_key := "__gd_callable_" + clean_name
+			lua.set_registry_value(reg_key, callable_fn)
+
+			var lua_stub := "function " + clean_name + "(...) " +\
+				"\n local fut = call_gd('" + reg_key + "', {...}); " +\
+				"\n if not fut then return {} end " +\
+				"\n while not future_is_completed(fut) do coroutine.yield() end " +\
+				"\n return future_get_result(fut) end"
+
+			var err = lua.do_string(lua_stub)
+			if err is LuaError:
+				printerr("Failed to create Lua stub for " + clean_name + ": " + err.message)
+
+
 
 func lua_overlap_point(x: float, y: float) -> bool:
 	point_params.position = Vector2(x,y)
@@ -439,12 +455,15 @@ func _call_inference_task(name: String, input: Array, fut: LuaFuture) -> void:
 	useful["raw_values"] = input
 
 	if not nn.is_infer_channel(node):
-		var open_res = nn.open_infer_channel(node, node.close_runner)
+		var open_res = await nn.open_infer_channel(node, node.close_runner)
+		if not open_res:
+			fut._complete({"_error":"no_login", "type": -1, "repr": ""})
+			return
 		#await open_res.connected
 		#while not open_res.is_listening():
 		#	await get_tree().process_frame
 		await open_res.ack
-		await glob.wait(0.1)
+		await glob.wait(0.3)
 
 	var result = await nn.send_inference_data(node, useful, true)
 

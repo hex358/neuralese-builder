@@ -1,7 +1,8 @@
 extends Graph
 
 func get_training_data():
-	return {"epochs": epochs if epochs else 1, "dataset": "mnist", "test_dataset": ""}
+	return {"epochs": epochs if epochs else 1, "dataset": "mnist", "test_dataset": "", 
+	"batch_size": 32,}
 
 @onready var clearbut = $train2
 
@@ -104,7 +105,7 @@ var epochs: int = 0
 
 var training: bool = false
 var delaying: bool = false
-func train_stop(force: bool = false):
+func train_stop(force: bool = false, send: bool = true):
 	#$ColorRect2.alive = false
 	if training and (not delaying or force) and _can_train():
 		$YY.editable = true
@@ -116,8 +117,10 @@ func train_stop(force: bool = false):
 		train.text = "Train!"
 		if old_head:
 			old_head.train_stop()
-			nn.stop_train(old_head)
-		a.call()
+			if send:
+				nn.stop_train(old_head)
+		if send:
+			a.call()
 		if int($YY.text) <= 1:
 			$YY.set_line("")
 
@@ -161,7 +164,9 @@ func train_start():
 		if old_head:
 			#print("AA")
 			old_head.train_start()
-			nn.start_train(old_head, additional_call)
+			if not await nn.start_train(old_head, additional_call, train):
+				hold_for_frame()
+				train_stop(false, false)
 		#print($YY.text)
 
 @onready var train = $train
@@ -180,4 +185,4 @@ func _on_train_2_released() -> void:
 			if a:
 				anc = graphs.get_input_graph_by_name(a.cfg["name"])
 	if anc:
-		await web.POST("delete_ctx", {"user": "n", "pass": "1", "scene": str(glob.get_project_id()), "contexts": [str(anc.context_id)]})
+		await web.POST("delete_ctx", {"user": cookies.user(), "pass": cookies.pwd(), "scene": str(glob.get_project_id()), "contexts": [str(anc.context_id)]})

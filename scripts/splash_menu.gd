@@ -61,12 +61,15 @@ func _resultate(data: Dictionary):
 		ui.splash_and_get_result("signup", splashed_from, emitter, true)
 	else:
 		ui.hourglass_on()
-		var answer = await web.POST("login", {"user": data["user"], "pass": data["pass"]})
+		var answer = await glob.login_req(data["user"], data["pass"])
 		if answer.ok:
 			var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
 			if parsed.answer == "ok":
+				var prev = glob.logged_in()
+				glob.set_logged_in(data["user"], data["pass"])
 				emitter.res.emit(data)
 				go_away()
+
 			else:
 				ui.error("Username or password is wrong. :(")
 		else:

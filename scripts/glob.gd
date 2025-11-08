@@ -147,7 +147,9 @@ func set_menu_type(occ: Node, type: StringName, low_priority_types=null ):
 		_menu_type_occupator = occ
 		menu_type = type
 func reset_menu_type(occ, type: StringName):
-	if is_instance_valid(_menu_type_occupator) and _menu_type_occupator == occ: 
+	#print_stack()
+	if is_instance_valid(_menu_type_occupator) and _menu_type_occupator == occ:
+		#print_stack()
 		_menu_type_occupator = null
 		menu_type = &""
 
@@ -219,6 +221,7 @@ func spring(from, to, t: float,
 	return from + (to - from) * factor
 
 
+var loaded_project_once: bool = false
 class _Timer extends Object:
 	var wait_time: float; var progress: float; var frames: bool 
 	signal timeout
@@ -235,7 +238,6 @@ func wait(wait_time: float, frames: bool = false):
 	var timer = _Timer.new(wait_time, frames)
 	timers[timer] = true; return timer.timeout
 
-var project_id: int = 0
 
 func get_project_id() -> int:
 	return project_id
@@ -274,7 +276,6 @@ var parsed_projects = {}
 
 func create_empty_project(name: String) -> int:
 	var id: int = random_project_id()
-	print(id)
 	parsed_projects[str(id)] = {"name": name}
 	ui.hourglass_on()
 	var res = await save_empty(str(id), name)
@@ -295,7 +296,9 @@ func request_projects():
 	return {}
 
 func random_project_id() -> int:
-	return randi_range(0,999999999)
+	return randi_range(0,999999)
+
+var project_id: int = random_project_id()
 
 func _after_process(delta: float) -> void:
 	hide_menus = false
@@ -585,10 +588,42 @@ var space_just_pressed: bool = false
 
 var enter_just_pressed: bool = false
 
+var _logged_in: Dictionary = {}
+func try_auto_login():
+	var got = get_var("credentials")
+	if got:
+		var answer = await login_req(got["user"], got["pass"])
+		if answer.ok:
+			var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
+			if parsed.answer == "ok":
+				#emitter.res.emit(data)
+				set_logged_in(got["user"], got["pass"])
+			else:
+				reset_logged_in(true)
+		else:
+			reset_logged_in(true)
+	return true
+
+func login_req(user: String, passw: String):
+	return await web.POST("login", {"user": user, "pass": passw})
+
+func set_logged_in(user: String, passw: String):
+	_logged_in = {"user": user, "pass": passw}
+	set_var("credentials", _logged_in)
+
+func reset_logged_in(pers: bool = false):
+	_logged_in = {}
+	nn.close_all()
+	set_var("credentials", {})
+
+func logged_in() -> bool:
+	return _logged_in.size() > 0
+
 func _process(delta: float) -> void:
 	#if space_just_pressed:
 	#print(project_id)
 		#(graphs.get_llm_summary())
+
 	
 	
 	space_just_pressed = Input.is_action_just_pressed("ui_accept")
@@ -598,6 +633,10 @@ func _process(delta: float) -> void:
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
+	#if _menu_type_occupator and _menu_type_occupator is Connection:
+	#	print(_menu_type_occupator.parent_graph.process_mode == Node.PROCESS_MODE_DISABLED)
+	
+	
 	if not ui.active_splashed():
 		if Input.is_action_just_pressed("ctrl_z"):
 			#print("A")
@@ -704,7 +743,7 @@ func init_scene(scene: String):
 
 
 func delete_project(scene: int):
-	web.POST("delete_project", {"user": "n", "pass": "1", "scene": str(scene)})
+	web.POST("delete_project", {"user": cookies.user(), "pass": cookies.pwd(), "scene": str(scene)})
 	parsed_projects.erase(str(scene))
 	if project_id == scene:
 		var i = await create_empty_project("")
@@ -851,11 +890,34 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 
 var last_summary_hash: int = -1
 
-func update_message_stream(input_text: String, chat_id: int, text_update: Callable = def, on_close: Callable = def, clear: bool = false) -> SocketConnection:
+
+func splash_login(run_but: BlockComponent = null) -> bool:
+	var m = func(): return glob.mouse_pressed
+	var wait = func():
+		if run_but:
+			while m.call():
+				await get_tree().process_frame
+			run_but.unblock_input()
+	if run_but:
+		run_but.block_input()
+	if !logged_in():
+		var a = await ui.splash_and_get_result("login", run_but)
+		await wait.call()
+		if a: return true
+	else:
+		await wait.call()
+		return true
+	await wait.call()
+	return false
+
+func update_message_stream(input_text: String, chat_id: int, text_update: Callable = def, on_close: Callable = def, clear: bool = false, user_id: int = 0, ai_id: int = 0) -> SocketConnection:
 	if chat_id in message_sockets: return
 	var sock = await sockets.connect_to("ws/talk", def, cookies.get_auth_header())
-	var payload = {"user": "n", "pass": "1", "chat_id": str(chat_id), 
-	"text": input_text, "_clear": "1" if clear else "",
+	#var ai_id: int = randi_range(0,999999)
+	var payload = {"user": cookies.user(), "pass": cookies.pwd(), "chat_id": str(chat_id), 
+	"text": input_text, "_clear": "1" if clear else "", 
+	"user_id": user_id,
+	"ai_id": ai_id,
 	"scene": str(get_project_id()), "summary": {"nodes": {}, "edges": {}}}
 	var summary = graphs.get_llm_summary()
 	var new_hash = summary.hash()
@@ -863,7 +925,6 @@ func update_message_stream(input_text: String, chat_id: int, text_update: Callab
 	if new_hash != last_summary_hash or cached_chats.get(str(chat_id), []).size() <= 1:
 		last_summary_hash = new_hash
 		payload["summary"] = summary
-		
 	sock.send_json(payload)
 	sock.packet.connect(message_chunk_received.bind(sock))
 	message_sockets[chat_id] = sock
@@ -892,7 +953,6 @@ func clear_all():
 
 func clear_chats():
 	cached_chats.clear()
-	#print("nigga")
 	if ai_help_menu:
 		ai_help_menu.clear_all()
 		#ai_help_menu.re_recv()
@@ -905,26 +965,31 @@ func canvas_to_world(p: Vector2) -> Vector2:
 	return total.affine_inverse() * (p)
 
 
+func world_to_canvas(p: Vector2) -> Vector2:
+	var vp = get_viewport()
+	var total = vp.get_final_transform() * vp.get_canvas_transform()
+	return total * p
+
 
 
 var env_dump = {}
 var cached_projects = {}
 func load_scene(from: String):
-	#print("DTGK'KGJMDXM,/R.MHKL.BZD TRCM TJNL.HBJCR/ YKLF KY MDCBCRHFJGV BJHSEXRIJO;DLBHNL;UIO 54RHYT GFNVM,")
-	#print(from)
+
 	project_id = int(from)
 	cached_chats.clear()
 	clear_chats()
 	clear_all()
 	var answer = await web.POST("project", {"scene": from, 
-	 "user": "n", 
-	"pass": "1"})
+	 "user": cookies.user(), 
+	"pass": cookies.pwd()})
 	if not "body" in answer: return
 	var a = JSON.parse_string(answer["body"].get_string_from_utf8())
 	if not a: return
 	if not "scene" in a: return
 	var dat = bytes_to_var(Marshalls.base64_to_raw(a["scene"]))
-	if !dat: return
+	if dat == null: return
+	loaded_project_once = true
 	fg.go_into_graph()
 	await graphs.delete_all()
 	tree_windows["env"].reset()
@@ -972,8 +1037,8 @@ func rem_chat_cache(chat_id: String):
 func clear_chat(chat_id: int, req=true):
 	cached_chats.get(str(chat_id), []).clear()
 	if req:
-		web.POST("clear_chat", {"user": "n", 
-			"pass": "1", 
+		web.POST("clear_chat", {"user": cookies.user(), 
+			"pass": cookies.pwd(), 
 			"chat_id": str(chat_id), 
 			"scene": str(get_project_id())})
 
@@ -983,8 +1048,8 @@ func request_chat(chat_id: String):
 	if chat_id in cached_chats:
 		posted = cached_chats[chat_id]
 	else:
-		var received = await web.POST("get_chat", {"user": "n", 
-		"pass": "1", 
+		var received = await web.POST("get_chat", {"user": cookies.user(), 
+		"pass": cookies.pwd(), 
 		"chat_id": chat_id, 
 		"scene": str(get_project_id())})
 		if received and received.body:
@@ -1010,6 +1075,7 @@ func load_empty_scene(pr_id: int, name: String):
 	clear_all()
 	set_var("last_id", project_id)
 	tree_windows["env"].reset()
+	loaded_project_once = true
 	await graphs.delete_all()
 	
 	fg.set_scene_name(name)
@@ -1032,9 +1098,11 @@ func save(from: String):
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"name": fg.get_scene_name(),
-	 "user": "n", 
+	 "user": cookies.user(), 
+	"last_id": ai_help_menu.get_last_id(),
+	"chat_id": str(ai_help_menu.chat_id),
 	"contexts": Graph.get_ctx_groups().keys(),
-	"pass": "1"})
+	"pass": cookies.pwd()})
 
 func save_empty(from: String, name: String):
 	nn.request_save()
@@ -1046,8 +1114,10 @@ func save_empty(from: String, name: String):
 	"blob": blob,
 	"contexts": [],
 	"name": name,
-	 "user": "n", 
-	"pass": "1"})
+	"last_id": -1,
+	"chat_id": "0",
+	 "user": cookies.user(), 
+	"pass": cookies.pwd()})
 
 
 var action_batch = []
@@ -1060,6 +1130,8 @@ func is_auto_action() -> bool:
 
 #func config_action(who: Graph, field: String):
 	#pass
+
+var selector_box: Control = null
 
 func bound(callable: Callable, pos: Vector2, cfg: Dictionary):
 	var args = callable.get_bound_arguments().duplicate()
@@ -1078,6 +1150,7 @@ func bound(callable: Callable, pos: Vector2, cfg: Dictionary):
 func add_action(undo: Callable, redo: Callable, ...args):
 	if is_auto_action(): return
 	if batch_permanent: return
+	#print_stack()
 
 	var undo_callable = func():
 		is_undoing = true
@@ -1242,6 +1315,8 @@ func disconnect_action(from: Connection, to: Connection):
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
+	if Engine.is_editor_hint(): return
+	
 	graphs.spline_connected.connect(connect_action)
 	#graphs.spline_disconnected.connect(disconnect_action)
 
@@ -1261,7 +1336,9 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
-	open_last_project()
+	await try_auto_login()
+	if _logged_in:
+		open_last_project()
 	#await wait(1)
 	#test_place()
 

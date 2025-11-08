@@ -524,6 +524,7 @@ func _process_dropout_menu(delta: float) -> void:
 var mult: Vector2 = Vector2.ONE
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
+		alignment = alignment
 		_align_label()
 		base_size = size
 		return
@@ -859,6 +860,7 @@ func menu_show(at_position: Vector2) -> void:
 	if graphs.conning(): return
 	if not _proceed_show(at_position): return
 	if glob.get_display_mouse_position().y < glob.space_begin.y: return
+	#print(glob.menu_type)
 	if button_type == ButtonType.CONTEXT_MENU and not secondary and _is_not_menu(): 
 		return
 	_arm_menu_hit_tests()

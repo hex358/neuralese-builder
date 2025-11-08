@@ -64,6 +64,7 @@ func re_recv():
 				$ColorRect/Label2.disable()
 				got[0].kill.connect(func():
 						get_last_message().erase("_pending")
+						
 						#print("ff")
 						#glob.update_chat_cache(str(chat_id), get_last_message())
 						trect.texture = mic_texture
@@ -102,19 +103,31 @@ func text_receive(arr):
 	get_last_message().text += arr[0]
 	get_last_message().object.push_text(arr[0])
 
+func set_last_id(last_id: int):
+	get_last_message().id = last_id
+
+func get_last_id():
+	if get_last_message():
+		return get_last_message().id
+	return 0
+
 func send_message(text: String):
-	add_message({"user": true, "text": text})
+	var user_id: int = randi_range(0,999999)
+	var ai_id: int = randi_range(0,999999)
+	add_message({"user": true, "text": text, "id": user_id})
 	glob.update_chat_cache(str(chat_id), _message_list[-1])
 	$ColorRect/Label2.disable()
 	fixed_mode = true
-	add_message({"user": false, "text": "", "_pending": true})
+	add_message({"user": false, "text": "", "_pending": true, "id": ai_id})
 	$ColorRect/Label2._guard = false
 	$ColorRect/Label2._clear_text_and_reset()
-	var sock = await glob.update_message_stream(text, chat_id, text_receive, glob.def, false)
+	var sock = await glob.update_message_stream(text, chat_id, text_receive, glob.def, false, user_id, ai_id)
 	$ColorRect/Label2._clear_text_and_reset()
 	if sock:
 		await sock.kill
 	get_last_message().erase("_pending")
+	first_line.grab_focus()
+	first_line.grab_click_focus()
 	trect.texture = mic_texture
 	#print(get_last_message())
 	#glob.update_chat_cache(str(chat_id), get_last_message())

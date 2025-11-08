@@ -24,7 +24,8 @@ func request_save():
 		graphs._graphs[g].request_save()
 
 var training_sockets = {}
-func start_train(train_input: Graph, additional_call: Callable = glob.def):
+func start_train(train_input: Graph, additional_call: Callable = glob.def, run_but: BlockComponent = null) -> bool:
+	if not await glob.splash_login(run_but): return false
 	var train_input_origin = graphs._reach_input(train_input, "TrainBegin")
 	var execute_input_origin = null
 	var _d = {}
@@ -37,7 +38,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def):
 	#print(train_input_origin)
 	graphs.reach(train_input_origin, cachify)
 	execute_input_origin = _d["input"]
-	if !is_instance_valid(train_input_origin) or !execute_input_origin: return
+	if !is_instance_valid(train_input_origin) or !execute_input_origin: return false
 	#print(execute_input_origin.server_typename)
 	#print(train_input_origin.server_typename)
 	request_save()
@@ -56,6 +57,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def):
 	a.kill.connect(func(...x):
 		#print("AA")
 		train_input_origin.train_stop(true))
+	return true
 
 func stop_train(train_input: Graph):
 	if not train_input in training_sockets:
@@ -93,9 +95,12 @@ func is_infer_channel(input: Graph) -> bool:
 
 
 
-func open_infer_channel(input: Graph, on_close: Callable = glob.def):
+func open_infer_channel(input: Graph, on_close: Callable = glob.def, run_but: BlockComponent = null):
+#	print(run_but)
+	if not await glob.splash_login(run_but):
+		return false
 	if input in inference_sockets and is_instance_valid(inference_sockets[input]):
-		return # already open
+		return false# already open
 	request_save()
 	var init_payload = {
 		"session": "neriqward",
@@ -161,19 +166,16 @@ func send_inference_data(input: Graph, data: Dictionary, output: bool = false):
 
 func _process(delta: float) -> void:
 	pass
-	#if not is_instance_valid(graphs._input_origin_graph): return
-	#if Input.is_action_just_pressed("ui_accept"):
-		#if !is_infer_channel(graphs._input_origin_graph):
-			#open_infer_channel(graphs._input_origin_graph)
-		#else:
-			#send_inference_data(graphs._input_origin_graph, graphs._input_origin_graph.useful_properties())
-	#if Input.is_action_just_pressed("ui_x"):
-		#close_infer_channel(graphs._input_origin_graph)
+
+func close_all():
+	for i in inference_sockets:
+		close_infer_channel(i)
+	for i in training_sockets:
+		stop_train(i)
 
 
 func close_infer_channel(input: Graph) -> void:
 	if not (input in inference_sockets):
 		return
 	var sock = inference_sockets[input]
-	# Ask server/worker to stop, then the server will close the WS.
 	sock.send(glob.compress_dict_zstd({"stop": "true"}))

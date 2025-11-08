@@ -48,7 +48,6 @@ var connected: Dictionary[Connection, bool] = {}
 var mouse_just_pressed: bool = false
 var mouse_pressed: bool = false
 
-# ---- NEW: reversed (INPUT-started) temp spline state ----
 var _rev_spline: Spline = null
 var _rev_slot: int = -1
 
@@ -58,17 +57,14 @@ func _rev_start():
 	_rev_spline.turn_into(keyword)
 	_rev_spline.origin = self
 	_rev_spline.tied_to = self
+	glob.activate_spline(_rev_spline, false)
 	_rev_spline.show()
 	_rev_spline.end_dir_vec = dir_vector
 	_rev_spline.top_level = true
-	#_rev_spline.
 	_stylize_spline(_rev_spline, false)
-	# advertise “there’s an INPUT-driven drag” for other connections via metadata
-	# (safe, doesn’t require changing the graphs singleton’s script)
+
 	graphs.rev_input = self
 	parent_graph.hold_for_frame()
-	#print("AAAA")
-	glob.activate_spline(_rev_spline, false)
 
 func _rev_end():
 	if _rev_spline:
@@ -108,7 +104,9 @@ func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
 	var padded_size = size * parent_graph.scale * scale + Vector2(padding.x+padding.z, padding.y+padding.w)
 	var has: bool = Rect2(top_left, padded_size).has_point(get_global_mouse_position())
 	return has
+
 func reposition_splines():
+	var ct: int = 0
 	for id in outputs.keys():
 		var spline = outputs[id]
 		var a = spline.origin
@@ -132,6 +130,7 @@ func reposition_splines():
 		spline.update_points(a.get_origin(), b.get_origin(), dir_vector, b.dir_vector)
 		spline._last_origin_pos = a.get_origin()
 		spline._last_target_pos = b.get_origin()
+		ct += 1
 
 	for spline in inputs.keys():
 		var a = spline.origin
@@ -152,8 +151,10 @@ func reposition_splines():
 			continue
 
 		spline.update_points(a.get_origin(), b.get_origin(), a.dir_vector, dir_vector)
+		ct += 1
 		spline._last_origin_pos = a.get_origin()
 		spline._last_target_pos = b.get_origin()
+	#print(ct)
 
 func add_spline() -> int:
 	var slot = randi_range(111111,999999)
@@ -166,6 +167,7 @@ func add_spline() -> int:
 
 var key_by_spline: Dictionary[Spline, int] = {}
 func start_spline(id: int):
+	#print_stack()
 	var spline = outputs[id]
 	var node = spline.tied_to
 	if is_instance_valid(node):
@@ -240,14 +242,19 @@ func _init() -> void:
 	if custom_expression:
 		custom_expression.parse(suitable_custom_check, ["target"])
 
-func detatch_spline(spline: Spline):
+func detatch_spline(spline: Spline, manual: bool = false):
 	var other = spline.origin
 	other.parent_graph.disconnecting(other, self)
-
-	if not other.outputs.has(inputs[spline]):
+	
+	var idx = inputs[spline]
+	if not other.outputs.has(idx):
 		return
 	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
-	other.start_spline(inputs[spline])
+	other.start_spline(idx)
+	if manual:
+		spline.hide()
+		other.end_spline(idx, true)
+		#glob.activate_spline(spline, false)
 	graphs.remove_edge(spline.origin, spline.tied_to)
 	forget_spline(spline, other)
 	other.parent_graph.just_disconnected(other, self)
@@ -322,10 +329,10 @@ func get_target() -> Connection:
 			return outputs.values()[0].tied_to
 	return null
 
-func disconnect_from(target: Connection, force: bool = false):
+func disconnect_from(target: Connection, force: bool = false, manual: bool = false):
 	for i in outputs.duplicate():
 		if outputs[i].tied_to == target:
-			outputs[i].tied_to.detatch_spline(outputs[i])
+			outputs[i].tied_to.detatch_spline(outputs[i], manual)
 
 func connect_to(target: Connection, force: bool = false) -> bool:
 	if not is_instance_valid(target) or target == self:
@@ -453,10 +460,12 @@ func _process(delta: float) -> void:
 							start_spline(nspline)
 							glob.activate_spline(outputs[nspline])
 					elif is_instance_valid(cached_other_rev) and (!multiple_splines and outputs.size() == 1):
-						disconnect_from(cached_other_rev)
-						#cached_other_rev._rev_start()
-						#for spline in active_outputs.keys():
-						#	end_spline(spline)
+						pass
+						disconnect_from(cached_other_rev, false, false)
+						await get_tree().process_frame
+						cached_other_rev._rev_start()
+						for spline in active_outputs.keys():
+							end_spline(spline)
 			elif glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(outputs, self)
 

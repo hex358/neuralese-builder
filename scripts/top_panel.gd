@@ -6,6 +6,12 @@ class_name TopBar
 func _enter_tree() -> void:
 	glob.fg = self
 
+func show_back():
+	$back.show()
+
+func hide_back():
+	$back.hide()
+
 func _ready() -> void:
 	glob.space_begin.y = size.y + position.y
 	$Control3/dsbg.hide()
@@ -92,13 +98,16 @@ func _on_login_released() -> void:
 	#if !ui.is_splashed("login"):
 	#	login_btn.in_splash = true
 	
-	if !logged_in:
+	if !glob.logged_in():
 		var a = await ui.splash_and_get_result("login", login_btn)
 		if a:
+			pass
 			set_login_state("Works")
 			ui.splash("works", login_btn)
 		else:
 			set_login_state("")
+		#if !glob.loaded_project_once:
+		#	glob.open_last_project()
 	else:
 		ui.splash("works", login_btn)
 	#else:
@@ -107,14 +116,21 @@ func _on_login_released() -> void:
 
 
 func _on__released() -> void:
-	ui.hourglass_on()
-	var a = await glob.save(str(glob.get_project_id()))
-	ui.hourglass_off()
+	if !glob.logged_in():
+		var a = await ui.splash_and_get_result("login", axon)
+		if a:
+			ui.hourglass_on()
+			await glob.save(str(glob.get_project_id()))
+			ui.hourglass_off()
+	else:
+		ui.hourglass_on()
+		await glob.save(str(glob.get_project_id()))
+		ui.hourglass_off()
 
 @onready var axon = $Control/ai
 func _on_ai_released() -> void:
-	if !logged_in:
-		var a = 1#await ui.splash_and_get_result("login", axon)
+	if !glob.logged_in():
+		var a = await ui.splash_and_get_result("login", axon)
 		if a:
 			set_login_state("Works")
 			ui.splash("ai_help", axon)

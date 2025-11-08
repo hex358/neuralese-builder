@@ -1,7 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://cuuew2v4inm7k"]
+[gd_scene load_steps=22 format=3 uid="uid://cuuew2v4inm7k"]
 
 [ext_resource type="Script" uid="uid://cir1i2gbr8pjh" path="res://scripts/dataset_tab.gd" id="1_hsuaq"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_fn1yt"]
+[ext_resource type="Script" uid="uid://cjgpy062bsa25" path="res://scripts/loader.gd" id="2_hsuaq"]
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="5_rckiu"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="6_mbiqq"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="7_q5lcu"]
@@ -12,6 +13,7 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="11_j7vbt"]
 [ext_resource type="Material" uid="uid://b32bkwpidhiyp" path="res://resources/font_alphamult.tres" id="13_3m244"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="13_51ak0"]
+[ext_resource type="Script" uid="uid://cpdndxaic5xca" path="res://scripts/virtualt.gd" id="13_bwfib"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="14_bwfib"]
 [ext_resource type="Texture2D" uid="uid://cc0gwf51gfory" path="res://game_assets/icons/hide.png" id="14_empbn"]
 
@@ -90,11 +92,13 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.12, 0.12, 0.12, 1)
 
-[node name="Control" type="Control" parent="."]
+[node name="Control" type="Control" parent="." node_paths=PackedStringArray("table")]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1149.0
 offset_bottom = 645.0
+script = ExtResource("2_hsuaq")
+table = NodePath("CodeEdit")
 
 [node name="scenes" type="ColorRect" parent="Control"]
 material = SubResource("ShaderMaterial_epnia")
@@ -263,18 +267,43 @@ text = "Preview"
 script = ExtResource("7_q5lcu")
 padding = Vector2(11, 4)
 
-[node name="CodeEdit" type="ColorRect" parent="Control"]
+[node name="CodeEdit" type="Control" parent="Control" node_paths=PackedStringArray("vscrollbar", "hscrollbar")]
+z_index = -1
+anchors_preset = 0
+offset_left = 188.5
+offset_right = 913.0
+offset_bottom = 558.0
+script = ExtResource("13_bwfib")
+vscrollbar = NodePath("VScrollBar")
+spawn_delay_threshold = 7000.0
+content_margin = Vector4(0, 0, 0, 0)
+column_ratios = PackedFloat32Array(0.333, 0.333, 0.333)
+hscrollbar = NodePath("HScrollBar")
+column_width_mode = 0
+max_total_width_scale = 3.0
+
+[node name="VScrollBar" type="VScrollBar" parent="Control/CodeEdit"]
+z_index = 90
+z_as_relative = false
 layout_mode = 1
-anchors_preset = 13
-anchor_left = 0.5
-anchor_right = 0.5
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -386.0
-offset_right = 332.0
-grow_horizontal = 2
+offset_left = -8.0
+grow_horizontal = 0
 grow_vertical = 2
-theme = ExtResource("2_fn1yt")
-color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="HScrollBar" type="HScrollBar" parent="Control/CodeEdit"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -8.0
+offset_right = -11.0
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="console" type="RichTextLabel" parent="Control"]
 material = ExtResource("13_3m244")

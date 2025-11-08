@@ -69,9 +69,9 @@ gradient_color = Color(0.7019608, 0.4, 1, 1)
 [node name="o" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_m1bro")]
 layout_mode = 0
 offset_left = 42.0
-offset_top = 34.0
+offset_top = 28.0
 offset_right = 58.0
-offset_bottom = 55.0
+offset_bottom = 49.0
 color = Color(1, 0.988235, 0.6, 1)
 _accepted_datatypes = "input2d"
 server_name = &"input_out"

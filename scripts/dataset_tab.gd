@@ -3,6 +3,7 @@ extends TabWindow
 @onready var list = $Control/scenes/list
 
 func _ready() -> void:
+	
 	window_hide()
 	await get_tree().process_frame
 	glob.reset_menu_type(list, "list2")
@@ -24,7 +25,6 @@ func _ready() -> void:
 	border_console.color.a = 0
 	border_console.mouse_default_cursor_shape = Control.CURSOR_VSIZE
 	add_child(border_console)
-	
 
 	repos()
 
@@ -37,8 +37,8 @@ func repos():
 	var code_pos = $Control/CodeEdit.global_position
 	var console_node = $Control/console
 	var top = console_node.global_position.y
-	border_console.position = Vector2(console_node.global_position.x, top - border_hit)
-	border_console.size = Vector2(console_node.size.x - 10, border_hit * 2)
+	border_console.position = Vector2(console_node.global_position.x, top)
+	border_console.size = Vector2(console_node.size.x - 10, border_hit)
 	$Control/console.position.x = code_pos.x
 	$Control/console.size.x = $Control/CodeEdit.size.x
 	$Control/CodeEdit.size.y = $Control/scenes.size.y - $Control/console.size.y
@@ -49,6 +49,7 @@ var border_rect_2: ColorRect
 
 
 func _window_hide():
+	glob.fg.hide_back()
 	process_mode = Node.PROCESS_MODE_DISABLED
 	hide()
 	glob.reset_menu_type(list, "list2")
@@ -59,6 +60,7 @@ func _window_hide():
 
 @onready var base_size = $Control.size
 func _window_show():
+	glob.fg.show_back()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	$Control.position.y = glob.space_begin.y
 	$Control.size.y = glob.window_size.y - $Control.position.y
@@ -186,7 +188,7 @@ func handle_top_drag() -> void:
 	var border_y = console.global_position.y           # border between them
 
 	# Start drag
-	if glob.mouse_just_pressed and abs(mp.y - border_y) <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
+	if glob.mouse_just_pressed and mp.y > border_y and mp.y - border_y <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
 		_dragging_console = true
 		_drag_anchor_y_console = mp.y - border_y
 	elif not glob.mouse_pressed and _dragging_console:
@@ -197,21 +199,18 @@ func handle_top_drag() -> void:
 		var new_border_y = mp.y - _drag_anchor_y_console
 		var local_y = new_border_y - ctrl.global_position.y
 
-		# Total vertical span for both areas
 		var total_height = ctrl.size.y
 		var new_codeedit_height = clamp(local_y, 100.0, total_height - console_min_height)
 		var new_console_height = clamp(total_height - new_codeedit_height, console_min_height, console_max_height)
 
-		# Apply sizes and positions in parent's space
 		codeedit.position.y = 0
 		codeedit.size.y = new_codeedit_height
 
 		console.position.y = new_codeedit_height
 		console.size.y = new_console_height
 
-		# Update visual drag bar
-		border_console.position = Vector2(console.global_position.x, console.global_position.y - border_hit)
-		border_console.size = Vector2(console.size.x, border_hit * 2)
+		border_console.position = Vector2(console.global_position.x, console.global_position.y)
+		border_console.size = Vector2(console.size.x, border_hit)
 		repos()
 
 
@@ -299,3 +298,16 @@ func _on_plus_released() -> void:
 	while m.call():
 		await get_tree().process_frame
 	plus.unblock_input()
+
+
+var last_hint = null
+var last_button: BlockComponent = null
+var current_ds = null
+func _on_list_child_button_release(button: BlockComponent) -> void:
+	var code = $Control/CodeEdit
+	if last_button:
+		last_button.set_tuning(last_button.base_tuning)
+	button.set_tuning(button.base_tuning * 2)
+	last_button = button
+	current_ds = button.hint
+	last_hint = button.hint

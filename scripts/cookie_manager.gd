@@ -8,10 +8,19 @@ func _ready() -> void:
 	_load_cookies()
 
 func get_auth_header() -> Dictionary:
-	return {"user": "n", "pass": "1"}
+	return glob._logged_in
 
 func get_username() -> String:
-	return "n"
+	return glob._logged_in.user
+
+func get_pass() -> String:
+	return glob._logged_in.pass
+
+func user() -> String:
+	return glob._logged_in.user
+
+func pwd() -> String:
+	return glob._logged_in.pass
 
 func open_or_create(path: String) -> FileAccess:
 	var full_path = "user://" + path

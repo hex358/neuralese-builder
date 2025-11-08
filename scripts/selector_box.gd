@@ -7,13 +7,24 @@ var target_pos: Vector2
 var target_size: Vector2
 @export var lerp_speed: float = 15.0  # higher = snappier
 
+func _enter_tree() -> void:
+	glob.selector_box = self
+
 func _ready() -> void:
 	hide()
 	target_pos = position
 	target_size = size
 
+signal request_pan(direction: Vector2)
+
+
+var select_origin_world: Vector2
+var prev_cam_pos: Vector2
+
 var q: bool = false
 func _process(delta: float) -> void:
+
+
 	#print(graphs.conning())
 	if not visible:
 		ui.selecting_box = false
@@ -30,6 +41,8 @@ func _process(delta: float) -> void:
 	and not graphs.dragged and not graphs.conning() and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y \
 	and not glob.is_occupied(self, "graph_buffer"):
 		select_origin = get_global_mouse_position()
+		select_origin_world = glob.canvas_to_world(select_origin)
+		prev_cam_pos = glob.cam.position
 		selecting = true
 		ui.selecting_box = true
 		show()
@@ -42,6 +55,10 @@ func _process(delta: float) -> void:
 			hide()
 			ui.selecting_box = false
 			return
+		if glob.cam.position != prev_cam_pos:
+			var screen_now = glob.world_to_canvas(select_origin_world)
+			select_origin = screen_now
+			prev_cam_pos = glob.cam.position
 
 		var curr = get_global_mouse_position()
 		curr.y = max(curr.y, glob.space_begin.y)
@@ -81,5 +98,22 @@ func _process(delta: float) -> void:
 				graphs._graphs[g].select()
 			else:
 				graphs._graphs[g].unselect()
-	#else:
-		#graphs.unselect_all()
+
+	if selecting and visible:
+		var vp_rect = get_viewport_rect()
+		var mouse = get_viewport().get_mouse_position()
+		var edge_margin = 80.0  # pixels from edge where panning starts
+		var intensity = Vector2.ZERO
+
+		if mouse.x < edge_margin:
+			intensity.x = -inverse_lerp(edge_margin, 0.0, mouse.x)
+		elif mouse.x > vp_rect.size.x - edge_margin:
+			intensity.x = inverse_lerp(vp_rect.size.x - edge_margin, vp_rect.size.x, mouse.x)
+
+		if mouse.y < edge_margin:
+			intensity.y = -inverse_lerp(edge_margin, 0.0, mouse.y)
+		elif mouse.y > vp_rect.size.y - edge_margin:
+			intensity.y = inverse_lerp(vp_rect.size.y - edge_margin, vp_rect.size.y, mouse.y)
+
+		if intensity != Vector2.ZERO:
+			emit_signal("request_pan", intensity)

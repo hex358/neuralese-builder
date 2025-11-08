@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://d2yowpw486lai"]
+[gd_scene load_steps=14 format=3 uid="uid://d2yowpw486lai"]
 
 [ext_resource type="Script" uid="uid://c5el7w3tkb8gj" path="res://scripts/model_export.gd" id="1_ekrhp"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_av5ob"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_l3ogd"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_rwf5r"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_18gy4"]
+[ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="10_av5ob"]
 
 [sub_resource type="Resource" id="Resource_3idxy"]
 script = ExtResource("9_rwf5r")
@@ -23,6 +24,18 @@ animation_scale = 19.697
 animation_speed = 3.473
 animation_decay = 6.0
 animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_av5ob"]
+script = ExtResource("9_rwf5r")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.02
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.96
+animation_speed = 1.951
+animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Node2D" type="Control" node_paths=PackedStringArray("accept", "first_line")]
@@ -96,28 +109,28 @@ metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -86.526505
-offset_top = -43.99997
-offset_right = -27.477524
-offset_bottom = -18.99997
-grow_horizontal = 0
+offset_left = -37.700592
+offset_top = -46.99997
+offset_right = 37.700592
+offset_bottom = -21.99997
+grow_horizontal = 2
 grow_vertical = 0
-scale = Vector2(1.1770253, 1.1770253)
-pivot_offset = Vector2(29.52449, 12.5)
+scale = Vector2(1.4688723, 1.4688723)
+pivot_offset = Vector2(37.700592, 12.5)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
 top = true
 hint = &"Add"
 base_scale_x = 0.45
-resize_after = 6
-text = "+ Add"
-base_size = Vector2(59.04895, 25)
+resize_after = 7
+text = "  Export"
+base_size = Vector2(75.401184, 25)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -127,7 +140,138 @@ max_size = 170
 config = SubResource("Resource_3idxy")
 in_splash = true
 
+[node name="Download" type="Sprite2D" parent="ColorRect/train"]
+position = Vector2(13.124161, 12.924782)
+scale = Vector2(0.73342, 0.73342)
+texture = ExtResource("3_av5ob")
+
+[node name="windows" parent="ColorRect" instance=ExtResource("8_l3ogd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 56.476933
+offset_top = 134.37915
+offset_right = 119.637115
+offset_bottom = 154.37915
+scale = Vector2(1.5379153, 1.5379153)
+pivot_offset = Vector2(31.580091, 10)
+mouse_filter = 1
+color = Color(0.582533, 0.578, 0.85, 1)
+button_type = 1
+top = true
+hint = &"windows"
+base_scale_x = 0.45
+resize_after = 6
+text = "Windows"
+base_size = Vector2(63.160183, 20)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_av5ob")
+in_splash = true
+
+[node name="Label2" type="Label" parent="ColorRect"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 99.0
+offset_right = 251.0
+offset_bottom = 142.0
+scale = Vector2(0.6499783, 0.6499783)
+theme = ExtResource("10_av5ob")
+text = "Export Mode"
+
+[node name="linux" parent="ColorRect" instance=ExtResource("8_l3ogd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 154.2832
+offset_top = 134.37915
+offset_right = 200.2557
+offset_bottom = 154.37915
+scale = Vector2(1.5379153, 1.5379153)
+pivot_offset = Vector2(22.986252, 10)
+mouse_filter = 1
+color = Color(0.582533, 0.578, 0.85, 1)
+button_type = 1
+top = true
+hint = &"linux"
+base_scale_x = 0.45
+resize_after = 4
+text = "Linux"
+base_size = Vector2(45.972504, 20)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_av5ob")
+in_splash = true
+
+[node name="onnx" parent="ColorRect" instance=ExtResource("8_l3ogd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 229.2832
+offset_top = 134.37915
+offset_right = 267.31848
+offset_bottom = 154.37915
+scale = Vector2(1.5379153, 1.5379153)
+pivot_offset = Vector2(19.01764, 10)
+mouse_filter = 1
+color = Color(0.582533, 0.578, 0.85, 1)
+button_type = 1
+top = true
+hint = &"onnx"
+base_scale_x = 0.45
+resize_after = 3
+text = "ONNX"
+base_size = Vector2(38.03528, 20)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_av5ob")
+in_splash = true
+
+[node name="tensor" parent="ColorRect" instance=ExtResource("8_l3ogd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 55.283203
+offset_top = 171.41565
+offset_right = 115.82507
+offset_bottom = 191.41565
+scale = Vector2(1.5379153, 1.5379153)
+pivot_offset = Vector2(30.270935, 10)
+mouse_filter = 1
+color = Color(0.582533, 0.578, 0.85, 1)
+button_type = 1
+top = true
+hint = &"tensorrt"
+base_scale_x = 0.45
+resize_after = 6
+text = "TensorRT"
+base_size = Vector2(60.54187, 20)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_av5ob")
+in_splash = true
+
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_18gy4")
 
 [connection signal="released" from="ColorRect/train" to="." method="_on_trainn_released"]
+[connection signal="released" from="ColorRect/windows" to="." method="_on_windows_released"]
+[connection signal="released" from="ColorRect/linux" to="." method="_on_linux_released"]
+[connection signal="released" from="ColorRect/onnx" to="." method="_on_onnx_released"]
+[connection signal="released" from="ColorRect/tensor" to="." method="_on_tensor_released"]

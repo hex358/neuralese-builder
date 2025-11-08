@@ -19,6 +19,7 @@ func _resultate(data: Dictionary):
 			var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
 			if parsed.answer == "ok":
 				emitter.res.emit(data)
+				glob.set_logged_in(data["user"], data["pass"])
 				go_away()
 			else:
 				ui.error("This username is already occupied. Choose a different one, please!")
