@@ -11,8 +11,16 @@ var is_frozen: bool = false
 
 func freeze_input() -> void: is_frozen = true
 func unfreeze_input() -> void: is_frozen = false
-func block_input() -> void: is_blocking = true
-func unblock_input() -> void: is_blocking = false
+func block_input(disable: bool = false) -> void: 
+	if disable and not is_blocking:
+		for i in _contained:
+			i.scaler.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	is_blocking = true
+func unblock_input(re_on: bool = false) -> void: 
+	if re_on and is_blocking:
+		for i in _contained:
+			i.scaler.mouse_filter = Control.MOUSE_FILTER_PASS
+	is_blocking = false
 
 @export var button_type: ButtonType = ButtonType.CONTEXT_MENU
 @export var area_padding: float = 0.0
@@ -193,7 +201,11 @@ func contain(child: BlockComponent):
 		child.hovering.connect(_menu_handle_hovering.bind(child))
 		child.pressed.connect(_menu_handle_press.bind(child))
 		child.pressing.connect(_menu_handle_pressing.bind(child))
-		child.released.connect(_menu_handle_release.bind(child))
+		child.released.connect(
+			(func(child):
+				fin_trigger.emit(child)
+				_menu_handle_release(child)).bind(child)
+				)
 	
 	if add_to_size:
 		expanded_size += child.size.y + arrangement_padding.y
@@ -529,7 +541,6 @@ func _process(delta: float) -> void:
 		base_size = size
 		return
 	
-	
 	mult = scaler.scale * parent.scale
 	match button_type:
 		ButtonType.CONTEXT_MENU:
@@ -851,6 +862,21 @@ var show_request:bool = false
 func _proceed_show(at_position: Vector2) -> bool: # virtual
 	return true
 
+signal fin_trigger(arg)
+
+func ask_and_wait(at_position: Vector2):
+	menu_show(at_position)
+	state.holding = false
+	var a = await fin_trigger
+	if a is BlockComponent:
+		print("DFDF")
+		menu_hide()
+		return a
+	return null
+	#await child_button_release
+	#await get_tree().process_frame
+	
+
 func menu_show(at_position: Vector2) -> void:
 	if static_mode:
 		unroll()
@@ -861,7 +887,10 @@ func menu_show(at_position: Vector2) -> void:
 	if not _proceed_show(at_position): return
 	if glob.get_display_mouse_position().y < glob.space_begin.y: return
 	#print(glob.menu_type)
+	#print(name)
 	if button_type == ButtonType.CONTEXT_MENU and not secondary and _is_not_menu(): 
+		#if name == "edit_graph":
+		#	print(glob.menu_type)
 		return
 	_arm_menu_hit_tests()
 	bar.self_modulate.a = 0.0
@@ -885,6 +914,7 @@ func menu_show(at_position: Vector2) -> void:
 	update_children_reveal()
 	await get_tree().process_frame
 	update_children_reveal()
+	#print(get_parent().visible)
 
 func menu_hide() -> void:
 	if static_mode:
@@ -904,6 +934,7 @@ func menu_hide() -> void:
 	state.expanding = false
 	state.holding = false
 	unblock_input()
+	fin_trigger.emit(null)
 
 func menu_expand() -> void:
 	state.holding = false
@@ -997,6 +1028,7 @@ func _process_context_menu(delta: float) -> void:
 			glob.un_occupy(self, &"menu")
 			glob.un_occupy(self, "menu_inside")
 		return
+	
 	
 	# mouse state
 	var left_pressed = glob.mouse_pressed if !left_activate else glob.mouse_alt_pressed

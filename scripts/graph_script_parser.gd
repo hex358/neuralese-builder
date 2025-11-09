@@ -254,13 +254,14 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 	return best_pos
 
 
+
+
+
+
 func model_changes_apply(actions: Dictionary, txt: String):
-	#print(actions)
 	if not (actions.get("change_nodes", []).size() > 0 and actions.get("change_nodes", [""])[0] is not String):
 		actions = preprocess(actions)
-	#print(actions)
-	#return
-	#cookies.open_or_create("debug_changes.bin").store_var(actions)
+
 
 	if not actions["connect_ports"] and not actions["change_nodes"] and\
 	not actions["delete_nodes"] and not actions["disconnect_ports"]:

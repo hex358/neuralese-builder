@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://cn053wastjqhs"]
+[gd_scene load_steps=30 format=3 uid="uid://cn053wastjqhs"]
 
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="1_r7hpq"]
 [ext_resource type="Script" uid="uid://dypdiu1layg61" path="res://scripts/env_tab.gd" id="1_waelc"]
@@ -19,6 +19,20 @@
 [ext_resource type="Texture2D" uid="uid://bhoh7goms7dw2" path="res://game_assets/icons/flag.png" id="15_ngk34"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="15_wmv5u"]
 [ext_resource type="Texture2D" uid="uid://cc0gwf51gfory" path="res://game_assets/icons/hide.png" id="16_ngk34"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kuefa"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.08, 0.08, 0.08, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hu0bw"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.08, 0.08, 0.08, 1)
 
 [sub_resource type="CodeHighlighter" id="CodeHighlighter_c5gg0"]
 number_color = Color(0.78431374, 0.39215687, 0.8627451, 1)
@@ -71,9 +85,10 @@ metadata/_custom_type_script = "uid://cq08akbnuqpp8"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wmv5u"]
 content_margin_left = 8.0
-content_margin_top = 29.0
+content_margin_top = 26.0
 content_margin_bottom = 8.0
 bg_color = Color(0.12, 0.12, 0.12, 1)
+shadow_color = Color(0, 0, 0, 0)
 
 [sub_resource type="Resource" id="Resource_ngk34"]
 script = ExtResource("8_81s2i")
@@ -178,6 +193,8 @@ offset_right = 332.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_r7hpq")
+theme_override_styles/normal = SubResource("StyleBoxFlat_kuefa")
+theme_override_styles/focus = SubResource("StyleBoxFlat_hu0bw")
 text = "-- Create your scene in the Scenes menu."
 editable = false
 context_menu_enabled = false
@@ -196,6 +213,7 @@ script = ExtResource("4_c5gg0")
 [node name="console" type="RichTextLabel" parent="Control"]
 material = ExtResource("5_uce8f")
 instance_shader_parameters/extents = Vector4(1, 900, 0, 0)
+clip_contents = false
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -206,9 +224,16 @@ offset_top = -81.0
 offset_right = 188.5
 grow_horizontal = 2
 grow_vertical = 0
+focus_mode = 2
 theme = ExtResource("5_ngk34")
 theme_override_font_sizes/normal_font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_wmv5u")
+theme_override_styles/focus = SubResource("StyleBoxFlat_wmv5u")
+bbcode_enabled = true
+scroll_following = true
+threaded = true
+progress_bar_delay = -1
+selection_enabled = true
 deselect_on_focus_loss_enabled = false
 drag_and_drop_selection_enabled = false
 script = ExtResource("7_kuefa")
@@ -428,11 +453,11 @@ config = SubResource("Resource_n8ca6")
 
 [node name="TextureRect" type="TextureRect" parent="Control/view/run"]
 layout_mode = 0
-offset_left = 6.920746
-offset_top = -0.18802595
-offset_right = 46.920746
-offset_bottom = 39.811974
-scale = Vector2(0.63134646, 0.63134646)
+offset_left = 9.219238
+offset_top = 1.3499157
+offset_right = 49.21924
+offset_bottom = 41.349915
+scale = Vector2(0.5455427, 0.5455427)
 texture = ExtResource("15_ngk34")
 
 [node name="Label" type="Label" parent="Control/view"]
@@ -470,6 +495,7 @@ scale = Vector2(2.1270475, 2.1270475)
 anchor_mode = 0
 
 [connection signal="text_changed" from="Control/CodeEdit" to="." method="_on_code_edit_text_changed"]
+[connection signal="draw" from="Control/console" to="." method="_on_console_draw"]
 [connection signal="released" from="Control/console/train2" to="." method="_on_train_2_released"]
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/9" to="." method="_on__released"]

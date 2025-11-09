@@ -232,7 +232,7 @@ var can_enter: bool = false
 
 @onready var trect = $ColorRect/Label2/train/TextureRect
 @onready var mic_texture = $ColorRect/Label2/train/TextureRect.texture
-@onready var stop = preload("res://game_assets/icons/stop.png")
+@onready var stop = glob.stop_icon
 var def_texture = preload("res://game_assets/icons/send.png")
 func _on_label_2_text_changed() -> void:
 	if $ColorRect/Label2.text:

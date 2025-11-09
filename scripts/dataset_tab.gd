@@ -3,7 +3,8 @@ extends TabWindow
 @onready var list = $Control/scenes/list
 
 func _ready() -> void:
-	
+	#var vbar: VScrollBar = ($Control/console.get_v_scroll_bar())
+	#vbar.position.x -= 5
 	window_hide()
 	await get_tree().process_frame
 	glob.reset_menu_type(list, "list2")
@@ -25,10 +26,9 @@ func _ready() -> void:
 	border_console.color.a = 0
 	border_console.mouse_default_cursor_shape = Control.CURSOR_VSIZE
 	add_child(border_console)
-
+	$Control/console.size.y = console_min_height
 	repos()
 
-# Add near other exports / config
 @export var console_bottom_offset: float = 41  # visual gap under console (only affects size/end)
 
 func repos():
@@ -44,7 +44,7 @@ func repos():
 	border_console.size = Vector2(console_node.size.x - 10, border_hit)
 
 	$Control/console.position.x = code_pos.x
-	$Control/console.size.x = $Control/CodeEdit.size.x
+	$Control/console.size.x = $Control/CodeEdit.size.x - 1
 
 	var total_h = $Control/scenes.size.y
 	var desired_codeedit_h = max(0.0, total_h - $Control/console.size.y - console_bottom_offset)
@@ -54,7 +54,7 @@ func repos():
 	console.position.x = $Control/scenes.size.x
 	line_edit.global_position.y = $Control/console.get_global_rect().end.y
 	line_edit.position.x = console.position.x + 10
-	line_edit.size.x = $Control/CodeEdit.size.x / line_edit.scale.x - 32
+	line_edit.size.x = $Control/CodeEdit.size.x / line_edit.scale.x - 34
 
 
 var border_rect_1: ColorRect
@@ -69,6 +69,7 @@ func _window_hide():
 	$CanvasLayer.hide()
 	glob.un_occupy(list, &"menu")
 	glob.un_occupy(list, "menu_inside")
+	$CanvasLayer2.hide()
 
 
 @onready var base_size = $Control.size
@@ -85,14 +86,21 @@ func _window_show():
 	reload_scenes()
 	await get_tree().process_frame
 	$Control/scenes/list.update_children_reveal()
+	$CanvasLayer2.show()
 
-@export var line_edit: LineEdit
+@export var line_edit: Control
 @export var console: RichTextLabel
 func _process(delta: float) -> void:
+	var vbar: VScrollBar = ($Control/console.get_v_scroll_bar())
+	#vbar.position.x = $Control/console.size.x - 10
 	tick()
+	if get_global_mouse_position().x > border_rect_1.position.x:
+	#	print("aa")
+		$Control/scenes/list.block_input(true)
+	else:
+		$Control/scenes/list.unblock_input(true)
 	var bot = 0
 	var top = 0
-	var vbar: VScrollBar = $Control/console.get_v_scroll_bar()
 	if vbar.value < vbar.max_value - vbar.page - 5:
 		bot = $Control/console.get_global_rect().end.y - 5
 	if vbar.value > 5:
@@ -185,7 +193,7 @@ func reload_scenes():
 var border_console: ColorRect
 var _dragging_console: bool = false
 var _drag_anchor_y_console: float = 0.0
-var console_min_height: float = 95.0
+var console_min_height: float = 83.0
 var console_max_height: float = 500.0
 
 
@@ -202,10 +210,10 @@ func handle_top_drag() -> void:
 		return
 
 	var mp = get_global_mouse_position()
-	var border_y = console.global_position.y           # border between them
+	var border_y = console.global_position.y
 
 	# Start drag
-	if glob.mouse_just_pressed and mp.y > border_y and mp.y - border_y <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
+	if glob.mouse_just_pressed and mp.y >= border_y and mp.y - border_y <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
 		_dragging_console = true
 		_drag_anchor_y_console = mp.y - border_y
 	elif not glob.mouse_pressed and _dragging_console:
@@ -260,7 +268,7 @@ func handle_division_drag() -> void:
 		if abs(mp.x - border1) <= border_hit:
 			_dragging = 0
 			_drag_anchor = border1 - mp.x
-		elif mp.x - border2 <= border_hit and mp.x > border2:
+		elif mp.x - border2 <= border_hit and mp.x >= border2:
 			_dragging = 1
 			_drag_anchor = border2 - mp.x
 	#var new_xs = clamp(mp.x + _drag_anchor, 0.0, win)
@@ -330,3 +338,7 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	last_button = button
 	current_ds = button.hint
 	last_hint = button.hint
+
+
+func _on_train_2_released() -> void:
+	pass # Replace with function body.

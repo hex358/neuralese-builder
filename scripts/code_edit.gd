@@ -43,7 +43,7 @@ var keywords = [
 func _ready() -> void:
 	methods.append_array(LuaProcess.new("", "").methods)
 	text_changed.connect(_on_request_code_completion)
-	code_completion_prefixes = ["_", ".", ":", "a","b","c","d","e","f","g","h",
+	code_completion_prefixes = ["_", ".", "a","b","c","d","e","f","g","h",
 		"i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 
 func _on_request_code_completion(...args) -> void:

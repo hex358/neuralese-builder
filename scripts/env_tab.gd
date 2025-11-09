@@ -20,6 +20,8 @@ func _ready() -> void:
 	add_child(border_console)
 
 	repos()
+	border_console.position.y -= 3
+	$Control/console.position.y -= 3
 
 var border_console: ColorRect
 var _dragging_console: bool = false
@@ -59,6 +61,9 @@ func _window_hide():
 	$CanvasLayer.hide()
 	glob.un_occupy(list, &"menu")
 	glob.un_occupy(list, "menu_inside")
+	if process != null and running_name in luas.processes:
+		run_bt.get_node("TextureRect").texture = run_base_txt
+		luas.remove_process(running_name); return
 	
 func reload_scenes():
 	$Control/scenes/list.show_up(request_texts())
@@ -95,17 +100,40 @@ func _window_show():
 		await get_tree().process_frame
 	$Control/scenes/list.update_children_reveal()
 
-func _process(delta: float) -> void:
 
+
+func _process(_delta: float) -> void:
 	tick()
-	var bot = 0
-	var top = 0
-	var vbar: VScrollBar = $Control/console.get_v_scroll_bar()
-	if vbar.value < vbar.max_value - vbar.page - 5:
-		bot = $Control/console.get_global_rect().end.y - 5
-	if vbar.value > 5:
-		top = $Control/console.global_position.y+30
-	$Control/console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
+
+	var console := $Control/console
+	var vbar: VScrollBar = console.get_v_scroll_bar()
+	var top := 0.0
+	var bot := 0.0
+
+	# Detect scroll state
+	var top_now := vbar.value > 5.0
+	var bot_now := vbar.value < vbar.max_value - vbar.page - 5.0
+
+	# Apply shader extents (world coords as before)
+	if bot_now:
+		bot = console.get_global_rect().end.y
+	if top_now:
+		top = console.global_position.y + 32.0
+
+	console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
+
+	# Handle the CodeEdit Y-size correction
+	var codeedit := $Control/CodeEdit
+
+	if top_now and not console_offset_applied:
+		codeedit.size.y -= CONSOLE_FIX_OFFSET
+		#codeedit.position.y += CONSOLE_FIX_OFFSET
+		console_offset_applied = true
+
+	elif not top_now and console_offset_applied:
+		codeedit.size.y += CONSOLE_FIX_OFFSET
+		#codeedit.position.y -= CONSOLE_FIX_OFFSET
+		console_offset_applied = false
 
 
 var division_ratio: Array[float] = [0.2, 0.6]
@@ -128,6 +156,12 @@ func set_code_hidden(hidden: bool) -> void:
 	ui.move_mouse(get_global_mouse_position())
 
 
+var console_top_visible := false
+var console_offset_applied := false
+const CONSOLE_FIX_OFFSET := 3.0
+
+
+
 func handle_top_drag() -> void:
 	if not visible:
 		return
@@ -142,7 +176,7 @@ func handle_top_drag() -> void:
 	var border_y = console.global_position.y           # border between them
 
 	# Start drag
-	if glob.mouse_just_pressed and mp.y > border_y+1 and mp.y < border_hit+border_y+1 and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
+	if glob.mouse_just_pressed and mp.y >= border_y+1 and mp.y < border_hit+border_y+1 and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
 		_dragging_console = true
 		_drag_anchor_y_console = mp.y - border_y
 	elif not glob.mouse_pressed and _dragging_console:
@@ -169,6 +203,8 @@ func handle_top_drag() -> void:
 		border_console.position = Vector2(console.global_position.x, console.global_position.y)
 		border_console.size = Vector2(console.size.x, border_hit)
 		repos()
+		border_console.position.y -= 3
+		console.position.y -= 3
 
 
 
@@ -187,6 +223,11 @@ func tick(force: bool = false) -> void:
 		#$Control/CodeEdit.process_mode = Node.PROCESS_MODE_DISABLED
 	else:
 		$Control/CodeEdit.process_mode = Node.PROCESS_MODE_INHERIT
+	if get_global_mouse_position().x > border_rect_1.position.x:
+	#	print("aa")
+		$Control/scenes/list.block_input(true)
+	else:
+		$Control/scenes/list.unblock_input(true)
 	if prev_win != glob.window_size or _dragging != -1 or force:
 		$Control.position.y = glob.space_begin.y
 		$Control.size.y = glob.window_size.y - $Control.position.y
@@ -278,7 +319,7 @@ func handle_division_drag() -> void:
 		if abs(mp.x - border1) <= border_hit:
 			_dragging = 0
 			_drag_anchor = border1 - mp.x
-		elif mp.x - border2 <= border_hit and mp.x > border2:
+		elif mp.x - border2 <= border_hit and mp.x >= border2:
 			_dragging = 1
 			_drag_anchor = border2 - mp.x
 
@@ -336,19 +377,32 @@ func request_texts() -> Dictionary:
 func get_texts():
 	return received_texts
 
+var count: int = 0
 func debug_print(args: Array):
-	var res = ""
-	for i in args:
-		res += str(i)
-		res += " "
-	res += "\n"
-	$Control/console.append_text(res)
+#	$Control/console.append_text("[color=gray][" + str(count) + "][/color] ")
+	$Control/console.append_text(" ".join(args))
+	$Control/console.append_text("\n")
+	count += 1
 
-
+var process: LuaProcess = null; var running_name = null
+@onready var run_bt = $Control/view/run
+@onready var run_base_txt = $Control/view/run.get_node("TextureRect").texture
 func _on_run_released() -> void:
+	#if process:
+	#	print(process.stepping())
+	if process != null and running_name in luas.processes:
+		run_bt.get_node("TextureRect").texture = run_base_txt
+		luas.remove_process(running_name); return
 	var viewport = $Control/view/game
 	$Control/console.clear()
-	var process = luas.create_process(get_current_game_name(), get_current_game_code())
+	run_bt.get_node("TextureRect").texture = glob.stop_icon
+	
+	count = 0
+	running_name = get_current_game_name()
+	process = luas.create_process(running_name, get_current_game_code())
+	process.execution_finished.connect(func():
+		#print("AA")
+		run_bt.get_node("TextureRect").texture = run_base_txt)
 	process.debug_printer = debug_print
 	viewport.add_child(process)
 	process.position.y = viewport.size.y
@@ -390,7 +444,13 @@ func _on_code_edit_text_changed() -> void:
 @onready var plus = $Control/scenes/plus
 func _on_plus_released() -> void:
 	var a = await ui.splash_and_get_result("scene_create", plus, null, false)
-	#print(a)
+	if a and a.has("text"):
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var cont = ($Control/scenes/list._contained)
+		for i in cont:
+			if i.hint == a.text:
+				_on_list_child_button_release(i)
 
 
 func _on_train_2_released() -> void:

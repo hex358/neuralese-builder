@@ -25,6 +25,7 @@ func request_save():
 
 var training_sockets = {}
 func start_train(train_input: Graph, additional_call: Callable = glob.def, run_but: BlockComponent = null) -> bool:
+	if not check_valid(train_input, true): return false
 	if not await glob.splash_login(run_but): return false
 	var train_input_origin = graphs._reach_input(train_input, "TrainBegin")
 	var execute_input_origin = null
@@ -93,14 +94,25 @@ func _infer_state_received(bytes: PackedByteArray, ws: SocketConnection):
 func is_infer_channel(input: Graph) -> bool:
 	return input in inference_sockets and is_instance_valid(inference_sockets[input])
 
-
+func check_valid(input: Graph, train: bool = false):
+	var simple = graphs.simple_reach(input, true)
+	var has_necc: bool = false; var in_nodes = {}
+	if train: in_nodes = {"TrainInput": 1, "RunModel": 1, "OutputMap": 1, "ModelName": 1, "DatasetName": 1}
+	else: in_nodes = {"ClassifierNode": 1}
+	for i in simple:
+		if graphs.in_nodes(i, in_nodes): has_necc = true
+		if not i.is_valid():
+			return false
+	return has_necc
 
 func open_infer_channel(input: Graph, on_close: Callable = glob.def, run_but: BlockComponent = null):
-#	print(run_but)
-	if not await glob.splash_login(run_but):
-		return false
 	if input in inference_sockets and is_instance_valid(inference_sockets[input]):
 		return false# already open
+	if not check_valid(input): 
+	#	print("fals")
+		return false
+	if not await glob.splash_login(run_but):
+		return false
 	request_save()
 	var init_payload = {
 		"session": "neriqward",
@@ -138,6 +150,10 @@ func send_inference_data(input: Graph, data: Dictionary, output: bool = false):
 	if not (input in inference_sockets):
 		push_warning("No inference channel open for this graph")
 		return
+	if "full_graph" in data:
+		if not check_valid(input):
+			
+			return false
 	var sock = inference_sockets[input]
 	if not is_instance_valid(sock):
 		push_warning("Socket instance is no longer valid")

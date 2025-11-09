@@ -22,6 +22,15 @@ func _enter_tree() -> void:
 	glob.viewport = get_viewport()
 
 
+func reset():
+	target_position = position
+	target_zoom = zoom.x
+	dragging = false
+	acc = false
+	zoom_move_vec = Vector2()
+	drag_move_vec = Vector2()
+	move_intensity = 1.0
+
 func _on_selector_pan(direction: Vector2):
 	if paused or ui.active_splashed():
 		return

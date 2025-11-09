@@ -10,7 +10,7 @@ func _process(delta: float) -> void:
 
 func _resultate(data: Dictionary):
 	emitter.res.emit(data)
-	glob.env_dump[data["text"]] = "-- Scene '%s'\nprint('Hello, world!')" % data["text"]
+	glob.env_dump[data["text"]] = glob.get_default_script(data["text"])
 	glob.tree_windows["env"].reload_scenes()
 	go_away()
 

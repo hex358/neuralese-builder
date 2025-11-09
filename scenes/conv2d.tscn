@@ -47,6 +47,7 @@ offset_top = -72.0
 offset_right = 26.0
 offset_bottom = -53.0
 color = Color(0.297, 0.66885, 0.9, 1)
+config_conn = true
 _accepted_datatypes = "activation"
 server_name = &"activ_in"
 connection_type = 0
@@ -260,6 +261,8 @@ virtual_keyboard_type = 2
 script = ExtResource("7_cc8xm")
 min_value = 16
 max_value = 128
+allow_float = false
+decimal_places = 2
 resize_after = 4
 change_always_accepted = false
 

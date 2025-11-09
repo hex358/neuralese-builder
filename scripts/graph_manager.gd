@@ -613,11 +613,19 @@ signal spline_connected(from_conn: Connection, to_conn: Connection)
 signal spline_disconnected(from_conn: Connection, to_conn: Connection)
 
 
-func simple_reach(from_graph: Graph) -> Dictionary[Graph, bool]:
+func simple_reach(from_graph: Graph, configs: bool = false) -> Dictionary[Graph, bool]:
 	var gathered: Dictionary[Graph, bool] = {}
 	var callable = func(from: Connection, to: Connection, branch_cache: Dictionary):
 		gathered[to.parent_graph] = true
 		gathered[from.parent_graph] = true
+		if configs:
+			for i in to.parent_graph.config_conns:
+				if !i.inputs: continue
+				gathered[i.inputs.keys()[0].origin.parent_graph] = true
+	if configs:
+		for i in from_graph.config_conns:
+			if !i.inputs: continue
+			gathered[i.inputs.keys()[0].origin.parent_graph] = true
 	reach(from_graph, callable)
 	return gathered
 
@@ -669,6 +677,12 @@ func is_nodes(who: Graph, ...typenames: Array) -> bool:
 	for typename in typenames:
 		if who.server_typename == typename:
 			return true
+	return false
+
+func in_nodes(who: Graph, typenames: Dictionary) -> bool:
+#	print(typenames)
+	if who.server_typename in typenames:
+		return true
 	return false
 
 func get_syntax_tree(input) -> Dictionary:

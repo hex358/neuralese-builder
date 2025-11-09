@@ -178,10 +178,10 @@ func _is_suitable_other_conn(other: Connection, mine: Connection) -> bool:
 	#print("is_emv")
 	if other.parent_graph.get_meta("input_features", {}).has("is_env"):
 		return true
-	#print("anc")
 	var anc = graphs.get_input_graph_by_name(name_graph)
 	if not is_instance_valid(anc):
 		return false
+	#print((other.parent_graph.get_meta("input_features", {"x": -1, "y": -1, "datatype": ""})))
 	#print("validd")
 #	print(anc)
 	return anc.validate(other.parent_graph.get_meta("input_features", {"x": -1, "y": -1, "datatype": ""}))

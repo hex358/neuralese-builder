@@ -4,21 +4,22 @@ extends Control
 
 func _ready() -> void:
 	var data := []
-	for r in 10000:
+	for r in 100000:
 		var row := []
 		for c in 2:
 			row.append({"type": "text", "text": "R%s C%s" % [r, c]})
 		data.append(row)
 
-	table.load_dataset(data, 2, 10000)
+	table.load_dataset(data, 2, 100000)
 	
 	table.set_column_ratios(PackedFloat32Array([0.5, 0.5]))
 
 func _process(delta: float) -> void:
-	if glob.space_just_pressed:
-		var a = (table.get_row_at_position(table.get_local_mouse_position()))
-		if a != -1:
-			table.remove_row(a)
+	pass
+	#if glob.space_just_pressed:
+	#	var a = (table.get_row_at_position(table.get_local_mouse_position()))
+	#	if a != -1:
+	#		table.remove_row(a)
 		#var t = Time.get_ticks_msec()
 		#var row := []
 		#row.append({"type": "text", "text": "0"})

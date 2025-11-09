@@ -21,9 +21,18 @@ class LuaFuture:
 		_done = true
 		_result = v
 
+var _accum_time: float = 0.0
+var _frame_interval: float = 1.0 / 25.0 # 25 FPS
 
 func _process(delta: float) -> void:
-	update(delta)
+	# accumulate time and update Lua only every 0.04 sec
+	_accum_time += delta
+	if _accum_time < _frame_interval:
+		return
+	_accum_time -= _frame_interval
+
+	# regular update tick
+	update(_frame_interval)
 
 
 func _register_future_helpers():
@@ -50,36 +59,66 @@ func _get_exposed_function_names() -> Array[String]:
 		list[i] = list[i].trim_prefix("lua_").trim_prefix("async_lua_")
 	return list
 
-# -------------------------
-# Lifecycle
-# -------------------------
+
+func stepping() -> bool:
+	return is_instance_valid(_lua_step)
+
+var _script_done: bool = false
+signal execution_finished
 func update(d: float):
+	if not is_inside_tree() or lua == null:
+		return
+
 	if _lua_step:
-		_lua_step.call()
-	for c in _lua_coroutines:
-		if c == null: continue
-		if c.is_done():
-			_lua_coroutines.erase(c)
+		var r = _lua_step.call()
+		if r is LuaError:
+			debug_printer.call(["[color=coral]" + r.message + "[/color]"])
+			error_splashed.emit()
+			execution_finished.emit()
+			stop.call_deferred()
+			_lua_step = null
+
+	for i in range(_lua_coroutines.size() - 1, -1, -1):
+		var c = _lua_coroutines[i]
+		if c == null or (c.has_method("is_done") and c.is_done()):
+			_lua_coroutines.remove_at(i)
 			continue
-		c.resume([])
-	if stopped: return
+		if c.has_method("resume"):
+			c.resume([])
+
+	if stopped:
+		return
+
+	var status = lua.do_string("return coroutine.status(__main)")
+	if typeof(status) == TYPE_STRING and status == "dead" and not _script_done:
+		_script_done = true
+		print("AA")
+		execution_finished.emit()
+		stop.call_deferred()
+		return
+
 	delta = d
 	time += d
-	if new_frame:
-		new_frame.call(delta)
+
+	if new_frame != null:
+		var res = new_frame.call(d)
+		if res is LuaError:
+			printerr("[LuaProcess] newFrame/_process error:", res.message)
+
 
 
 
 func _physics_process(delta: float) -> void:
-	# Sync physics bodies → shapes
-
-
 	for shape in shapes:
-		if shape == null: continue
+		if typeof(shape) != TYPE_DICTIONARY:
+			continue
 		if shape.get("physics_enabled", false) and shape.has("body"):
-			var b: Node2D = shape["body"]
+			var b = shape["body"]
+			if not is_instance_valid(b):
+				continue
 			shape["x"] = b.position.x
 			shape["y"] = b.position.y
+
 
 func _draw() -> void:
 	if stopped: return
@@ -223,7 +262,6 @@ func _init_lua_vm(name: String, code: String) -> void:
 	end
 	"""
 
-
 	lua = LuaAPI.new()
 	lua.bind_libraries(["base", "table", "string", "math", "coroutine"])
 
@@ -236,48 +274,81 @@ func _init_lua_vm(name: String, code: String) -> void:
 	if err is LuaError:
 		printerr("Prelude error: ", err.message); return
 
-	var wrapped := "__set_user_chunk(function()\n" + code + "\nend)"
-	err = lua.do_string(wrapped)
-	if err is LuaError:
-		printerr("User chunk error: ", err.message); return
+	_expose_gd_to_lua()
+
+	var err1 = lua.do_string(code)
+	if err1 is LuaError:
+		debug_printer.call(["[color=coral]" + err1.message + "[/color]"])
+		error_splashed.emit()
+		execution_finished.emit()
+		stop.call_deferred()
+		return
+	lua.do_string("__set_user_chunk(load([[" + code + "]]))")
+	var create_scene = lua.pull_variant("createScene")
+
+	var frame_fn = lua.pull_variant("newFrame")
+
+	if create_scene != null and typeof(create_scene) == TYPE_CALLABLE:
+		new_frame = frame_fn if typeof(frame_fn) == TYPE_CALLABLE else null
+		call_deferred("_call_lua_ready", create_scene)
+	else:
+		new_frame = frame_fn if typeof(frame_fn) == TYPE_CALLABLE else null
 
 	_lua_step = lua.pull_variant("__step")
 
 	lua.set_registry_value("__gd_call_bridge", func(reg_key: String, args: Array) -> Variant:
 		var cb: Callable = lua.get_registry_value(reg_key)
-		if cb == null:
-			printerr("Lua attempted to call missing registry key: ", reg_key)
+		if cb == null or not cb.is_valid():
+			printerr("[LuaBridge] invalid callable for ", reg_key)
 			return null
 		var out = cb.callv(args)
 		var guard := 0
 		while typeof(out) == TYPE_CALLABLE and guard < 8:
+			if not out.is_valid():
+				printerr("[LuaBridge] nested callable invalid for ", reg_key)
+				return null
 			out = out.call()
 			guard += 1
 		if typeof(out) == TYPE_CALLABLE:
-			printerr("Bridge returned callable after guard; aborting to avoid recursion.")
+			printerr("[LuaBridge] callable after guard; abort recursion.")
 			return null
 		return out
 	)
+
 	var bridge_callable = lua.get_registry_value("__gd_call_bridge")
 	lua.push_variant("__gd_call_bridge", bridge_callable)
 
-	err = lua.do_string("""
+	var err2 = lua.do_string("""
 	function call_gd(reg_key, args)
 		return __gd_call_bridge(reg_key, args)
 	end
 	""")
-	if err is LuaError:
+	if err2 is LuaError:
 		printerr("Failed to define call_gd:", err.message)
 
 	_expose_gd_to_lua()
 
-	# Defer user hooks until after Godot ready (ensures physics state exists)
 	call_deferred("_after_vm_ready")
 
+
+
 func _after_vm_ready():
-	var create_scene = lua.pull_variant("createScene")
-	if create_scene: create_scene.call([])
-	new_frame = lua.pull_variant("newFrame")
+	pass
+
+signal error_splashed
+
+func _call_lua_ready(fn: Callable) -> void:
+	if fn == null:
+		return
+	var result = fn.call([])
+	if result is LuaError:
+		debug_printer.call(["[color=coral]" + result.message + "[/color]"])
+		error_splashed.emit()
+		execution_finished.emit()
+		stop()
+		_lua_step = null
+
+
 
 func _expose_gd_to_lua():
 	for fn_name in _get_exposed_functions():
@@ -347,9 +418,12 @@ func lua_set_size(id: int, s: float) -> void:
 func lua_delete(id: int) -> void:
 	if id < 0 or id >= shapes.size(): return
 	var s = shapes[id]
-	if s and s.get("physics_enabled", false) and s.has("body"):
-		s["body"].queue_free()
+	if typeof(s) == TYPE_DICTIONARY and s.get("physics_enabled", false) and s.has("body"):
+		var b = s["body"]
+		s["body"] = null
+		if is_instance_valid(b): b.queue_free()
 	shapes[id] = null
+
 
 func lua_set_x(id: int, x: float) -> void:
 	var s = _get_shape(id)
@@ -443,6 +517,12 @@ func _call_inference(name: String, input: Array, fut: LuaFuture) -> void:
 	_call_inference_task(name, input, fut)
 
 
+func _exit_tree() -> void:
+	if lua:
+		lua = null
+	_lua_step = null
+	new_frame = null
+	_lua_coroutines.clear()
 
 
 func _call_inference_task(name: String, input: Array, fut: LuaFuture) -> void:
@@ -453,11 +533,14 @@ func _call_inference_task(name: String, input: Array, fut: LuaFuture) -> void:
 
 	var useful = node.useful_properties()
 	useful["raw_values"] = input
+	if not cookies.get_auth_header():
+		fut._complete({"_error":"no_login", "type": -1, "repr": ""})
+		return
 
 	if not nn.is_infer_channel(node):
 		var open_res = await nn.open_infer_channel(node, node.close_runner)
 		if not open_res:
-			fut._complete({"_error":"no_login", "type": -1, "repr": ""})
+			fut._complete({"_error":"invalid_graph", "type": -1, "repr": ""})
 			return
 		#await open_res.connected
 		#while not open_res.is_listening():
@@ -486,8 +569,10 @@ func lua_get_delta() -> float:
 
 func lua_clear() -> void:
 	for s in shapes:
-		if s and s.get("physics_enabled", false) and s.has("body"):
-			s["body"].queue_free()
+		if typeof(s) == TYPE_DICTIONARY and s.get("physics_enabled", false) and s.has("body"):
+			var b = s["body"]
+			s["body"] = null
+			if is_instance_valid(b): b.queue_free()
 	shapes.clear()
 
 var stopped: bool = false
@@ -500,7 +585,11 @@ func stop() -> void:
 			s["body"].queue_free()
 
 	shapes.clear()
-
+	
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
 	queue_free()
 
 func lua_set_rotation(id: int, angle: float) -> void:

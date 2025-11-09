@@ -14,6 +14,7 @@ func _get_nodes(args, kwargs = {}) -> Array[Node]:
 		new.text = _i
 		new.hint = _i
 		new.metadata["content"] = args[_i]
+		
 		output.append(new)
 	
 	return output

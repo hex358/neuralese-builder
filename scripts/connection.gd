@@ -1,6 +1,7 @@
 extends ColorRect
 class_name Connection
 
+@export var config_conn: bool = false
 static var INPUT: int = 0
 static var OUTPUT: int = 1
 @export var dynamic: bool = false
@@ -96,12 +97,15 @@ func delete(disconn: bool = true):
 	reg_actions = true
 
 func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
+	var pd = padding
 	if padding == -Vector4.ONE:
-		padding = Vector4.ONE * 20 * pow(glob.cam.zoom.x, -0.5)
+		pd = Vector4.ONE * 20 * pow(glob.cam.zoom.x, -0.5)
+	else:
+		pd = Vector4()
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
 	or glob.get_display_mouse_position().x > glob.space_end.x: return false
-	var top_left = global_position - Vector2(padding.x, padding.y) * parent_graph.scale * scale
-	var padded_size = size * parent_graph.scale * scale + Vector2(padding.x+padding.z, padding.y+padding.w)
+	var top_left = global_position - Vector2(pd.x, pd.y) * parent_graph.scale * scale
+	var padded_size = size * parent_graph.scale * scale + Vector2(pd.x+pd.z, pd.y+pd.w)
 	var has: bool = Rect2(top_left, padded_size).has_point(get_global_mouse_position())
 	return has
 
@@ -440,17 +444,25 @@ func _process(delta: float) -> void:
 	var not_occ = not glob.is_occupied(self, &"menu") and not glob.is_occupied(self, &"graph")
 	mouse_just_pressed = glob.mouse_just_pressed and not_occ
 	var unpadded = is_mouse_inside(Vector4())
-	if graphs.selected_nodes.size() <= 1:
-		if unpadded:
-			glob.set_menu_type(self, "detatch", low)
-		else:
-			glob.reset_menu_type(self, "detatch")
+
 
 	var occ = glob.is_occupied(self, "conn_active")
 	var chosen_activate = graphs.chosen_conn("activate") == self
+	if graphs.selected_nodes.size() <= 1:
+		if unpadded and chosen_activate:
+			glob.set_menu_type(self, "detatch", low)
+			#print("AA")
+		#	print(glob.menu_type)
+		else:
+			glob.reset_menu_type(self, "detatch")
+	else:
+		glob.reset_menu_type(self, "detatch")
 	var hover_target: Connection = graphs.chosen_conn("hover")
 
 	if chosen_activate:
+		var base_cond = connection_type == INPUT and inside and not occ and !graphs.conning()
+		var aux_cond = (not glob.is_occupied(self, "menu_inside") or glob.get_occupied(&"menu_inside").hint == "detatch")
+		
 		if connection_type == OUTPUT and inside and not occ and not glob.is_consumed(self, "mouse_press"):
 			if mouse_just_pressed:
 				if not glob.is_occupied(self, &"menu_inside") and !graphs.conning():
@@ -469,13 +481,13 @@ func _process(delta: float) -> void:
 			elif glob.mouse_alt_just_pressed and unpadded:
 				glob.menus["detatch"].show_up(outputs, self)
 
-		elif connection_type == INPUT and inside and not occ and !graphs.conning() and (
-			not glob.is_occupied(self, "menu_inside") or glob.get_occupied(&"menu_inside").hint == "detatch"):
-			if mouse_just_pressed and inputs.size() == 0 and not _rev_active():
+		elif base_cond:
+			if aux_cond and mouse_just_pressed and inputs.size() == 0 and not _rev_active():
 				_rev_start()
 			elif glob.mouse_alt_just_pressed and unpadded:
+				#print("AA")
 				glob.menus["detatch"].show_up(inputs, self)
-			elif mouse_just_pressed and inputs:
+			elif aux_cond and mouse_just_pressed and inputs:
 				var detatch = inputs.keys()[-1]
 				glob.activate_spline(detatch)
 				detatch_spline(detatch)

@@ -462,6 +462,8 @@ var virtual_inputs = {}
 
 var virtual_outputs = {}
 
+var config_conns = {}
+
 func add_connection(conn: Connection):
 	#var input_nm = 
 	if conn.dynamic: return
@@ -477,6 +479,8 @@ func add_connection(conn: Connection):
 			assert(not conn.hint in input_keys, "Occupied")
 			input_keys[conn.hint] = conn
 			input_key_by_conn[conn] = conn.hint
+			if conn.config_conn:
+				config_conns[conn] = conn.hint
 		Connection.OUTPUT: 
 			outputs.append(conn)
 			assert(not conn.hint in output_keys, "Occupied")
@@ -505,6 +509,8 @@ func conn_exit(conn: Connection):
 			_inputs.erase(conn)
 			input_keys.erase(conn.hint)
 			input_key_by_conn.erase(conn)
+			if conn.config_conn:
+				config_conns.erase(conn)
 		Connection.OUTPUT: 
 			output_keys.erase(conn.hint)
 			outputs.erase(conn)
@@ -1292,7 +1298,7 @@ func delete_call():
 		glob.open_action_batch()
 		var pos = position
 		var callb = graphs.get_graph.bind(get_meta("created_with"), Flags.NEW, graph_id, llm_tag)
-		glob.add_action(glob.bound.bind(callb, pos, cfg.duplicate(true)), graphs.delete_graph_by_id.bind(graph_id))
+		glob.add_action(glob.bound.bind(callb, pos, cfg.duplicate(true), false), graphs.delete_graph_by_id.bind(graph_id))
 		
 		glob.add_action(glob.create_conns.bind(res), glob.destroy_conns.bind(res))
 		delete(false)
@@ -1336,7 +1342,6 @@ func _process(delta: float) -> void:
 	var conn_free = (not glob.hovered_connection or glob.hovered_connection.connection_type == 0 or z_index >= glob.hovered_connection.parent_graph.z_index)
 	
 	if inside and conn_free:
-	#	print("AA")
 		glob.occupy(self, &"graph")
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed and not dragging:

@@ -40,6 +40,7 @@ offset_top = -72.0
 offset_right = 9.0
 offset_bottom = -53.0
 color = Color(0.297, 0.66885, 0.9, 1)
+config_conn = true
 _accepted_datatypes = "activation"
 server_name = &"activ_in"
 connection_type = 0

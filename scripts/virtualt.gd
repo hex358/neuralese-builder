@@ -1,6 +1,8 @@
 extends Control
 class_name VirtualTable
 
+@export var addition_enabled: bool = false
+
 @export var vscrollbar: VScrollBar
 @export var grid_line_color: Color = Color(1, 1, 1, 0.15)
 @export var odd_row_tint: Color = Color(1, 1, 1, 0.04)
@@ -98,7 +100,6 @@ func _update_content_area_rect() -> void:
 #
 
 
-
 func _ready() -> void:
 	add_child(_content_area)
 	add_child(_overlay)
@@ -110,7 +111,7 @@ func _ready() -> void:
 
 	content_margin.x += header_width
 	content_margin.y += header_height
-	content_margin.z -= header_width
+	#content_margin.z -= header_width*2
 	#content_margin.w -= header_height
 	#_content_area.clip_contents = true
 	_update_content_area_rect()
@@ -135,6 +136,7 @@ func _ready() -> void:
 		hscrollbar.offset_right = 0
 		hscrollbar.position.y -= hscrollbar.size.y * 0.3
 		hscrollbar.value_changed.connect(_on_hscrollbar_value_changed)
+		hscrollbar.size.x -= 10
 	move_child(_overlay, -1)
 
 
@@ -381,7 +383,7 @@ func _rebuild_column_metrics() -> void:
 	var view_w: float
 	match column_width_mode:
 		ColumnWidthMode.FIT, ColumnWidthMode.FIXED:
-			view_w = size.x
+			view_w = size.x - header_width
 		ColumnWidthMode.RELAXED:
 			if not col_offsets.is_empty() and col_offsets[cols] > 0.0:
 				view_w = col_offsets[cols] / max_total_width_scale
@@ -405,7 +407,7 @@ func _rebuild_column_metrics() -> void:
 		col_widths[i] = w
 		acc += w
 		col_offsets[i + 1] = acc
-
+	#print("a")
 	if hscrollbar:
 		_update_hscrollbar_range()
 
@@ -503,17 +505,19 @@ func _flush_active_from(row_index: int) -> void:
 	for k in to_remove:
 		active_cells.erase(k)
 
+func _add_cells(at_index: int, cells):
+	adapter_data.insert(at_index, cells)
 
+func _del_cells(at_index: int):
+	adapter_data.remove_at(at_index)
 
 func add_row(cells: Array = [], at_index: int = -1) -> void:
 	if at_index < 0 or at_index > rows:
 		at_index = rows
 
-	# 1) mutate data
-	adapter_data.insert(at_index, cells)
+	_add_cells(at_index, cells)
 	rows += 1
 
-	# 2) height for the new row
 	var base_h = 0.0
 	for c in range(cols):
 		var cell_info = cells[c]
@@ -531,13 +535,11 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 
 	_flush_active_from(at_index)
 
-	# 5) UI updates
 	if vscrollbar:
 		_update_scrollbar_range()
 	_need_layout = true
 	_need_visible_refresh = true
 	queue_redraw()
-
 
 
 
@@ -549,11 +551,10 @@ func remove_row(index: int) -> void:
 	var old_h = row_heights[index]
 	_sum_heights -= old_h
 
-	adapter_data.remove_at(index)
+	_del_cells(index)
 	rows -= 1
 	row_heights.remove_at(index)
 
-	# Keep offsets sized and invalidate suffix
 	_invalidate_offsets_from(index)
 	if row_offsets.size() >= index + 2:
 		row_offsets.remove_at(index + 1)
@@ -624,6 +625,7 @@ func _set_scroll_y(new_value: float, from_bar: bool = false) -> void:
 	_scroll_cooldown = 0.0
 	_need_layout = true
 	queue_redraw()
+	glob.hide_all_menus()
 
 
 
@@ -654,6 +656,18 @@ var _last_scrollbar_rect: Rect2
 
 
 func _process(delta: float) -> void:
+	#print(glob.menu_type)
+	if addition_enabled:
+		var mp = get_global_mouse_position()
+		if get_global_rect().has_point(mp):
+			glob.set_menu_type(self, "row_mod")
+			if glob.mouse_alt_just_pressed:
+				var menu = glob.menus["row_mod"]
+				menu.set_txt(str(get_row_at_position(mp)))
+				var a = await menu.ask_and_wait(mp)
+		else:
+			glob.reset_menu_type(self, "row_mod")
+	
 	var dy = abs(scroll_y - _last_scroll_y)
 	var inst_vel = dy / delta
 	_vel_smoothed = lerp(_vel_smoothed, inst_vel, 5.0 * delta)

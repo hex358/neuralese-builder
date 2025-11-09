@@ -58,6 +58,7 @@ offset_top = -98.0
 offset_right = -67.0
 offset_bottom = -78.0
 color = Color(0.765, 0.53, 1, 1)
+config_conn = true
 _accepted_datatypes = "dataset_type"
 server_name = &"netname"
 connection_type = 0

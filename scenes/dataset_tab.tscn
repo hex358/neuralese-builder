@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://cuuew2v4inm7k"]
+[gd_scene load_steps=34 format=3 uid="uid://cuuew2v4inm7k"]
 
 [ext_resource type="Script" uid="uid://cir1i2gbr8pjh" path="res://scripts/dataset_tab.gd" id="1_hsuaq"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_fn1yt"]
@@ -16,8 +16,15 @@
 [ext_resource type="Script" uid="uid://cpdndxaic5xca" path="res://scripts/virtualt.gd" id="13_bwfib"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="14_bwfib"]
 [ext_resource type="Texture2D" uid="uid://cc0gwf51gfory" path="res://game_assets/icons/hide.png" id="14_empbn"]
+[ext_resource type="Script" uid="uid://bdd0v81iq8cis" path="res://scripts/console.gd" id="17_6hcr6"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="17_wg51w"]
 [ext_resource type="Theme" uid="uid://6b4rxqrmq3yb" path="res://resources/theme_no_aa.tres" id="18_6hcr6"]
+[ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="20_rckiu"]
+[ext_resource type="SyntaxHighlighter" uid="uid://c6jrq0dx3d808" path="res://resources/dscli.tres" id="21_mbiqq"]
+[ext_resource type="Script" uid="uid://cwuexxn8qidxj" path="res://scripts/cli.gd" id="22_q5lcu"]
+[ext_resource type="Script" uid="uid://4d3i1e2dctun" path="res://scripts/cmdparse.gd" id="23_jf34i"]
+[ext_resource type="Script" uid="uid://cb40vkd5uu1g1" path="res://scripts/edit_graph.gd" id="24_8ivn3"]
+[ext_resource type="Resource" uid="uid://b87f7qp31583q" path="res://resources/lite_config.tres" id="25_j7vbt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epnia"]
 shader = ExtResource("5_rckiu")
@@ -319,6 +326,7 @@ offset_right = 913.0
 offset_bottom = 558.0
 theme = ExtResource("2_fn1yt")
 script = ExtResource("13_bwfib")
+addition_enabled = true
 vscrollbar = NodePath("VScrollBar")
 spawn_delay_threshold = 7000.0
 content_margin = Vector4(0, 0, 0, 0)
@@ -369,15 +377,16 @@ offset_right = 188.5
 offset_bottom = -41.0
 grow_horizontal = 2
 grow_vertical = 0
+focus_mode = 2
 theme = ExtResource("14_bwfib")
 theme_override_font_sizes/normal_font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_wg51w")
-text = "heyyyy
-ggg
-gg
-jjj
-jjj
-"
+theme_override_styles/focus = SubResource("StyleBoxFlat_wg51w")
+bbcode_enabled = true
+scroll_following = true
+scroll_following_visible_characters = true
+selection_enabled = true
+script = ExtResource("17_6hcr6")
 
 [node name="train2" parent="Control/console" instance=ExtResource("8_jf34i")]
 z_index = 5
@@ -408,20 +417,9 @@ max_size = 170
 config = SubResource("Resource_hsuaq")
 in_splash = true
 
-[node name="LineEdit" parent="Control" instance=ExtResource("17_wg51w")]
-z_index = 90
-layout_mode = 0
-offset_left = 194.99998
-offset_top = 478.0
-offset_right = 884.6411
-offset_bottom = 524.0
-scale = Vector2(0.61295277, 0.61295277)
-theme = ExtResource("18_6hcr6")
-theme_override_styles/normal = SubResource("StyleBoxFlat_rckiu")
-theme_override_styles/focus = SubResource("StyleBoxFlat_mbiqq")
-placeholder_text = "Feature name"
-max_length = 14
-context_menu_enabled = false
+[node name="Commands" type="Node" parent="Control/console/train2"]
+script = ExtResource("23_jf34i")
+metadata/_custom_type_script = "uid://4d3i1e2dctun"
 
 [node name="ColorRect" type="ColorRect" parent="Control"]
 z_index = -1
@@ -433,10 +431,116 @@ offset_bottom = 1161.0
 mouse_filter = 2
 color = Color(0.12156863, 0.12156863, 0.12156863, 1)
 
+[node name="LineEdit2" parent="Control" instance=ExtResource("17_wg51w")]
+visible = false
+z_index = 90
+layout_mode = 0
+offset_left = 194.99998
+offset_top = 478.0
+offset_right = 884.6411
+offset_bottom = 524.0
+scale = Vector2(0.61295277, 0.61295277)
+theme = ExtResource("18_6hcr6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_rckiu")
+theme_override_styles/focus = SubResource("StyleBoxFlat_mbiqq")
+placeholder_text = "type command..."
+max_length = 14
+context_menu_enabled = false
+
+[node name="LineEdit" type="Control" parent="Control"]
+anchors_preset = 0
+offset_left = 197.0
+offset_top = 477.0
+offset_right = 617.0
+offset_bottom = 506.0
+
+[node name="CodeEdit2" type="CodeEdit" parent="Control/LineEdit" node_paths=PackedStringArray("console")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -3.0
+offset_top = -2.0
+offset_right = 15.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_fn1yt")
+theme_override_fonts/font = ExtResource("20_rckiu")
+syntax_highlighter = ExtResource("21_mbiqq")
+code_completion_enabled = true
+auto_brace_completion_enabled = true
+script = ExtResource("22_q5lcu")
+console = NodePath("../../console")
+
+[node name="Node" type="Node" parent="Control/LineEdit/CodeEdit2"]
+script = ExtResource("23_jf34i")
+
 [node name="Camera2D" type="Camera2D" parent="."]
 scale = Vector2(2.1270475, 2.1270475)
 anchor_mode = 0
 
+[node name="CanvasLayer2" type="CanvasLayer" parent="."]
+layer = 126
+
+[node name="row_mod" parent="CanvasLayer2" instance=ExtResource("8_jf34i")]
+z_index = 90
+material = ExtResource("9_b545l")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
+offset_right = 182.66667
+offset_bottom = 46.0
+scale = Vector2(0.75, 0.75)
+script = ExtResource("24_8ivn3")
+implement = false
+placeholder = true
+resize_after = 12
+text = "00000000000*"
+base_size = Vector2(182.66667, 46)
+_scroll_container = false
+expanded_size = 144
+scale_anim = true
+arrangement_padding = Vector2(10, 8)
+mouse_open = false
+menu_name = &"row_mod"
+max_size = 0
+config = null
+
+[node name="neuron" parent="CanvasLayer2/row_mod" instance=ExtResource("8_jf34i")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.9490196, 0.41960785, 0.41960785, 1)
+instance_shader_parameters/tuning = Color(0.4392157, 0.22352941, 0.22352941, 0.6392157)
+layout_mode = 0
+offset_left = -94.2857
+offset_top = -68.5714
+offset_right = 124.7143
+offset_bottom = -27.571404
+pivot_offset = Vector2(109.5, 20.5)
+button_type = 1
+hint = &"1"
+text = "Insert"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("25_j7vbt")
+
+[node name="copy" parent="CanvasLayer2/row_mod" instance=ExtResource("8_jf34i")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.86, 0.86, 0.86, 1)
+instance_shader_parameters/tuning = Color(0.44, 0.44, 0.44, 0.6392157)
+layout_mode = 0
+offset_left = -94.2857
+offset_top = -68.5714
+offset_right = 124.7143
+offset_bottom = -27.571404
+pivot_offset = Vector2(109.5, 20.5)
+button_type = 1
+hint = &"copy"
+text = "Duplicate"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("25_j7vbt")
+
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/9" to="." method="_on__released"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
+[connection signal="released" from="Control/console/train2" to="Control/LineEdit/CodeEdit2" method="_on_train_2_released"]

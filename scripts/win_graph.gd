@@ -15,8 +15,12 @@ func _window_show():
 	$follow_menus.show()
 	$bg/TextureRect.show()
 	show()
+	if glob.cam is GraphViewport:
+		glob.cam.reset()
 
 func _window_hide():
+	if glob.cam is GraphViewport:
+		glob.cam.reset()
 	process_mode = Node.PROCESS_MODE_DISABLED
 	glob.hide_all_menus()
 	graphs.hide()

@@ -51,6 +51,7 @@ offset_top = -29.0
 offset_right = 10.0
 offset_bottom = -8.0
 color = Color(0.7019608, 0.4, 1, 1)
+config_conn = true
 _accepted_datatypes = "netname"
 hint = 1
 server_name = &"RunModel"

@@ -648,6 +648,9 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(_menu_type_occupator):
 		menu_type = ""
 		_menu_type_occupator = null
+	if _menu_type_occupator is Connection and not _menu_type_occupator.is_mouse_inside():
+		menu_type = ""
+		_menu_type_occupator = null
 	
 	window_size = DisplayServer.window_get_size()
 	window_rect = Rect2(Vector2(), window_size)
@@ -1124,7 +1127,7 @@ var action_batch = []
 
 var is_redoing: bool = false
 var is_undoing: bool = false
-
+var stop_icon = preload("res://game_assets/icons/stop.png")
 func is_auto_action() -> bool:
 	return is_redoing or is_undoing
 
@@ -1133,7 +1136,21 @@ func is_auto_action() -> bool:
 
 var selector_box: Control = null
 
-func bound(callable: Callable, pos: Vector2, cfg: Dictionary):
+func get_default_script(script_name: String):
+	return """-- '%s'
+
+function createScene()
+	-- Scene is initialized here.
+	-- Here you can create your objects, etc.
+	print("Hello, Neuralese!")
+end
+
+function newFrame(delta)
+	-- Per-frame work is done here
+	-- "delta" is time since the last frame
+end""" % script_name
+
+func bound(callable: Callable, pos: Vector2, cfg: Dictionary, select: bool = true):
 	var args = callable.get_bound_arguments().duplicate()
 	if args.size() < 2:
 		push_error("Not enough bound args")
@@ -1145,7 +1162,8 @@ func bound(callable: Callable, pos: Vector2, cfg: Dictionary):
 	var a = base.callv(args)
 	a.position = pos
 	a.update_config(cfg)
-	a.select()
+	if select:
+		a.select()
 
 
 func add_action(undo: Callable, redo: Callable, ...args):
