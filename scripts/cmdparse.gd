@@ -16,8 +16,19 @@ class CommandDef:
 	var handler: Callable
 	var description: String
 	var strict: bool
+	var allowed_keywords: Array
+	var allow_empty: bool
 
-	func _init(_name: String, _handler: Callable, _args := [], _flags := [], _description := "", _strict := true):
+	func _init(
+		_name: String,
+		_handler: Callable,
+		_args := [],
+		_flags := [],
+		_description := "",
+		_strict := true,
+		_allowed_keywords := [],
+		_allow_empty := false
+	):
 		name = _name
 		handler = _handler
 		args.clear()
@@ -26,6 +37,8 @@ class CommandDef:
 		flags = _flags
 		description = _description
 		strict = _strict
+		allowed_keywords = _allowed_keywords
+		allow_empty = _allow_empty
 
 	func get_usage() -> String:
 		var usage = name
@@ -54,7 +67,6 @@ class CommandParser:
 		if not registry.has(cmd_name):
 			return _err("unknown_cmd", cmd_name)
 
-		# forbid more than one command token per line
 		for t in tokens.slice(1, tokens.size()):
 			if registry.has(t):
 				return _err("multi_cmd", t)
@@ -82,13 +94,15 @@ class CommandParser:
 	func _parse_tokens(tokens: Array, def: CommandDef) -> Dictionary:
 		var data = {"command": tokens[0], "args": {}, "flags": []}
 		var i = 1
-		var arg_index = 0
-		var args_total = def.args.size()
+		data["args"]["action"] = "keep"
+		data["args"]["condition"] = ""
+
+		if tokens.size() == 1 and not def.allow_empty:
+			return _err("empty_command", def.name, def)
 
 		while i < tokens.size():
 			var tok = tokens[i]
 
-			# Handle flags
 			if tok.begins_with("--"):
 				var flag_name = tok.substr(2)
 				if flag_name not in def.flags:
@@ -97,54 +111,35 @@ class CommandParser:
 				i += 1
 				continue
 
-			# --- STRICT MODE ---
+			if def.allowed_keywords.size() > 0 and tok in def.allowed_keywords:
+				data["args"]["action"] = tok
+				i += 1
+				continue
+			elif def.allowed_keywords.size() > 0 and tok not in ["if"]:
+				return _err("unknown_action", tok, def, def.allowed_keywords)
+
+			if tok == "if":
+				var remaining: Array = []
+				i += 1
+				while i < tokens.size() and not tokens[i].begins_with("--"):
+					remaining.append(tokens[i])
+					i += 1
+				data["args"]["condition"] = " ".join(remaining)
+				break
+
 			if def.strict:
-				if arg_index < args_total:
-					var arg = def.args[arg_index]
-					# if this is the last arg -> greedy absorb
-					if arg_index == args_total - 1:
-						var remaining: Array = []
-						while i < tokens.size() and not tokens[i].begins_with("--"):
-							remaining.append(tokens[i])
-							i += 1
-						data["args"][arg.name] = " ".join(remaining)
-						break
-					else:
-						data["args"][arg.name] = tok
-						arg_index += 1
-						i += 1
+				if def.args.size() > 0:
+					data["args"][def.args[0].name] = tok
+					i += 1
+					continue
 				else:
 					return _err("too_many_args", tok, def)
 
-			# --- NON-STRICT MODE ---
-			else:
-				# in non-strict, first arg is treated as optional keyword (e.g. keep/drop/if)
-				if arg_index < args_total:
-					var arg = def.args[arg_index]
-					if arg_index == args_total - 1:
-						var remaining: Array = []
-						while i < tokens.size() and not tokens[i].begins_with("--"):
-							remaining.append(tokens[i])
-							i += 1
-						data["args"][arg.name] = " ".join(remaining)
-						break
-					else:
-						data["args"][arg.name] = tok
-						arg_index += 1
-						i += 1
-				else:
-					# extra tokens become part of last arg text
-					data["args"]["condition"] = (data["args"].get("condition", "") + " " + tok).strip_edges()
-					i += 1
-
-		# validate required args
-		for a in def.args:
-			if a.required and not data["args"].has(a.name):
-				return _err("missing_args", [a.name], def)
+			i += 1
 
 		return data
 
-	func _err(code: String, extra = null, def: CommandDef = null) -> Dictionary:
+	func _err(code: String, extra = null, def: CommandDef = null, allowed = null) -> Dictionary:
 		var msg = ""
 		match code:
 			"empty":
@@ -159,13 +154,16 @@ class CommandParser:
 				msg = "Unexpected argument '%s'" % extra
 			"missing_args":
 				msg = "Missing required arguments: %s" % str(extra)
+			"unknown_action":
+				msg = "Unknown action: '%s'. Allowed actions: %s" % [extra, str(allowed)]
+			"empty_command":
+				msg = "Command '%s' requires at least one argument or flag." % extra
 			_:
 				msg = "Parse error"
-
 		if def:
 			msg += "\nUsage:\n   %s\n%s" % [def.get_usage(), def.description]
 		elif code == "unknown_cmd":
-			msg += "\n\nAvailable commands:"
+			msg += "\nAvailable commands: "
 			for c in registry.values():
-				msg += "\n  - %-12s" % [c.name]
+				msg += "%-12s " % [c.name]
 		return {"error": msg}

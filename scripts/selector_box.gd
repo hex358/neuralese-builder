@@ -21,6 +21,8 @@ signal request_pan(direction: Vector2)
 var select_origin_world: Vector2
 var prev_cam_pos: Vector2
 
+
+
 var q: bool = false
 func _process(delta: float) -> void:
 

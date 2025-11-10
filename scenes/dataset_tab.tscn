@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://cuuew2v4inm7k"]
+[gd_scene load_steps=36 format=3 uid="uid://cuuew2v4inm7k"]
 
 [ext_resource type="Script" uid="uid://cir1i2gbr8pjh" path="res://scripts/dataset_tab.gd" id="1_hsuaq"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_fn1yt"]
@@ -52,19 +52,6 @@ animation_speed = 1.951
 animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[sub_resource type="Resource" id="Resource_uce8f"]
-script = ExtResource("11_j7vbt")
-as_mult = true
-hover_color = Color(1.1, 1.1, 1.1, 1)
-hover_mult = 1.2
-_hover_scale = 1.05
-press_color = Color(0.84, 0.84, 0.84, 1)
-_press_scale = 0.98
-animation_speed = 2.657
-animation_decay = 6.0
-animation_duration = 1.359
-metadata/_custom_type_script = "uid://dx40hpbce8w60"
-
 [sub_resource type="Resource" id="Resource_n8ca6"]
 script = ExtResource("11_j7vbt")
 as_mult = true
@@ -79,7 +66,27 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wg51w"]
+[sub_resource type="Resource" id="Resource_8ivn3"]
+script = ExtResource("11_j7vbt")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ivn3"]
+content_margin_left = 8.0
+content_margin_top = 29.0
+content_margin_bottom = 8.0
+bg_color = Color(0.12156863, 0.12156863, 0.12156863, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j7vbt"]
 content_margin_left = 8.0
 content_margin_top = 29.0
 content_margin_bottom = 8.0
@@ -95,6 +102,19 @@ press_color = Color(0.72, 0.72, 0.72, 1)
 _press_scale = 1.0
 animation_scale = 19.697
 animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_uce8f"]
+script = ExtResource("11_j7vbt")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.2
+_hover_scale = 1.05
+press_color = Color(0.84, 0.84, 0.84, 1)
+_press_scale = 0.98
+animation_speed = 2.657
 animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
@@ -141,7 +161,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.12, 0.12, 0.12, 1)
+color = Color(0.12156863, 0.12156863, 0.12156863, 1)
 
 [node name="Control" type="Control" parent="." node_paths=PackedStringArray("table")]
 layout_mode = 3
@@ -227,38 +247,6 @@ script = ExtResource("9_3m244")
 instance = NodePath("../name")
 metadata/_custom_type_script = "uid://cppqde4187p8n"
 
-[node name="9" parent="Control/scenes" instance=ExtResource("8_jf34i")]
-self_modulate = Color(1, 1, 1, 0)
-material = ExtResource("13_51ak0")
-instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
-instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -37.0
-offset_top = 11.0
-offset_right = -2.1955566
-offset_bottom = 43.624138
-grow_horizontal = 0
-scale = Vector2(0.798255, 0.798255)
-pivot_offset = Vector2(17.402222, 16.312069)
-color = Color(0.49019608, 0.627451, 0.83137256, 1)
-button_type = 1
-top = true
-hint = &"layer"
-base_size = Vector2(34.804443, 32.624138)
-alignment = Vector2(0.5, 0.5)
-config = SubResource("Resource_uce8f")
-
-[node name="i" type="TextureRect" parent="Control/scenes/9"]
-layout_mode = 0
-offset_right = 24.0
-offset_bottom = 24.000002
-scale = Vector2(1.3652097, 1.3652097)
-texture = ExtResource("14_empbn")
-
 [node name="plus" parent="Control/scenes" instance=ExtResource("8_jf34i")]
 process_mode = 3
 z_index = 9
@@ -318,6 +306,33 @@ text = "Preview"
 script = ExtResource("7_q5lcu")
 padding = Vector2(11, 4)
 
+[node name="run" parent="Control/view/Label" instance=ExtResource("8_jf34i")]
+z_index = 9
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+offset_left = 33.65219
+offset_top = 51.77256
+offset_right = 104.41574
+offset_bottom = 73.11574
+scale = Vector2(1.9184519, 1.9184519)
+pivot_offset = Vector2(35.381775, 10.671589)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 1)
+button_type = 1
+top = true
+base_scale_x = 0.45
+resize_after = 7
+text = "Load CSV"
+base_size = Vector2(70.76355, 21.343178)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_8ivn3")
+
 [node name="CodeEdit" type="Control" parent="Control" node_paths=PackedStringArray("vscrollbar", "hscrollbar")]
 z_index = -1
 anchors_preset = 0
@@ -326,16 +341,18 @@ offset_right = 913.0
 offset_bottom = 558.0
 theme = ExtResource("2_fn1yt")
 script = ExtResource("13_bwfib")
+uniform_row_heights = true
 addition_enabled = true
 vscrollbar = NodePath("VScrollBar")
+odd_row_tint = Color(1, 1, 1, 0.020000001)
 spawn_delay_threshold = 7000.0
 content_margin = Vector4(0, 0, 0, 0)
-column_ratios = PackedFloat32Array(0.333, 0.333, 0.333)
+column_ratios = PackedFloat32Array(0.5, 0.5)
 hscrollbar = NodePath("HScrollBar")
 column_width_mode = 0
 max_total_width_scale = 1.3
 min_total_column_ratio = 0.30000000000000004
-min_column_width = 10.0
+min_column_width = 25.0
 header_width = 28.0
 column_names = Array[String](["Input", "Output"])
 min_vgrabber_ratio = 0.04
@@ -380,13 +397,13 @@ grow_vertical = 0
 focus_mode = 2
 theme = ExtResource("14_bwfib")
 theme_override_font_sizes/normal_font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_wg51w")
-theme_override_styles/focus = SubResource("StyleBoxFlat_wg51w")
+theme_override_styles/normal = SubResource("StyleBoxFlat_8ivn3")
+theme_override_styles/focus = SubResource("StyleBoxFlat_j7vbt")
 bbcode_enabled = true
 scroll_following = true
-scroll_following_visible_characters = true
 selection_enabled = true
 script = ExtResource("17_6hcr6")
+is_custom = true
 
 [node name="train2" parent="Control/console" instance=ExtResource("8_jf34i")]
 z_index = 5
@@ -421,6 +438,41 @@ in_splash = true
 script = ExtResource("23_jf34i")
 metadata/_custom_type_script = "uid://4d3i1e2dctun"
 
+[node name="9" parent="Control/console" instance=ExtResource("8_jf34i")]
+self_modulate = Color(1, 1, 1, 0)
+material = ExtResource("13_51ak0")
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -30.5
+offset_top = -2.0
+offset_right = 4.3044434
+offset_bottom = 30.624138
+grow_horizontal = 0
+scale = Vector2(0.798255, 0.798255)
+pivot_offset = Vector2(17.402222, 16.312069)
+color = Color(0.49019608, 0.627451, 0.83137256, 1)
+button_type = 1
+top = true
+hint = &"layer"
+base_size = Vector2(34.804443, 32.624138)
+alignment = Vector2(0.5, 0.5)
+config = SubResource("Resource_uce8f")
+
+[node name="i" type="TextureRect" parent="Control/console/9"]
+layout_mode = 0
+offset_left = 33.183807
+offset_top = 0.88832104
+offset_right = 57.183807
+offset_bottom = 24.888325
+rotation = 1.5707964
+scale = Vector2(1.3652097, 1.3652097)
+texture = ExtResource("14_empbn")
+
 [node name="ColorRect" type="ColorRect" parent="Control"]
 z_index = -1
 layout_mode = 0
@@ -454,7 +506,7 @@ offset_top = 477.0
 offset_right = 617.0
 offset_bottom = 506.0
 
-[node name="CodeEdit2" type="CodeEdit" parent="Control/LineEdit" node_paths=PackedStringArray("console")]
+[node name="CodeEdit2" type="CodeEdit" parent="Control/LineEdit" node_paths=PackedStringArray("table", "console")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -471,6 +523,7 @@ syntax_highlighter = ExtResource("21_mbiqq")
 code_completion_enabled = true
 auto_brace_completion_enabled = true
 script = ExtResource("22_q5lcu")
+table = NodePath("../../CodeEdit")
 console = NodePath("../../console")
 
 [node name="Node" type="Node" parent="Control/LineEdit/CodeEdit2"]
@@ -517,8 +570,8 @@ offset_right = 124.7143
 offset_bottom = -27.571404
 pivot_offset = Vector2(109.5, 20.5)
 button_type = 1
-hint = &"1"
-text = "Insert"
+hint = &"delete"
+text = "Delete"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("25_j7vbt")
@@ -534,13 +587,14 @@ offset_right = 124.7143
 offset_bottom = -27.571404
 pivot_offset = Vector2(109.5, 20.5)
 button_type = 1
-hint = &"copy"
-text = "Duplicate"
+hint = &"insert"
+text = "Insert"
 base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("25_j7vbt")
 
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
-[connection signal="released" from="Control/scenes/9" to="." method="_on__released"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
-[connection signal="released" from="Control/console/train2" to="Control/LineEdit/CodeEdit2" method="_on_train_2_released"]
+[connection signal="released" from="Control/view/Label/run" to="." method="_on_run_released"]
+[connection signal="released" from="Control/console/train2" to="." method="_on_train_2_released"]
+[connection signal="released" from="Control/console/9" to="." method="_on__released"]

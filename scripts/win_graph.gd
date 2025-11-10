@@ -33,8 +33,10 @@ func window_hide():
 	glob.cam = null
 	camera.enabled = false
 	_window_hide()
+	glob.selector_box.hide()
 
 func window_show():
+	#glob.selector_box.clamp_rect = Rect2(0, glob.space_begin.y, 99999, 99999)
 	glob.cam = camera
 	camera.make_current()
 	camera.enabled = true

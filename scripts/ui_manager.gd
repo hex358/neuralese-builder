@@ -101,6 +101,7 @@ func _process(delta: float):
 #	print(get_viewport().gui_get_focus_owner())
 			
 
+var splashed_in = {}
 var blur = preload("res://scenes/blur.tscn").instantiate()
 var splash_menus = {
 	"login": preload("res://scenes/splash.tscn"),
@@ -112,6 +113,7 @@ var splash_menus = {
 	"ai_help": preload("res://scenes/ai_help.tscn"),
 	"select_dataset": preload("res://scenes/select_dataset.tscn"),
 	"model_export": preload("res://scenes/model_export.tscn"),
+	"path_open": preload("res://scenes/path_open.tscn"),
 }
 
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bsgahiw7rcbh5"]
+[gd_scene load_steps=14 format=3 uid="uid://bsgahiw7rcbh5"]
 
 [ext_resource type="Script" uid="uid://b25xb6hedwhsv" path="res://scripts/dataset.gd" id="1_erg8n"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_5t588"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://o3vi7hhcmjs5" path="res://scripts/list_datasets.gd" id="9_pow88"]
 [ext_resource type="Script" uid="uid://1x036rwyt23r" path="res://scripts/listds.gd" id="10_whmsd"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="11_8yyrq"]
+[ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="11_erg8n"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="12_oo6fr"]
 
 [sub_resource type="Resource" id="Resource_sfqu4"]
@@ -73,9 +74,9 @@ instance_shader_parameters/outline_color = Color(1, 1, 1, 0)
 instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
 layout_mode = 0
 offset_left = 21.0
-offset_top = 95.0
+offset_top = 120.0
 offset_right = 556.5556
-offset_bottom = 95.0
+offset_bottom = 120.0
 scale = Vector2(0.9, 0.9)
 color = Color(1, 1, 1, 0)
 script = ExtResource("9_pow88")
@@ -83,7 +84,7 @@ base_size = Vector2(535.5556, 0)
 static_mode = true
 mouse_open = false
 dynamic_size = true
-max_size = 330
+max_size = 305
 config = null
 
 [node name="name" parent="ColorRect/list" instance=ExtResource("2_5t588")]
@@ -123,6 +124,22 @@ offset_right = 485.0
 offset_bottom = 77.0
 theme = ExtResource("11_8yyrq")
 text = "Select dataset"
+
+[node name="Label2" type="LineEdit" parent="ColorRect"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 83.00001
+offset_right = 613.6754
+offset_bottom = 126.00001
+scale = Vector2(0.77261, 0.77261)
+theme = ExtResource("11_8yyrq")
+placeholder_text = "Query..."
+max_length = 25
+expand_to_text_length = true
+script = ExtResource("11_erg8n")
+resize_after = 250
+monospaced = false
+metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("12_oo6fr")

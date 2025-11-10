@@ -203,7 +203,9 @@ func contain(child: BlockComponent):
 		child.pressing.connect(_menu_handle_pressing.bind(child))
 		child.released.connect(
 			(func(child):
+				#print("fjfj")
 				fin_trigger.emit(child)
+				#print("EMITTT")
 				_menu_handle_release(child)).bind(child)
 				)
 	
@@ -669,6 +671,7 @@ func _update_scroll_text(delta: float) -> void:
 @export var in_splash: bool = false
 @export var still_hover_in_block: bool = false
 
+@onready var base_in_splash: bool = in_splash
 var ins_request: bool = false
 func _process_block_button(delta: float) -> void:
 	if not is_visible_in_tree() or not freedom:
@@ -684,6 +687,9 @@ func _process_block_button(delta: float) -> void:
 	or ins
 	var frozen = is_contained and parent.is_frozen or is_frozen
 	blocked = blocked or (ui.active_splashed() and not in_splash) or ui.topr_inside
+	blocked = blocked or (!base_in_splash and ui.splashed_in)
+	#if name == "run" and _wrapped_in.get_parent() is Label:
+	#	print(in_splash)
 	if not frozen:
 		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins or (is_contained and is_contained.scrolling)))
 		mouse_pressed = glob.mouse_pressed and not blocked
@@ -864,13 +870,16 @@ func _proceed_show(at_position: Vector2) -> bool: # virtual
 
 signal fin_trigger(arg)
 
-func ask_and_wait(at_position: Vector2):
-	menu_show(at_position)
+func ask_and_wait(at_position: Vector2, hide: bool = true, show: bool = true):
+	if show:
+		menu_show(at_position)
 	state.holding = false
 	var a = await fin_trigger
+	#print(a)
 	if a is BlockComponent:
-		print("DFDF")
-		menu_hide()
+		#print("ii")
+		if hide:
+			menu_hide()
 		return a
 	return null
 	#await child_button_release
@@ -917,8 +926,10 @@ func menu_show(at_position: Vector2) -> void:
 	#print(get_parent().visible)
 
 func menu_hide() -> void:
+	
 	if static_mode:
 		return
+	fin_trigger.emit(null)
 	state.expanded = false
 	if state.tween_hide or not visible: return
 	if glob.opened_menu == self:
@@ -934,7 +945,6 @@ func menu_hide() -> void:
 	state.expanding = false
 	state.holding = false
 	unblock_input()
-	fin_trigger.emit(null)
 
 func menu_expand() -> void:
 	state.holding = false
@@ -1037,6 +1047,8 @@ func _process_context_menu(delta: float) -> void:
 	var right_click = glob.mouse_alt_just_pressed if !left_activate else glob.mouse_just_pressed
 	
 	var non_splashed = in_splash or !ui.active_splashed()
+	non_splashed = non_splashed and (in_splash or !ui.splashed_in)
+	#print(ui.splashed_in)
 	left_click = left_click and non_splashed
 	right_click = right_click and non_splashed
 	right_pressed = right_pressed and non_splashed

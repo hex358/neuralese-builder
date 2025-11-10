@@ -3,15 +3,16 @@ extends Control
 @export var table: VirtualTable
 
 func _ready() -> void:
-	var data := []
-	for r in 100000:
-		var row := []
-		for c in 2:
-			row.append({"type": "text", "text": "R%s C%s" % [r, c]})
-		data.append(row)
-
-	table.load_dataset(data, 2, 100000)
-	
+	pass
+	#var data := []
+	#for r in 5000:
+		#var row := []
+		#for c in 2:
+			#row.append({"type": "text", "text": "R%s C%s" % [r, c]})
+		#data.append(row)
+#
+	#table.load_dataset(data, 2, 5000)
+	#
 	table.set_column_ratios(PackedFloat32Array([0.5, 0.5]))
 
 func _process(delta: float) -> void:

@@ -11,8 +11,8 @@ func _get_nodes(args, kwargs = {}) -> Array[Node]:
 		i += 1
 		var new: BlockComponent = frozen_duplicate.duplicate()
 		new.placeholder = false
-		new.text = _i
-		new.hint = _i
+		new.text = args[_i]["name"]
+		new.hint = str(_i)
 		new.metadata["content"] = args[_i]
 		output.append(new)
 	

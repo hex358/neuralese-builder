@@ -1165,6 +1165,19 @@ func bound(callable: Callable, pos: Vector2, cfg: Dictionary, select: bool = tru
 	if select:
 		a.select()
 
+var ds_dump = {}
+var dataset_datas = {}
+
+
+
+func get_dataset_at(id: String):
+	if not id in dataset_datas:
+		dataset_datas[id] = {"arr": [[{"type": "text", "text": "Input"}, 
+							{"type": "text", "text": "Output"}]], "col_names": ["Input", "Output"]}
+	return dataset_datas[id]
+func create_dataset(id: int, name: String):
+	return {"id": id, "content": {}, "name": name}
+
 
 func add_action(undo: Callable, redo: Callable, ...args):
 	if is_auto_action(): return

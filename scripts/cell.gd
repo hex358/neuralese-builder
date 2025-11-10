@@ -6,6 +6,9 @@ extends Control
 
 signal changed
 
+func _defaults() -> Dictionary:
+	return {}
+
 func _ready() -> void:
 	_resized()
 

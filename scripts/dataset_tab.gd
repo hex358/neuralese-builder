@@ -37,21 +37,31 @@ func repos():
 	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, $Control/scenes.global_position.y)
 	border_rect_2.size = Vector2(border_hit, $Control/scenes.size.y)
 
-	var code_pos = $Control/CodeEdit.global_position
 	var console_node = $Control/console
+	var code_node = $Control/CodeEdit
+	var scenes_node = $Control/scenes
+
+	if code_hidden:
+		console_node.position.x = code_node.position.x
+		console_node.size.x = code_node.size.x
+		console_node.position.y = scenes_node.position.y
+		console_node.size.y = scenes_node.size.y - 42
+
 	var top = console_node.global_position.y
 	border_console.position = Vector2(console_node.global_position.x, top)
 	border_console.size = Vector2(console_node.size.x - 10, border_hit)
 
-	$Control/console.position.x = code_pos.x
+	#$Control/console.position.x = code_pos.x - 1
 	$Control/console.size.x = $Control/CodeEdit.size.x - 1
 
 	var total_h = $Control/scenes.size.y
-	var desired_codeedit_h = max(0.0, total_h - $Control/console.size.y - console_bottom_offset)
-	$Control/CodeEdit.position.y = 0.0
-	$Control/CodeEdit.size.y = desired_codeedit_h
-	$Control/console.position.y = desired_codeedit_h
+	if !code_hidden:
+		var desired_codeedit_h = max(0.0, total_h - $Control/console.size.y - console_bottom_offset)
+		$Control/CodeEdit.position.y = 0.0
+		$Control/CodeEdit.size.y = desired_codeedit_h
+		$Control/console.position.y = desired_codeedit_h
 	console.position.x = $Control/scenes.size.x
+	console.size.x = $Control/CodeEdit.size.x
 	line_edit.global_position.y = $Control/console.get_global_rect().end.y
 	line_edit.position.x = console.position.x + 10
 	line_edit.size.x = $Control/CodeEdit.size.x / line_edit.scale.x - 34
@@ -106,14 +116,14 @@ func _process(delta: float) -> void:
 	if vbar.value > 5:
 		top = $Control/console.global_position.y+30
 	$Control/console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
-	$Control/ColorRect.position = $Control/console.position
-	$Control/ColorRect.size = $Control/console.size + Vector2(0,50)
+	$Control/ColorRect.position = $Control/console.position - Vector2(50,0)
+	$Control/ColorRect.size = $Control/console.size + Vector2(105,50)
 
 # ---- division settings ----
 var division_ratio: Array[float] = [0.2, 0.6]
 var min_scenes_size: float = 160.0
 var max_scenes_size: float = 300.0
-var min_game_size: float = 60.0
+var min_game_size: float = 100.0
 var max_game_size: float = 300.0
 var prev_win: Vector2 = Vector2()
 var border_hit = 10.0
@@ -122,13 +132,35 @@ var _drag_anchor: float = 0.0
 var code_hidden: bool = false
 var max_game_size_ncode: float = 1800.0
 
+var _console_prev_pos: Vector2
+var _console_prev_size: Vector2
 
 func set_code_hidden(hidden: bool) -> void:
 	code_hidden = hidden
-	$Control/CodeEdit.visible = not hidden
+	var console_node = $Control/console
+	var code_node = $Control/CodeEdit
+	var scenes_node = $Control/scenes
+
+	if hidden:
+		# --- Save original layout ---
+		_console_prev_pos = console_node.position
+		_console_prev_size = console_node.size
+
+		# --- Expand console to fill CodeEdit slot horizontally, full Scenes height vertically ---
+		console_node.position.x = code_node.position.x
+		console_node.size.x = code_node.size.x
+		console_node.position.y = scenes_node.position.y
+		console_node.size.y = scenes_node.size.y
+
+		code_node.visible = false
+	else:
+		# --- Restore original console geometry ---
+		console_node.position = _console_prev_pos
+		console_node.size = _console_prev_size
+		code_node.visible = true
+
 	tick(true)
 	ui.move_mouse(get_global_mouse_position())
-
 
 func tick(force: bool = false) -> void:
 	if not visible:
@@ -136,48 +168,55 @@ func tick(force: bool = false) -> void:
 	handle_division_drag()
 
 	var win: float = glob.window_size.x
-	if 1:#prev_win != glob.window_size or _dragging != -1 or force:
-		$Control.position.y = glob.space_begin.y
-		$Control.size.y = glob.window_size.y - $Control.position.y
+	$Control.position.y = glob.space_begin.y
+	$Control.size.y = glob.window_size.y - $Control.position.y
+	
+	var scenes_w = clamp(win * division_ratio[0], min_scenes_size, max_scenes_size)
+	var codeedit_target = min(win * division_ratio[1], glob.window_size.x - min_game_size - $Control/scenes.size.x)
+	var codeedit_w = 0.0 if code_hidden else codeedit_target
+	var game_w = win - scenes_w - codeedit_target  # always compute as if codeedit visible
 
-		var scenes_w = clamp(win * division_ratio[0], min_scenes_size, max_scenes_size)
-		var codeedit_target = min(win * division_ratio[1], glob.window_size.x - min_game_size - $Control/scenes.size.x)
-		var codeedit_w = 0.0 if code_hidden else codeedit_target
+	# --- apply baseline layout (normal mode) ---
+	$Control/scenes.size.x = scenes_w
+	$Control/CodeEdit.position.x = scenes_w
+	$Control/CodeEdit.size.x = codeedit_target
 
-		var game_w = win - scenes_w - codeedit_w
-		game_w = clamp(game_w, min_game_size, max_game_size_ncode if code_hidden else max_game_size)
+	# View keeps its slot ALWAYS (even when code hidden)
+	$Control/view.position.x = scenes_w + codeedit_target
+	$Control/view.size.x = game_w
 
-		if not code_hidden:
-			if codeedit_w < 0.0:
-				var deficit = -codeedit_w
-				game_w = max(min_game_size, game_w - deficit)
-				codeedit_w = max(0.0, win - scenes_w - game_w)
-				if codeedit_w < 0.0:
-					codeedit_w = 0.0
-					game_w = max(0.0, win - scenes_w)
+	# --- modify only console when code is hidden ---
+	if code_hidden:
+		var console_node = $Control/console
+		var code_node = $Control/CodeEdit
+		var scenes_node = $Control/scenes
 
-		$Control/scenes.size.x = scenes_w
-		$Control/CodeEdit.position.x = scenes_w
-		$Control/CodeEdit.size.x = codeedit_w
+		# Horizontally: same slot as CodeEdit
+		console_node.position.x = code_node.position.x
+		console_node.size.x = code_node.size.x
 
-		$Control/view.position.x = scenes_w + codeedit_w
-		$Control/view.size.x = game_w
-		#print($Control/view.get_global_rect().end.x > glob.window_size.x)
+		# Vertically: match full height of Scenes panel
+		console_node.position.y = scenes_node.position.y
+		#console_node.size.y = scenes_node.size.y
 
-		list.set_menu_size(
-			($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
-			($Control/scenes.size.y - list.position.y - 10) / list.scale.y
-		)
-
-		if code_hidden:
-			$Control/scenes.size.x += 2
-		$Control/CodeEdit.position.x = scenes_w - 1
-		prev_win = glob.window_size
-		repos()
+		code_node.visible = false
+	else:
+		$Control/CodeEdit.visible = true
 
 
-func reload_scenes():
-	$Control/scenes/list.show_up({"hi": "haha"})
+
+
+
+	list.set_menu_size(
+		($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
+		($Control/scenes.size.y - list.position.y - 10) / list.scale.y
+	)
+
+	prev_win = glob.window_size
+	repos()
+
+
+
 	#if not current_lua_env:
 	#	if not received_texts:
 	#		$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
@@ -202,6 +241,7 @@ var console_max_height: float = 500.0
 func handle_top_drag() -> void:
 	if not visible:
 		return
+		
 
 	var ctrl = $Control
 	var codeedit = ctrl.get_node("CodeEdit")
@@ -213,7 +253,7 @@ func handle_top_drag() -> void:
 	var border_y = console.global_position.y
 
 	# Start drag
-	if glob.mouse_just_pressed and mp.y >= border_y and mp.y - border_y <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
+	if not code_hidden and glob.mouse_just_pressed and mp.y >= border_y and mp.y - border_y <= border_hit and mp.x > console.global_position.x and mp.x < console.get_global_rect().end.x - 10:
 		_dragging_console = true
 		_drag_anchor_y_console = mp.y - border_y
 	elif not glob.mouse_pressed and _dragging_console:
@@ -325,12 +365,51 @@ func _on_plus_released() -> void:
 	while m.call():
 		await get_tree().process_frame
 	plus.unblock_input()
+	if a:
+		await get_tree().process_frame
+		await get_tree().process_frame
+		_on_list_child_button_release(list._contained[-1])
 
+var received_texts = {}
+func request_texts() -> Dictionary:
+	var texts = glob.ds_dump
+	received_texts = texts
+	#$Control/CodeEdit.editable = len(texts) > 0
+	return texts
+
+
+
+func reload_scenes():
+	$Control/scenes/list.show_up(request_texts())
+	#print(current_ds)
+
+			#$Control/CodeEdit.text = "-- Select your scene from the Scenes menu."
+	await get_tree().process_frame
+	if !is_instance_valid(last_button):
+		if last_hint in $Control/scenes/list.button_by_hint:
+			_on_list_child_button_release($Control/scenes/list.button_by_hint[last_hint])
+		elif received_texts and $Control/scenes/list._contained:
+			_on_list_child_button_release($Control/scenes/list._contained[0])
+	if not current_ds:
+		if not received_texts:
+			$Control/CodeEdit.load_empty_dataset()
+			#$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
+		else:
+			$Control/CodeEdit.load_empty_dataset()
+		$Control/CodeEdit.disabled = true
+	else:
+		
+		$Control/CodeEdit.disabled = false
 
 var last_hint = null
 var last_button: BlockComponent = null
 var current_ds = null
+var histories = {}
 func _on_list_child_button_release(button: BlockComponent) -> void:
+	if button.hint in histories:
+		$Control/console.text = histories[button.hint]
+	$Control/LineEdit/CodeEdit2
+	histories[button.hint] = $Control/console.text
 	var code = $Control/CodeEdit
 	if last_button:
 		last_button.set_tuning(last_button.base_tuning)
@@ -338,7 +417,23 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	last_button = button
 	current_ds = button.hint
 	last_hint = button.hint
+	#code.set_uniform_row_height(randi_range(50, 100))
+	#code.load_empty_dataset()
+	var ds = glob.get_dataset_at(button.metadata["content"]["name"])
+	var got = ds["arr"]
+	#print(got)
+	#print(ds["col_names"])
+	code.dataset_obj = ds
+	code.set_column_names(ds["col_names"])
+	code.load_dataset(got, len(ds["col_names"]), len(got))
+	$Control/LineEdit/CodeEdit2.connect_ds(got)
 
 
 func _on_train_2_released() -> void:
-	pass # Replace with function body.
+	$Control/console.clear()
+
+@onready var csv = $Control/view/Label/run
+func _on_run_released() -> void:
+	var a = await ui.splash_and_get_result("path_open", csv)
+	print(dsreader.parse_csv_dataset("user://test.csv"))
+	#print(a)

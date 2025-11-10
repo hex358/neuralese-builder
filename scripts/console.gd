@@ -1,12 +1,23 @@
 extends RichTextLabel
 
 @export var wheel_mult : float = 6.0  # adjust this to suit
+@export var is_custom: bool  =false
 
 var vsb : VScrollBar = null
 
 func _ready():
 	# Attempt to get internal VScrollBar
 	vsb = get_v_scroll_bar()
+	if is_custom:
+		get_theme_stylebox("normal").bg_color = Color(0.014, 0.014, 0.014)
+		get_theme_stylebox("focus").bg_color = Color(0.014, 0.014, 0.014)
+		if get_parent().get_node_or_null("ColorRect"):
+			get_parent().get_node("ColorRect").color = Color(0.014, 0.014, 0.014)
+
+func _process(delta: float) -> void:
+	pass
+
+	#print(get_theme_stylebox("normal").bg_color)
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.is_pressed():

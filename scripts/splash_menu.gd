@@ -84,8 +84,17 @@ func tick():
 func _quit_request():
 	pass
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		ui.splashed_in.erase(self)
+
 var inner: bool = false
 func _process(delta: float) -> void:
+	var has = $ColorRect.get_global_rect().has_point(get_global_mouse_position())
+	if has:
+		ui.splashed_in[self] = true
+	else:
+		ui.splashed_in.erase(self)
 	if Input.is_action_just_pressed("ui_esc"):
 		go_away()
 		_quit_request()
@@ -93,7 +102,7 @@ func _process(delta: float) -> void:
 		if accept:
 			accept.press(0.02)
 	elif splashed and glob.mouse_just_pressed and \
-	!$ColorRect.get_global_rect().has_point(get_global_mouse_position()) and\
+	!has and\
 	!glob.is_occupied(self, "block_button_inside"):
 		go_away()
 		_quit_request()

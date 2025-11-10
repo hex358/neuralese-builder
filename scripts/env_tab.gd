@@ -2,6 +2,8 @@ extends TabWindow
 
 @onready var list = $Control/scenes/list
 func _ready() -> void:
+	#$CanvasLayer/ColorRect.color = $Control/console.get_theme_stylebox("normal").bg_color
+	
 	window_hide()
 	await get_tree().process_frame
 	glob.reset_menu_type(list, "list")
@@ -47,7 +49,7 @@ func repos():
 	border_console.size = Vector2(console_node.size.x - 10, border_hit)
 	$Control/console.position.x = code_pos.x
 	$Control/console.size.x = $Control/CodeEdit.size.x
-	$Control/CodeEdit.size.y = $Control/scenes.size.y - $Control/console.size.y
+	$Control/CodeEdit.size.y = $Control/scenes.size.y - $Control/console.size.y# - 3
 
 
 
@@ -123,17 +125,17 @@ func _process(_delta: float) -> void:
 	console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
 
 	# Handle the CodeEdit Y-size correction
-	var codeedit := $Control/CodeEdit
-
-	if top_now and not console_offset_applied:
-		codeedit.size.y -= CONSOLE_FIX_OFFSET
-		#codeedit.position.y += CONSOLE_FIX_OFFSET
-		console_offset_applied = true
-
-	elif not top_now and console_offset_applied:
-		codeedit.size.y += CONSOLE_FIX_OFFSET
-		#codeedit.position.y -= CONSOLE_FIX_OFFSET
-		console_offset_applied = false
+	#var codeedit := $Control/CodeEdit
+#
+	#if top_now and not console_offset_applied:
+		#codeedit.size.y -= CONSOLE_FIX_OFFSET
+		##codeedit.position.y += CONSOLE_FIX_OFFSET
+		#console_offset_applied = true
+#
+	#elif not top_now and console_offset_applied:
+		#codeedit.size.y += CONSOLE_FIX_OFFSET
+		##codeedit.position.y -= CONSOLE_FIX_OFFSET
+		#console_offset_applied = false
 
 
 var division_ratio: Array[float] = [0.2, 0.6]
@@ -203,8 +205,8 @@ func handle_top_drag() -> void:
 		border_console.position = Vector2(console.global_position.x, console.global_position.y)
 		border_console.size = Vector2(console.size.x, border_hit)
 		repos()
-		border_console.position.y -= 3
-		console.position.y -= 3
+		#border_console.position.y -= 3
+		#console.position.y -= 3
 
 
 

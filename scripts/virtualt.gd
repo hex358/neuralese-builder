@@ -1,6 +1,10 @@
 extends Control
 class_name VirtualTable
 
+@export var uniform_row_heights: bool = false
+var uniform_row_height: float = 0.0
+var disabled: bool = false
+
 @export var addition_enabled: bool = false
 
 @export var vscrollbar: VScrollBar
@@ -39,9 +43,29 @@ enum ColumnWidthMode { FIT, RELAXED, FIXED }
 @export var column_names: Array[String] = []
 
 
-func set_column_names(names: Array[String]) -> void:
-	column_names = names
+func set_column_names(names: Array) -> void:
+	column_names.clear()
+	for n in names:
+		column_names.append(n)
+	
+	cols = column_names.size()
+	if cols == 0:
+		return
+	
+	# Ensure column ratios
+	if column_ratios.size() != cols:
+		column_ratios = PackedFloat32Array()
+		column_ratios.resize(cols)
+		for i in range(cols):
+			column_ratios[i] = 1.0
+	
+	# Rebuild metrics (even if dataset empty)
+	_rebuild_column_metrics()
+	if hscrollbar:
+		_update_hscrollbar_range()
+	
 	queue_redraw()
+
 
 
 
@@ -111,6 +135,7 @@ func _ready() -> void:
 
 	content_margin.x += header_width
 	content_margin.y += header_height
+	glob.menus["row_mod"].child_button_release.connect(_hide)
 	#content_margin.z -= header_width*2
 	#content_margin.w -= header_height
 	#_content_area.clip_contents = true
@@ -138,10 +163,19 @@ func _ready() -> void:
 		hscrollbar.value_changed.connect(_on_hscrollbar_value_changed)
 		hscrollbar.size.x -= 10
 	move_child(_overlay, -1)
+	await get_tree().process_frame
+	load_empty_dataset()
 
 
 func _update_hscrollbar_range() -> void:
 	if not hscrollbar:
+		return
+
+	if cols <= 0:
+		hscrollbar.min_value = 0.0
+		hscrollbar.max_value = 0.0
+		hscrollbar.page = 1.0
+		hscrollbar.visible = false
 		return
 
 	var content_w: float = col_offsets[cols]
@@ -232,30 +266,19 @@ func _on_vscrollbar_value_changed(value: float) -> void:
 func _update_scrollbar_range() -> void:
 	if not vscrollbar:
 		return
-
-	var content_h: float = _sum_heights
+	var content_h: float = (uniform_row_height * rows) if uniform_row_heights else _sum_heights
 	var view_h: float    = _content_area.size.y
-
-	# визуальная страница для увеличения ручки
 	var page_vis = _compute_visual_page(content_h, view_h)
-
 	vscrollbar.min_value = 0.0
-	vscrollbar.max_value = max(content_h, 0.0)   # оставляем "тотал", как и было
-	vscrollbar.page      = max(page_vis, 0.0)    # но делаем её больше для ручки
-
-	# два диапазона
-	var max_real = max(0.0, content_h - view_h) # реальный скролл по контенту
-	var max_vis  = max(0.0, content_h - page_vis) # допустимый value у ScrollBar
-
-	# проекция текущего scroll_y на бар
+	vscrollbar.max_value = max(content_h, 0.0)
+	vscrollbar.page      = max(page_vis, 0.0)
+	var max_real = max(0.0, content_h - view_h)
+	var max_vis  = max(0.0, content_h - page_vis)
 	var bar_value = 0.0
 	if max_real > 0.0 and max_vis > 0.0:
 		bar_value = clamp(scroll_y * (max_vis / max_real), 0.0, max_vis)
-	else:
-		bar_value = 0.0
-
 	vscrollbar.set_value_no_signal(bar_value)
-	vscrollbar.visible = content_h > view_h + 0.5   # показываем только если есть что скроллить
+	vscrollbar.visible = content_h > view_h + 0.5
 
 
 
@@ -268,7 +291,7 @@ func _adapter_on_load(data, cols: int, rows: int) -> void:
 	self.rows = rows
 
 func _get_cell(row: int, col: int) -> Dictionary:
-	return adapter_data[row][col]
+	return adapter_data[row][col] if rows > 0 else {}
 
 func _set_cell(row: int, col: int, data: Dictionary) -> void:
 	adapter_data[row][col] = data
@@ -283,6 +306,8 @@ func _init_row_metrics() -> void:
 		row_offsets[r + 1] = acc
 
 func _ensure_row_metrics_visible(r0: int, r1: int) -> void:
+	if uniform_row_heights:
+		return
 	for r in range(r0, r1 + 1):
 		if row_heights[r] == 0.0:
 			var max_h = 0.0
@@ -295,23 +320,93 @@ func _ensure_row_metrics_visible(r0: int, r1: int) -> void:
 	for r in range(r0, r1 + 1):
 		row_offsets[r + 1] = row_offsets[r] + row_heights[r]
 
-func load_dataset(data, _cols: int, _rows: int) -> void:
+signal ds_cleared
+func load_empty_dataset(clear_cols: bool = true) -> void:
+	_clear_table_state(false, clear_cols)
+	adapter_data = []
 	dataset = []
-	cols = _cols
-	rows = _rows
-	_adapter_on_load(data, cols, rows)
-	_ensure_column_ratios()
+	ds_cleared.emit()
+	rows = 0
+	if clear_cols:
+		cols = 0
+		col_widths.clear()
+		col_offsets.clear()
+	_sum_heights = 0.0
+	row_heights.clear()
+	row_offsets.clear()
+	active_cells.clear()
 
-	_rebuild_row_heights_estimate()
-	_rebuild_row_offsets()
-	_offset_valid_upto = rows
-	_sum_heights = row_offsets[rows]
-	_rebuild_column_metrics()
+	if vscrollbar:
+		vscrollbar.min_value = 0.0
+		vscrollbar.max_value = 0.0
+		vscrollbar.page = 1.0
+		vscrollbar.visible = false
+
+	if hscrollbar:
+		hscrollbar.min_value = 0.0
+		hscrollbar.max_value = 0.0
+		hscrollbar.page = 1.0
+		hscrollbar.visible = false
+
+	_need_layout = false
+	_need_visible_refresh = false
+	queue_redraw()
+	#print(Array(column_names))
+	set_column_names(Array(column_names.duplicate()))
+
+
+signal dataset_loaded
+
+func set_uniform_row_height(new_height: float) -> void:
+	if not uniform_row_heights:
+		return
+
+	if new_height <= 0.0:
+		return
+
+	uniform_row_height = new_height
+	_sum_heights = uniform_row_height * rows
+
+	if vscrollbar:
+		_update_scrollbar_range()
 
 	_need_layout = true
 	_need_visible_refresh = true
+	queue_redraw()
+
+
+var _dataset_cache: Dictionary = {}
+func load_dataset(data, _cols: int, _rows: int) -> void:
+	if not data:
+		load_empty_dataset()
+		return
+	
+	_clear_table_state(false)
+	dataset = []
+	cols = _cols
+	rows = _rows
+	dataset_loaded.emit()
+	_adapter_on_load(data, cols, rows)
+	_ensure_column_ratios()
+	
+	if uniform_row_heights:
+		if rows > 0 and cols > 0:
+			var cell_info = _get_cell(0, 0)
+			if cell_info.has("type") and cell_defaults.has(cell_info.type):
+				var default_cell: TableCell = cell_defaults[cell_info.type]
+				uniform_row_height = default_cell._estimate_height(cell_info)
+		else:
+			uniform_row_height = 0.0
+
+	_rebuild_row_offsets()
+	_offset_valid_upto = rows
+	_sum_heights = row_offsets[rows] if not uniform_row_heights else uniform_row_height * rows
+	_rebuild_column_metrics()
+
 	if vscrollbar:
 		_update_scrollbar_range()
+	_need_layout = true
+	_need_visible_refresh = true
 	queue_redraw()
 
 
@@ -377,39 +472,46 @@ func _rebuild_column_metrics() -> void:
 	col_offsets.resize(cols + 1)
 
 	var sum_ratios: float = 0.0
-	for i in cols:
+	for i in range(cols):
 		sum_ratios += column_ratios[i]
 
-	var view_w: float
-	match column_width_mode:
-		ColumnWidthMode.FIT, ColumnWidthMode.FIXED:
-			view_w = size.x - header_width
-		ColumnWidthMode.RELAXED:
-			if not col_offsets.is_empty() and col_offsets[cols] > 0.0:
-				view_w = col_offsets[cols] / max_total_width_scale
-			else:
-				view_w = size.x
+	var view_w: float = size.x - header_width
+	var target_w: float
 
-	var target_w: float = view_w
 	match column_width_mode:
-		ColumnWidthMode.FIT:
-			target_w = view_w
 		ColumnWidthMode.RELAXED:
 			target_w = view_w * max_total_width_scale
+		ColumnWidthMode.FIT:
+			target_w = view_w
 		ColumnWidthMode.FIXED:
 			target_w = view_w * sum_ratios / min_total_column_ratio
 
+	# --- Measure header text width for each column ---
+	var font = get_theme_font("font", "Label")
+	var fsize = header_font_size
+	var text_based_widths: Array[float] = []
+	for i in range(cols):
+		var col_name = column_names[i] if (i < column_names.size()) else ""
+		var text_w = 0.0
+		if font:
+			text_w = font.get_string_size(col_name, HORIZONTAL_ALIGNMENT_LEFT, -1, fsize).x
+		text_based_widths.append(max(min_column_width, text_w + 16.0)) # 8px padding each side
+
+	# --- Build final widths & offsets ---
 	var acc: float = 0.0
 	col_offsets[0] = 0.0
-	for i in cols:
+	for i in range(cols):
 		var ratio = column_ratios[i]
-		var w = max(min_column_width, target_w * (ratio / sum_ratios))
-		col_widths[i] = w
-		acc += w
+		var w_ratio = target_w * (ratio / sum_ratios)
+		var w_final = max(text_based_widths[i], w_ratio)
+		col_widths[i] = w_final
+		acc += w_final
 		col_offsets[i + 1] = acc
-	#print("a")
+
 	if hscrollbar:
 		_update_hscrollbar_range()
+
+
 
 func scroll_to_row(row_index: int, align: String = "top") -> void:
 	# Ensure metrics are valid
@@ -484,6 +586,8 @@ func _invalidate_offsets_from(index: int) -> void:
 	_offset_valid_upto = min(_offset_valid_upto, clamp(index, 0, rows))
 
 func _extend_offsets_to(target: int) -> void:
+	if uniform_row_heights:
+		return
 	# ensure row_offsets[0..target] valid (target in [0..rows])
 	_ensure_offsets_capacity()
 	target = clamp(target, 0, rows)
@@ -505,21 +609,43 @@ func _flush_active_from(row_index: int) -> void:
 	for k in to_remove:
 		active_cells.erase(k)
 
+var dataset_obj = null
+
 func _add_cells(at_index: int, cells):
 	adapter_data.insert(at_index, cells)
+	dataset_obj["arr"] = adapter_data
 
 func _del_cells(at_index: int):
 	adapter_data.remove_at(at_index)
+	dataset_obj["arr"] = adapter_data
 
 func add_row(cells: Array = [], at_index: int = -1) -> void:
 	if at_index < 0 or at_index > rows:
 		at_index = rows
 
+	# --- Bootstrap for empty dataset ---
+	if rows == 0 and cols == 0:
+		if cells.size() == 0:
+			push_error("Cannot infer column count: empty row inserted into empty table.")
+			return
+		cols = cells.size()
+		_ensure_column_ratios()
+		_rebuild_column_metrics()
+
+		if adapter_data == null:
+			adapter_data = []
+		if not adapter_data:
+			adapter_data.clear()
+
+	# --- Insert row normally ---
+	#print(cells)
 	_add_cells(at_index, cells)
 	rows += 1
 
 	var base_h = 0.0
 	for c in range(cols):
+		if c >= cells.size():
+			continue
 		var cell_info = cells[c]
 		var t: StringName = cell_info.type
 		if cell_defaults.has(t):
@@ -528,7 +654,6 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 	row_heights.insert(at_index, base_h)
 	_sum_heights += base_h
 
-	# 3) offsets capacity + invalidate suffix
 	if row_offsets.size() < rows + 1:
 		row_offsets.resize(rows + 1)
 	_invalidate_offsets_from(at_index + 1)
@@ -537,9 +662,14 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 
 	if vscrollbar:
 		_update_scrollbar_range()
+	if rows == 1:
+		_rebuild_row_offsets()
+
 	_need_layout = true
 	_need_visible_refresh = true
+	#print(adapter_data)
 	queue_redraw()
+
 
 
 
@@ -547,24 +677,40 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 func remove_row(index: int) -> void:
 	if index < 0 or index >= rows:
 		return
+	if rows <= 1:
+		_del_cells(index)
+		load_empty_dataset(false)
+		return
 
-	var old_h = row_heights[index]
+	var old_h: float = 0.0
+	if uniform_row_heights:
+		old_h = uniform_row_height
+	else:
+		if row_heights.size() > index:
+			old_h = row_heights[index]
+		else:
+			old_h = 0.0
+
 	_sum_heights -= old_h
 
 	_del_cells(index)
 	rows -= 1
-	row_heights.remove_at(index)
 
-	_invalidate_offsets_from(index)
-	if row_offsets.size() >= index + 2:
-		row_offsets.remove_at(index + 1)
-	if row_offsets.size() < rows + 1:
-		row_offsets.resize(rows + 1)
+	if not uniform_row_heights:
+		if row_heights.size() > index:
+			row_heights.remove_at(index)
+
+		_invalidate_offsets_from(index)
+		if row_offsets.size() >= index + 2:
+			row_offsets.remove_at(index + 1)
+		if row_offsets.size() < rows + 1:
+			row_offsets.resize(rows + 1)
 
 	_flush_active_from(index)
 
 	if vscrollbar:
 		_update_scrollbar_range()
+	
 	_need_layout = true
 	_need_visible_refresh = true
 	queue_redraw()
@@ -572,7 +718,11 @@ func remove_row(index: int) -> void:
 
 
 
+
 func _rebuild_row_offsets(start_index: int = 0) -> void:
+	if uniform_row_heights:
+		_sum_heights = uniform_row_height * rows
+		return
 	if rows <= 0:
 		_sum_heights = 0.0
 		return
@@ -584,9 +734,38 @@ func _rebuild_row_offsets(start_index: int = 0) -> void:
 	_sum_heights = row_offsets[rows]
 
 
+var cell_colors: Dictionary = {}
+var row_colors: Dictionary = {}
+
+func set_cell_color(row: int, col: int, color: Color) -> void:
+	if row < 0 or row >= rows or col < 0 or col >= cols:
+		return
+	cell_colors[Vector2i(row, col)] = color
+	queue_redraw()
+
+func clear_cell_color(row: int, col: int) -> void:
+	cell_colors.erase(Vector2i(row, col))
+	queue_redraw()
+
+func set_row_color(row: int, color: Color) -> void:
+	if row < 0 or row >= rows:
+		return
+	row_colors[row] = color
+	queue_redraw()
+
+func clear_row_color(row: int) -> void:
+	row_colors.erase(row)
+	queue_redraw()
+
+func clear_all_colors() -> void:
+	cell_colors.clear()
+	row_colors.clear()
+	queue_redraw()
 
 
 func _update_row_height_if_needed(row: int, new_height: float) -> void:
+	if uniform_row_heights:
+		return
 	if row < 0 or row >= rows: return
 	if new_height > row_heights[row] + 0.5:
 		var delta = new_height - row_heights[row]
@@ -654,20 +833,209 @@ var _vel_smoothed: float = 0.0
 
 var _last_scrollbar_rect: Rect2
 
+func get_default_row():
+	return [{"type": "text", "text": ""}, {"type": "text", "text": ""}]
 
+func _hide(arg):
+	if !querying:
+		glob.menus["row_mod"].menu_hide()
+var query_lock := false
+func to_query(row: int, mp: Vector2):
+	if querying:
+		glob.menus["row_mod"].menu_hide()
+		await get_tree().process_frame
+		await get_tree().process_frame
+		await get_tree().process_frame
+	clear_all_colors()
+	var menu = glob.menus["row_mod"]
+	set_row_color(row, Color(1, 1, 1, 0.1))
+	menu.set_txt(str(row) if row != -1 else "")
+	var menu_p = mp.clamp(global_position, 
+	get_global_rect().end - Vector2(menu.base_size.x, menu.expanded_size) * menu.base_scale)
+	querying = true
+	var a = await menu.ask_and_wait(menu_p, false, true if !next_query else false)
+	next_query = null
+	#print(a)
+	querying = false
+	if a:
+		if a.hint == "delete":
+			#print("FJFJ")
+			var old_rows = rows-1
+			remove_row(row if row != -1 else 0)
+			if row == old_rows:
+				menu.menu_hide()
+				clear_all_colors()
+			else:
+				next_query = [row if row != -1 else 0, mp]
+		elif a.hint == "insert":
+			add_row(get_default_row(), row)
+			if row == -1:
+				set_row_color(0, Color(1, 1, 1, 0.1))
+			next_query = [row if row != -1 else 0, mp]
+		#if a.hint == "insert" or rows > 0:
+			##print("AA")
+			#next_query = [row if row != -1 else 0, mp]
+		#else:
+			#menu.menu_hide()
+			#clear_all_colors()
+	else:
+		menu.menu_hide()
+		clear_all_colors()
+
+signal dataset_refreshed
+
+func get_type_default(type: String):
+	return cell_defaults[type]._defaults() if type in cell_defaults else null
+
+func refresh_dataset(force_full: bool = false) -> void:
+	if adapter_data == null:
+		return
+
+	var new_rows = adapter_data.size()
+	if new_rows == 0:
+		_clear_table_state()
+		rows = 0
+		cols = 0
+		queue_redraw()
+		dataset_refreshed.emit()
+		return
+
+	var new_cols = (adapter_data[0].size() if new_rows > 0 else 0)
+
+	var shape_changed = (new_rows != rows or new_cols != cols)
+
+	rows = new_rows
+	cols = new_cols
+
+	if force_full or shape_changed:
+		if uniform_row_heights:
+			if rows > 0 and cols > 0:
+				var cell_info = _get_cell(0, 0)
+				var default_cell: TableCell = cell_defaults[cell_info.type]
+				uniform_row_height = default_cell._estimate_height(cell_info)
+			_sum_heights = uniform_row_height * rows
+		else:
+			_rebuild_row_heights_estimate()
+			_rebuild_row_offsets()
+			_sum_heights = row_offsets[rows]
+
+		_rebuild_column_metrics()
+		if vscrollbar:
+			_update_scrollbar_range()
+		if hscrollbar:
+			_update_hscrollbar_range()
+
+		_flush_active_from(0)
+		_need_visible_refresh = true
+		_need_layout = true
+		queue_redraw()
+		dataset_refreshed.emit()
+		return
+
+	for key in active_cells.keys():
+		var r: int = key.x
+		var c: int = key.y
+		if r < rows and c < cols:
+			var cell = active_cells[key]
+			if cell and is_instance_valid(cell):
+				cell.map_data(_get_cell(r, c))
+
+	if not uniform_row_heights:
+		var visible_range := get_visible_row_range()
+		_ensure_row_metrics_visible(visible_range.x, visible_range.y)
+
+	_sum_heights = (uniform_row_height * rows) if uniform_row_heights else row_offsets[min(row_offsets.size() - 1, rows)]
+
+	if vscrollbar:
+		_update_scrollbar_range()
+	if hscrollbar:
+		_update_hscrollbar_range()
+
+	_need_layout = true
+	_need_visible_refresh = true
+	queue_redraw()
+	dataset_refreshed.emit()
+
+
+func _clear_table_state(full_reset: bool = true, reset_cols: bool = false) -> void:
+	for cell in active_cells.values():
+		_release_cell(cell)
+	active_cells.clear()
+
+	if full_reset:
+		pool_by_type.clear()
+
+	scroll_y = 0.0
+	scroll_x = 0.0
+
+	row_heights.clear()
+	row_offsets.clear()
+	if reset_cols:
+		col_widths.clear()
+		col_offsets.clear()
+	cell_colors.clear()
+	row_colors.clear()
+
+	_sum_heights = 0.0
+	_offset_valid_upto = 0
+
+	_need_layout = false
+	_need_visible_refresh = false
+
+	if vscrollbar:
+		vscrollbar.min_value = 0.0
+		vscrollbar.max_value = 0.0
+		vscrollbar.page = 1.0
+		vscrollbar.visible = false
+
+	if hscrollbar:
+		hscrollbar.min_value = 0.0
+		hscrollbar.max_value = 0.0
+		hscrollbar.page = 1.0
+		hscrollbar.visible = false
+
+
+
+var rendering_disabled: bool = false
+var next_query = null
+var querying: bool = false
 func _process(delta: float) -> void:
+	if not is_visible_in_tree():
+		return
+	if rendering_disabled:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		process_mode = Node.PROCESS_MODE_DISABLED
+		return
+	else:
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		process_mode = Node.PROCESS_MODE_INHERIT
+		
 	#print(glob.menu_type)
-	if addition_enabled:
-		var mp = get_global_mouse_position()
+	#print(disabled)
+	#print(query_lock)
+	if addition_enabled and not disabled:
+		if next_query and not querying and not query_lock:
+			query_lock = true
+			await to_query.callv(next_query)
+			query_lock = false
+		var mp: Vector2 = get_global_mouse_position()
+		var local_mp = get_local_mouse_position()
 		if get_global_rect().has_point(mp):
 			glob.set_menu_type(self, "row_mod")
 			if glob.mouse_alt_just_pressed:
-				var menu = glob.menus["row_mod"]
-				menu.set_txt(str(get_row_at_position(mp)))
-				var a = await menu.ask_and_wait(mp)
-		else:
-			glob.reset_menu_type(self, "row_mod")
-	
+				if query_lock:
+					glob.menus["row_mod"].menu_hide()
+				query_lock = false
+				#print("AA")
+				next_query = null
+				var row = get_row_at_position(local_mp)
+				if row != -1 or rows <= 0:
+				#if glob.menus["row_mod"].visible:
+				#	glob.menus["row_mod"].menu_hide()
+					await to_query(row, mp)
+		elif not querying:
+			if row_colors:
+				clear_all_colors()
 	var dy = abs(scroll_y - _last_scroll_y)
 	var inst_vel = dy / delta
 	_vel_smoothed = lerp(_vel_smoothed, inst_vel, 5.0 * delta)
@@ -820,9 +1188,10 @@ func _layout_active_cells() -> void:
 			continue
 
 		var x = col_offsets[col] - scroll_x
-		var y = row_offsets[row] - scroll_y
+		var y = (row * uniform_row_height - scroll_y) if uniform_row_heights else (row_offsets[row] - scroll_y)
 		var w = col_widths[col]
-		var h = row_heights[row]
+		var h = (uniform_row_height if uniform_row_heights else row_heights[row])
+
 		var pos = Vector2(x, y).floor()
 		var size_rc = Vector2(w, h).floor()
 
@@ -837,6 +1206,7 @@ func _layout_active_cells() -> void:
 
 
 
+
 func _position_cell(cell: TableCell, row: int, col: int, top_left: Vector2, size_rc: Vector2) -> void:
 	cell.position = top_left.floor()
 	cell.size = size_rc.floor()
@@ -844,66 +1214,122 @@ func _position_cell(cell: TableCell, row: int, col: int, top_left: Vector2, size
 
 func _draw() -> void:
 	_overlay.queue_redraw()
+
 	var left = content_margin.x
 	var top = content_margin.y
-	var right = content_margin.z
-	var bottom = content_margin.w
-
 	var inner_size = _content_area.size
 	var content_w: float = (col_offsets[cols] if cols > 0 else 0.0)
 	var content_h: float = _sum_heights
 
+	# clear background
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0), true)
 
-	var view_top: float = scroll_y
-	var view_bottom: float = scroll_y + inner_size.y
+	if rows <= 0 or cols <= 0:
+		return
 
+	var view_top = scroll_y
+	var view_bottom = scroll_y + inner_size.y
 	var r0 = clamp(_find_row_for_y(view_top), 0, max(0, rows - 1))
 	var r1 = clamp(_find_row_for_y(view_bottom), 0, rows - 1)
 
-	_extend_offsets_to(r1 + 1)
+
+	if uniform_row_heights:
+		for r in range(r0, r1 + 1):
+			if r in row_colors:
+				continue
+			if (r % 2) == 1:
+				var y0 = (r * uniform_row_height) - scroll_y + top
+				var y1 = ((r + 1) * uniform_row_height) - scroll_y + top
+				draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, y1 - y0)), odd_row_tint, true)
+	else:
+		_extend_offsets_to(r1 + 1)
+		for r in range(r0, r1 + 1):
+			if r in row_colors:
+				continue
+			if (r % 2) == 1:
+				var y0 = row_offsets[r] - scroll_y + top
+				var y1 = row_offsets[r + 1] - scroll_y + top
+				draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, y1 - y0)), odd_row_tint, true)
+
 
 	for r in range(r0, r1 + 1):
-		if (r % 2) == 1:
-			var y0: float = row_offsets[r] - scroll_y + top
-			var y1: float = row_offsets[r + 1] - scroll_y + top
-			draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, y1 - y0)), odd_row_tint, true)
+		var y0: float
+		var y1: float
 
-	var vline_len = min(inner_size.y, max(0.0, content_h - scroll_y))
-	for c in range(0, cols + 1):
-		var x = ((content_w if c == cols else col_offsets[c]) - scroll_x + left)
-		draw_line(Vector2(x, top), Vector2(x, top + vline_len), grid_line_color, grid_line_thickness)
+		if uniform_row_heights:
+			y0 = (r * uniform_row_height) - scroll_y + top
+			y1 = ((r + 1) * uniform_row_height) - scroll_y + top
+		else:
+			y0 = row_offsets[r] - scroll_y + top
+			y1 = row_offsets[r + 1] - scroll_y + top
 
-	for r in range(r0, r1 + 1):
-		var y = row_offsets[r] - scroll_y + top
-		draw_line(Vector2(left, y), Vector2(left + content_w, y), grid_line_color, grid_line_thickness)
+		var h = y1 - y0
 
-	if rows > 0:
+		# Row overlay
+		if row_colors.has(r):
+			draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, h)), row_colors[r], true)
+
+		# Per-cell overlays (override row tint)
+		for c in range(cols):
+			var key = Vector2i(r, c)
+			if cell_colors.has(key):
+				var x0 = col_offsets[c] - scroll_x + left
+				var x1 = col_offsets[c + 1] - scroll_x + left
+				draw_rect(Rect2(Vector2(x0, y0), Vector2(x1 - x0, h)), cell_colors[key], true)
+
+	# ==========================================================
+	# 3. Horizontal grid lines
+	# ==========================================================
+	if uniform_row_heights:
+		for r in range(r0, r1 + 1):
+			var y = (r * uniform_row_height) - scroll_y + top
+			draw_line(Vector2(left, y), Vector2(left + content_w, y), grid_line_color, grid_line_thickness)
+		var yb = ((r1 + 1) * uniform_row_height) - scroll_y + top
+		draw_line(Vector2(left, yb), Vector2(left + content_w, yb), grid_line_color, grid_line_thickness)
+	else:
+		for r in range(r0, r1 + 1):
+			var y = row_offsets[r] - scroll_y + top
+			draw_line(Vector2(left, y), Vector2(left + content_w, y), grid_line_color, grid_line_thickness)
 		var yb = row_offsets[min(rows, r1 + 1)] - scroll_y + top
 		draw_line(Vector2(left, yb), Vector2(left + content_w, yb), grid_line_color, grid_line_thickness)
 
+	# ==========================================================
+	# 4. Vertical grid lines
+	# ==========================================================
+	var vline_top = top
+	var vline_bottom = top + inner_size.y
+	var view_visible_h = min(inner_size.y, max(0.0, content_h - scroll_y))
+
+	for c in range(cols + 1):
+		var x = (col_offsets[c] if c < cols else content_w) - scroll_x + left
+		draw_line(
+			Vector2(x, vline_top),
+			Vector2(x, vline_top + view_visible_h),
+			grid_line_color,
+			grid_line_thickness
+		)
 
 
 func _find_row_for_y(world_y: float) -> int:
 	if rows <= 0:
 		return 0
-
-	# Extend offsets until we've passed world_y or hit the end
+	if uniform_row_heights:
+		return clamp(int(floor(world_y / uniform_row_height)), 0, rows - 1)
+	# fallback to binary search
 	while _offset_valid_upto < rows and row_offsets[_offset_valid_upto] <= world_y:
 		_extend_offsets_to(_offset_valid_upto + 1)
-
-	# Binary search inside the known prefix [0 .. _offset_valid_upto]
 	var lo = 0
-	var hi = max(1, _offset_valid_upto)  # offsets known up to this index
+	var hi = max(1, _offset_valid_upto)
 	while lo < hi:
 		var mid = (lo + hi) >> 1
 		if row_offsets[mid] > world_y:
 			hi = mid
 		elif row_offsets[mid] <= world_y and (mid == rows or row_offsets[mid + 1] > world_y):
-			return clamp(mid, 0, max(0, rows - 1))
+			return clamp(mid, 0, rows - 1)
 		else:
 			lo = mid + 1
-	return clamp(lo - 1, 0, max(0, rows - 1))
+	return clamp(lo - 1, 0, rows - 1)
+
 
 
 

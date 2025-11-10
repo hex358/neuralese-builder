@@ -8,6 +8,9 @@ func _map_data(data: Dictionary) -> void:
 func _height_key(info: Dictionary) :
 	return ""
 
+func _defaults() -> Dictionary:
+	return {"text": ""}
+
 func _resized():
 	#print("AA")
 	$Label.resize.call_deferred()
