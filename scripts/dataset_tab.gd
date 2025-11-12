@@ -29,6 +29,11 @@ func _ready() -> void:
 	$Control/console.size.y = console_min_height
 	repos()
 
+	list.set_menu_size(
+		($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
+		($Control/scenes.size.y - list.position.y - 10) / list.scale.y
+	)
+
 @export var console_bottom_offset: float = 41  # visual gap under console (only affects size/end)
 
 func repos():
@@ -104,11 +109,11 @@ func _process(delta: float) -> void:
 	var vbar: VScrollBar = ($Control/console.get_v_scroll_bar())
 	#vbar.position.x = $Control/console.size.x - 10
 	tick()
-	if get_global_mouse_position().x > border_rect_1.position.x:
+	#if get_global_mouse_position().x > border_rect_1.position.x:
 	#	print("aa")
-		$Control/scenes/list.block_input(true)
-	else:
-		$Control/scenes/list.unblock_input(true)
+	#	$Control/scenes/list.block_input(true)
+	#else:
+	#$Control/scenes/list.unblock_input(true)
 	var bot = 0
 	var top = 0
 	if vbar.value < vbar.max_value - vbar.page - 5:
@@ -123,7 +128,7 @@ func _process(delta: float) -> void:
 var division_ratio: Array[float] = [0.2, 0.6]
 var min_scenes_size: float = 160.0
 var max_scenes_size: float = 300.0
-var min_game_size: float = 100.0
+var min_game_size: float = 150.0
 var max_game_size: float = 300.0
 var prev_win: Vector2 = Vector2()
 var border_hit = 10.0
@@ -165,6 +170,7 @@ func set_code_hidden(hidden: bool) -> void:
 func tick(force: bool = false) -> void:
 	if not visible:
 		return
+
 	handle_division_drag()
 
 	var win: float = glob.window_size.x
@@ -206,14 +212,16 @@ func tick(force: bool = false) -> void:
 
 
 
-
-	list.set_menu_size(
-		($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
-		($Control/scenes.size.y - list.position.y - 10) / list.scale.y
-	)
+	repos()
+	if _dragging != -1 or _dragging_console:
+		#print(_dragging)
+		list.set_menu_size(
+			($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
+			($Control/scenes.size.y - list.position.y - 10) / list.scale.y
+		)
 
 	prev_win = glob.window_size
-	repos()
+	#repos()
 
 
 
@@ -355,20 +363,22 @@ func _on__released() -> void:
 	set_code_hidden(!code_hidden)
 
 
-# simplified “+” button
 @onready var plus = $Control/scenes/plus
 func _on_plus_released() -> void:
+	var plus_string = "dataset_create"
 	plus.block_input()
-	var a = await ui.splash_and_get_result("dataset_create", plus, null, false)
+	var a = await ui.splash_and_get_result(plus_string, plus, null, false)
 	await get_tree().process_frame
 	var m = func(): return glob.mouse_pressed
 	while m.call():
 		await get_tree().process_frame
 	plus.unblock_input()
 	if a:
+		#print(a)
 		await get_tree().process_frame
 		await get_tree().process_frame
-		_on_list_child_button_release(list._contained[-1])
+		if list._contained:
+			_on_list_child_button_release(list._contained[-1])
 
 var received_texts = {}
 func request_texts() -> Dictionary:
@@ -390,12 +400,12 @@ func reload_scenes():
 			_on_list_child_button_release($Control/scenes/list.button_by_hint[last_hint])
 		elif received_texts and $Control/scenes/list._contained:
 			_on_list_child_button_release($Control/scenes/list._contained[0])
-	if not current_ds:
+	if current_ds == null:
 		if not received_texts:
-			$Control/CodeEdit.load_empty_dataset()
+			$Control/CodeEdit.load_empty_dataset(false)
 			#$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
 		else:
-			$Control/CodeEdit.load_empty_dataset()
+			$Control/CodeEdit.load_empty_dataset(false)
 		$Control/CodeEdit.disabled = true
 	else:
 		
@@ -423,9 +433,13 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	var got = ds["arr"]
 	#print(got)
 	#print(ds["col_names"])
+	#print(ds)
 	code.dataset_obj = ds
-	code.set_column_names(ds["col_names"])
-	code.load_dataset(got, len(ds["col_names"]), len(got))
+	var cols = ds["col_names"]
+	code.set_outputs_from(ds["outputs_from"])
+	code.load_dataset(got, len(cols), len(got))
+	code.set_column_names(cols)
+	#ds["col_names"] = cols
 	$Control/LineEdit/CodeEdit2.connect_ds(got)
 
 
@@ -434,6 +448,7 @@ func _on_train_2_released() -> void:
 
 @onready var csv = $Control/view/Label/run
 func _on_run_released() -> void:
-	var a = await ui.splash_and_get_result("path_open", csv)
-	print(dsreader.parse_csv_dataset("user://test.csv"))
+	pass
+	#var a = await ui.splash_and_get_result("path_open", csv)
+	#print(dsreader.parse_csv_dataset("user://test.csv"))
 	#print(a)

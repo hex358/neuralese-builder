@@ -116,10 +116,10 @@ func _on_login_released() -> void:
 	#	login_btn.in_splash = false
 	#	ui.get_splash("login").go_away()
 
-
+@onready var savebut = $"9"
 func _on__released() -> void:
 	if !glob.logged_in():
-		var a = await ui.splash_and_get_result("login", axon)
+		var a = await ui.splash_and_get_result("login", savebut)
 		if a:
 			ui.hourglass_on()
 			await glob.save(str(glob.get_project_id()))

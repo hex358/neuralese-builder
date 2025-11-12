@@ -53,11 +53,20 @@ func _llm_map(pack: Dictionary):
 		#	print("Skipping one...")
 
 func _just_connected(who: Connection, to: Connection):
-	if not who.virtual:
-		var rc = graphs._reach_input(self, "TrainBegin")
-	#	print(rc.dataset_meta)
-		if rc and graphs.is_node(rc, "OutputMap"):
+	var rc = graphs._reach_input(self, "TrainBegin")
+#	print(rc.dataset_meta)
+
+	if rc:
+		if not who.virtual:
 			to.parent_graph.push_meta(rc, rc.dataset_meta)
+		else:
+			var got = who.get_parent().get_meta("points_to")
+			if got and not got.units:
+				var lbl = to.parent_graph.get_label_name(to)
+				for i in rc.dataset_meta["outputs"]:
+					if i.label == lbl:
+						got.set_names(i["label_names"])
+						break
 
 
 func _request_save():
@@ -169,7 +178,8 @@ func _just_deattached(other_conn: Connection, my_conn: Connection):
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	if get_descendant():
 		var rc = graphs._reach_input(self, "TrainBegin")
-
+		#if graphs.is_node(other_conn.parent_graph, "ModelName"):
+		#	
 		if rc:
 			get_descendant().push_meta(rc, rc.dataset_meta)
 

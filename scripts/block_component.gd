@@ -12,7 +12,9 @@ var is_frozen: bool = false
 func freeze_input() -> void: is_frozen = true
 func unfreeze_input() -> void: is_frozen = false
 func block_input(disable: bool = false) -> void: 
+	#print(_contained)
 	if disable and not is_blocking:
+		#print(_contained)
 		for i in _contained:
 			i.scaler.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	is_blocking = true
@@ -55,6 +57,9 @@ func unblock_input(re_on: bool = false) -> void:
 		text = value
 		if not is_node_ready():
 			await ready
+		#if is_contained and is_contained.name == "list" and is_mouse_inside():
+		#	print("====")
+		#	print_stack()
 		label.text = _wrap_text(value)
 		_align_label()
 @export var text_color: Color = Color.WHITE:
@@ -66,10 +71,11 @@ func unblock_input(re_on: bool = false) -> void:
 @export var text_offset: Vector2 = Vector2()
 
 @export_group("Marquee")
+@export var marquee_enabled: bool = false
 var _scroll_index: int = 0
 var _scroll_timer: float = 0.0
-@export var _scroll_delay: float = 0.2   # seconds between shifts
-@export var _scroll_pause: float = 0.7   # pause at full cycle
+@export var _scroll_delay: float = 0.2
+@export var _scroll_pause: float = 0.7
 @export var scroll_padding_spaces: int = 3
 var _scrolling: bool = false
 var _scroll_original: String = ""
@@ -311,8 +317,14 @@ func _wrap_text(txt: String) -> String:
 	if !auto_trim_text: 
 		trimmed = false
 		return txt
+	#if _scrolling:
+	#	return txt
+	#var iss = ! Engine.is_editor_hint() and is_mouse_inside() and marquee_enabled and is_contained
+
+
 	label.text = txt
-	var size_x = glob.get_label_text_size(label, label.scale.x).x + 50
+	#print(txt)
+	var size_x = glob.get_label_text_size(label, label.scale.x, txt).x + 50
 	if size_x > size.x:
 		var one = float(size_x) / len(txt)
 		var right = (size_x - size.x) / one
@@ -340,6 +352,10 @@ var wrapped: bool = false
 
 @export var arrange_offset: float = 0
 func arrange():
+	#print(glob.curr_window)
+	#if glob.curr_window == "ds":
+	#	print_stack()
+	#print_stack()
 	# Arrange children above or below based on expand_upwards
 	#arrangement_padding.x *= 0
 	vbox.add_theme_constant_override("separation", arrangement_padding.y)
@@ -632,9 +648,10 @@ func press(press_time: float = 0.0):
 
 
 func _update_scroll_text(delta: float) -> void:
+
 	if not trimmed or not _scrolling:
 		return
-
+	
 	_scroll_timer -= delta
 	if _scroll_timer > 0.0:
 		return
@@ -643,21 +660,20 @@ func _update_scroll_text(delta: float) -> void:
 	var full_text = _scroll_original
 	if visible_len >= full_text.length():
 		return
-
-	# Padded text with user-controlled spaces
 	var padded = full_text + " ".repeat(scroll_padding_spaces)
 	var cycle_len = padded.length()
 
-	# Advance index
 	_scroll_index = (_scroll_index + 1) % cycle_len
+	#print(_scroll_index)
 
-	# Always build a full window of length `visible_len`
 	var next = ""
 	for i in range(visible_len):
 		var idx = (_scroll_index + i) % cycle_len
 		next += padded[idx]
 
 	label.text = next
+	#if iss:
+	#	print(label.text)
 	_align_label()
 
 	# Pause when we complete a full loop
@@ -677,6 +693,7 @@ func _process_block_button(delta: float) -> void:
 	if not is_visible_in_tree() or not freedom:
 		glob.un_occupy(self, "block_button_inside") 
 		return
+
 	
 	var ins = (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	#if is_contained:
@@ -690,6 +707,8 @@ func _process_block_button(delta: float) -> void:
 	blocked = blocked or (!base_in_splash and ui.splashed_in)
 	#if name == "run" and _wrapped_in.get_parent() is Label:
 	#	print(in_splash)
+	#if text == "Downloads":
+	#	print(parent.is_blocking)
 	if not frozen:
 		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins or (is_contained and is_contained.scrolling)))
 		mouse_pressed = glob.mouse_pressed and not blocked
@@ -711,6 +730,7 @@ func _process_block_button(delta: float) -> void:
 	#if name == "loss":
 	#	print(blocked)
 	if inside:
+
 		if mouse_pressed:
 			hover_scale = hover_scale.lerp(base_scale * config._press_scale, delta * 30)
 			if config.as_mult: 
@@ -724,6 +744,7 @@ func _process_block_button(delta: float) -> void:
 				state.tween_progress = 0.0
 			pressing.emit()
 		else:
+			#print(scrolling)
 			if trimmed:
 				if not _scrolling:
 					_scrolling = true
@@ -735,6 +756,7 @@ func _process_block_button(delta: float) -> void:
 					# restore original text when hover stops
 					_scrolling = false
 					label.text = _wrap_text(text)
+					#print("rest")
 					_align_label()
 			hovering.emit()
 			if not state.hovering:
@@ -756,7 +778,8 @@ func _process_block_button(delta: float) -> void:
 	else:
 		if _scrolling:
 			_scrolling = false
-			label.text = _wrap_text(text)   # restore trimmed text
+			label.text = _wrap_text(text)
+			
 			_align_label()
 		state.hovering = false
 		hover_scale = hover_scale.lerp(base_scale, delta * 15)
@@ -785,7 +808,8 @@ func _process_block_button(delta: float) -> void:
 			graph.hold_for_frame()
 		if graph_root and graph_root is Graph:
 			graph_root.hold_for_frame()
-	_update_scroll_text(delta)
+	if marquee_enabled:
+		_update_scroll_text(delta)
 
 var freedom: bool = true
 var bar: VScrollBar
@@ -1048,6 +1072,7 @@ func _process_context_menu(delta: float) -> void:
 	
 	var non_splashed = in_splash or !ui.active_splashed()
 	non_splashed = non_splashed and (in_splash or !ui.splashed_in)
+	#if name == 
 	#print(ui.splashed_in)
 	left_click = left_click and non_splashed
 	right_click = right_click and non_splashed

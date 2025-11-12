@@ -40,8 +40,11 @@ func _register_future_helpers():
 	lua.push_variant("future_get_result", func(f): return f.get_result())
 
 var _lua_step
-
-
+var _lua_completed
+var _lua_had_error
+var _script_done := false
+signal execution_finished
+signal error_splashed
 
 # -------------------------
 # Auto-exposure helpers
@@ -63,38 +66,54 @@ func _get_exposed_function_names() -> Array[String]:
 func stepping() -> bool:
 	return is_instance_valid(_lua_step)
 
-var _script_done: bool = false
-signal execution_finished
+
+
+
 func update(d: float):
 	if not is_inside_tree() or lua == null:
 		return
 
 	if _lua_step:
+		#print("Lua step valid:", _lua_step.is_valid(), " type:", typeof(_lua_step))
+
 		var r = _lua_step.call()
+		#print(r)
+		
 		if r is LuaError:
 			debug_printer.call(["[color=coral]" + r.message + "[/color]"])
 			error_splashed.emit()
 			execution_finished.emit()
 			stop.call_deferred()
 			_lua_step = null
+			return
+
+	if lua:
+		var had_error = lua.do_string("return __had_error")
+		if had_error == true:
+			if not _script_done:
+				_script_done = true
+				error_splashed.emit()
+				execution_finished.emit()
+				stop.call_deferred()
+				return
+
+		var completed = lua.do_string("return __completed")
+		if completed == true:
+			if not _script_done:
+				_script_done = true
+				error_splashed.emit()
+				execution_finished.emit()
+				stop.call_deferred()
+				return
 
 	for i in range(_lua_coroutines.size() - 1, -1, -1):
 		var c = _lua_coroutines[i]
 		if c == null or (c.has_method("is_done") and c.is_done()):
 			_lua_coroutines.remove_at(i)
-			continue
-		if c.has_method("resume"):
+		elif c.has_method("resume"):
 			c.resume([])
 
 	if stopped:
-		return
-
-	var status = lua.do_string("return coroutine.status(__main)")
-	if typeof(status) == TYPE_STRING and status == "dead" and not _script_done:
-		_script_done = true
-		print("AA")
-		execution_finished.emit()
-		stop.call_deferred()
 		return
 
 	delta = d
@@ -102,8 +121,13 @@ func update(d: float):
 
 	if new_frame != null:
 		var res = new_frame.call(d)
-		if res is LuaError:
-			printerr("[LuaProcess] newFrame/_process error:", res.message)
+		if typeof(res) == TYPE_STRING and res != "":
+			debug_printer.call(["[color=coral]" + res + "[/color]"])
+			error_splashed.emit()
+			execution_finished.emit()
+			stop.call_deferred()
+			return
+
 
 
 
@@ -238,32 +262,96 @@ func _ready():
 
 func _init_lua_vm(name: String, code: String) -> void:
 	var prelude := """
-	local __user_chunk = nil
-	function __set_user_chunk(fn) __user_chunk = fn end
+-- ============================================================================
+-- LuaProcess Prelude (Lua 5.1-safe)
+-- ============================================================================
 
-	local __main = coroutine.create(function()
-	  if __user_chunk then __user_chunk() end
-	end)
+local unpack = unpack or table.unpack
+local __user_chunk = nil
+__last_error = nil
+__had_error = false
+__completed = false
 
-	__last_error = nil
-	__had_error = false
+-- safe call wrapper that works in Lua 5.1
+local function __safe_call(fn, ...)
+  local args = { ... }          -- capture varargs manually
+  local function wrapped()      -- inner closure reads from 'args'
+    return fn(unpack(args))
+  end
+  return xpcall(wrapped, debug.traceback)
+end
 
-	function __step()
-	  if __had_error then return end
-	  if coroutine.status(__main) ~= "dead" then
-	    local ok, err = coroutine.resume(__main)
-	    if not ok then
-	      __last_error = debug.traceback(__main, tostring(err))
-	      __had_error = true
-	      print("[lua runtime error]\\n" .. __last_error)
-	      __main = coroutine.create(function() end)
-	    end
-	  end
-	end
-	"""
+function __set_user_src(code)
+  local fn, err = load(code)
+  if not fn then
+    __had_error = true
+    __last_error = tostring(err)
+    print('[color=coral]' .. __last_error .. '[/color]')
+    return __last_error
+  end
+  __user_chunk = fn
+end
+
+-- Coroutine lifecycle ---------------------------------------------------------
+local __main = coroutine.create(function()
+  if __user_chunk then __user_chunk() end
+  local has_newframe = (type(newFrame) == 'function')
+  if not has_newframe then
+    __completed = true
+  end
+end)
+
+function __step()
+  if __had_error or __completed then return nil end
+  if coroutine.status(__main) ~= 'dead' then
+    local ok, err = coroutine.resume(__main)
+    if not ok then
+      __had_error = true
+      __last_error = tostring(err)
+      --print('[lua runtime error]\\n' .. __last_error)
+      return __last_error
+    end
+  end
+  if coroutine.status(__main) == 'dead' and not (type(newFrame) == 'function') then
+    __completed = true
+  end
+  return nil
+end
+
+-- protected newFrame
+function __call_newFrame(dt)
+  if __had_error or __completed then return __last_error end
+  local nf = rawget(_G, 'newFrame')
+  if type(nf) ~= 'function' then return nil end
+  local ok, res = __safe_call(nf, dt)
+  if not ok then
+    __had_error = true
+    __last_error = tostring(res)
+    --print('[lua runtime error in newFrame]\\n' .. __last_error)
+    return __last_error
+  end
+  return nil
+end
+
+function __call_createScene()
+  local cs = rawget(_G, 'createScene')
+  if type(cs) ~= 'function' then return nil end
+  local ok, res = __safe_call(cs)
+  if not ok then
+    __had_error = true
+    __last_error = tostring(res)
+    --print('[lua runtime error in createScene]\\n' .. __last_error)
+    return __last_error
+  end
+  return nil
+end
+
+"""
+
+
 
 	lua = LuaAPI.new()
-	lua.bind_libraries(["base", "table", "string", "math", "coroutine"])
+	lua.bind_libraries(["base", "table", "string", "math", "coroutine", "debug"])
 
 	lua.push_variant("__gd_debug_print", func(...args): _debug_print(args))
 	lua.do_string("function print(...) __gd_debug_print(...) end")
@@ -276,20 +364,29 @@ func _init_lua_vm(name: String, code: String) -> void:
 
 	_expose_gd_to_lua()
 
-	var err1 = lua.do_string(code)
+# 2) Load user code (syntax only)
+	var err1 = lua.do_string("__set_user_src([[" + code + "]])")
 	if err1 is LuaError:
 		debug_printer.call(["[color=coral]" + err1.message + "[/color]"])
-		error_splashed.emit()
-		execution_finished.emit()
+		error_splashed.emit(); execution_finished.emit()
 		stop.call_deferred()
 		return
-	lua.do_string("__set_user_chunk(load([[" + code + "]]))")
-	var create_scene = lua.pull_variant("createScene")
 
-	var frame_fn = lua.pull_variant("newFrame")
+	# 3) Pull __step and PRIME ONCE so the chunk defines globals
+	_lua_step = lua.pull_variant("__step")
+	if _lua_step != null and _lua_step.is_valid():
+		var r = _lua_step.call()
+		if r is LuaError:
+			debug_printer.call(["[color=coral]" + r.message + "[/color]"])
+			error_splashed.emit(); execution_finished.emit()
+			stop.call_deferred()
+			return
 
+	var frame_fn = lua.pull_variant("__call_newFrame")
+	var create_scene = lua.pull_variant("__call_createScene")
+
+	new_frame = frame_fn if typeof(frame_fn) == TYPE_CALLABLE else null
 	if create_scene != null and typeof(create_scene) == TYPE_CALLABLE:
-		new_frame = frame_fn if typeof(frame_fn) == TYPE_CALLABLE else null
 		call_deferred("_call_lua_ready", create_scene)
 	else:
 		new_frame = frame_fn if typeof(frame_fn) == TYPE_CALLABLE else null
@@ -326,7 +423,7 @@ func _init_lua_vm(name: String, code: String) -> void:
 	if err2 is LuaError:
 		printerr("Failed to define call_gd:", err.message)
 
-	_expose_gd_to_lua()
+	#_expose_gd_to_lua()
 
 	call_deferred("_after_vm_ready")
 
@@ -334,8 +431,6 @@ func _init_lua_vm(name: String, code: String) -> void:
 
 func _after_vm_ready():
 	pass
-
-signal error_splashed
 
 func _call_lua_ready(fn: Callable) -> void:
 	if fn == null:
@@ -378,9 +473,6 @@ func lua_overlap_point(x: float, y: float) -> bool:
 	var res = space_state.intersect_point(point_params)
 	return res.size() > 0
 
-# -------------------------
-# Existing Lua API
-# -------------------------
 func lua_move(id: int, dx: float, dy: float) -> void:
 	var s = _get_shape(id)
 	if s.is_empty(): return
@@ -444,9 +536,6 @@ func lua_set_y(id: int, y: float) -> void:
 		s["y"] = y
 
 
-# -------------------------
-# Queries
-# -------------------------
 func lua_get_x(id: int) -> float:
 	var s = _get_shape(id)
 	return float(s["x"]) if not s.is_empty() else 0.0
@@ -475,9 +564,6 @@ func lua_get_color(id: int) -> Dictionary:
 	var c: Color = s["color"]
 	return {"r": c.r, "g": c.g, "b": c.b}
 
-# -------------------------
-# Input
-# -------------------------
 func lua_get_key(keyname: String) -> bool:
 	if InputMap.has_action(keyname):
 		return Input.is_action_pressed(keyname)
@@ -578,19 +664,29 @@ func lua_clear() -> void:
 var stopped: bool = false
 
 func stop() -> void:
+	if stopped:
+		return
+	#print("djdfj")
 	stopped = true
 
+	# Free any physics bodies
 	for s in shapes:
-		if s and s.get("physics_enabled", false) and s.has("body"):
-			s["body"].queue_free()
-
+		if typeof(s) == TYPE_DICTIONARY and s.get("physics_enabled", false) and s.has("body"):
+			var b = s["body"]
+			s["body"] = null
+			if is_instance_valid(b):
+				b.queue_free()
 	shapes.clear()
-	
-	await get_tree().process_frame
-	await get_tree().process_frame
-	await get_tree().process_frame
-	await get_tree().process_frame
-	queue_free()
+
+	# Nuke Lua VM cleanly
+	if lua:
+		lua = null
+	_lua_step = null
+	new_frame = null
+	_lua_coroutines.clear()
+
+	# Defer freeing this node to avoid freeing mid-callback
+	call_deferred("queue_free")
 
 func lua_set_rotation(id: int, angle: float) -> void:
 	var s = _get_shape(id)

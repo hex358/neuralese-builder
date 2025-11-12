@@ -67,11 +67,11 @@ class CommandParser:
 		if not registry.has(cmd_name):
 			return _err("unknown_cmd", cmd_name)
 
-		for t in tokens.slice(1, tokens.size()):
-			if registry.has(t):
-				return _err("multi_cmd", t)
-
 		var def: CommandDef = registry[cmd_name]
+
+		for t in tokens.slice(1, tokens.size()):
+			if registry.has(t) and not (def.allowed_keywords.has(t) or t == "if"):
+				return _err("multi_cmd", t)
 		return _parse_tokens(tokens, def)
 
 	func _tokenize(line: String) -> Array:
@@ -97,8 +97,11 @@ class CommandParser:
 		data["args"]["action"] = "keep"
 		data["args"]["condition"] = ""
 
-		if tokens.size() == 1 and not def.allow_empty:
-			return _err("empty_command", def.name, def)
+		if tokens.size() == 1:
+			if def.flags.is_empty() and not def.allow_empty:
+				return _err("empty_command", def.name, def)
+			else:
+				return {"command": tokens[0], "args": {}, "flags": []}
 
 		while i < tokens.size():
 			var tok = tokens[i]

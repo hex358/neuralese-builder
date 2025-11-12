@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://cuuew2v4inm7k"]
+[gd_scene load_steps=35 format=3 uid="uid://cuuew2v4inm7k"]
 
 [ext_resource type="Script" uid="uid://cir1i2gbr8pjh" path="res://scripts/dataset_tab.gd" id="1_hsuaq"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_fn1yt"]
@@ -53,20 +53,6 @@ animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [sub_resource type="Resource" id="Resource_n8ca6"]
-script = ExtResource("11_j7vbt")
-as_mult = true
-hover_color = Color(1.1, 1.1, 1.1, 1)
-hover_mult = 1.3
-_hover_scale = 1.05
-press_color = Color(0.72, 0.72, 0.72, 1)
-_press_scale = 0.98
-animation_scale = 19.697
-animation_speed = 3.473
-animation_decay = 6.0
-animation_duration = 1.359
-metadata/_custom_type_script = "uid://dx40hpbce8w60"
-
-[sub_resource type="Resource" id="Resource_8ivn3"]
 script = ExtResource("11_j7vbt")
 as_mult = true
 hover_color = Color(1.1, 1.1, 1.1, 1)
@@ -209,6 +195,8 @@ scale = Vector2(0.9, 0.9)
 color = Color(1, 1, 1, 0)
 script = ExtResource("10_8ivn3")
 naming = "list_unroll2"
+auto = false
+auto_names = Array[String]([])
 base_scale_x = 0.0
 text_color = Color(0, 0, 0, 1)
 base_size = Vector2(357.7778, 9.333332)
@@ -237,6 +225,7 @@ auto_trim_text = true
 text = "Hello!!"
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
+marquee_enabled = true
 base_size = Vector2(236, 41.000015)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
@@ -306,34 +295,27 @@ text = "Preview"
 script = ExtResource("7_q5lcu")
 padding = Vector2(11, 4)
 
-[node name="run" parent="Control/view/Label" instance=ExtResource("8_jf34i")]
-z_index = 9
-instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
-instance_shader_parameters/extents = Vector2(0, 0)
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/view"]
 layout_mode = 1
-offset_left = 33.65219
-offset_top = 51.77256
-offset_right = 104.41574
-offset_bottom = 73.11574
-scale = Vector2(1.9184519, 1.9184519)
-pivot_offset = Vector2(35.381775, 10.671589)
-mouse_filter = 1
-color = Color(0.6045, 0.93, 0.631625, 1)
-button_type = 1
-top = true
-base_scale_x = 0.45
-resize_after = 7
-text = "Load CSV"
-base_size = Vector2(70.76355, 21.343178)
-alignment = Vector2(0.5, 0.5)
-expanded_size = 98
-arrangement_padding = Vector2(5, 5)
-mouse_open = false
-menu_name = &"g"
-max_size = 170
-config = SubResource("Resource_8ivn3")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 44.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/view/ScrollContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/view/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "gggggggg"
 
 [node name="CodeEdit" type="Control" parent="Control" node_paths=PackedStringArray("vscrollbar", "hscrollbar")]
+visible = false
 z_index = -1
 anchors_preset = 0
 offset_left = 188.5
@@ -344,7 +326,7 @@ script = ExtResource("13_bwfib")
 uniform_row_heights = true
 addition_enabled = true
 vscrollbar = NodePath("VScrollBar")
-odd_row_tint = Color(1, 1, 1, 0.020000001)
+odd_row_tint = Color(1, 1, 1, 0.019607844)
 spawn_delay_threshold = 7000.0
 content_margin = Vector4(0, 0, 0, 0)
 column_ratios = PackedFloat32Array(0.5, 0.5)
@@ -352,7 +334,7 @@ hscrollbar = NodePath("HScrollBar")
 column_width_mode = 0
 max_total_width_scale = 1.3
 min_total_column_ratio = 0.30000000000000004
-min_column_width = 25.0
+min_column_width = 90.0
 header_width = 28.0
 column_names = Array[String](["Input", "Output"])
 min_vgrabber_ratio = 0.04
@@ -544,19 +526,23 @@ instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
 offset_right = 182.66667
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
+pivot_offset = Vector2(33367.113, 2116)
 script = ExtResource("24_8ivn3")
 implement = false
 placeholder = true
 resize_after = 12
 text = "00000000000*"
+marquee_enabled = null
 base_size = Vector2(182.66667, 46)
-_scroll_container = false
+alignment = Vector2(182.66667, 46)
+_scroll_container = 0.0
 expanded_size = 144
 scale_anim = true
 arrangement_padding = Vector2(10, 8)
 mouse_open = false
 menu_name = &"row_mod"
 max_size = 0
+expand_upwards = 0
 config = null
 
 [node name="neuron" parent="CanvasLayer2/row_mod" instance=ExtResource("8_jf34i")]
@@ -595,6 +581,5 @@ config = ExtResource("25_j7vbt")
 
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
-[connection signal="released" from="Control/view/Label/run" to="." method="_on_run_released"]
 [connection signal="released" from="Control/console/train2" to="." method="_on_train_2_released"]
 [connection signal="released" from="Control/console/9" to="." method="_on__released"]

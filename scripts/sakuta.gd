@@ -9,6 +9,7 @@ func _ready() -> void:
 	push_cfg({})
 	
 func push_cfg(cfg: Dictionary):
+	#print(cfg)
 	$Label2.text = cfg.get("name", "")
 	$Label3.text = glob.compact(cfg.get("size", 0)) if "size" in cfg else ""
 	#print(cfg)

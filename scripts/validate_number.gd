@@ -11,6 +11,7 @@ var prev: float = min_value
 func _can_change_to(emit: bool) -> String:
 	var before = prev
 	var prev_text = text
+	#print("JFJF")
 	var o = inte()
 	
 	if _parse_number(text) < min_value and before > min_value and len(text) > 1:

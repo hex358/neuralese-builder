@@ -191,16 +191,18 @@ func set_scroll_impossible(who: Control):
 func is_scroll_possible() -> bool:
 	return len(scroll_imp) == 0
 
-func get_label_text_size_unscaled(lbl: Control, _unused: float = 1.0) -> Vector2:
+func get_label_text_size_unscaled(lbl: Control, _unused: float = 1.0, auto_size: int = 0) -> Vector2:
 	var font = lbl.get_theme_font("font")
-	var size = lbl.get_theme_font_size("font_size")  # no scale multiplier here
+	var size = auto_size
+	if not auto_size:
+		size = lbl.get_theme_font_size("font_size")
 	return font.get_string_size(lbl.text, 0, -1, size)
 
-func get_label_text_size(lbl: Control, use_scale: float = 1.0) -> Vector2:
+func get_label_text_size(lbl: Control, use_scale: float = 1.0, cust_text = null) -> Vector2:
 	# Measure label text size
 	var font = lbl.get_theme_font("font")
 	var size = lbl.get_theme_font_size("font_size") * use_scale
-	return font.get_string_size(lbl.text, 0, -1, size)
+	return font.get_string_size(lbl.text if cust_text == null else cust_text, 0, -1, size)
 
 func layer_to_global(layer: CanvasLayer, point: Vector2):
 	return layer.transform * point
@@ -831,9 +833,11 @@ func load_dataset(name: String) -> Dictionary:
 	return get_loaded_datasets().get(name, {})
 
 func get_loaded_datasets() -> Dictionary:
-	return {"mnist":
-			{"name": "mnist", "outputs": [
-			{"label": "digit", "x": 10, "datatype": "1d"}],
+	return {
+		"mnist":
+			{"name": "mnist", 
+		"size": 70000, "outputs": [
+			{"label": "digit", "x": 10, "datatype": "1d", "label_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]}],
 			"inputs": {"x": 28, "y": 28, "datatype": "2d"},
 			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]}, 
 		"iris": {"name": "iris", "outputs": [
@@ -1168,20 +1172,26 @@ func bound(callable: Callable, pos: Vector2, cfg: Dictionary, select: bool = tru
 var ds_dump = {}
 var dataset_datas = {}
 
-
+func default_dataset() -> Dictionary:
+	return {"arr": [[{"type": "text", "text": "Hello"}, 
+							{"type": "image", "x": 28, "y": 28}]], "col_names": ["Input:text", "Output:image"],
+							"outputs_from": 1}
 
 func get_dataset_at(id: String):
 	if not id in dataset_datas:
-		dataset_datas[id] = {"arr": [[{"type": "text", "text": "Input"}, 
-							{"type": "text", "text": "Output"}]], "col_names": ["Input", "Output"]}
+		dataset_datas[id] = default_dataset()
 	return dataset_datas[id]
-func create_dataset(id: int, name: String):
+func create_dataset(id: int, name: String, data = null):
+	if data:
+		dataset_datas[name] = data
 	return {"id": id, "content": {}, "name": name}
 
 
 func add_action(undo: Callable, redo: Callable, ...args):
 	if is_auto_action(): return
-	if batch_permanent: return
+	if batch_permanent: 
+		return
+	#print(batch_permanent)
 	#print_stack()
 
 	var undo_callable = func():
@@ -1222,19 +1232,22 @@ func _end_auto_action(kind: String):
 var in_batch: bool = false; var batch_permanent: bool = false
 func open_action_batch(permanent: bool = false):
 	in_batch = true; batch_permanent = permanent
+	#print_stack()
+	#print(batch_permanent)
+	#print("=====")
 
 func close_action_batch():
-	if !batch_permanent:
-		undo_redo.create_action("Action")
-		var batch = action_batch.duplicate()
-		undo_redo.add_do_method(func():
-			for i in batch:
-				i[0].call())
-		undo_redo.add_undo_method(func():
-			#print("AA")
-			for i in batch:
-				i[1].call())
-		undo_redo.commit_action(false)
+	#print("close!")
+	undo_redo.create_action("Action")
+	var batch = action_batch.duplicate()
+	undo_redo.add_do_method(func():
+		for i in batch:
+			i[0].call())
+	undo_redo.add_undo_method(func():
+		#print("AA")
+		for i in batch:
+			i[1].call())
+	undo_redo.commit_action(false)
 		
 	action_batch.clear()
 	in_batch = false; batch_permanent = false

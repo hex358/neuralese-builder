@@ -80,11 +80,16 @@ offset_bottom = 120.0
 scale = Vector2(0.9, 0.9)
 color = Color(1, 1, 1, 0)
 script = ExtResource("9_pow88")
+marquee_enabled = null
 base_size = Vector2(535.5556, 0)
+alignment = Vector2(535.5556, 0)
 static_mode = true
+_scroll_container = 0.0
+scale_anim = 0
 mouse_open = false
 dynamic_size = true
 max_size = 305
+expand_upwards = 0
 config = null
 
 [node name="name" parent="ColorRect/list" instance=ExtResource("2_5t588")]
@@ -128,9 +133,9 @@ text = "Select dataset"
 [node name="Label2" type="LineEdit" parent="ColorRect"]
 layout_mode = 0
 offset_left = 39.0
-offset_top = 83.00001
+offset_top = 80.000015
 offset_right = 613.6754
-offset_bottom = 126.00001
+offset_bottom = 123.000015
 scale = Vector2(0.77261, 0.77261)
 theme = ExtResource("11_8yyrq")
 placeholder_text = "Query..."

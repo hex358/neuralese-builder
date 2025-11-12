@@ -71,7 +71,7 @@ func parse_csv_lines(path: String) -> Array:
 	file.seek(0)
 
 	var detected_delim := detect_csv_delimiter_from_preview(preview_text)
-	print("Detected CSV delimiter:", detected_delim)
+	#print("Detected CSV delimiter:", detected_delim)
 
 	var rows: Array = []
 	var buffer := ""
@@ -111,13 +111,24 @@ func _row_to_cells(row: Array) -> Array[Dictionary]:
 	return res
 
 func parse_csv_dataset(path: String) -> Dictionary:
-	var ds_obj = {"col_names": [], "arr": []}
+	var ds_obj = {"col_names": [], "arr": [], "outputs_from": 1}
+	if not FileAccess.file_exists(path):
+		return glob.default_dataset()
 	var rows = parse_csv_lines(path)
+	if not rows: 
+		ds_obj["col_names"] = ["Col0:text", "Col1:text"]
+		return ds_obj
+	ds_obj["outputs_from"] = min(len(rows[0]), int(ceil(float(len(rows[0]))/2)))
 	if len(rows) == 1:
-		ds_obj.col_names = ["Input", "Output"]
+		ds_obj.col_names = []
+		for i in len(rows[0]):
+			ds_obj.col_names.append("Col" + str(i) + ":text")
 		ds_obj.arr.append(_row_to_cells(rows[0]))
 		return ds_obj
 	ds_obj.col_names = rows[0]
+	for i in len(ds_obj.col_names):
+		ds_obj.col_names[i] += ":text"
 	for i in range(1,len(rows)):
-		ds_obj.arr.append(_row_to_cells(rows[i]))
+		if len(rows[i]) == len(rows[0]):
+			ds_obj.arr.append(_row_to_cells(rows[i]))
 	return ds_obj

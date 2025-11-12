@@ -45,6 +45,7 @@ func _just_attached(other_conn: Connection, my_conn: Connection):
 		rgb.a = who.modulate.a
 		who.modulate = rgb
 
+
 func _just_deattached(other_conn: Connection, my_conn: Connection):
 	pass
 	if my_conn.virtual:
@@ -107,6 +108,9 @@ var meta_owner: Graph = null
 func aw():
 	await get_tree().process_frame
 	hold_for_frame()
+
+func get_label_name(who: Control):
+	return who.get_parent().get_meta("label")
 
 func push_meta(who: Graph, data: Dictionary, force: bool = false):
 	#print(data)

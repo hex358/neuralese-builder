@@ -1,22 +1,184 @@
 extends SplashMenu
 
+var toppath_valid = ""
+var lbl_valid = ""
 func _ready() -> void:
 	super()
+	#print('FJFJ')
+	$ColorRect/toppath.set_is_valid_call(func(input):
+		var has = DirAccess.dir_exists_absolute(input) or FileAccess.file_exists(input)
+		if has:
+			toppath_valid = input
+		return has)
 	$ColorRect/Label.set_is_valid_call(func(input):
-		return true)
+		if not input: return true
+		var dir = grid.current_dir
+		if not input.begins_with("/"):
+			dir += "/"
+		dir += input
+		#print(dir)
+		var exists = FileAccess.file_exists(dir)
+		#if exists:
+		if exists:
+			grid.select_path(dir, false)
+			lbl_valid = input
+		return exists)
+var old_dir: String = OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
+func _just_splash():
+	#print("AA")
+	grid.current_dir = old_dir
+	#print(old_dir)
+	grid.filter_extensions = glob.to_set(passed_data.get("filter", []))
+	grid.refresh()
 
 func _process(delta: float) -> void:
 	super(delta)
+	if $ColorRect/ScrollContainer.get_global_rect().has_point(get_global_mouse_position()):
+		$ColorRect/list.block_input(true)
+	#	print("fkfk")
+	else:
+		$ColorRect/list.unblock_input(true)
+
 
 func _resultate(data: Dictionary):
-	emitter.res.emit(data)
-	#glob.env_dump[data["text"]] = glob.get_default_script(data["text"])
-	#glob.tree_windows["env"].reload_scenes()
-	go_away()
+	old_dir = grid.current_dir
+	if "from" in passed_data:
+		can_go = false
+		go_away()
+		await quitting
+		hide()
+		#queue_free()
+		ui.splash_and_get_result("dataset_create", splashed_from, emitter, true, 
+		{"txt": passed_data.get("txt", ""), "path": data["path"]})
+	else:
+		emitter.res.emit(data)
+		#glob.env_dump[data["text"]] = glob.get_default_script(data["text"])
+		#glob.tree_windows["env"].reload_scenes()
+		go_away()
 
-
+func _quit_request():
+	grid._clear_selection()
+	if "from" in passed_data:
+		can_go = false
+		await quitting
+		#queue_free()
+		hide()
+		ui.splash("dataset_create", splashed_from, emitter, true, 
+		{"txt": passed_data.get("txt", "")})
+	else:
+		pass
 
 func _on_trainn_released() -> void:
+	ress()
+	
+func ress():
 	$ColorRect/Label.update_valid()
-	if $ColorRect/Label.is_valid:
-		resultate({"text": $ColorRect/Label.text})
+	if $ColorRect/Label.is_valid and $ColorRect/Label.text:
+		resultate({"path": grid.selected_path})
+
+@onready var grid = $ColorRect/ScrollContainer/GridContainer
+@onready var list = $ColorRect/list
+func _on_list_child_button_release(button: BlockComponent) -> void:
+	button.block_input()
+	var dir = -1
+	await glob.wait(0.1)
+	match button.hint:
+		"desk":
+			dir = OS.SYSTEM_DIR_DESKTOP
+		"downloads":
+			dir = OS.SYSTEM_DIR_DOWNLOADS
+		"docs":
+			dir = OS.SYSTEM_DIR_DOCUMENTS
+		"pics":
+			dir = OS.SYSTEM_DIR_PICTURES
+	if dir != -1:
+		grid.current_dir = OS.get_system_dir(dir)
+	await grid.refresh()
+	await glob.wait(0.1)
+	button.unblock_input()
+	lbl_valid = ""
+	$ColorRect/Label.set_line("")
+
+
+func _on_refresh_released() -> void:
+	grid.refresh()
+	lbl_valid = ""
+	$ColorRect/Label.set_line("")
+
+
+func quit(data: Dictionary = {}):
+	if not visible: return
+	quitting.emit()
+	#print(grid.current_dir)
+	old_dir = grid.current_dir
+	if can_go:
+		hide()
+		ui.blur.self_modulate.a = 0
+		emitter.res.emit(data)
+
+func _on_undo_released() -> void:
+	grid.go_up()
+
+
+var prev_tuned = null
+func _on_grid_container_refreshed() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	$ColorRect/toppath.set_line(grid.current_dir)
+	if prev_tuned:
+		prev_tuned.set_tuning(prev_tuned.base_tuning)
+	for i in list.button_by_hint:
+		var dir = -1
+		match i:
+			"desk":
+				dir = OS.SYSTEM_DIR_DESKTOP
+			"downloads":
+				dir = OS.SYSTEM_DIR_DOWNLOADS
+			"docs":
+				dir = OS.SYSTEM_DIR_DOCUMENTS
+			"pics":
+				dir = OS.SYSTEM_DIR_PICTURES
+		if dir != -1 and str(grid.current_dir).simplify_path() == OS.get_system_dir(dir):
+			prev_tuned = list.button_by_hint[i]
+			prev_tuned.set_tuning(prev_tuned.base_tuning * 2)
+			break
+
+
+
+
+func _on_grid_container_directory_entered(path: String) -> void:
+	lbl_valid = ""
+	$ColorRect/Label.set_line("")
+
+
+func _on_grid_container_file_hovered(path: String, is_dir: bool) -> void:
+	if not is_dir:
+		$ColorRect/Label.set_line(path.split("/")[-1])
+
+
+func _on_toppath_line_enter() -> void:
+	await get_tree().process_frame
+	if !$ColorRect/toppath.is_valid:
+		$ColorRect/toppath.set_line(toppath_valid)
+	elif grid.current_dir.simplify_path() != $ColorRect/toppath.text.simplify_path():
+		grid.current_dir = $ColorRect/toppath.text
+		var txt = grid.current_dir
+		if !DirAccess.dir_exists_absolute(grid.current_dir):
+			grid.current_dir = txt.get_base_dir()
+		lbl_valid = ""
+		$ColorRect/Label.set_line("")
+		await grid.refresh()
+		await get_tree().process_frame
+		grid.select_path(txt)
+
+
+func _on_label_line_enter() -> void:
+	await get_tree().process_frame
+	if !$ColorRect/Label.is_valid:
+		$ColorRect/Label.set_line(lbl_valid)
+
+
+func _on_grid_container_file_selected(path: String) -> void:
+	ress()

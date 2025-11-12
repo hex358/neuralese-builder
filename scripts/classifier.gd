@@ -12,6 +12,17 @@ func _request_save():
 		res.append(i.get_node("Label").text)
 	cfg["label_names"] = res
 
+func set_names(names: Array):
+	glob.open_action_batch(true)
+	_config_field("label_names", names)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	glob.close_action_batch()
+	if not glob.is_auto_action():
+		glob.add_action(set_names.bind([]), func():
+			#print("ff")
+			set_names(names.duplicate()))
+
 func _config_field(field: StringName, value: Variant):
 	if not manually and field == "label_names" and not trigger:
 		#_applying_labels += 1
@@ -59,6 +70,18 @@ func push_values(values: Array, percent: bool = false):
 			unit_set(unit, 0.0, "0.0")
 
 var _applying_labels: int = 0
+
+
+func _get_unit(kw: Dictionary) -> Control: #virtual
+	var dup = _unit.duplicate()
+	dup.get_node("Label").text = kw["text"]
+	dup.show()
+	dup.modulate.a = 0.0
+	appear_units[dup] = true
+	#dup.size.y = randi_range(10,60)
+#	dup.server_name = 
+	return dup
+
 
 
 func _unit_just_added() -> void:

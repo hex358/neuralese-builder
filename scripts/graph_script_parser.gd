@@ -182,9 +182,6 @@ func _grid_snap(p: Vector2, step: float = 8.0) -> Vector2:
 
 
 
-
-
-
 func _choose_origins(nodes) -> Array:
 	var origins: Array = []
 	for tag in nodes.keys():
@@ -201,17 +198,14 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 	
 	var candidate_positions = []
 	
-	# Try positions to the right of each existing subgraph
 	for slot in _subgraph_slots:
 		var pos = Vector2(slot.end.x + padding, slot.position.y)
 		candidate_positions.append(pos)
 	
-	# Try positions below each existing subgraph
 	for slot in _subgraph_slots:
 		var pos = Vector2(slot.position.x, slot.end.y + padding)
 		candidate_positions.append(pos)
 	
-	# Try top-right corner (right of rightmost, top of topmost)
 	var max_x = -INF
 	var min_y = INF
 	for slot in _subgraph_slots:
@@ -219,7 +213,6 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 		min_y = min(min_y, slot.position.y)
 	candidate_positions.append(Vector2(max_x + padding, min_y))
 	
-	# Try bottom-left corner (left of leftmost, bottom of bottommost)
 	var min_x = INF
 	var max_y = -INF
 	for slot in _subgraph_slots:
@@ -227,14 +220,12 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 		max_y = max(max_y, slot.end.y)
 	candidate_positions.append(Vector2(min_x, max_y + padding))
 	
-	# Find the position with least overlap and best compactness
 	var best_pos = candidate_positions[0]
 	var best_score = INF
 	
 	for pos in candidate_positions:
 		var test_rect = Rect2(pos, bbox.size)
 		
-		# Check for overlaps
 		var has_overlap = false
 		for slot in _subgraph_slots:
 			if test_rect.intersects(slot):
@@ -244,7 +235,6 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 		if has_overlap:
 			continue
 		
-		# Score based on how far from origin (prefer compact layouts)
 		var score = pos.length_squared() + test_rect.end.length_squared()
 		
 		if score < best_score:

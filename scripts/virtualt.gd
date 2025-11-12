@@ -41,14 +41,30 @@ enum ColumnWidthMode { FIT, RELAXED, FIXED }
 @export var header_width: float = 64.0
 
 @export var column_names: Array[String] = []
+signal col_dtypes
+var column_datatypes = []
+func set_column_datatypes(names: Array, upd: bool = false) -> void:
+	types_changed = true
+	column_datatypes = names
+	#dataset_obj["col_dtypes"] = names
+	col_dtypes.emit()
 
-
-func set_column_names(names: Array) -> void:
+func set_column_names(names: Array, upd: bool = false) -> void:
+	cols = len(names)
 	column_names.clear()
+	var new_dtypes = []
 	for n in names:
-		column_names.append(n)
-	
-	cols = column_names.size()
+		var splited = n.rsplit(":", true, 1)
+		column_names.append(splited[0])
+		new_dtypes.append(splited[1])
+	set_column_datatypes(new_dtypes)
+	if cols == outputs_from:
+		set_outputs_from(cols-1)
+	#print(column_names)
+	#if upd:
+	#	print("kms")
+	#	dataset_obj["col_names"] = column_names
+	#cols = column_names.size()
 	if cols == 0:
 		return
 	
@@ -73,7 +89,9 @@ func set_column_names(names: Array) -> void:
 var default_type_heights: Dictionary[StringName, float] = {}
 
 var cell_templates: Dictionary[StringName, PackedScene] = {
-	"text": preload("res://scenes/cell.tscn")
+	"text": preload("res://scenes/cell.tscn"),
+	"num": preload("res://scenes/num.tscn"),
+	"image": preload("res://scenes/img.tscn"),
 }
 var cell_defaults: Dictionary[StringName, TableCell] = {}
 
@@ -291,6 +309,8 @@ func _adapter_on_load(data, cols: int, rows: int) -> void:
 	self.rows = rows
 
 func _get_cell(row: int, col: int) -> Dictionary:
+	#if len(adapter_data[row]) < 3:
+	#	print(adapter_data[row] )
 	return adapter_data[row][col] if rows > 0 else {}
 
 func _set_cell(row: int, col: int, data: Dictionary) -> void:
@@ -321,10 +341,14 @@ func _ensure_row_metrics_visible(r0: int, r1: int) -> void:
 		row_offsets[r + 1] = row_offsets[r] + row_heights[r]
 
 signal ds_cleared
-func load_empty_dataset(clear_cols: bool = true) -> void:
+func load_empty_dataset(clear_cols: bool = true, object = null) -> void:
 	_clear_table_state(false, clear_cols)
 	adapter_data = []
 	dataset = []
+	if object != null:
+		dataset_obj["arr"] = object
+		adapter_data = object
+		dataset = object
 	ds_cleared.emit()
 	rows = 0
 	if clear_cols:
@@ -351,8 +375,9 @@ func load_empty_dataset(clear_cols: bool = true) -> void:
 	_need_layout = false
 	_need_visible_refresh = false
 	queue_redraw()
+	#print(cols)
 	#print(Array(column_names))
-	set_column_names(Array(column_names.duplicate()))
+	#set_column_names(Array(column_names.duplicate()))
 
 
 signal dataset_loaded
@@ -378,11 +403,12 @@ func set_uniform_row_height(new_height: float) -> void:
 var _dataset_cache: Dictionary = {}
 func load_dataset(data, _cols: int, _rows: int) -> void:
 	if not data:
-		load_empty_dataset()
+		load_empty_dataset(false)
 		return
 	
 	_clear_table_state(false)
 	dataset = []
+	dataset_obj["arr"] = data
 	cols = _cols
 	rows = _rows
 	dataset_loaded.emit()
@@ -391,10 +417,15 @@ func load_dataset(data, _cols: int, _rows: int) -> void:
 	
 	if uniform_row_heights:
 		if rows > 0 and cols > 0:
-			var cell_info = _get_cell(0, 0)
-			if cell_info.has("type") and cell_defaults.has(cell_info.type):
-				var default_cell: TableCell = cell_defaults[cell_info.type]
-				uniform_row_height = default_cell._estimate_height(cell_info)
+			re_uni.call_deferred()
+			#var cell_info = _get_cell(0, 0)
+			#var maximal = 0
+			#if cell_defaults.has(cell_info.type):
+				#var default_cell: TableCell = cell_defaults[cell_info.type]
+				#maximal = max(maximal, default_cell._estimate_height(cell_info))
+			##uniform_row_height = maximal
+			#set_uniform_row_height.call_deferred(maximal)
+			#print(uniform_row_height)
 		else:
 			uniform_row_height = 0.0
 
@@ -619,11 +650,11 @@ func _del_cells(at_index: int):
 	adapter_data.remove_at(at_index)
 	dataset_obj["arr"] = adapter_data
 
+var types_changed: bool = false
 func add_row(cells: Array = [], at_index: int = -1) -> void:
 	if at_index < 0 or at_index > rows:
 		at_index = rows
-
-	# --- Bootstrap for empty dataset ---
+	#return
 	if rows == 0 and cols == 0:
 		if cells.size() == 0:
 			push_error("Cannot infer column count: empty row inserted into empty table.")
@@ -637,8 +668,6 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 		if not adapter_data:
 			adapter_data.clear()
 
-	# --- Insert row normally ---
-	#print(cells)
 	_add_cells(at_index, cells)
 	rows += 1
 
@@ -659,18 +688,27 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 	_invalidate_offsets_from(at_index + 1)
 
 	_flush_active_from(at_index)
+	if uniform_row_height and types_changed:
+		re_uni()
+		types_changed = false
+	_rebuild_row_offsets()
 
-	if vscrollbar:
-		_update_scrollbar_range()
-	if rows == 1:
-		_rebuild_row_offsets()
+		
 
 	_need_layout = true
 	_need_visible_refresh = true
 	#print(adapter_data)
 	queue_redraw()
 
+	if vscrollbar:
+		await get_tree().process_frame
+		_update_scrollbar_range()
 
+func re_uni():
+	var maximal = 0
+	for i in adapter_data[0]:
+		maximal = max(maximal, default_type_heights[i.type])
+	set_uniform_row_height(maximal)
 
 
 
@@ -833,8 +871,20 @@ var _vel_smoothed: float = 0.0
 
 var _last_scrollbar_rect: Rect2
 
-func get_default_row():
-	return [{"type": "text", "text": ""}, {"type": "text", "text": ""}]
+func get_default_row(where: int = -1):
+	var cells = []
+	if rows and where != -1:
+		for i in cols:
+			var uppertype = _get_cell(where+1 if where == 0 else where-1, i)["type"]
+			var def = get_type_default(uppertype)
+			def["type"] = uppertype
+			cells.append(def)
+	else:
+		for i in cols:
+			var def = get_type_default(column_datatypes[i])
+			def["type"] = column_datatypes[i]
+			cells.append(def)
+	return cells
 
 func _hide(arg):
 	if !querying:
@@ -885,7 +935,13 @@ func to_query(row: int, mp: Vector2):
 signal dataset_refreshed
 
 func get_type_default(type: String):
-	return cell_defaults[type]._defaults() if type in cell_defaults else null
+	return cell_defaults[type]._defaults()
+
+
+func convert_cell(row: int, col: int, dtype: String) -> Dictionary:
+	var got = _get_cell(row, col)
+	return cell_defaults[got["type"]]._convert(got, dtype)
+
 
 func refresh_dataset(force_full: bool = false) -> void:
 	if adapter_data == null:
@@ -995,11 +1051,74 @@ func _clear_table_state(full_reset: bool = true, reset_cols: bool = false) -> vo
 		hscrollbar.visible = false
 
 
+# =====================================================
+# ======= PER-CELL HOVER DETECTION (DETERMINISTIC) ====
+# =====================================================
+
+var _hovered_key: Vector2i = Vector2i(-1, -1)
+var _hovered_cell: TableCell = null
+
+func _process_hover_detection(row: int) -> void:
+	if rows <= 0 or cols <= 0:
+		_clear_hover()
+		return
+	if row == -1: return
+	var mp_global: Vector2 = get_global_mouse_position()
+	if not get_global_rect().has_point(mp_global):
+		_clear_hover()
+		return
+	
+	var local_mp: Vector2 = get_local_mouse_position()
+	var y_in = local_mp.y + scroll_y - content_margin.y
+	var x_in = local_mp.x + scroll_x - content_margin.x
+
+	if y_in < 0 or x_in < 0:
+		_clear_hover()
+		return
+
+	var col := -1
+	for i in range(cols):
+		if x_in >= col_offsets[i] and x_in < col_offsets[i + 1]:
+			col = i
+			break
+
+	if col == -1:
+		_clear_hover()
+		return
+
+	var key := Vector2i(row, col)
+
+	# If same cell still hovered, do nothing
+	if _hovered_key == key and _hovered_cell != null and is_instance_valid(_hovered_cell):
+		return
+
+	# Mouse moved to another cell → exit old, enter new
+	_clear_hover()
+
+	if active_cells.has(key):
+		var new_cell: TableCell = active_cells[key]
+		if new_cell.visible:
+			_hovered_key = key
+			_hovered_cell = new_cell
+			_hovered_cell._mouse_enter()
+	else:
+		_clear_hover()
+
+func _clear_hover() -> void:
+	if _hovered_cell != null and is_instance_valid(_hovered_cell):
+		_hovered_cell._mouse_exit()
+	_hovered_key = Vector2i(-1, -1)
+	_hovered_cell = null
+
+
+
 
 var rendering_disabled: bool = false
 var next_query = null
 var querying: bool = false
+var prev_row = {}
 func _process(delta: float) -> void:
+	#print(column_names)
 	if not is_visible_in_tree():
 		return
 	if rendering_disabled:
@@ -1013,6 +1132,7 @@ func _process(delta: float) -> void:
 	#print(glob.menu_type)
 	#print(disabled)
 	#print(query_lock)
+	#print(disabled)
 	if addition_enabled and not disabled:
 		if next_query and not querying and not query_lock:
 			query_lock = true
@@ -1020,19 +1140,25 @@ func _process(delta: float) -> void:
 			query_lock = false
 		var mp: Vector2 = get_global_mouse_position()
 		var local_mp = get_local_mouse_position()
+		var row = get_row_at_position(local_mp)
+		_process_hover_detection(row)
 		if get_global_rect().has_point(mp):
 			glob.set_menu_type(self, "row_mod")
+			#if row != -1:
+			#	prev_row
 			if glob.mouse_alt_just_pressed:
 				if query_lock:
+					#print("fjfj")
 					glob.menus["row_mod"].menu_hide()
 				query_lock = false
 				#print("AA")
 				next_query = null
-				var row = get_row_at_position(local_mp)
 				if row != -1 or rows <= 0:
 				#if glob.menus["row_mod"].visible:
 				#	glob.menus["row_mod"].menu_hide()
 					await to_query(row, mp)
+				if row == -1:
+					glob.menus["row_mod"].menu_hide()
 		elif not querying:
 			if row_colors:
 				clear_all_colors()
@@ -1199,6 +1325,7 @@ func _layout_active_cells() -> void:
 			cell.position = pos
 			cell.size = size_rc
 			changed = true
+			cell._resized()
 
 	if changed or _need_layout:
 		queue_redraw()
@@ -1211,6 +1338,11 @@ func _position_cell(cell: TableCell, row: int, col: int, top_left: Vector2, size
 	cell.position = top_left.floor()
 	cell.size = size_rc.floor()
 
+var outputs_from: int = 1
+func set_outputs_from(i: int):
+	outputs_from = i
+	dataset_obj["outputs_from"] = i
+	queue_redraw()
 
 func _draw() -> void:
 	_overlay.queue_redraw()
@@ -1223,7 +1355,6 @@ func _draw() -> void:
 
 	# clear background
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0), true)
-
 	if rows <= 0 or cols <= 0:
 		return
 
@@ -1232,44 +1363,35 @@ func _draw() -> void:
 	var r0 = clamp(_find_row_for_y(view_top), 0, max(0, rows - 1))
 	var r1 = clamp(_find_row_for_y(view_bottom), 0, rows - 1)
 
-
-	if uniform_row_heights:
-		for r in range(r0, r1 + 1):
-			if r in row_colors:
-				continue
-			if (r % 2) == 1:
-				var y0 = (r * uniform_row_height) - scroll_y + top
-				var y1 = ((r + 1) * uniform_row_height) - scroll_y + top
-				draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, y1 - y0)), odd_row_tint, true)
-	else:
-		_extend_offsets_to(r1 + 1)
-		for r in range(r0, r1 + 1):
-			if r in row_colors:
-				continue
-			if (r % 2) == 1:
-				var y0 = row_offsets[r] - scroll_y + top
-				var y1 = row_offsets[r + 1] - scroll_y + top
-				draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, y1 - y0)), odd_row_tint, true)
-
+	_extend_offsets_to(r1 + 1)
 
 	for r in range(r0, r1 + 1):
 		var y0: float
 		var y1: float
-
 		if uniform_row_heights:
 			y0 = (r * uniform_row_height) - scroll_y + top
 			y1 = ((r + 1) * uniform_row_height) - scroll_y + top
 		else:
 			y0 = row_offsets[r] - scroll_y + top
 			y1 = row_offsets[r + 1] - scroll_y + top
-
 		var h = y1 - y0
 
-		# Row overlay
+		# 1. Odd row background tint
+		if not row_colors.has(r) and (r % 2) == 1:
+			draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, h)), odd_row_tint, true)
+
+		# 2. Row overlay color (manual highlight)
 		if row_colors.has(r):
 			draw_rect(Rect2(Vector2(left, y0), Vector2(content_w, h)), row_colors[r], true)
 
-		# Per-cell overlays (override row tint)
+		# 3. Column brightness overlay for outputs
+		for c in range(outputs_from, cols):
+			var x0 = col_offsets[c] - scroll_x + left
+			var x1 = col_offsets[c + 1] - scroll_x + left
+			var bright_tint = Color(odd_row_tint.r, odd_row_tint.g, odd_row_tint.b, 0.03) * 1.5
+			draw_rect(Rect2(Vector2(x0, y0), Vector2(x1 - x0, h)), bright_tint, true)
+
+		# 4. Per-cell overlays (override row tint)
 		for c in range(cols):
 			var key = Vector2i(r, c)
 			if cell_colors.has(key):
@@ -1277,9 +1399,7 @@ func _draw() -> void:
 				var x1 = col_offsets[c + 1] - scroll_x + left
 				draw_rect(Rect2(Vector2(x0, y0), Vector2(x1 - x0, h)), cell_colors[key], true)
 
-	# ==========================================================
-	# 3. Horizontal grid lines
-	# ==========================================================
+	# Horizontal grid lines
 	if uniform_row_heights:
 		for r in range(r0, r1 + 1):
 			var y = (r * uniform_row_height) - scroll_y + top
@@ -1293,21 +1413,12 @@ func _draw() -> void:
 		var yb = row_offsets[min(rows, r1 + 1)] - scroll_y + top
 		draw_line(Vector2(left, yb), Vector2(left + content_w, yb), grid_line_color, grid_line_thickness)
 
-	# ==========================================================
-	# 4. Vertical grid lines
-	# ==========================================================
+	# Vertical grid lines
 	var vline_top = top
-	var vline_bottom = top + inner_size.y
 	var view_visible_h = min(inner_size.y, max(0.0, content_h - scroll_y))
-
 	for c in range(cols + 1):
 		var x = (col_offsets[c] if c < cols else content_w) - scroll_x + left
-		draw_line(
-			Vector2(x, vline_top),
-			Vector2(x, vline_top + view_visible_h),
-			grid_line_color,
-			grid_line_thickness
-		)
+		draw_line(Vector2(x, vline_top), Vector2(x, vline_top + view_visible_h), grid_line_color, grid_line_thickness)
 
 
 func _find_row_for_y(world_y: float) -> int:
@@ -1336,6 +1447,7 @@ func _find_row_for_y(world_y: float) -> int:
 func _create_cell_instance(cell_type: StringName) -> TableCell:
 	var scene: PackedScene = cell_templates[cell_type]
 	var inst = scene.instantiate()
+	inst.table = self
 	if not inst is TableCell:
 		inst.cell_type = cell_type
 		return inst

@@ -90,8 +90,9 @@ func _notification(what: int) -> void:
 
 var inner: bool = false
 func _process(delta: float) -> void:
+	
 	var has = $ColorRect.get_global_rect().has_point(get_global_mouse_position())
-	if has:
+	if has and visible:
 		ui.splashed_in[self] = true
 	else:
 		ui.splashed_in.erase(self)
@@ -142,6 +143,8 @@ func _just_go_away():
 
 func _splash():
 	pass
+
+@onready var base_size = $ColorRect.size
 
 func splash() -> void:
 	_splash()

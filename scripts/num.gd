@@ -3,23 +3,19 @@ extends TableCell
 func _map_data(data: Dictionary) -> void:
 	#print(data)
 	cell_data = data
-	$Label.set_line(data["text"])
+	$Label.set_line(str(data["num"]))
 	#_on_label_changed.call_deferred()
 
 func _height_key(info: Dictionary) :
 	return 0
 
-func _defaults() -> Dictionary:
-	return {"text": ""}
-
 func _convert(data: Dictionary, dtype: String) -> Dictionary:
-	if dtype == "num":
-		if data["text"].is_valid_int():
-			return {"type": "num", "num": int(data["text"]), "ok": true}
-		else:
-			return {"type": "num", "num": 0, "ok": false}
+	if dtype == "text":
+		return {"type": "text", "text": str(data["num"]), "ok": true}
 	return {}
 
+func _defaults() -> Dictionary:
+	return {"num": 0}
 
 var cache = {}
 func _resized():
@@ -47,7 +43,8 @@ func _resized():
 
 
 func _on_label_line_enter() -> void:
-	cell_data["text"] = $Label.text
+	if $Label.is_valid:
+		cell_data["num"] = int($Label.get_value())
 
 
 
