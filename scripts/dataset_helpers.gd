@@ -131,4 +131,5 @@ func parse_csv_dataset(path: String) -> Dictionary:
 	for i in range(1,len(rows)):
 		if len(rows[i]) == len(rows[0]):
 			ds_obj.arr.append(_row_to_cells(rows[i]))
+	ds_obj.merge(glob.default_dataset().duplicate(true))
 	return ds_obj

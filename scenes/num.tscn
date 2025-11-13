@@ -18,6 +18,7 @@ offset_bottom = 103.0
 script = ExtResource("1_s7bc5")
 cell_type = &"num"
 height = 50.0
+base_field = "num"
 
 [node name="Label" type="LineEdit" parent="."]
 layout_mode = 0
@@ -37,8 +38,7 @@ placeholder_text = "0"
 max_length = 14
 expand_to_text_length = true
 script = ExtResource("3_s7bc5")
-min_value = -1000000000000.0
-max_value = 1000000000000.0
+max_value = 10.0
 resize_after = 18
 change_always_accepted = false
 metadata/_custom_type_script = "uid://b0wh6bvd6pdc5"

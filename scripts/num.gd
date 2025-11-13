@@ -1,9 +1,11 @@
 extends TableCell
-
 func _map_data(data: Dictionary) -> void:
 	#print(data)
 	cell_data = data
-	$Label.set_line(str(data["num"]))
+	if int(data["num"]) == $Label.min_value:
+		$Label.set_line("")
+	else:
+		$Label.set_line(str(data["num"]))
 	#_on_label_changed.call_deferred()
 
 func _height_key(info: Dictionary) :
@@ -13,6 +15,9 @@ func _convert(data: Dictionary, dtype: String) -> Dictionary:
 	if dtype == "text":
 		return {"type": "text", "text": str(data["num"]), "ok": true}
 	return {}
+
+func _field_convert(who: String, data: String):
+	return int(data) if data.is_valid_int() else null
 
 func _defaults() -> Dictionary:
 	return {"num": 0}

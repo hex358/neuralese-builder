@@ -1174,8 +1174,8 @@ var dataset_datas = {}
 
 func default_dataset() -> Dictionary:
 	return {"arr": [[{"type": "text", "text": "Hello"}, 
-							{"type": "image", "x": 28, "y": 28}]], "col_names": ["Input:text", "Output:image"],
-							"outputs_from": 1}
+							{"type": "num", "num": 0}]], "col_names": ["Input:text", "Output:num"],
+							"outputs_from": 1, "col_args": []}
 
 func get_dataset_at(id: String):
 	if not id in dataset_datas:

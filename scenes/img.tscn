@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://cgnnkam6b06f3"]
 
 [ext_resource type="Script" uid="uid://xr0hkco8a12g" path="res://scripts/img.gd" id="1_xubub"]
-[ext_resource type="Texture2D" uid="uid://d3cd2knv6ca63" path="res://game_assets/icons/1.png" id="2_8x61a"]
+[ext_resource type="Texture2D" uid="uid://ccwgo8ulndvjp" path="res://game_assets/icons/none.png" id="2_8x61a"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_xubub"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="4_8u6jn"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="5_1ge0n"]
@@ -29,6 +29,8 @@ offset_bottom = 155.0
 script = ExtResource("1_xubub")
 cell_type = &"image"
 height = 160.0
+expensive = true
+base_field = "img"
 
 [node name="TextureRect" type="TextureRect" parent="."]
 texture_filter = 1
@@ -85,6 +87,5 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_1m8me")
-in_splash = true
 
 [connection signal="released" from="Label/train2" to="." method="_on_train_2_released"]

@@ -18,6 +18,7 @@ offset_bottom = 103.0
 script = ExtResource("1_0s7o3")
 cell_type = &"text"
 height = 50.0
+base_field = "text"
 
 [node name="Label" type="LineEdit" parent="."]
 layout_mode = 0

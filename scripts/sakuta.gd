@@ -1,5 +1,6 @@
 extends Control
 
+@export var cust: bool = false
 @export var base: Control = null
 
 var _base = null
@@ -18,6 +19,8 @@ func push_cfg(cfg: Dictionary):
 		child.queue_free()
 	for i in cfg.get("input_hints", []):
 		var new_child = _base.duplicate()
+		if cust:
+			new_child.get_node("value").top = self
 		new_child.get_node("name").text = i.name
 		new_child.get_node("value").text = i.get("value", "")
 		new_child.get_node("dtype").text = i.get("dtype", "")

@@ -9,9 +9,6 @@ var dataset: Array = []
 var ct: int = -1
 
 
-# ===============================
-# ======= DATASET BRIDGE ========
-# ===============================
 
 func connect_ds(ds: Array):
 	dataset = ds
@@ -30,9 +27,6 @@ func debug_print(text: String):
 	console.append_text("[color=gray][%d][/color] %s\n" % [ct, text])
 
 
-# ===============================
-# ======= MAIN INPUT LOOP =======
-# ===============================
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed() and event.keycode == KEY_ENTER:
@@ -53,9 +47,6 @@ func _gui_input(event: InputEvent) -> void:
 		clear()
 
 
-# ===============================
-# ======= COMMAND REGISTRY ======
-# ===============================
 
 func _ready():
 	table.ds_cleared.connect(func(): dataset = table.dataset)
@@ -68,7 +59,10 @@ func compile():
 	syntax_highlighter.define_group("meta", syntax_highlighter.C_META, 
 		["begin", "commit", "undo", "redo"])
 	syntax_highlighter.define_group("arguments", syntax_highlighter.C_ARG, 
-		["col", "row", "as", "by", "on", "if"])
+		["col", "row", "as", "by", "on"])
+	syntax_highlighter.define_group("etc", syntax_highlighter.C_COMMENT, 
+		["txt", "text", "img", "image", "num", "int", "and", "or", "not", "if", "else"])
+		#C_SYMBOL
 
 	parser.registry.clear()
 	
@@ -126,7 +120,7 @@ func compile():
 		_on_nrow_command,
 		[],
 		[],
-		"Adds or inserts a new row.\nExamples:\n   nrow text(text=\"hi\")\n   nrow 3 text(text=\"hi\")\n   nrow text:hi",
+		"Adds or inserts a new row, setting corresponding datatypes from columns.\nExamples:\n   nrow (text=\"hi\")\n   nrow 3 hi\n   nrow",
 		false,
 		[],
 		true
@@ -213,7 +207,9 @@ func _on_dcol_command(_data: Dictionary):
 	for row in dataset:
 		if col_idx < row.size():
 			row.remove_at(col_idx)
-
+	
+	table.dataset_obj["col_args"].remove_at(col_idx)
+	table.set_column_arg_packs(table.dataset_obj["col_args"])
 	# Update table metadata
 	var col_names: Array = table.dataset_obj.get("col_names", [])
 	if col_idx < col_names.size():
@@ -317,8 +313,8 @@ func _convert_column(col_idx: int, to_dtype: String, force: bool = false) -> boo
 	if table.rows:
 		table.re_uni()
 		table.types_changed = false
+	table._clear_hover()
 	return true
-
 
 func _on_acol_command(_data: Dictionary):
 	var parts = text.strip_edges().split(" ", false)
@@ -329,38 +325,57 @@ func _on_acol_command(_data: Dictionary):
 	var insert_at: int = table.cols  # default append mode
 	var token: String
 
-	# detect index
+	# detect index first
 	if parts[1].is_valid_int() and parts.size() >= 3:
 		insert_at = int(parts[1])
 		token = parts[2]
 	else:
 		token = parts[1]
 
+	# --- Split name:type(...) ---
 	var splited = token.rsplit(":", true, 1)
 	if splited.size() != 2:
 		debug_print("[color=coral]Column format must be name:type. Example: acol salary:num[/color]")
 		return
 
 	var col_name = splited[0].strip_edges()
-	var dtype_key = splited[1].strip_edges()
+	var dtype_full = splited[1].strip_edges()
+	var dtype_key = dtype_full
+	var arg_pack: Dictionary = {}
+
+	# --- Parse parentheses args safely ---
+	var open = dtype_full.find("(")
+	var close = dtype_full.rfind(")")
+	if open != -1:
+		if close == -1 or close <= open:
+			debug_print("[color=coral]Malformed argument section in '%s'[/color]" % token)
+			return
+		dtype_key = dtype_full.substr(0, open).strip_edges()
+		if dtype_key not in type_map:
+			debug_print("[color=coral]Unknown datatype: %s[/color]" % dtype_key)
+			return
+		arg_pack = _parse_col_args(dtype_full, type_map[dtype_key])
+		if arg_pack == null:
+			return
+
+	# --- Normalize dtype ---
 	if dtype_key not in type_map:
 		debug_print("[color=coral]Unknown datatype: %s[/color]" % dtype_key)
 		return
 	var dtype = type_map[dtype_key]
 
-	# clamp index safely
+	# --- Clamp index safely ---
 	if insert_at < 0:
 		insert_at = table.cols + insert_at + 1
 	insert_at = clamp(insert_at, 0, table.cols)
 
-	# copy current column names
+	# --- Copy current column names ---
 	var old_names: Array = table.dataset_obj.get("col_names", [])
 	var new_col_names: Array = old_names.duplicate()
-
 	var full_name = "%s:%s" % [col_name, dtype]
 	new_col_names.insert(insert_at, full_name)
 
-	# Extend each row deterministically
+	# --- Extend each row deterministically ---
 	for r in dataset:
 		var def = table.get_type_default(dtype)
 		if def == null:
@@ -369,10 +384,18 @@ func _on_acol_command(_data: Dictionary):
 		def["type"] = dtype
 		r.insert(insert_at, def)
 
-	# Update metadata and layout
 	table.cols = new_col_names.size()
+	if not arg_pack.is_empty():
+		var arg_packs = table.dataset_obj.get("col_args", [])
+		while arg_packs.size() < table.cols:
+			arg_packs.append({})
+		arg_packs.insert(insert_at, arg_pack)
+		table.set_column_arg_packs(arg_packs)
+
 	table.set_column_names(new_col_names, true)
 	table.dataset_obj["col_names"] = new_col_names
+
+
 
 	var ratios = PackedFloat32Array()
 	ratios.resize(table.cols)
@@ -408,53 +431,104 @@ func _on_convert_command(_data: Dictionary):
 
 
 
-
-
 func _on_cols_command(_data: Dictionary):
-#	print(table.column_datatypes)
 	var line = text.strip_edges().strip_escapes()
 	var parts = line.split(" ", false)
 
 	if parts.size() < 2:
-		debug_print("[color=coral]Usage: cols <name1> <name2> ... or comma-separated [--force] [/color]")
+		debug_print("[color=coral]Usage: cols <name:type> [name:type(...)] [--force][/color]")
 		return
 
 	var cols_str = line.substr(line.find(parts[0]) + parts[0].length()).strip_edges()
-	var raw_names = cols_str.replace(",", " ").split(" ", false)
-
-	var col_names: Array = []
-	for n in raw_names:
-		var clean = n.strip_edges()
-		if clean != "" and clean != "--force":
-			col_names.append(clean)
-	
 	var force: bool = _data["flags"].has("force")
-	if col_names.is_empty():
+
+	# --- Tokenize safely (respect parentheses, skip --force) ---
+	var raw_names: Array = []
+	var buf := ""
+	var depth := 0
+	for ch in cols_str:
+		if ch == "(":
+			depth += 1
+			buf += ch
+			continue
+		elif ch == ")":
+			depth = max(depth - 1, 0)
+			buf += ch
+			continue
+		elif (ch == " " or ch == ",") and depth == 0:
+			if buf.strip_edges() != "":
+				var token = buf.strip_edges()
+				if token != "--force":
+					raw_names.append(token)
+				buf = ""
+		else:
+			buf += ch
+	if buf.strip_edges() != "":
+		var token = buf.strip_edges()
+		if token != "--force":
+			raw_names.append(token)
+
+	if raw_names.is_empty():
 		debug_print("[color=coral]No valid column names provided.[/color]")
 		return
-	#print(table.column_datatypes)
-	var dtypes = []
-	for j in len(col_names):
-		var i = col_names[j]
-		var splited = i.rsplit(":", true, 1)
-		if len(splited) > 1 and splited[-1] in type_map:
-			dtypes.append(type_map[splited[-1]])
-			var dtype = type_map[splited[-1]]
-			col_names[j] = ":".join(splited.slice(0, len(splited) - 1)) + ":" + dtype
 
-			if table.rows and table.column_datatypes.size() > j and dtype != table.column_datatypes[j]:
+	# --- Parse col:type(...) tokens ---
+	var col_names: Array = []
+	var dtypes: Array = []
+	var arg_packs: Array = []
+
+	for j in range(raw_names.size()):
+		var token = raw_names[j]
+		var splited = token.rsplit(":", true, 1)
+		if splited.size() != 2:
+			debug_print("[color=coral]Malformed column token: %s[/color]" % token)
+			return
+
+		var col_name = splited[0].strip_edges()
+		var dtype_full = splited[1].strip_edges()
+		var dtype_key = dtype_full
+		var arg_pack = {}
+
+
+
+		var open = dtype_full.find("(")
+		var close = dtype_full.rfind(")")
+		if open != -1:
+			if close == -1 or close <= open:
+				debug_print("[color=coral]Malformed argument section in '%s'[/color]" % token)
+				return
+			dtype_key = dtype_full.substr(0, open).strip_edges()
+			if dtype_key not in type_map:
+				debug_print("[color=coral]Unknown datatype: %s[/color]" % dtype_key)
+				return
+			arg_pack = _parse_col_args(dtype_full, dtype_key)
+			if arg_pack == null:
+				return
+		if dtype_key not in type_map:
+			debug_print("[color=coral]Unknown datatype: %s[/color]" % dtype_key)
+			return
+
+
+		var dtype = type_map[dtype_key]
+		col_names.append("%s:%s" % [col_name, dtype])
+		dtypes.append(dtype)
+		arg_packs.append(arg_pack)
+
+	# --- Autoconversion handling (kept from your old logic) ---
+	if table.rows and table.column_datatypes.size() > 0:
+		for j in range(min(dtypes.size(), table.column_datatypes.size())):
+			var old_dtype = table.column_datatypes[j]
+			var new_dtype = dtypes[j]
+			if old_dtype != new_dtype:
 				if not force:
 					debug_print("[color=coral]Column datatype mismatch at column %d. Use --force to autoconvert.[/color]" % j)
 					return
 				else:
-					debug_print("[color=gray]Auto-converting column %d to %s...[/color]" % [j, dtype])
-					_convert_column(j, splited[-1], true)
-		else:
-			debug_print("[color=coral]Columns have to own a type. Example: name:txt[/color]")
-			return
-	
+					debug_print("[color=gray]Auto-converting column %d to %s...[/color]" % [j, new_dtype])
+					_convert_column(j, new_dtype, true)
+
+	# --- Dataset rebuild (same as your previous version) ---
 	var cols = len(col_names)
-	#var types = []
 	for r in dataset:
 		var new_r = []
 		for i in cols:
@@ -468,24 +542,27 @@ func _on_cols_command(_data: Dictionary):
 		r.clear()
 		for i in new_r:
 			r.append(i)
-#	print(dataset[0])
-	# update table metadata (assuming it keeps columns count)
+
+	# --- Apply to table ---
 	table.cols = cols
+	table.set_column_arg_packs(arg_packs)
 	table.set_column_names(col_names, true)
-	#print(table.column_datatypes)
-	#print(col_names)
 	table.dataset_obj["col_names"] = col_names
+
 	var float32 = PackedFloat32Array()
 	float32.resize(table.cols)
 	float32.fill(1.0 / table.cols)
 	table.set_column_ratios(float32)
 	table._rebuild_column_metrics()
-	
 	table._need_layout = true
 	table._need_visible_refresh = true
-	#dataset_updated(true)
-	#print(table.cols)
+
+	dataset_updated(true)
 	debug_print("Columns set to: %s" % str(col_names))
+
+
+
+
 
 
 
@@ -514,10 +591,11 @@ func _on_filter_command(data: Dictionary):
 		if (ok and action == "keep") or (not ok and action == "drop"):
 			new_ds.append(dataset[row])
 	dataset = new_ds
+	table._clear_hover()
 	if new_ds:
 		table.load_dataset(dataset, table.cols, len(new_ds))
 	else:
-		table.load_empty_dataset(true, dataset)
+		table.load_empty_dataset(false, dataset)
 	#dataset_updated(true)
 	debug_print("Filter applied. Rows: %d" % dataset.size())
 
@@ -535,6 +613,65 @@ func _on_drop_command(_data: Dictionary):
 	dataset_updated(true)
 	debug_print("Dataset dropped.")
 
+# ======================================
+# ===== COLUMN ARGUMENT PARSER =========
+# ======================================
+func _parse_col_args(raw_token: String, dtype: String):
+	var args_dict: Dictionary = {}
+
+	# --- find parentheses ---
+	var open_idx = raw_token.find("(")
+	var close_idx = raw_token.rfind(")")
+
+	if open_idx == -1 and close_idx == -1:
+		# normal token like hi:txt — no args
+		return {}
+
+	if open_idx == -1 or close_idx == -1 or close_idx <= open_idx:
+		debug_print("[color=coral]Malformed argument section in '%s'[/color]" % raw_token)
+		return null
+
+	var inside = raw_token.substr(open_idx + 1, close_idx - open_idx - 1).strip_edges()
+	if inside == "":
+		# empty parentheses — allowed but meaningless
+		return {}
+
+	var parts = inside.split(",", false)
+	var schema: Array = []
+	if dtype not in type_map:
+		debug_print("[color=coral]Unknown datatype: %s[/color]" % dtype)
+		return false
+	schema = table.get_arg_schema(type_map[dtype])
+
+	for i in range(parts.size()):
+		var part = parts[i].strip_edges()
+		if part == "":
+			continue
+
+		if part.find("=") != -1:
+			var kv = part.split("=", false)
+			if kv.size() != 2:
+				debug_print("[color=coral]Malformed argument: %s[/color]" % part)
+				return {}
+			var key = kv[0].strip_edges()
+			var val = kv[1].strip_edges().trim_prefix("\"").trim_suffix("\"")
+			if schema.size() > 0 and key not in schema:
+				debug_print("[color=coral]Unknown argument '%s' for type '%s'. Allowed: %s[/color]" %
+					[key, dtype, str(schema)])
+				return null
+			args_dict[key] = val
+		else:
+			# positional mapping
+			if i >= schema.size():
+				debug_print("[color=coral]Too many positional args for type '%s'. Allowed: %s[/color]" %
+					[dtype, str(schema)])
+				return null
+			var key = schema[i]
+			var val = part.trim_prefix("\"").trim_suffix("\"")
+			args_dict[key] = val
+
+	return args_dict
+
 
 
 var type_map = {"txt": "text", "num": "num", "img": "image", "text": "text", "str": "text", "int": "num", "image": "image"}
@@ -542,83 +679,72 @@ func _parse_inline_cells(expr: String) -> Array:
 	var cells: Array = []
 	var buf := ""
 	var depth := 0
-	var inside_token := false
 
+	# --- Stage 1: tokenize into (...) or raw ---
 	for ch in expr:
 		if ch == "(":
+			if depth == 0 and buf.strip_edges() != "":
+				cells.append(buf.strip_edges())
+				buf = ""
 			depth += 1
 			buf += ch
-			inside_token = true
 		elif ch == ")":
-			depth -= 1
 			buf += ch
+			depth -= 1
+			if depth == 0:
+				cells.append(buf.strip_edges())
+				buf = ""
 		elif (ch == " " or ch == ",") and depth == 0:
 			if buf.strip_edges() != "":
 				cells.append(buf.strip_edges())
 				buf = ""
-				inside_token = false
 		else:
 			buf += ch
-			if not inside_token and not ch == " ":
-				inside_token = true
 	if buf.strip_edges() != "":
 		cells.append(buf.strip_edges())
 
-	var parsed: Array = []
+	# --- Stage 2: normalize into per-cell dictionaries ---
+	var out: Array = []
 
-	for part in cells:
-		part = part.strip_edges()
+	for j in range(cells.size()):
+		var token = cells[j].strip_edges()
+		var dtype = "text"
+		if j < table.column_datatypes.size():
+			dtype = table.column_datatypes[j]
 
-		if ":" in part and "(" not in part:
-			var segs = part.split(":", false)
-			if segs.size() == 2:
-				var type = segs[0].strip_edges()
-				type = type_map.get(type, type)
-				var val = segs[1].strip_edges().trim_prefix("\"").trim_suffix("\"")
+		var base_field = "value"
+		var cell_default = table.cell_defaults.get(dtype, null)
+		base_field = cell_default["base_field"]
 
-				var args = table.get_type_default(type)
-				if not args:
-					continue
-				args["type"] = type
-				var key_0 = args.keys()[0] if args.size() > 0 else "value"
-				args[key_0] = val
-				parsed.append(args)
-				continue
+		var cell_dict: Dictionary = {}
 
-		var m = part.find("(")
-		var type = ""
-		var args = {}
-
-		if m == -1:
-			type = type_map.get(part, part)
-			args = table.get_type_default(type)
-			if not args:
-				continue
-			args["type"] = type
-			parsed.append(args)
+		if not token.begins_with("("):
+			cell_dict[base_field] = token.trim_prefix("\"").trim_suffix("\"")
+			out.append(cell_dict)
 			continue
 
-		type = part.substr(0, m)
-		type = type_map.get(type, type)
-		var inside = part.substr(m + 1, part.length() - m - 2)
-		args = table.get_type_default(type)
-		if not args:
+		var inside = token.substr(1, token.length() - 2).strip_edges()
+		if inside == "":
+			cell_dict[base_field] = ""
+			out.append(cell_dict)
 			continue
-		args["type"] = type
-		var key_0 = args.keys()[0] if args.size() > 0 else "value"
 
-		if inside != "":
-			var pairs = inside.split(",", false)
-			for p in pairs:
-				var kv = p.strip_edges().split("=", false)
-				if kv.size() == 2:
-					args[kv[0].strip_edges()] = kv[1].strip_edges().trim_prefix("\"").trim_suffix("\"")
-				elif kv.size() == 1:
-					args[key_0] = kv[0].strip_edges().trim_prefix("\"").trim_suffix("\"")
+		var pairs = inside.split(",", false)
+		for p in pairs:
+			var kv = p.strip_edges().split("=", false)
+			if kv.size() == 2:
+				var key = kv[0].strip_edges()
+				var val = kv[1].strip_edges().trim_prefix("\"").trim_suffix("\"")
+				cell_dict[key] = val
+			elif kv.size() == 1 and kv[0] != "":
+				cell_dict[base_field] = kv[0].strip_edges().trim_prefix("\"").trim_suffix("\"")
 
-		parsed.append(args)
+		if cell_dict.is_empty():
+			cell_dict[base_field] = inside.trim_prefix("\"").trim_suffix("\"")
 
-	return parsed
+		out.append(cell_dict)
+
+	return out
 
 
 
@@ -627,20 +753,17 @@ func _on_nrow_command(_data: Dictionary):
 	var parts = line.split(" ", false)
 
 	if parts.size() == 1:
-		if not table or table.cols == 0:
-			debug_print("[color=coral]Cannot add row: table has no columns defined.[/color]")
+		if table.cols == 0:
+			debug_print("[color=coral]Cannot add row: no columns defined.[/color]")
 			return
-		var default_row = table.get_default_row()
-		if default_row == null:
-			debug_print("[color=coral]Table returned no default row definition.[/color]")
-			return
-		table.add_row(default_row)
+		var def_row = table.get_default_row()
+		table.add_row(def_row)
 		dataset = table.adapter_data
 		debug_print("Default row appended.")
 		return
 
-	var idx = -1
-	var row_expr = ""
+	var idx := -1
+	var row_expr := ""
 
 	if parts[1].is_valid_int():
 		idx = int(parts[1])
@@ -648,27 +771,62 @@ func _on_nrow_command(_data: Dictionary):
 	else:
 		row_expr = line.substr(line.find(parts[0]) + parts[0].length()).strip_edges()
 
-	# Case 2: explicit cells provided
 	if row_expr == "":
-		# No explicit cell expression after nrow → fallback to default
-		var default_row = table.get_default_row()
-		if default_row == null:
-			debug_print("[color=coral]Cannot add row: table.get_default_row() returned null.[/color]")
+		if table.cols == 0:
+			debug_print("[color=coral]Cannot add row: no columns defined.[/color]")
 			return
-		table.add_row(default_row, idx)
+		var def_row2 = table.get_default_row()
+		table.add_row(def_row2, idx)
 		dataset = table.adapter_data
-		debug_print("Default row inserted at %d." % (idx if idx != -1 else dataset.size() - 1))
+		debug_print("Default row inserted.")
 		return
 
-	var cells = _parse_inline_cells(row_expr)
-	
-	if table.cols > 0 and cells.size() != table.cols:
-		debug_print("[color=coral]Row rejected: expected %d columns, got %d.[/color]" % [table.cols, cells.size()])
+	var raw_cells = _parse_inline_cells(row_expr)
+
+	if raw_cells.size() != table.cols:
+		debug_print("[color=coral]Row rejected: expected %d columns, got %d.[/color]" % [table.cols, raw_cells.size()])
 		return
 
-	table.add_row(cells, idx)
+	var final_row: Array = []
+
+	for j in table.cols:
+		var col_dtype: String = table.column_datatypes[j]
+		var cell_dict: Dictionary = raw_cells[j]
+		var converter = table.cell_defaults.get(col_dtype)
+
+		if converter == null:
+			debug_print("[color=coral]Missing converter for %s[/color]" % col_dtype)
+			return
+
+		var converted_dict: Dictionary = {}
+		var failed: bool = false
+
+		for field_name in cell_dict.keys():
+			var raw_value = cell_dict[field_name]
+			var conv = converter._field_convert(field_name, raw_value)
+			if conv == null:
+				debug_print("[color=coral]Cannot convert '%s=%s' to %s in column %d[/color]" %
+					[field_name, str(raw_value), col_dtype, j])
+				failed = true
+				break
+			converted_dict[field_name] = conv
+
+		if failed:
+			return
+
+		var new_cell = table.get_type_default(col_dtype)
+		new_cell["type"] = col_dtype
+
+		for k in converted_dict:
+			new_cell[k] = converted_dict[k]
+		
+
+		final_row.append(new_cell)
+
+	table.add_row(final_row, idx)
 	dataset = table.adapter_data
 	debug_print("Row appended.")
+
 
 
 

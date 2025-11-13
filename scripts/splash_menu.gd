@@ -127,13 +127,17 @@ func _process(delta: float) -> void:
 
 		# Scale animation via spring
 		t += delta * 2.0  if splashed else delta * 6.0# time factor for spring curve
-		if t < 1.0:
+		if t < 0.7:
 			var spring_scale: Vector2 = (glob.spring(from_scale, to_scale, clamp(t, 0.0, 1.0), 2, 5.0, 1.0) 
 			if splashed else lerp(from_scale, to_scale, t))
 			$ColorRect.scale = lerp(spring_scale, Vector2.ONE, 0.8)
+		elif not ticked and splashed:
+			$ColorRect.scale = to_scale
+			ticked = true
+			stable.emit()
 	tick()
-
-
+var ticked: bool = false
+signal stable
 
 func _just_splash():
 	ui.blur.set_tuning(ui.blur.base_tuning)
@@ -147,6 +151,7 @@ func _splash():
 @onready var base_size = $ColorRect.size
 
 func splash() -> void:
+	ticked = false
 	_splash()
 	accept_event()
 	from_scale = $ColorRect.scale

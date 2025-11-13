@@ -123,6 +123,8 @@ func _process(delta: float) -> void:
 	$Control/console.set_instance_shader_parameter("extents", Vector4(top, bot, 0, 0))
 	$Control/ColorRect.position = $Control/console.position - Vector2(50,0)
 	$Control/ColorRect.size = $Control/console.size + Vector2(105,50)
+	$Control/view/Control.size.x = ($Control/view.size.x - \
+	$Control/view/Control.position.x) / $Control/view/Control.scale.x
 
 # ---- division settings ----
 var division_ratio: Array[float] = [0.2, 0.6]
@@ -178,18 +180,10 @@ func tick(force: bool = false) -> void:
 	$Control.size.y = glob.window_size.y - $Control.position.y
 	
 	var scenes_w = clamp(win * division_ratio[0], min_scenes_size, max_scenes_size)
-	var codeedit_target = min(win * division_ratio[1], glob.window_size.x - min_game_size - $Control/scenes.size.x)
-	var codeedit_w = 0.0 if code_hidden else codeedit_target
-	var game_w = win - scenes_w - codeedit_target  # always compute as if codeedit visible
+
 
 	# --- apply baseline layout (normal mode) ---
 	$Control/scenes.size.x = scenes_w
-	$Control/CodeEdit.position.x = scenes_w
-	$Control/CodeEdit.size.x = codeedit_target
-
-	# View keeps its slot ALWAYS (even when code hidden)
-	$Control/view.position.x = scenes_w + codeedit_target
-	$Control/view.size.x = game_w
 
 	# --- modify only console when code is hidden ---
 	if code_hidden:
@@ -211,17 +205,34 @@ func tick(force: bool = false) -> void:
 
 
 
-
 	repos()
 	if _dragging != -1 or _dragging_console:
+		$Control/CodeEdit.addition_enabled = false
 		#print(_dragging)
 		list.set_menu_size(
 			($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
 			($Control/scenes.size.y - list.position.y - 10) / list.scale.y
 		)
+	else:
+		$Control/CodeEdit.addition_enabled = true
 
 	prev_win = glob.window_size
+	#$Control/CodeEdit.size.x = glob.window_size.x - $Control/scenes.size.x - $Control/view.size.x
+	$Control/console.size.x = $Control/CodeEdit.size.x
+	if _dragging:
+		$Control/view.position.x = $Control/scenes.size.x + $Control/CodeEdit.size.x
+		$Control/view.size.x = glob.window_size.x - ($Control/scenes.size.x + $Control/CodeEdit.size.x)
+	#var codeedit_w = 0.0 if code_hidden else codeedit_target
+	#var game_w = win - scenes_w - codeedit_target  # always compute as if codeedit visible
+
+	$Control/CodeEdit.position.x = $Control/scenes.size.x
+	var codeedit_target = min(win * division_ratio[1], glob.window_size.x - min_game_size)
+	$Control/CodeEdit.size.x = codeedit_target
 	#repos()
+	$Control/console.size.x = $Control/CodeEdit.size.x
+	$Control/ColorRect.size.x = $Control/console.size.x
+	#$Control/console.size.x = $Control/console.size.x
+	repos()
 
 
 
@@ -430,6 +441,7 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	#code.set_uniform_row_height(randi_range(50, 100))
 	#code.load_empty_dataset()
 	var ds = glob.get_dataset_at(button.metadata["content"]["name"])
+	ds["name"] = button.metadata["content"]["name"]
 	var got = ds["arr"]
 	#print(got)
 	#print(ds["col_names"])
@@ -437,6 +449,7 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	code.dataset_obj = ds
 	var cols = ds["col_names"]
 	code.set_outputs_from(ds["outputs_from"])
+	code.set_column_arg_packs(ds["col_args"])
 	code.load_dataset(got, len(cols), len(got))
 	code.set_column_names(cols)
 	#ds["col_names"] = cols
@@ -452,3 +465,7 @@ func _on_run_released() -> void:
 	#var a = await ui.splash_and_get_result("path_open", csv)
 	#print(dsreader.parse_csv_dataset("user://test.csv"))
 	#print(a)
+
+
+func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
+	$Control/view/Control.push_cfg(pr)

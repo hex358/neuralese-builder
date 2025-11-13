@@ -4,8 +4,13 @@ extends Control
 var table: VirtualTable = null
 @export var cell_type: StringName
 @export var height: float = 67.0
+@export var expensive: bool = false
+@export var base_field: String = ""
 
 signal changed
+
+func _field_convert(who: String, data: String):
+	pass
 
 func _defaults() -> Dictionary:
 	return {}
@@ -34,7 +39,7 @@ func _mouse_exit():
 func _convert(data: Dictionary, dtype: String) -> Dictionary:
 	return {}
 
-
+@export var coord: Vector2i = Vector2i()
 func map_data(data: Dictionary) -> void:
 	if data["type"] != cell_type: return
 	_map_data(data)

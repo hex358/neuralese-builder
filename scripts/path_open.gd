@@ -18,18 +18,23 @@ func _ready() -> void:
 		dir += input
 		#print(dir)
 		var exists = FileAccess.file_exists(dir)
+		if "dirs" in passed_data:
+			exists = exists or DirAccess.dir_exists_absolute(dir)
 		#if exists:
 		if exists:
 			grid.select_path(dir, false)
 			lbl_valid = input
 		return exists)
-var old_dir: String = OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
+var old_dir: String = ""
 func _just_splash():
+	if !old_dir:
+		await stable
+		old_dir = OS.get_system_dir(OS.SYSTEM_DIR_DESKTOP)
 	#print("AA")
-	grid.current_dir = old_dir
-	#print(old_dir)
-	grid.filter_extensions = glob.to_set(passed_data.get("filter", []))
-	grid.refresh()
+		grid.current_dir = old_dir
+		#print(old_dir)
+		grid.filter_extensions = glob.to_set(passed_data.get("filter", []))
+		grid.refresh()
 
 func _process(delta: float) -> void:
 	super(delta)
@@ -56,6 +61,7 @@ func _resultate(data: Dictionary):
 		#glob.tree_windows["env"].reload_scenes()
 		go_away()
 
+
 func _quit_request():
 	grid._clear_selection()
 	if "from" in passed_data:
@@ -66,7 +72,11 @@ func _quit_request():
 		ui.splash("dataset_create", splashed_from, emitter, true, 
 		{"txt": passed_data.get("txt", "")})
 	else:
+		can_go = true
+		await quitting
 		pass
+		hide()
+		##ui.blur.self_modulate.a = 0.0
 
 func _on_trainn_released() -> void:
 	ress()
@@ -156,6 +166,8 @@ func _on_grid_container_directory_entered(path: String) -> void:
 func _on_grid_container_file_hovered(path: String, is_dir: bool) -> void:
 	if not is_dir:
 		$ColorRect/Label.set_line(path.split("/")[-1])
+	elif is_dir and "dirs" in passed_data:
+		$ColorRect/Label.set_line(path.split("/")[-1])
 
 
 func _on_toppath_line_enter() -> void:
@@ -181,4 +193,5 @@ func _on_label_line_enter() -> void:
 
 
 func _on_grid_container_file_selected(path: String) -> void:
-	ress()
+	pass
+	#ress()

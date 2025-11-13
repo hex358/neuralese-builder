@@ -7,8 +7,8 @@ const C_META    := Color8(255, 220, 100)  # Bright sunny yellow
 const C_ARG     := Color8(255, 140, 180)  # Vibrant pink
 const C_STRING  := Color8(140, 240, 200)  # Bright mint/cyan
 const C_NUMBER  := Color8(200, 160, 255)  # Rich lavender-purple
-const C_COMMENT := Color8(120, 130, 145)  # Muted blue-gray
-const C_SYMBOL  := Color8(180, 190, 200)  # Soft silver
+const C_COMMENT := Color.LIGHT_CORAL  # Muted blue-gray
+const C_SYMBOL  := Color(0.476, 0.668, 0.78, 1.0)  # Soft silver
 const C_FLAG    := Color8(140, 145, 150)  # Medium gray (for -- flags)
 const C_DEFAULT := Color(1, 1, 1)
 
@@ -41,6 +41,15 @@ func clear_groups() -> void:
 # ─────────────────────────────
 #  HIGHLIGHT LOGIC
 # ─────────────────────────────
+func _highlight_symbols(s: String, regions: Array) -> void:
+	for sym in ["[", "]", "<", ">", "=", "(", ")", "{", "}", ":", "/", "|", "-", "+", "*", ",", ".", "^"]:
+		var pos := s.find(sym)
+		while pos != -1:
+			regions.append({"from": pos, "to": pos + 1, "color": C_SYMBOL})
+			pos = s.find(sym, pos + 1)
+
+
+
 func _get_line_syntax_highlighting(line: int) -> Dictionary:
 	var te := get_text_edit()
 	if te == null:
@@ -64,9 +73,9 @@ func _get_line_syntax_highlighting(line: int) -> Dictionary:
 		i += 1
 
 	# --- comments ---
-	var comment_pos := s.find("#")
-	if comment_pos != -1:
-		regions.append({"from": comment_pos, "to": s.length(), "color": C_COMMENT})
+	#var comment_pos := s.find("#")
+	#if comment_pos != -1:
+	##	regions.append({"from": comment_pos, "to": s.length(), "color": C_COMMENT})
 
 	# --- strings ---
 	for q in ['"', "'"]:
@@ -97,6 +106,7 @@ func _get_line_syntax_highlighting(line: int) -> Dictionary:
 		i += 1
 
 	# --- keywords ---
+	_highlight_symbols(s, regions)
 	for group in keyword_groups.values():
 		var col: Color = group["color"]
 		for word in group["words"]:

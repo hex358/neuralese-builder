@@ -52,6 +52,7 @@ func set_column_datatypes(names: Array, upd: bool = false) -> void:
 func set_column_names(names: Array, upd: bool = false) -> void:
 	cols = len(names)
 	column_names.clear()
+	_clear_hover()
 	var new_dtypes = []
 	for n in names:
 		var splited = n.rsplit(":", true, 1)
@@ -67,7 +68,8 @@ func set_column_names(names: Array, upd: bool = false) -> void:
 	#cols = column_names.size()
 	if cols == 0:
 		return
-	
+	_ensure_column_arg_capacity(cols)
+
 	# Ensure column ratios
 	if column_ratios.size() != cols:
 		column_ratios = PackedFloat32Array()
@@ -315,6 +317,8 @@ func _get_cell(row: int, col: int) -> Dictionary:
 
 func _set_cell(row: int, col: int, data: Dictionary) -> void:
 	adapter_data[row][col] = data
+	if active_cells.has(Vector2i(row, col)):
+		active_cells[Vector2i(row, col)].map_data(data)
 
 func _init_row_metrics() -> void:
 	row_heights.resize(rows)
@@ -352,6 +356,9 @@ func load_empty_dataset(clear_cols: bool = true, object = null) -> void:
 	ds_cleared.emit()
 	rows = 0
 	if clear_cols:
+		column_arg_packs.clear()
+		if dataset_obj != null:
+			dataset_obj["col_args"] = column_arg_packs
 		cols = 0
 		col_widths.clear()
 		col_offsets.clear()
@@ -372,6 +379,7 @@ func load_empty_dataset(clear_cols: bool = true, object = null) -> void:
 		hscrollbar.page = 1.0
 		hscrollbar.visible = false
 
+	_clear_hover()
 	_need_layout = false
 	_need_visible_refresh = false
 	queue_redraw()
@@ -414,7 +422,8 @@ func load_dataset(data, _cols: int, _rows: int) -> void:
 	dataset_loaded.emit()
 	_adapter_on_load(data, cols, rows)
 	_ensure_column_ratios()
-	
+#	_ensure_column_arg_capacity(cols)
+
 	if uniform_row_heights:
 		if rows > 0 and cols > 0:
 			re_uni.call_deferred()
@@ -438,6 +447,7 @@ func load_dataset(data, _cols: int, _rows: int) -> void:
 		_update_scrollbar_range()
 	_need_layout = true
 	_need_visible_refresh = true
+	_clear_hover()
 	queue_redraw()
 
 
@@ -646,6 +656,7 @@ func _add_cells(at_index: int, cells):
 	adapter_data.insert(at_index, cells)
 	dataset_obj["arr"] = adapter_data
 
+
 func _del_cells(at_index: int):
 	adapter_data.remove_at(at_index)
 	dataset_obj["arr"] = adapter_data
@@ -842,6 +853,11 @@ func _set_scroll_y(new_value: float, from_bar: bool = false) -> void:
 	_scroll_cooldown = 0.0
 	_need_layout = true
 	queue_redraw()
+	if _hovered_cell != null and is_instance_valid(_hovered_cell):
+		var hk = _hovered_key
+		if not active_cells.has(hk) or not _hovered_cell.visible:
+			_clear_hover(true)
+
 	glob.hide_all_menus()
 
 
@@ -995,6 +1011,7 @@ func refresh_dataset(force_full: bool = false) -> void:
 			var cell = active_cells[key]
 			if cell and is_instance_valid(cell):
 				cell.map_data(_get_cell(r, c))
+				cell.coord = Vector2i(r, c)
 
 	if not uniform_row_heights:
 		var visible_range := get_visible_row_range()
@@ -1051,29 +1068,32 @@ func _clear_table_state(full_reset: bool = true, reset_cols: bool = false) -> vo
 		hscrollbar.visible = false
 
 
-# =====================================================
-# ======= PER-CELL HOVER DETECTION (DETERMINISTIC) ====
-# =====================================================
 
 var _hovered_key: Vector2i = Vector2i(-1, -1)
 var _hovered_cell: TableCell = null
 
+
 func _process_hover_detection(row: int) -> void:
 	if rows <= 0 or cols <= 0:
-		_clear_hover()
+		_clear_hover(true)
 		return
-	if row == -1: return
+
 	var mp_global: Vector2 = get_global_mouse_position()
+
 	if not get_global_rect().has_point(mp_global):
-		_clear_hover()
+		_clear_hover(true)
 		return
-	
+
 	var local_mp: Vector2 = get_local_mouse_position()
 	var y_in = local_mp.y + scroll_y - content_margin.y
 	var x_in = local_mp.x + scroll_x - content_margin.x
 
-	if y_in < 0 or x_in < 0:
-		_clear_hover()
+	if y_in < 0.0 or x_in < 0.0 or y_in >= _sum_heights:
+		_clear_hover(true)
+		return
+
+	if row < 0 or row >= rows:
+		_clear_hover(true)
 		return
 
 	var col := -1
@@ -1083,32 +1103,39 @@ func _process_hover_detection(row: int) -> void:
 			break
 
 	if col == -1:
-		_clear_hover()
+		_clear_hover(true)
 		return
 
 	var key := Vector2i(row, col)
+	var new_cell: TableCell = null
+	if active_cells.has(key):
+		new_cell = active_cells[key]
 
-	# If same cell still hovered, do nothing
-	if _hovered_key == key and _hovered_cell != null and is_instance_valid(_hovered_cell):
+	if new_cell == null or not is_instance_valid(new_cell) or not new_cell.visible:
+		_clear_hover(true)
 		return
 
-	# Mouse moved to another cell → exit old, enter new
-	_clear_hover()
+	var rect := Rect2(new_cell.global_position, new_cell.size)
+	if not rect.has_point(mp_global):
+		_clear_hover(true)
+		return
 
-	if active_cells.has(key):
-		var new_cell: TableCell = active_cells[key]
-		if new_cell.visible:
-			_hovered_key = key
-			_hovered_cell = new_cell
-			_hovered_cell._mouse_enter()
-	else:
-		_clear_hover()
+	if _hovered_key == key and _hovered_cell == new_cell:
+		return
 
-func _clear_hover() -> void:
-	if _hovered_cell != null and is_instance_valid(_hovered_cell):
+	_clear_hover(true)
+	if ui.active_splashed(): return
+	_hovered_key = key
+	_hovered_cell = new_cell
+	_hovered_cell._mouse_enter()
+
+
+func _clear_hover(force := false) -> void:
+	if _hovered_cell and is_instance_valid(_hovered_cell):
 		_hovered_cell._mouse_exit()
-	_hovered_key = Vector2i(-1, -1)
 	_hovered_cell = null
+	_hovered_key = Vector2i(-1, -1)
+
 
 
 
@@ -1118,6 +1145,7 @@ var next_query = null
 var querying: bool = false
 var prev_row = {}
 func _process(delta: float) -> void:
+	print(dataset_obj["col_args"])
 	#print(column_names)
 	if not is_visible_in_tree():
 		return
@@ -1185,11 +1213,72 @@ func _process(delta: float) -> void:
 	_refresh_visible_cells(allow_spawning)
 	_layout_active_cells()
 	just_resized = false
+	if glob.space_just_pressed:
+		refresh_preview()
 
+var schemas = {"text": [], "num": ["min", "max"], "image": []}
+var default_argpacks = {"text": {}, "num": {"min": 0, "max": 100}, "image": {}}
+func get_arg_schema(dt: String):
+	#print(dt)
+	return schemas.get(dt, [])
+
+
+var column_arg_packs: Array = []   # index = column index
+
+func _ensure_column_arg_capacity(new_cols: int) -> void:
+	# Grow or shrink arg packs to match column count
+	if column_arg_packs.size() != new_cols:
+		var old = column_arg_packs
+		column_arg_packs = []
+		column_arg_packs.resize(new_cols)
+		for i in range(new_cols):
+			column_arg_packs[i] = (old[i] if i < old.size() else default_argpacks.get(column_datatypes[i], []))
+	
+	# Persist
+	if dataset_obj != null:
+		dataset_obj["col_args"] = column_arg_packs
+
+
+func set_column_arg_packs(packs: Array) -> void:
+	if dataset_obj == null: return
+	var out: Array = []
+	packs = packs.duplicate()
+	out.resize(packs.size())
+	for i in range(packs.size()):
+		var p = packs[i].duplicate()
+		if i < len(dataset_obj["col_args"]):
+			p.merge(dataset_obj["col_args"][i])
+		out[i] = p
+	
+	column_arg_packs = out
+	dataset_obj["col_args"] = column_arg_packs
+
+
+func get_column_arg_pack(col: int) -> Dictionary:
+	if col < 0 or col >= column_arg_packs.size():
+		return {}
+	return column_arg_packs[col]
+
+
+func set_column_arg(col: int, key: String, value: Variant) -> void:
+	if col < 0 or col >= column_arg_packs.size():
+		return
+	column_arg_packs[col][key] = value
+	if dataset_obj != null:
+		dataset_obj["col_args"] = column_arg_packs
+
+
+func remove_column_arg(col: int, key: String) -> void:
+	if col < 0 or col >= column_arg_packs.size():
+		return
+	column_arg_packs[col].erase(key)
+	if dataset_obj != null:
+		dataset_obj["col_args"] = column_arg_packs
 
 
 
 func _refresh_visible_cells(allow_spawning: bool = true) -> void:
+	
 	if rows <= 0 or cols <= 0:
 		_hide_all_cells()
 		return
@@ -1201,14 +1290,13 @@ func _refresh_visible_cells(allow_spawning: bool = true) -> void:
 
 	var r0 = clamp(_find_row_for_y(view_top) - pre, 0, max(0, rows - 1))
 	var r1 = clamp(_find_row_for_y(view_bottom) + pre, 0, rows - 1)
-
 	_extend_offsets_to(r1 + 1)   # <-- ensure safe access to row_offsets[r+1]
 	_ensure_row_metrics_visible(r0, r1)
 
 	var c0 = 0
 	var c1 = cols - 1
 
-	_ensure_row_metrics_visible(r0, r1)
+	#_ensure_row_metrics_visible(r0, r1)
 	var seen = {}
 	#print(just_resized)
 	for r in range(r0, r1 + 1):
@@ -1231,12 +1319,16 @@ func _refresh_visible_cells(allow_spawning: bool = true) -> void:
 				continue
 
 			if allow_spawning:
+			#	print("fkfk")
 				_spawn_cell(r, c)
 
+	if _hovered_cell != null and not seen.has(_hovered_key):
+		_clear_hover(true)
+	#print(len(active_cells))
 	for key in active_cells.keys():
 		if not seen.has(key):
 			var cell = active_cells[key]
-			cell.visible = false
+			#cell.visible = false
 			_release_cell(cell)
 			active_cells.erase(key)
 
@@ -1251,7 +1343,9 @@ func _try_reuse_cell(row: int, col: int) -> TableCell:
 		return null
 	var cell: TableCell = pool.pop_back()
 	_content_area.add_child(cell)
+	cell._mouse_exit()
 	cell.map_data(_get_cell(row, col))
+	cell.coord = Vector2i(row, col)
 	cell._resized.call_deferred()
 	return cell
 
@@ -1259,25 +1353,45 @@ func _try_reuse_cell(row: int, col: int) -> TableCell:
 
 
 func _hide_all_cells() -> void:
+	if _hovered_cell != null:
+		_clear_hover(true)
 	for key in active_cells.keys():
 		var cell: TableCell = active_cells[key]
 		cell.visible = false
+
+func push_textures(who: TableCell, imgs):
+	#print(imgs)
+	for i in len(imgs):
+		var r = i+who.coord.x
+		#print(r)
+		if r < rows: # row
+			var got = _get_cell(r, who.coord.y)
+			got["img"] = imgs[i]
+			_set_cell(r, who.coord.y, got)
+			#print(got)
+	_need_layout = true
+	_need_visible_refresh = true
+	queue_redraw()
 
 
 func _spawn_cell(row: int, col: int) -> void:
 	var t: StringName = _get_cell(row, col).type
 	var cell: TableCell = _acquire_cell(t)
-	cell._resized()
+	#cell._resized()
 	cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if cell == null:
 		return
 	_content_area.add_child(cell)
+	cell.coord = Vector2i(row, col)
+	cell._mouse_exit()
+	
 	cell.visible = true
 
 	var d: Dictionary = _get_cell(row, col)
 	cell.map_data(d)
 	active_cells[Vector2i(row, col)] = cell
 	cell._resized()
+	cell.coord = Vector2i(row, col)
 	#_cell_entered_view(cell, row, col)
 	var desired: Vector2 = Vector2(col_widths[col], cell.height)
 	_update_row_height_if_needed(row, desired.y)
@@ -1296,8 +1410,11 @@ func _release_cell(cell: TableCell) -> void:
 	if not pool_by_type.has(t):
 		pool_by_type[t] = []
 	var pool = pool_by_type[t]
+	if _hovered_cell == cell:
+		_clear_hover(true)
 	if pool.size() < max_pool:
 		_content_area.remove_child(cell)
+		cell._mouse_exit()
 		pool.append(cell)
 	else:
 		cell.queue_free()
@@ -1452,6 +1569,7 @@ func _create_cell_instance(cell_type: StringName) -> TableCell:
 		inst.cell_type = cell_type
 		return inst
 	inst.cell_type = cell_type
+	inst._resized()
 	return inst
 
 func _cell_entered_view(cell: TableCell, row: int, col: int) -> void:
@@ -1461,7 +1579,58 @@ func _cell_exited_view(cell: TableCell, row: int, col: int) -> void:
 	pass
 
 
+#{"name": "mnist", 
+		#"size": 70000, "outputs": [
+			#{"label": "digit", "x": 10, "datatype": "1d", "label_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]}],
+			#"inputs": {"x": 28, "y": 28, "datatype": "2d"},
+			#"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]}, 
 
+signal preview_refreshed(pr: Dictionary)
+var preview = null
+func refresh_preview():
+	preview = get_preview()
+	if preview and not "fail" in preview:
+		preview_refreshed.emit(preview)
+
+
+
+func get_preview(validate_cols: bool = false):
+	var res = {}
+	if not dataset_obj: 
+		return
+	res["size"] = rows
+	res["name"] = dataset_obj["name"]
+	res["input_hints"] = []
+	var cur = {"label_names": [], "datatype": "1d", "x": 0, "label": "Output"}
+	for i in range(outputs_from, cols):
+		if column_datatypes[i] == "image":
+			return {"fail": "Outputs can only be 1D"}
+		cur.label_names.append(column_names[i])
+	res.outputs = [cur]
+	var inputs = {"datatype": "", "x": 0}
+	var to_validate = -1
+	for i in range(0, max(1,outputs_from)):
+		if column_datatypes[i] == "image":
+			if inputs["datatype"]: return {"fail": "Mixed or multiple 2D datatypes"}
+			inputs["datatype"] = "2d"
+			to_validate = i
+		else:
+			if inputs["datatype"] == "2d": return {"fail": "Mixed input datatypes"}
+			inputs["datatype"] = "1d"
+			inputs["x"] += 1
+			res.input_hints.append({"name": column_names[i], "value": "1", "dtype": column_datatypes[i]})
+	if to_validate != -1:
+		if validate_cols:
+			return {"fail": 'Inconsistent image sizes'}
+		var cell = _get_cell(0, to_validate)
+		inputs["x"] = 28
+		inputs["y"] = 28
+		var val = str(inputs.x) + "x" + str(inputs.y)
+		#var val = 
+		res.input_hints.append({"name": "image", "value": val, "dtype": "image"})
+	#print(res)
+	return res
+	
 func get_visible_row_range() -> Vector2i:
 	var top = scroll_y
 	var bottom = scroll_y + size.y

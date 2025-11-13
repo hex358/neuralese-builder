@@ -1,5 +1,4 @@
 extends TableCell
-
 func _map_data(data: Dictionary) -> void:
 	#print(data)
 	cell_data = data
@@ -11,7 +10,8 @@ func _height_key(info: Dictionary) :
 
 func _defaults() -> Dictionary:
 	return {"text": ""}
-
+func _field_convert(who: String, data: String):
+	return data
 func _convert(data: Dictionary, dtype: String) -> Dictionary:
 	if dtype == "num":
 		if data["text"].is_valid_int():
@@ -25,6 +25,7 @@ var cache = {}
 func _resized():
 	#print("AA")
 	#cache = {}
+	
 	
 	$Label.position = Vector2(10, size.y / 2 - $Label.size.y * $Label.scale.y / 2)
 	
