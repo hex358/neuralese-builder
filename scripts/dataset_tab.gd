@@ -468,4 +468,8 @@ func _on_run_released() -> void:
 
 
 func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
-	$Control/view/Control.push_cfg(pr)
+	var prev = pr.duplicate(true)
+	var dt = "\n".join(prev["outputs"][0]["label_names"])
+	prev["input_hints"].append({"name": "Output", "value": "1d", 
+	"dtype": "%s"%dt})
+	$Control/view/Control.push_cfg(prev)

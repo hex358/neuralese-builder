@@ -55,13 +55,13 @@ func _ready():
 
 func compile():
 	syntax_highlighter.define_group("commands", syntax_highlighter.C_CMD, 
-		["filter", "shuffle", "drop", "nrow", "drow", "cols", "keep", "outs", "acol", "dcol", "conv"])
+		["go", "filter", "shuffle", "drop", "nrow", "drow", "cols", "keep", "outs", "acol", "dcol", "conv"])
 	syntax_highlighter.define_group("meta", syntax_highlighter.C_META, 
 		["begin", "commit", "undo", "redo"])
 	syntax_highlighter.define_group("arguments", syntax_highlighter.C_ARG, 
 		["col", "row", "as", "by", "on"])
 	syntax_highlighter.define_group("etc", syntax_highlighter.C_COMMENT, 
-		["txt", "text", "img", "image", "num", "int", "and", "or", "not", "if", "else"])
+		["txt", "float", "text", "img", "image", "num", "int", "and", "or", "not", "if", "else"])
 		#C_SYMBOL
 
 	parser.registry.clear()
@@ -131,7 +131,18 @@ func compile():
 		_on_dcol_command,
 		[],
 		[],
-		"Deletes a column by index.\nExample:\n   dcol 2",
+		"Deletes a column by index",
+		false,
+		[],
+		false
+	))
+
+	parser.register(Commands.CommandDef.new(
+		"go",
+		_on_go_command,
+		[],
+		[],
+		"Scrolls to specified row",
 		false,
 		[],
 		false
@@ -183,7 +194,28 @@ func compile():
 		false
 	))
 
+func _on_go_command(_data: Dictionary):
+	var parts = text.strip_edges().split(" ", false)
+	if parts.size() < 2:
+		debug_print("[color=coral]Usage: go <column_index>[/color]")
+		return
 
+	var idx_str = parts[1]
+	if not idx_str.is_valid_int():
+		debug_print("[color=coral]Row index must be an integer.[/color]")
+		return
+
+	var row_idx = int(idx_str)
+	if row_idx < -table.rows or row_idx >= table.rows:
+		debug_print("[color=coral]Invalid row index %d.[/color]" % row_idx)
+		return
+	if row_idx < 0:
+		row_idx += table.rows
+	#print(col_idx)
+	
+	table.scroll_to_row(row_idx, "center")
+	#print(col_names)
+	
 
 func _on_dcol_command(_data: Dictionary):
 	var parts = text.strip_edges().split(" ", false)
@@ -308,6 +340,12 @@ func _convert_column(col_idx: int, to_dtype: String, force: bool = false) -> boo
 			new_names.append(table.column_names[i] + ":" +  dtype)
 		else:
 			new_names.append(table.column_names[i] + ":" +  table.column_datatypes[i])
+	
+	var colargs = table.dataset_obj["col_args"]
+	for i in len(colargs):
+		if not colargs[i]:
+			colargs[i].merge(table.default_argpacks[table.column_datatypes[i] if i != col_idx else dtype])
+	table.set_column_arg_packs(colargs.duplicate())
 	table.set_column_names(new_names)
 	table.dataset_obj["col_names"] = new_names
 	if table.rows:
@@ -354,28 +392,24 @@ func _on_acol_command(_data: Dictionary):
 		if dtype_key not in type_map:
 			debug_print("[color=coral]Unknown datatype: %s[/color]" % dtype_key)
 			return
-		arg_pack = _parse_col_args(dtype_full, type_map[dtype_key])
+		arg_pack = _parse_col_args(dtype_full, dtype_key)
 		if arg_pack == null:
 			return
 
-	# --- Normalize dtype ---
 	if dtype_key not in type_map:
 		debug_print("[color=coral]Unknown datatype: %s[/color]" % dtype_key)
 		return
 	var dtype = type_map[dtype_key]
 
-	# --- Clamp index safely ---
 	if insert_at < 0:
 		insert_at = table.cols + insert_at + 1
 	insert_at = clamp(insert_at, 0, table.cols)
 
-	# --- Copy current column names ---
 	var old_names: Array = table.dataset_obj.get("col_names", [])
 	var new_col_names: Array = old_names.duplicate()
 	var full_name = "%s:%s" % [col_name, dtype]
 	new_col_names.insert(insert_at, full_name)
 
-	# --- Extend each row deterministically ---
 	for r in dataset:
 		var def = table.get_type_default(dtype)
 		if def == null:
@@ -389,8 +423,12 @@ func _on_acol_command(_data: Dictionary):
 		var arg_packs = table.dataset_obj.get("col_args", [])
 		while arg_packs.size() < table.cols:
 			arg_packs.append({})
-		arg_packs.insert(insert_at, arg_pack)
-		table.set_column_arg_packs(arg_packs)
+		var converted = _conv_args(arg_pack, dtype)
+		if converted is String:
+			print_debug("[color=coral]Cannot convert argument %s, skipping[/color]" % converted)
+		else:
+			arg_packs.insert(insert_at, converted)
+			table.set_column_arg_packs(arg_packs)
 
 	table.set_column_names(new_col_names, true)
 	table.dataset_obj["col_names"] = new_col_names
@@ -404,12 +442,20 @@ func _on_acol_command(_data: Dictionary):
 	table._rebuild_column_metrics()
 	table._need_layout = true
 	table._need_visible_refresh = true
-
+	
 	dataset_updated(true)
+	table.active_remap()
 	debug_print("Inserted column '%s' of type %s at index %d." % [col_name, dtype, insert_at])
 
-
-
+func _conv_args(args: Dictionary, dtype: String):
+	match dtype:
+		"num":
+			if not args.get("min", "0").is_valid_int():
+				return "min"
+			if not args.get("max", "0").is_valid_int():
+				return "max"
+			return {"min": int(args.get("min", 0)), "max": int(args.get("max", 100))}
+	return args
 
 func _on_convert_command(_data: Dictionary):
 	var parts = text.strip_edges().split(" ", false)
@@ -512,7 +558,11 @@ func _on_cols_command(_data: Dictionary):
 		var dtype = type_map[dtype_key]
 		col_names.append("%s:%s" % [col_name, dtype])
 		dtypes.append(dtype)
-		arg_packs.append(arg_pack)
+		var converted = _conv_args(arg_pack, dtype)
+		if converted is String:
+			debug_print("[color=coral]Cannot convert argument %s" % converted)
+			return
+		arg_packs.append(converted)
 
 	# --- Autoconversion handling (kept from your old logic) ---
 	if table.rows and table.column_datatypes.size() > 0:
@@ -558,6 +608,7 @@ func _on_cols_command(_data: Dictionary):
 	table._need_visible_refresh = true
 
 	dataset_updated(true)
+	table.active_remap()
 	debug_print("Columns set to: %s" % str(col_names))
 
 
@@ -674,7 +725,7 @@ func _parse_col_args(raw_token: String, dtype: String):
 
 
 
-var type_map = {"txt": "text", "num": "num", "img": "image", "text": "text", "str": "text", "int": "num", "image": "image"}
+var type_map = {"txt": "text","float": "float",  "num": "num", "img": "image", "text": "text", "str": "text", "int": "num", "image": "image"}
 func _parse_inline_cells(expr: String) -> Array:
 	var cells: Array = []
 	var buf := ""

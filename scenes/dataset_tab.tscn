@@ -213,8 +213,8 @@ max_size = 210
 [node name="name" parent="Control/scenes/list" instance=ExtResource("8_jf34i")]
 z_index = 2
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.43137255, 0.5882353, 0.9019608, 1)
-instance_shader_parameters/tuning = Color(0.26400003, 0.3593334, 0.55, 0.5647059)
+instance_shader_parameters/outline_color = Color(0.8784314, 0.7607843, 1, 1)
+instance_shader_parameters/tuning = Color(0.55439997, 0.4788, 0.63, 0.6901961)
 layout_mode = 0
 offset_left = 200.0
 offset_top = 221.333
@@ -362,9 +362,9 @@ metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="value" type="Label" parent="Control/view/Control/ScrollContainer/VBoxContainer/Control" node_paths=PackedStringArray("top")]
 layout_mode = 0
-offset_left = 22.563843
+offset_left = 94.725235
 offset_top = 3.115944
-offset_right = 423.73126
+offset_right = 301.83124
 offset_bottom = 62.27986
 scale = Vector2(0.37184826, 0.37184826)
 theme = ExtResource("14_bwfib")

@@ -127,14 +127,18 @@ func _process(delta: float) -> void:
 
 		# Scale animation via spring
 		t += delta * 2.0  if splashed else delta * 6.0# time factor for spring curve
-		if t < 0.7:
+		if t < 0.5:
 			var spring_scale: Vector2 = (glob.spring(from_scale, to_scale, clamp(t, 0.0, 1.0), 2, 5.0, 1.0) 
 			if splashed else lerp(from_scale, to_scale, t))
 			$ColorRect.scale = lerp(spring_scale, Vector2.ONE, 0.8)
 		elif not ticked and splashed:
-			$ColorRect.scale = to_scale
+			#$ColorRect.scale = to_scale
 			ticked = true
 			stable.emit()
+		elif ticked:
+			var spring_scale: Vector2 = (glob.spring(from_scale, to_scale, clamp(t, 0.0, 1.0), 2, 5.0, 1.0) 
+			if splashed else lerp(from_scale, to_scale, t))
+			$ColorRect.scale = lerp(spring_scale, Vector2.ONE, 0.8)
 	tick()
 var ticked: bool = false
 signal stable

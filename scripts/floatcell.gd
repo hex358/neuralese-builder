@@ -2,16 +2,6 @@ extends TableCell
 func _map_data(data: Dictionary) -> void:
 	#print(data)
 	cell_data = data
-	var argpack = table.get_column_arg_pack(coord.y)
-	if not argpack: return
-	data["num"] = clamp(data["num"], argpack.min, argpack.max)
-	$Label.min_value = argpack.min
-	$Label.placeholder_text = str(argpack.min)
-	$Label.max_value = argpack.max
-	if int(data["num"]) == $Label.min_value:
-		$Label.set_line("")
-	else:
-		$Label.set_line(str(data["num"]))
 	#_on_label_changed.call_deferred()
 
 func _height_key(info: Dictionary) :
@@ -33,7 +23,7 @@ func _resized():
 	#print("AA")
 	#cache = {}
 	
-	$Label.position = Vector2(10, size.y / 2 - $Label.size.y * $Label.scale.y / 2)
+	$Label.position = Vector2(10, size.y / 3 - $Label.size.y * $Label.scale.y / 2 )
 	
 	#$Label.size.x = min((size.x - 20) / $Label.scale.x, len(cell_data["text"]) * 30)
 	#cache[cell_data["text"]] = Rect2($Label.position, $Label.size)

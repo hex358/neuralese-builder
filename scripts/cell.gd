@@ -39,6 +39,10 @@ func _mouse_exit():
 func _convert(data: Dictionary, dtype: String) -> Dictionary:
 	return {}
 
+
+func _dense_data():
+	return 0
+
 @export var coord: Vector2i = Vector2i()
 func map_data(data: Dictionary) -> void:
 	if data["type"] != cell_type: return

@@ -94,12 +94,14 @@ var cell_templates: Dictionary[StringName, PackedScene] = {
 	"text": preload("res://scenes/cell.tscn"),
 	"num": preload("res://scenes/num.tscn"),
 	"image": preload("res://scenes/img.tscn"),
+	"float": preload("res://scenes/float.tscn"),
 }
 var cell_defaults: Dictionary[StringName, TableCell] = {}
 
 func _enter_tree() -> void:
 	for i in cell_templates:
 		cell_defaults[i] = cell_templates[i].instantiate()
+		
 		default_type_heights[i] = cell_defaults[i].height
 
 var dataset: Array = []
@@ -560,8 +562,8 @@ func scroll_to_row(row_index: int, align: String = "top") -> void:
 		return
 	_extend_offsets_to(row_index + 1)
 
-	var target_y = row_offsets[row_index]
-	var row_h = row_heights[row_index]
+	var target_y = row_offsets[row_index] if not uniform_row_heights else uniform_row_height*row_index
+	var row_h = row_heights[row_index] if not uniform_row_heights else uniform_row_height
 	var view_h = _content_area.size.y
 	var content_h = _sum_heights
 
@@ -1137,7 +1139,9 @@ func _clear_hover(force := false) -> void:
 	_hovered_key = Vector2i(-1, -1)
 
 
-
+func active_remap():
+	for i in active_cells:
+		active_cells[i].map_data(active_cells[i].cell_data)
 
 
 var rendering_disabled: bool = false
@@ -1145,7 +1149,7 @@ var next_query = null
 var querying: bool = false
 var prev_row = {}
 func _process(delta: float) -> void:
-	print(dataset_obj["col_args"])
+	#print(dataset_obj["col_args"])
 	#print(column_names)
 	if not is_visible_in_tree():
 		return
@@ -1216,8 +1220,8 @@ func _process(delta: float) -> void:
 	if glob.space_just_pressed:
 		refresh_preview()
 
-var schemas = {"text": [], "num": ["min", "max"], "image": []}
-var default_argpacks = {"text": {}, "num": {"min": 0, "max": 100}, "image": {}}
+var schemas = {"text": [], "num": ["min", "max"], "image": [], "float": []}
+var default_argpacks = {"text": {}, "num": {"min": 0, "max": 100}, "image": {}, "float": {}}
 func get_arg_schema(dt: String):
 	#print(dt)
 	return schemas.get(dt, [])
