@@ -95,10 +95,14 @@ func is_infer_channel(input: Graph) -> bool:
 	return input in inference_sockets and is_instance_valid(inference_sockets[input])
 
 func check_valid(input: Graph, train: bool = false):
+	if train:
+		input = graphs._reach_input(input, "TrainBegin")
 	var simple = graphs.simple_reach(input, true)
 	var has_necc: bool = false; var in_nodes = {}
-	if train: in_nodes = {"TrainInput": 1, "RunModel": 1, "OutputMap": 1, "ModelName": 1, "DatasetName": 1}
+	if train: in_nodes = {"RunModel": 1, "OutputMap": 1, "ModelName": 1, "DatasetName": 1}
 	else: in_nodes = {"ClassifierNode": 1}
+	#print(in_nodes)
+	#print(input.server_typename)
 	for i in simple:
 		if graphs.in_nodes(i, in_nodes): has_necc = true
 		if not i.is_valid():

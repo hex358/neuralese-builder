@@ -359,7 +359,10 @@ func handle_division_drag() -> void:
 
 			division_ratio[0] = scenes_w / win
 			division_ratio[1] = new_code / win
-
+	
+	if  _dragging != -1:
+		$Control/view/Control.re($Control/view.size.x)
+	
 	if not glob.mouse_pressed and _dragging != -1:
 		_dragging = -1
 		_drag_anchor = 0.0
@@ -427,6 +430,7 @@ var last_button: BlockComponent = null
 var current_ds = null
 var histories = {}
 func _on_list_child_button_release(button: BlockComponent) -> void:
+	await glob.join_ds_save()
 	if button.hint in histories:
 		$Control/console.text = histories[button.hint]
 	$Control/LineEdit/CodeEdit2
@@ -448,10 +452,30 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	#print(ds)
 	code.dataset_obj = ds
 	var cols = ds["col_names"]
-	code.set_outputs_from(ds["outputs_from"])
+	#code.disable()
+	#code.data_map_allowed = false
+	code.hide()
 	code.set_column_arg_packs(ds["col_args"])
 	code.load_dataset(got, len(cols), len(got))
+	#print(code._get_cell(0,1))
+	#print(code.get_column_arg_pack(1))
+	#print(ds["col_args"])
 	code.set_column_names(cols)
+	code.set_outputs_from(ds["outputs_from"])
+	code.reindex_cache()
+	#await get_tree().process_frame
+	#await get_tree().process_frame
+	#await get_tree().process_frame
+	#await get_tree().process_frame
+	#await get_tree().process_frame
+	#await get_tree().process_frame
+	#await get_tree().process_frame
+	#code.data_map_allowed = true
+	#code.active_remap()
+	code.refresh_preview()
+	await get_tree().process_frame
+	code.show()
+	#code.enable()
 	#ds["col_names"] = cols
 	$Control/LineEdit/CodeEdit2.connect_ds(got)
 
@@ -466,10 +490,41 @@ func _on_run_released() -> void:
 	#print(dsreader.parse_csv_dataset("user://test.csv"))
 	#print(a)
 
-
+#no_outputs no_1d_outs mix_2d bad_img
 func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
 	var prev = pr.duplicate(true)
-	var dt = "\n".join(prev["outputs"][0]["label_names"])
-	prev["input_hints"].append({"name": "Output", "value": "1d", 
-	"dtype": "%s"%dt})
+	var dt = "1d"# "\n".join(prev["outputs"][0]["label_names"])
+	#print(prev)
+	$Control/view/warn.text = ""
+	if "fatal" in prev: return
+	if not "fail" in prev:
+		prev["input_hints"].append({"name": "Output", "value": 
+			"len:\n"+str(len(prev["outputs"][0]["label_names"])), 
+		"dtype": "%s"%dt})
+	else:
+		var txt = ""
+		match prev["fail"]:
+			"no_outputs":
+				txt = "No outputs properly configured"
+			"no_1d_outs":
+				txt = "Outputs can be only 1D (no images)"
+			"mix_2d":
+				txt = "1D and 2D mix in inputs is prohibited"
+			"bad_img":
+				txt = "Image columns aren't properly configured (different sizes or empty rows)"
+		$Control/view/warn.text = txt
+		$Control/view/warn.self_modulate = Color.CORAL
+		prev = {"name": $Control/CodeEdit.dataset_obj.name}
 	$Control/view/Control.push_cfg(prev)
+	#await get_tree().process_frame
+	$Control/view/Control.re($Control/view.size.x)
+	$Control/view/Control.re($Control/view.size.x)
+
+
+func _on_control_item_rect_changed() -> void:
+	list.set_menu_size(
+		($Control/scenes.size.x - list.position.x * 2 + 3) / list.scale.x,
+		($Control/scenes.size.y - list.position.y - 10) / list.scale.y
+	)
+	$Control/view/Control.re($Control/view.size.x)
+	$Control/view/Control.re($Control/view.size.x)

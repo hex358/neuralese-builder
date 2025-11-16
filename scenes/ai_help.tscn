@@ -90,6 +90,7 @@ _ai_message = NodePath("ColorRect/ScrollContainer/MarginContainer2/MarginContain
 typename = "ai_help"
 first_line = NodePath("ColorRect/Label2")
 persistent = true
+show_on_ready = false
 
 [node name="ColorRect" type="ColorRect" parent="."]
 z_index = 8

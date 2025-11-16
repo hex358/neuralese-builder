@@ -40,6 +40,23 @@ func open_or_create(path: String) -> FileAccess:
 		return null
 	return file
 
+func dir_or_create(path: String) -> DirAccess:
+	var full_path = "user://" + path
+	
+	var dir := DirAccess.open("user://")
+	if dir == null:
+		push_error("Cannot open user://")
+		return null
+	
+	if not dir.dir_exists(path):
+		var err = dir.make_dir_recursive(path)
+		if err != OK:
+			push_error("Failed to create directory: %s" % full_path)
+			return null
+	
+	return DirAccess.open(full_path)
+
+
 func _save_cookies() -> void:
 	var f = FileAccess.open(cookie_file, FileAccess.WRITE)
 	if f:

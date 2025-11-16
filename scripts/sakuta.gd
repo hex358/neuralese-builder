@@ -22,6 +22,42 @@ func push_cfg(cfg: Dictionary):
 		if cust:
 			new_child.get_node("value").top = self
 		new_child.get_node("name").text = i.name
+		#new_child.get_node("name").simple = true
+		#new_child.get_node("name").simple_letters = 8
 		new_child.get_node("value").text = i.get("value", "")
 		new_child.get_node("dtype").text = i.get("dtype", "")
 		who.add_child(new_child)
+		new_child.get_node("name").resize()
+		if not cust:
+			new_child.get_node("dtype").position.y = 7 - \
+			(32-new_child.get_node("name").override) / 1.6
+
+
+
+
+
+
+
+
+
+func re(pad: float):
+	var who = $ScrollContainer/VBoxContainer
+	#print(pad)
+	var i: int = 0
+	for child in who.get_children():
+		if child.get_node_or_null("name"):
+			i += 1
+			#print(child)
+			child.get_node("name").resize()
+			child.get_node("dtype").position.y = 19 - \
+			(32-child.get_node("name").override) / 1.6
+			var val = child.get_node("value")
+			var spl: PackedStringArray = val.text.split("\n")
+			var maxl: int = 0
+			for j in spl:
+				maxl = max(len(j), maxl)
+			var leng = maxl * 20 * val.scale.x
+			#if i == 2:
+			#	print(leng)
+			var smpl = int((pad - leng - 30) / 16)
+			child.get_node("name").simple_letters = smpl

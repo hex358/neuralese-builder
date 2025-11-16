@@ -697,7 +697,6 @@ func _process_block_button(delta: float) -> void:
 	
 	var ins = (glob.get_occupied("menu_inside") and (not is_contained or glob.get_occupied("menu_inside") != is_contained))
 	#if is_contained:
-
 		#print(glob.get_occupied("menu_inside"))
 	#ins = ins or (graph_root and not graph_root.visible)
 	var blocked = (is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)) or is_blocking \
@@ -705,7 +704,9 @@ func _process_block_button(delta: float) -> void:
 	var frozen = is_contained and parent.is_frozen or is_frozen
 	blocked = blocked or (ui.active_splashed() and not in_splash) or ui.topr_inside
 	blocked = blocked or (!base_in_splash and ui.splashed_in)
-	#if name == "run" and _wrapped_in.get_parent() is Label:
+	
+	#if _wrapped_in.get_parent().name == "Control2":
+	#	print(ui.splashed_in.keys()[0].menu_name)#if name == "run" and _wrapped_in.get_parent() is Label:
 	#	print(in_splash)
 	#if text == "Downloads":
 	#	print(parent.is_blocking)
@@ -1053,6 +1054,8 @@ func _process_context_menu(delta: float) -> void:
 	#if menu_name == "add_graph":
 		#print(reset_menu)
 	#if glob.hide_menus:
+	#	print("a")
+	#if name == "add_graph" and reset_menu:
 	#	print("a")
 	var res = !static_mode and glob.hide_menus and not state.holding and button_type == ButtonType.CONTEXT_MENU
 	if res:

@@ -64,6 +64,7 @@ func validate(pack: Dictionary):
 
 
 var running: bool = false
+var cd: float = 0.0
 func _process(delta: float) -> void:
 	super(delta)
 	#if glob.space_just_pressed:
@@ -71,10 +72,20 @@ func _process(delta: float) -> void:
 	#	print(graphs.get_syntax_tree(self))
 		#web.POST("export", {"user": "n", "pass": "1", "graph": graphs.get_syntax_tree(self),
 		#"context": str(self.context_id), "scene_id": glob.get_project_id()})
-	if nn.is_infer_channel(self) and glob.space_just_pressed:
+#	print(cd)
+	if nn.is_infer_channel(self) and $TextureRect.drawing > 0.01 and cd < 0.01:
+		cd = 0.3
 		nn.send_inference_data(self, useful_properties())
+	if cd >= 0.0:
+		cd -= delta
+	else:
+		cd = 0.0
 	#if glob.space_just_pressed:
 	#	print(graphs.get_syntax_tree(self))
+
+func _proceed_hold() -> bool:
+	if running: return true
+	return false
 
 var image_dims = Vector2i(1,1)
 func _after_ready() -> void:
@@ -91,6 +102,7 @@ func set_state_open():
 @onready var run_but = $run
 func _on_run_released() -> void:
 	if not nn.is_infer_channel(self):
+		cd = 2.0
 		if await nn.open_infer_channel(self, close_runner, run_but):
 			running = true
 			run_but.text_offset.x = 0

@@ -7,6 +7,8 @@ var disabled: bool = false
 
 @export var addition_enabled: bool = false
 
+
+
 @export var vscrollbar: VScrollBar
 @export var grid_line_color: Color = Color(1, 1, 1, 0.15)
 @export var odd_row_tint: Color = Color(1, 1, 1, 0.04)
@@ -19,7 +21,7 @@ var _scroll_cooldown: float = 0.0
 @onready var _content_area: Control = Control.new()
 const max_pool: int = 256
 @export var content_margin: Vector4 = Vector4(4, 4, 4, 4)
-@onready var _overlay: TableOverlay = TableOverlay.new()
+@onready var _overlay = TableOverlay.new()
 
 
 
@@ -90,6 +92,14 @@ func set_column_names(names: Array, upd: bool = false) -> void:
 
 var default_type_heights: Dictionary[StringName, float] = {}
 
+func mark_created(row: int, col: int, dict: Dictionary):
+	cell_defaults[dict.type]._creating(row, col, dict)
+
+var col_caches = {}
+
+func mark_deleting(row: int, col: int, dict: Dictionary):
+	cell_defaults[dict.type]._deleting(row, col, dict)
+
 var cell_templates: Dictionary[StringName, PackedScene] = {
 	"text": preload("res://scenes/cell.tscn"),
 	"num": preload("res://scenes/num.tscn"),
@@ -101,8 +111,9 @@ var cell_defaults: Dictionary[StringName, TableCell] = {}
 func _enter_tree() -> void:
 	for i in cell_templates:
 		cell_defaults[i] = cell_templates[i].instantiate()
-		
+		cell_defaults[i].table = self
 		default_type_heights[i] = cell_defaults[i].height
+	glob.virtualt = self
 
 var dataset: Array = []
 var rows: int = 0
@@ -348,6 +359,7 @@ func _ensure_row_metrics_visible(r0: int, r1: int) -> void:
 
 signal ds_cleared
 func load_empty_dataset(clear_cols: bool = true, object = null) -> void:
+	cl_cache()
 	_clear_table_state(false, clear_cols)
 	adapter_data = []
 	dataset = []
@@ -386,6 +398,7 @@ func load_empty_dataset(clear_cols: bool = true, object = null) -> void:
 	_need_visible_refresh = false
 	queue_redraw()
 	#print(cols)
+	refresh_preview()
 	#print(Array(column_names))
 	#set_column_names(Array(column_names.duplicate()))
 
@@ -410,6 +423,19 @@ func set_uniform_row_height(new_height: float) -> void:
 	queue_redraw()
 
 
+var cached_once: Dictionary = {}
+func reindex_cache():
+	_dataset_cache = dataset_obj["cache"]
+	var columns = _dataset_cache.get_or_add("cols", [])
+	if not columns:
+		for i in cols:
+			create_column_cache(0)
+	if not cached_once.has(dataset_obj["name"]):
+		for i in rows:
+			for c in cols:
+				mark_created(i, c, _get_cell(i, c))
+		cached_once[dataset_obj["name"]] = true
+
 var _dataset_cache: Dictionary = {}
 func load_dataset(data, _cols: int, _rows: int) -> void:
 	if not data:
@@ -424,6 +450,7 @@ func load_dataset(data, _cols: int, _rows: int) -> void:
 	dataset_loaded.emit()
 	_adapter_on_load(data, cols, rows)
 	_ensure_column_ratios()
+	
 #	_ensure_column_arg_capacity(cols)
 
 	if uniform_row_heights:
@@ -451,6 +478,7 @@ func load_dataset(data, _cols: int, _rows: int) -> void:
 	_need_visible_refresh = true
 	_clear_hover()
 	queue_redraw()
+	refresh_preview()
 
 
 
@@ -654,12 +682,35 @@ func _flush_active_from(row_index: int) -> void:
 
 var dataset_obj = null
 
+func destroy_column_cache(idx: int):
+	var got = _dataset_cache.get_or_add("cols", []).pop_at(idx)
+	if got != null:
+		got.clear()
+
+func get_ccache(c: int):
+	return _dataset_cache["cols"][c]
+
+func create_column_cache(idx: int):
+	_dataset_cache.get_or_add("cols", []).insert(idx, {})
+
 func _add_cells(at_index: int, cells):
+	for i in len(cells):
+		mark_created(at_index, i, cells[i])
 	adapter_data.insert(at_index, cells)
 	dataset_obj["arr"] = adapter_data
 
+func cl_cache():
+	for col in _dataset_cache.get_or_add("cols", []):
+		col.clear()
+
+func mark_destroyed(r: int, c: int):
+	var dict = _get_cell(r,c)
+	cell_defaults[dict.type]._deleting(r, c, dict)
 
 func _del_cells(at_index: int):
+	for i in len(adapter_data[at_index]):
+		#print("destroy!")
+		mark_destroyed(at_index, i)
 	adapter_data.remove_at(at_index)
 	dataset_obj["arr"] = adapter_data
 
@@ -716,9 +767,11 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 	if vscrollbar:
 		await get_tree().process_frame
 		_update_scrollbar_range()
+	refresh_preview()
 
 func re_uni():
 	var maximal = 0
+	if not adapter_data: return
 	for i in adapter_data[0]:
 		maximal = max(maximal, default_type_heights[i.type])
 	set_uniform_row_height(maximal)
@@ -765,6 +818,7 @@ func remove_row(index: int) -> void:
 	_need_layout = true
 	_need_visible_refresh = true
 	queue_redraw()
+	refresh_preview()
 
 
 
@@ -1031,6 +1085,7 @@ func refresh_dataset(force_full: bool = false) -> void:
 	queue_redraw()
 	dataset_refreshed.emit()
 
+	refresh_preview()
 
 func _clear_table_state(full_reset: bool = true, reset_cols: bool = false) -> void:
 	for cell in active_cells.values():
@@ -1148,7 +1203,14 @@ var rendering_disabled: bool = false
 var next_query = null
 var querying: bool = false
 var prev_row = {}
+
+
+
+
+
 func _process(delta: float) -> void:
+	#if dataset_obj:
+	#	print(dataset_obj["col_args"])
 	#print(dataset_obj["col_args"])
 	#print(column_names)
 	if not is_visible_in_tree():
@@ -1217,8 +1279,8 @@ func _process(delta: float) -> void:
 	_refresh_visible_cells(allow_spawning)
 	_layout_active_cells()
 	just_resized = false
-	if glob.space_just_pressed:
-		refresh_preview()
+	#if glob.space_just_pressed:
+	#	refresh_preview()
 
 var schemas = {"text": [], "num": ["min", "max"], "image": [], "float": []}
 var default_argpacks = {"text": {}, "num": {"min": 0, "max": 100}, "image": {}, "float": {}}
@@ -1230,15 +1292,13 @@ func get_arg_schema(dt: String):
 var column_arg_packs: Array = []   # index = column index
 
 func _ensure_column_arg_capacity(new_cols: int) -> void:
-	# Grow or shrink arg packs to match column count
 	if column_arg_packs.size() != new_cols:
 		var old = column_arg_packs
 		column_arg_packs = []
 		column_arg_packs.resize(new_cols)
 		for i in range(new_cols):
-			column_arg_packs[i] = (old[i] if i < old.size() else default_argpacks.get(column_datatypes[i], []))
+			column_arg_packs[i] = (old[i].duplicate(true) if i < old.size() else default_argpacks.get(column_datatypes[i], []).duplicate(true))
 	
-	# Persist
 	if dataset_obj != null:
 		dataset_obj["col_args"] = column_arg_packs
 
@@ -1251,12 +1311,16 @@ func set_column_arg_packs(packs: Array) -> void:
 	for i in range(packs.size()):
 		var p = packs[i].duplicate()
 		if i < len(dataset_obj["col_args"]):
-			p.merge(dataset_obj["col_args"][i])
+			p.merge(dataset_obj["col_args"][i].duplicate())
 		out[i] = p
-	
+	#print(packs)
 	column_arg_packs = out
 	dataset_obj["col_args"] = column_arg_packs
+	#await get_tree().process_frame
+	#data_map_allowed = true
+	#active_remap()
 
+var data_map_allowed: bool = true
 
 func get_column_arg_pack(col: int) -> Dictionary:
 	if col < 0 or col >= column_arg_packs.size():
@@ -1294,7 +1358,7 @@ func _refresh_visible_cells(allow_spawning: bool = true) -> void:
 
 	var r0 = clamp(_find_row_for_y(view_top) - pre, 0, max(0, rows - 1))
 	var r1 = clamp(_find_row_for_y(view_bottom) + pre, 0, rows - 1)
-	_extend_offsets_to(r1 + 1)   # <-- ensure safe access to row_offsets[r+1]
+	_extend_offsets_to(r1 + 1) 
 	_ensure_row_metrics_visible(r0, r1)
 
 	var c0 = 0
@@ -1339,17 +1403,21 @@ func _refresh_visible_cells(allow_spawning: bool = true) -> void:
 
 
 func _try_reuse_cell(row: int, col: int) -> TableCell:
-	var t: String = String(_get_cell(row, col).type)
+	var got = _get_cell(row, col)
+	var t: String = String(got.type)
 	if not pool_by_type.has(t):
 		return null
 	var pool = pool_by_type[t]
 	if pool.size() == 0:
 		return null
 	var cell: TableCell = pool.pop_back()
-	_content_area.add_child(cell)
-	cell._mouse_exit()
-	cell.map_data(_get_cell(row, col))
 	cell.coord = Vector2i(row, col)
+	_content_area.add_child(cell)
+	cell._mouse_exit()#
+	#print("=====")
+	#print(col, " ", got)
+	cell.map_data(got)
+	#print(col, " ", got)
 	cell._resized.call_deferred()
 	return cell
 
@@ -1369,13 +1437,23 @@ func push_textures(who: TableCell, imgs):
 		var r = i+who.coord.x
 		#print(r)
 		if r < rows: # row
-			var got = _get_cell(r, who.coord.y)
-			got["img"] = imgs[i]
-			_set_cell(r, who.coord.y, got)
+			pass
+		else:
+			add_row(get_default_row(-1), -1)
+		var got = _get_cell(r, who.coord.y)
+		var old_dims = Vector2i(got["x"], got["y"])
+		got["img"] = imgs[i]
+		got["x"] = int(imgs[i].get_width())
+		got["y"] = int(imgs[i].get_height())
+		cell_defaults["image"].change_cache(r, who.coord.y, old_dims, got)
+		_set_cell(r, who.coord.y, got)
 			#print(got)
 	_need_layout = true
 	_need_visible_refresh = true
 	queue_redraw()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	refresh_preview()
 
 
 func _spawn_cell(row: int, col: int) -> void:
@@ -1464,7 +1542,8 @@ func set_outputs_from(i: int):
 	outputs_from = i
 	dataset_obj["outputs_from"] = i
 	queue_redraw()
-
+	refresh_preview()
+	
 func _draw() -> void:
 	_overlay.queue_redraw()
 
@@ -1593,48 +1672,75 @@ signal preview_refreshed(pr: Dictionary)
 var preview = null
 func refresh_preview():
 	preview = get_preview()
-	if preview and not "fail" in preview:
+	if preview:
 		preview_refreshed.emit(preview)
+	#print(_dataset_cache)
 
 
-
+#no_outputs no_1d_outs mix_2d bad_img
 func get_preview(validate_cols: bool = false):
 	var res = {}
 	if not dataset_obj: 
-		return
+		return {"fatal": ""}
+	if not column_datatypes:
+		return {"fatal": ""}
+	if cols == 1:
+		return {"fail": "no_outputs"}
 	res["size"] = rows
 	res["name"] = dataset_obj["name"]
 	res["input_hints"] = []
 	var cur = {"label_names": [], "datatype": "1d", "x": 0, "label": "Output"}
+	if not column_datatypes: return
 	for i in range(outputs_from, cols):
-		if column_datatypes[i] == "image":
-			return {"fail": "Outputs can only be 1D"}
+		if i >= column_datatypes.size() or column_datatypes[i] == "image":
+			return {"fail": "no_1d_outs"}
 		cur.label_names.append(column_names[i])
 	res.outputs = [cur]
 	var inputs = {"datatype": "", "x": 0}
 	var to_validate = -1
 	for i in range(0, max(1,outputs_from)):
-		if column_datatypes[i] == "image":
-			if inputs["datatype"]: return {"fail": "Mixed or multiple 2D datatypes"}
+		var dt = column_datatypes[i]
+		if dt == "image":
+			if inputs["datatype"]: return {"fail": "mix_2d"}
 			inputs["datatype"] = "2d"
 			to_validate = i
 		else:
-			if inputs["datatype"] == "2d": return {"fail": "Mixed input datatypes"}
-			inputs["datatype"] = "1d"
+			if inputs["datatype"] == "2d": return {"fail": "mix_2d"}
+			inputs["datatype"] = "1d(len:1)"
 			inputs["x"] += 1
-			res.input_hints.append({"name": column_names[i], "value": "1", "dtype": column_datatypes[i]})
+			res.input_hints.append({"name": column_names[i], "value": ds_to_val(i), "dtype": column_datatypes[i]})
 	if to_validate != -1:
-		if validate_cols:
-			return {"fail": 'Inconsistent image sizes'}
+		var xs: int = 0
+		var ys: int = 0
+		var got = _dataset_cache["cols"][to_validate]
+		if got.size() > 1 or got.size() == 0 or got.keys()[0] == 0:
+			return {"fail": 'bad_img'}
+		var first_key = got.keys()[0]
+		xs = first_key >> 16
+		ys = first_key & 0xFFFF
 		var cell = _get_cell(0, to_validate)
-		inputs["x"] = 28
-		inputs["y"] = 28
+		inputs["x"] = xs
+		inputs["y"] = ys
 		var val = str(inputs.x) + "x" + str(inputs.y)
 		#var val = 
-		res.input_hints.append({"name": "image", "value": val, "dtype": "image"})
+		res.input_hints.append({"name": column_names[to_validate], "value": val, "dtype": "image"})
 	#print(res)
 	return res
-	
+
+func ds_to_val(i: int):
+	var dt = column_datatypes[i]
+	var val = "0"
+	var args = get_column_arg_pack(i).merged(default_argpacks[dt].duplicate(true))
+	match dt:
+		"num":
+			val = str(args.min if args.min < 9999 else glob.compact(args.min)) + "-\n" + str(args.max if args.max < 9999 else glob.compact(args.max))
+		"float":
+			val = "0..1"
+		"text":
+			val = "_"
+	return val
+
+
 func get_visible_row_range() -> Vector2i:
 	var top = scroll_y
 	var bottom = scroll_y + size.y

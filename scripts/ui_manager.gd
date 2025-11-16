@@ -95,8 +95,12 @@ func _process(delta: float):
 	var ct: int = 0
 	for i in splashed.keys():
 		if not is_instance_valid(i): splashed.erase(i); continue
+		if not i.visible: splashed.erase(i); continue
 		if i.persistent and not i.visible:
 			ct += 1
+	for i in splashed_in.keys():
+		if not is_instance_valid(i): splashed_in.erase(i); continue
+		if not i.visible: splashed_in.erase(i); continue
 	_active_splashed = len(splashed) != ct
 #	print(get_viewport().gui_get_focus_owner())
 			

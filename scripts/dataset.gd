@@ -31,7 +31,7 @@ func _ready() -> void:
 			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}],
 			"env": true}}
 	else:
-		loaded_datasets = glob.get_loaded_datasets()#await glob.request_projects()
+		loaded_datasets = await glob.get_loaded_datasets()#await glob.request_projects()
 	#print(loaded_datasets)
 	ui.hourglass_off()
 	$ColorRect/list.passed_who = passed_data.get("with_who", "")

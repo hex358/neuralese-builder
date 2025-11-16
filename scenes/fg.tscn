@@ -430,7 +430,6 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_x67tc")
-in_splash = true
 
 [node name="datasets" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
@@ -465,7 +464,6 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_luhqm")
-in_splash = true
 
 [node name="minigames" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
@@ -500,7 +498,6 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_v7s1j")
-in_splash = true
 
 [node name="ColorRect" type="ColorRect" parent="ColorRect/Control3"]
 layout_mode = 0

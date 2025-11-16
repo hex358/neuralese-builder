@@ -261,6 +261,9 @@ func get_stored() -> Dictionary:
 
 
 func open_last_project():
+
+	if not _logged_in:
+		return
 	var got = get_var("last_id")
 	if got:
 		load_scene(str(got))
@@ -638,7 +641,8 @@ func _process(delta: float) -> void:
 	#if _menu_type_occupator and _menu_type_occupator is Connection:
 	#	print(_menu_type_occupator.parent_graph.process_mode == Node.PROCESS_MODE_DISABLED)
 	
-	
+	if space_just_pressed:
+		save_datasets()
 	if not ui.active_splashed():
 		if Input.is_action_just_pressed("ctrl_z"):
 			#print("A")
@@ -830,22 +834,21 @@ func get_llm_tag(who: Graph) -> String:
 
 
 func load_dataset(name: String) -> Dictionary:
-	return get_loaded_datasets().get(name, {})
+	return _load.get(name, {})
 
-func get_loaded_datasets() -> Dictionary:
-	return {
-		"mnist":
-			{"name": "mnist", 
-		"size": 70000, "outputs": [
-			{"label": "digit", "x": 10, "datatype": "1d", "label_names": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]}],
-			"inputs": {"x": 28, "y": 28, "datatype": "2d"},
-			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]}, 
-		"iris": {"name": "iris", "outputs": [
-			{"label": "digit", "x": 3, "datatype": "1d"}],
-			"inputs": {"x": 28, "datatype": "1d"}, 
-			"input_hints": [{"name": "image", "value": "28x28", "dtype": "image"}]},}#await glob.request_projects()
-	#print(loaded_datasets)
+var _load = {}
 
+func get_loaded_datasets():
+	if _load:
+		return _load
+	_load = (await web.GET("datasets"))
+	var bytes = _load.get("body").get_string_from_utf8()
+	var dict = JSON.parse_string(bytes)
+	if dict:
+		_load = dict.get("results", {})
+	else:
+		_load = {}
+	return _load
 
 
 
@@ -874,9 +877,71 @@ var llm_name_unmapping = (func():
 
 
 func test_place():
-	pass
-	var a = cookies.open_or_create("debug_changes.bin").get_var()
-	parser.model_changes_apply(a, "hi")
+	var txt = "here it is"
+	#glob.update_chat_cache(str(chat_id), {"role": "ai", "text": txt})
+	#message_sockets.erase(chat_id)
+	#on_close.call()
+	var chunk = """
+<change_nodes>
+[
+  {"tag": "model_mnist_recognizer", "type": "model_name", "config": {"name": "mnist_recognizer"}},
+  {"tag": "input_image_small_0", "type": "input_image_small", "config": {}},
+  {"tag": "activation_relu_conv", "type": "activation", "config": {"activ": "relu"}},
+  {"tag": "conv2d_layer_0", "type": "conv2d_layer", "config": {"filters": 32, "window": 3, "stride": 1}},
+  {"tag": "maxpool_layer_0", "type": "maxpool_layer", "config": {"group": 2}},
+  {"tag": "flatten_0", "type": "flatten", "config": {}},
+  {"tag": "activation_relu_dense", "type": "activation", "config": {"activ": "relu"}},
+  {"tag": "dense_layer_0", "type": "dense_layer", "config": {"neuron_amount": 128}},
+  {"tag": "dense_layer_1", "type": "dense_layer", "config": {"neuron_amount": 10}},
+  {"tag": "softmax_0", "type": "softmax", "config": {}},
+  {"tag": "out_labels_digits", "type": "out_labels", "config": {"label_names": ["0","1","2","3","4","5","6","7","8","9"], "title": "digits"}},
+  {"tag": "load_dataset_mnist", "type": "load_dataset", "config": {"dataset_name": "mnist"}},
+  {"tag": "train_begin_0", "type": "train_begin", "config": {}},
+  {"tag": "run_model_0", "type": "run_model", "config": {"branches": {"digits": "cross_entropy"}, "mapped": {"digits": "labels"}}},
+  {"tag": "output_map_0", "type": "output_map", "config": {}},
+  {"tag": "train_step_0", "type": "train_step", "config": {"optimizer": "adam", "lr": 1}}
+]
+</change_nodes>
+
+<connect_ports>
+[
+  {"from": {"tag": "model_mnist_recognizer", "port": 0}, "to": {"tag": "input_image_small_0", "port": 0}},
+  {"from": {"tag": "model_mnist_recognizer", "port": 0}, "to": {"tag": "run_model_0", "port": 1}},
+  {"from": {"tag": "input_image_small_0", "port": 0}, "to": {"tag": "conv2d_layer_0", "port": 1}},
+  {"from": {"tag": "activation_relu_conv", "port": 0}, "to": {"tag": "conv2d_layer_0", "port": 0}},
+  {"from": {"tag": "conv2d_layer_0", "port": 0}, "to": {"tag": "maxpool_layer_0", "port": 0}},
+  {"from": {"tag": "maxpool_layer_0", "port": 0}, "to": {"tag": "flatten_0", "port": 0}},
+  {"from": {"tag": "flatten_0", "port": 0}, "to": {"tag": "dense_layer_0", "port": 1}},
+  {"from": {"tag": "activation_relu_dense", "port": 0}, "to": {"tag": "dense_layer_0", "port": 0}},
+  {"from": {"tag": "dense_layer_0", "port": 0}, "to": {"tag": "dense_layer_1", "port": 1}},
+  {"from": {"tag": "dense_layer_1", "port": 0}, "to": {"tag": "softmax_0", "port": 0}},
+  {"from": {"tag": "softmax_0", "port": 0}, "to": {"tag": "out_labels_digits", "port": 0}},
+  {"from": {"tag": "load_dataset_mnist", "port": 0}, "to": {"tag": "train_begin_0", "port": 0}},
+  {"from": {"tag": "train_begin_0", "port": 0}, "to": {"tag": "run_model_0", "port": 0}},
+  {"from": {"tag": "run_model_0", "port": 0}, "to": {"tag": "output_map_0", "port": 0}},
+  {"from": {"tag": "output_map_0", "port": 0}, "to": {"tag": "train_step_0", "port": 0}}
+]
+</connect_ports>
+
+<delete_nodes>
+[]
+</delete_nodes>
+
+<disconnect_ports>
+[]
+</disconnect_ports>
+"""
+	var sock = {"cache": {}}
+	var acts = parser.parse_stream_tags(sock, chunk)
+	
+	#for action in acts:
+	#	for el in len(acts[action]):
+	#		acts[action][el] = JSON.parse_string(acts[action][el])
+	#print("text, ", txt)
+	await glob.wait(0.5)
+	parser.model_changes_apply(sock.cache.actions, txt)
+	#var a = cookies.open_or_create("debug_changes.bin").get_var()
+	#parser.model_changes_apply(a, "hi")
 
 func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 	#print(message_sockets[chat_id].cache.get("message", [""])[0])
@@ -1003,7 +1068,7 @@ func load_scene(from: String):
 	
 	fg.set_scene_name(a["name"])
 	open_action_batch(true)
-	set_var("last_id", 0)
+	#set_var("last_id", 0)
 	var r = await graphs.load_graph(dat["graphs"], dat["registry"].get("subgraph_registry", {}))
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
@@ -1169,17 +1234,84 @@ func bound(callable: Callable, pos: Vector2, cfg: Dictionary, select: bool = tru
 	if select:
 		a.select()
 
+
+signal ds_saved
+func _ds_save_finish():
+	saving_thread.wait_to_finish()
+	ds_saved.emit()
+	threading = false
+
+
+var virtualt: VirtualTable
+
+func load_datasets():
+	for i in cookies.dir_or_create("datasets").get_files():
+		var opened = cookies.open_or_create("datasets/" + i)#.decompress(FileAccess.COMPRESSION_ZSTD)
+		if not opened: continue
+		var length = opened.get_var()
+		var got = opened.get_var(true)
+		if not got: continue
+		var decomp = got.decompress(length, FileAccess.COMPRESSION_ZSTD)
+		var ds = bytes_to_var_with_objects(decomp)
+		#print(ds)
+		#print(decomp)
+		if ds:
+			ds_dump[ds["name"]] = create_dataset(randi_range(0,999999999), ds["name"])
+			dataset_datas[ds["name"]] = ds
+		virtualt.cached_once[ds["name"]] = true
+	
+func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
+	if not pre_bytes:
+		ds_obj = var_to_bytes(ds_obj)
+	var ds = cookies.open_or_create(path)
+	#print(ds_obj.compress(FileAccess.COMPRESSION_ZSTD))
+	OS.delay_msec(2000)
+	var length: int = len(ds_obj)
+	ds.store_var(length)
+	ds.store_var(ds_obj.compress(FileAccess.COMPRESSION_ZSTD), true)
+	ds.close()
+	#print(cookies.open_or_create(path).get_var().decompress(FileAccess.COMPRESSION_ZSTD))
+	_ds_save_finish.call_deferred()
+
+func join_ds_save():
+	if threading and saving_thread.is_alive():
+		#print("awaa")
+		await ds_saved
+		saving_thread.wait_to_finish()
+
+
+var saving_thread = Thread.new()
+var threading: bool = false
+func save_godot_dataset(ds_obj: Dictionary):
+	var a = (ds_obj)
+	if threading and saving_thread.is_alive():
+		#print("awaa")
+		await ds_saved
+		saving_thread.wait_to_finish()
+	saving_thread = Thread.new()
+	threading = true
+	saving_thread.start(
+	_save_worker.bind("datasets/"+ds_obj.name+".ds", a))
+	
+
+func save_datasets(filter=null):
+	for i in dataset_datas:
+		if filter == null or i in filter:
+			#print(i)
+			save_godot_dataset(dataset_datas[i])
+
 var ds_dump = {}
 var dataset_datas = {}
 
 func default_dataset() -> Dictionary:
 	return {"arr": [[{"type": "text", "text": "Hello"}, 
 							{"type": "num", "num": 0}]], "col_names": ["Input:text", "Output:num"],
-							"outputs_from": 1, "col_args": []}
+							"outputs_from": 1, "col_args": [], "cache": {}}
 
 func get_dataset_at(id: String):
 	if not id in dataset_datas:
 		dataset_datas[id] = default_dataset()
+	dataset_datas[id]["name"] = id
 	return dataset_datas[id]
 func create_dataset(id: int, name: String, data = null):
 	if data:
@@ -1382,10 +1514,16 @@ func _ready() -> void:
 	go_window("graph")
 	init_scene("")
 	await try_auto_login()
-	if _logged_in:
-		open_last_project()
+	#if _logged_in:
+
+	await get_loaded_datasets()
+	#print(_load)
+	#print(load_dataset("mnist"))
+	open_last_project()
 	#await wait(1)
 	#test_place()
+	load_datasets()
+	ui.splash("ai_help", null, null, false, {"away": true})
 
 func disconnect_all(from_signal: Signal):
 	for i in from_signal.get_connections():

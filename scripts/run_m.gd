@@ -38,8 +38,21 @@ func _llm_map(pack: Dictionary):
 	await get_tree().process_frame
 	await get_tree().process_frame
 	#print(pack)
-	update_config({"mapped": pack["mapped"]})
+	var omap = get_output_map()
+	#print(omap)
+	if omap:
+		var new_mapped = {}; var keys = omap.keys()
+		var i: int = -1
+		for map in (pack["mapped"]):
+			i += 1
+			if keys.size() == i: break
+			#print(keys[i])
+			new_mapped[map] = keys[i]
+		pack["mapped"] = new_mapped
+		update_config({"mapped": pack["mapped"]})
 	#cfg["branches"].clear()
+	#for i in pack["mapped"]:
+	#	
 	for i in pack["branches"]:
 		#i = cfg[""]
 		#var node = glob.tags_1d.get(i)
@@ -126,6 +139,16 @@ func set_loss_type(of_id, loss: String, inner=false):
 
 func _map_properties(pack: Dictionary):
 	pass
+
+func get_output_map():
+	var desc = get_descendant()
+	if desc:
+		var rev = {}
+		for i in desc.unit_labels:
+			rev[desc.unit_labels[i]] = i
+		#print(rev)
+		return rev
+	return {}
 
 func _config_field(field: StringName, value: Variant):
 	if field.begins_with("branches/"):

@@ -19,13 +19,58 @@ func _map_data(data: Dictionary) -> void:
 		#$TextureRect.anchor_bottom = -6
 	if img:
 		var dims = get_dims()
-		cell_data["x"] = dims.x
-		cell_data["y"] = dims.y
+		cell_data["x"] = int(dims.x)
+		cell_data["y"] = int(dims.y)
 	else:
 		cell_data["x"] = 0
 		cell_data["y"] = 0
 	
 	#_on_label_changed.call_deferred()
+
+
+func _creating(row: int, col: int, data: Dictionary):
+	var key: int = data["x"] << 16 | data["y"]
+	var ccache = table.get_ccache(col)
+	#print(ccache)
+	if not key in ccache:
+		ccache[key] = {data["id"]: true}
+	else:
+		ccache[key][data["id"]] = true
+	#print(ccache)
+
+
+func change_cache(row: int, col: int, old_dims: Vector2i, data: Dictionary):
+	if old_dims.x == data["x"] and old_dims.y == data["y"]:
+		return
+	var key: int = old_dims.x << 16 | old_dims.y
+	var ccache = table.get_ccache(col)
+	#print(ccache)
+	if not key in ccache:
+		pass
+	else:
+		ccache[key].erase(data["id"])
+		if ccache[key].size() == 0:
+			ccache.erase(key)
+	key = data["x"] << 16 | data["y"]
+	if not key in ccache:
+		ccache[key] = {data["id"]: true}
+	else:
+		ccache[key][data["id"]] = true
+	#print(ccache)
+
+
+func _deleting(row: int, col: int, data: Dictionary):
+	var key: int = data["x"] << 16 | data["y"]
+	var ccache = table.get_ccache(col)
+	#print(ccache)
+	if not key in ccache:
+		pass
+	else:
+		ccache[key].erase(data["id"])
+		if ccache[key].size() == 0:
+			ccache.erase(key)
+	#print(ccache)
+
 
 func _height_key(info: Dictionary) :
 	return 0
@@ -39,7 +84,7 @@ func get_dims():
 	return $TextureRect.texture.get_size()
 
 func _defaults() -> Dictionary:
-	return {"img": null, "x": 0, "y": 0}
+	return {"img": null, "x": 0, "y": 0, "id": randi_range(0,9999999)}
 
 @onready var upload = $Label/train2
 

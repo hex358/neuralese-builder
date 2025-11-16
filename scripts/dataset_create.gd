@@ -4,7 +4,7 @@ func _ready() -> void:
 	super()
 	$ColorRect/Label.set_is_valid_call(func(input):
 		#print(input)
-		return not input in glob.ds_dump)
+		return input and not input in glob.ds_dump and not "/" in input)
 	if passed_data.has("txt"):
 		$ColorRect/Label.set_line(passed_data["txt"])
 		$ColorRect/Label.update_valid()

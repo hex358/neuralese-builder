@@ -43,9 +43,18 @@ func _convert(data: Dictionary, dtype: String) -> Dictionary:
 func _dense_data():
 	return 0
 
+func _creating(row: int, col: int, data: Dictionary):
+	pass
+
+
+func _deleting(row: int, col: int, data: Dictionary):
+	pass
+
+
 @export var coord: Vector2i = Vector2i()
 func map_data(data: Dictionary) -> void:
 	if data["type"] != cell_type: return
+	#if !table.data_map_allowed: return
 	_map_data(data)
 
 func _map_data(data: Dictionary) -> void:

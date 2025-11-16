@@ -42,6 +42,7 @@ func _gui_input(event: InputEvent) -> void:
 		else:
 			var cmd_name = result["command"]
 			var def: Commands.CommandDef = parser.registry[cmd_name]
+			await glob.join_ds_save()
 			def.handler.call(result)
 		await get_tree().process_frame
 		clear()
@@ -244,6 +245,8 @@ func _on_dcol_command(_data: Dictionary):
 	table.set_column_arg_packs(table.dataset_obj["col_args"])
 	# Update table metadata
 	var col_names: Array = table.dataset_obj.get("col_names", [])
+	table.destroy_column_cache(col_idx)
+	#print(table._dataset_cache)
 	if col_idx < col_names.size():
 		col_names.remove_at(col_idx)
 	table.dataset_obj["col_names"] = col_names
@@ -251,6 +254,11 @@ func _on_dcol_command(_data: Dictionary):
 	
 	table.set_column_names(col_names)
 	dataset_updated()
+	await get_tree().process_frame
+	
+	table.re_uni()
+
+	table.refresh_preview()
 
 func _on_outs_command(_data: Dictionary):
 	var parts = text.strip_edges().split(" ", false)
@@ -275,9 +283,11 @@ func _on_outs_command(_data: Dictionary):
 		#return
 	
 	table.set_outputs_from(col_idx)
+	table.re_uni()
 	debug_print("Output format changed.")
 
 func _convert_column(col_idx: int, to_dtype: String, force: bool = false) -> bool:
+	#print(to_dtype)
 	if to_dtype not in type_map:
 		debug_print("[color=coral]Unknown datatype: %s[/color]" % to_dtype)
 		return false
@@ -328,8 +338,11 @@ func _convert_column(col_idx: int, to_dtype: String, force: bool = false) -> boo
 		var err = "[color=coral]Cannot convert these rows: %s\nUse --force flag to override.[/color]" % cant_str
 		debug_print(err)
 		return false
-
+	
+	table.destroy_column_cache(col_idx)
+	table.create_column_cache(col_idx)
 	for y in range(len(convs)):
+		table.mark_created(y, col_idx, convs[y])
 		dataset[y][col_idx] = convs[y]
 
 	dataset_updated(true)
@@ -344,7 +357,7 @@ func _convert_column(col_idx: int, to_dtype: String, force: bool = false) -> boo
 	var colargs = table.dataset_obj["col_args"]
 	for i in len(colargs):
 		if not colargs[i]:
-			colargs[i].merge(table.default_argpacks[table.column_datatypes[i] if i != col_idx else dtype])
+			colargs[i].merge(table.default_argpacks[table.column_datatypes[i] if i != col_idx else dtype].duplicate(true))
 	table.set_column_arg_packs(colargs.duplicate())
 	table.set_column_names(new_names)
 	table.dataset_obj["col_names"] = new_names
@@ -409,14 +422,19 @@ func _on_acol_command(_data: Dictionary):
 	var new_col_names: Array = old_names.duplicate()
 	var full_name = "%s:%s" % [col_name, dtype]
 	new_col_names.insert(insert_at, full_name)
-
+	
+	var def = table.get_type_default(dtype)
+	if def == null:
+		debug_print("[color=coral]Type %s is not supported by VirtualTable.[/color]" % dtype)
+		return
+	table.create_column_cache(insert_at)
+	var cnt: int = -1
 	for r in dataset:
-		var def = table.get_type_default(dtype)
-		if def == null:
-			debug_print("[color=coral]Type %s is not supported by VirtualTable.[/color]" % dtype)
-			return
+		cnt += 1
+		def = table.get_type_default(dtype)
 		def["type"] = dtype
 		r.insert(insert_at, def)
+		table.mark_created(cnt, insert_at, def)
 
 	table.cols = new_col_names.size()
 	if not arg_pack.is_empty():
@@ -429,8 +447,9 @@ func _on_acol_command(_data: Dictionary):
 		else:
 			arg_packs.insert(insert_at, converted)
 			table.set_column_arg_packs(arg_packs)
-
+	
 	table.set_column_names(new_col_names, true)
+	table.re_uni()
 	table.dataset_obj["col_names"] = new_col_names
 
 
@@ -447,6 +466,7 @@ func _on_acol_command(_data: Dictionary):
 	table.active_remap()
 	debug_print("Inserted column '%s' of type %s at index %d." % [col_name, dtype, insert_at])
 
+	table.refresh_preview()
 func _conv_args(args: Dictionary, dtype: String):
 	match dtype:
 		"num":
@@ -474,6 +494,7 @@ func _on_convert_command(_data: Dictionary):
 	
 	if table.rows:
 		_convert_column(col_idx, to_dtype, force)
+	table.refresh_preview()
 
 
 
@@ -577,16 +598,23 @@ func _on_cols_command(_data: Dictionary):
 					debug_print("[color=gray]Auto-converting column %d to %s...[/color]" % [j, new_dtype])
 					_convert_column(j, new_dtype, true)
 
-	# --- Dataset rebuild (same as your previous version) ---
 	var cols = len(col_names)
+	var idx: int = -1
+	for j in range(cols, table.cols):
+		table.destroy_column_cache(-1)
+	for j in range(table.cols, cols):
+		table.create_column_cache(-1)
 	for r in dataset:
+		idx += 1
 		var new_r = []
 		for i in cols:
 			if i >= len(r):
+				
 				var type = dtypes[i]
 				var def = table.get_type_default(type)
 				def["type"] = type
 				new_r.append(def)
+				table.mark_created(idx, i, def)
 			else:
 				new_r.append(r[i])
 		r.clear()
@@ -608,8 +636,10 @@ func _on_cols_command(_data: Dictionary):
 	table._need_visible_refresh = true
 
 	dataset_updated(true)
+	table.re_uni()
 	table.active_remap()
 	debug_print("Columns set to: %s" % str(col_names))
+	table.refresh_preview()
 
 
 
@@ -641,6 +671,9 @@ func _on_filter_command(data: Dictionary):
 		var ok = expr.execute([row])
 		if (ok and action == "keep") or (not ok and action == "drop"):
 			new_ds.append(dataset[row])
+		else:
+			for i in table.cols:
+				table.mark_destroyed(row, i)
 	dataset = new_ds
 	table._clear_hover()
 	if new_ds:
@@ -661,12 +694,10 @@ func _on_shuffle_command(_data: Dictionary):
 # ---- DROP ----
 func _on_drop_command(_data: Dictionary):
 	dataset.clear()
+	table.cl_cache()
 	dataset_updated(true)
 	debug_print("Dataset dropped.")
 
-# ======================================
-# ===== COLUMN ARGUMENT PARSER =========
-# ======================================
 func _parse_col_args(raw_token: String, dtype: String):
 	var args_dict: Dictionary = {}
 
@@ -809,6 +840,8 @@ func _on_nrow_command(_data: Dictionary):
 			return
 		var def_row = table.get_default_row()
 		table.add_row(def_row)
+		#for i in def_row:
+		#	table.mark_created(table.rows, i, def_row[i])
 		dataset = table.adapter_data
 		debug_print("Default row appended.")
 		return
@@ -828,6 +861,8 @@ func _on_nrow_command(_data: Dictionary):
 			return
 		var def_row2 = table.get_default_row()
 		table.add_row(def_row2, idx)
+		#for i in def_row2:
+		#	table.mark_created(table.rows, i, def_row2[i])
 		dataset = table.adapter_data
 		debug_print("Default row inserted.")
 		return
@@ -865,7 +900,9 @@ func _on_nrow_command(_data: Dictionary):
 		if failed:
 			return
 
+		#table.mark_destroyed(idx, j)
 		var new_cell = table.get_type_default(col_dtype)
+		#table.mark_created(idx, j, new_cell)
 		new_cell["type"] = col_dtype
 
 		for k in converted_dict:
@@ -888,9 +925,11 @@ func _on_drow_command(data: Dictionary):
 		return
 	var idx = int(parts[1])
 	#print(table.adapter_data)
-	if idx < 0 or idx >= dataset.size():
+	if idx < -table.rows or idx >= table.rows:
 		debug_print("Invalid row index.")
 		return
+	if idx < 0:
+		idx += table.rows
 	table.remove_row(idx)
 	debug_print("Row removed at %d." % idx)
 	dataset = table.adapter_data

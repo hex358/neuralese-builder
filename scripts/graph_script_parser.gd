@@ -83,7 +83,11 @@ func _match_tag_token(buf: String, pos: int) -> Variant:
 	return null
 
 
-func parse_stream_tags(sock: SocketConnection, chunk: String) -> String:
+
+
+
+
+func parse_stream_tags(sock, chunk: String) -> String:
 	var state = sock.cache.get_or_add("parser_state", {"buf": "", "stack": [], "acc": []})
 	var actions = sock.cache.get_or_add("actions", {})  # { tag: [body1, body2, ...] }
 
@@ -298,21 +302,23 @@ func model_changes_apply(actions: Dictionary, txt: String):
 				if graphs.is_nodes(g, "ModelName", "DatasetName"):
 				#	print("MAP!!")
 					prop_map(g)
+					
 				g.hold_for_frame()
-
 	await get_tree().process_frame
 	var to_rearrange = []
+	var deferred_train_links: Array = []
 	for pack: Array in actions["connect_ports"]:
 		var front: Array = []
 		var back: Array = []
 		for c in pack:
 			var from_graph = glob.tags_1d.get(c.from.tag, null)
-			if from_graph and graphs.is_nodes(from_graph, "DatasetName", "LuaEnv", "ModelName"):
+			if from_graph and graphs.is_nodes(from_graph, "DatasetName", "LuaEnv", "ModelName", "InputNode"):
 				front.append(c)
 				#c["_wait"] = true
 			else:
 				back.append(c)
 		pack = front + back
+	#	print(pack)
 	#	print(front)
 		
 		#pack.sort_custom()
@@ -321,11 +327,8 @@ func model_changes_apply(actions: Dictionary, txt: String):
 			var from_graph = glob.tags_1d.get(connection.from.tag, creating.get(connection.from.tag))
 			var to_graph = glob.tags_1d.get(connection.to.tag, creating.get(connection.to.tag))
 			if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
-				print("[Axon] Skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
+				print("skip connect: missing graph(s) for tags ", connection.from.tag, " -> ", connection.to.tag)
 				continue
-			#print(graphs.get_input_graph_by_name("mnist_cnn"))
-			#if "_wait" in connection:
-			#	await get_tree().process_frame
 
 			var out_ports = from_graph.output_keys
 			var in_ports  = to_graph.input_keys
@@ -340,7 +343,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 			var valid_to   = in_ports.has(to_port)
 
 			if not valid_from and valid_to:
-				print("[Axon] Swapped reversed connection")
+				print("swapped reversed connection")
 				var tmp = connection.from
 				connection.from = connection.to
 				connection.to = tmp
@@ -354,7 +357,7 @@ func model_changes_apply(actions: Dictionary, txt: String):
 				valid_to = in_ports.has(to_port)
 
 			if not (valid_from and valid_to):
-				print("[Axon] Invalid connection skipped:", connection)
+				print("invalid connection skipped:", connection)
 				continue
 			
 			has_structure_change = true
@@ -362,11 +365,24 @@ func model_changes_apply(actions: Dictionary, txt: String):
 				await get_tree().process_frame
 			var o = out_ports[from_port].connect_to(in_ports[to_port])
 			if not o:
-				print("skipping connection ", connection)
+				print("skipping connection (unsuit)", connection)
 			var from_tag = from_graph.llm_tag
 			var to_tag = to_graph.llm_tag
 			if not (creating.has(from_tag) and creating.has(to_tag)):
 				to_rearrange.append(connection)
+			if graphs.is_node(from_graph, "TrainBegin") and graphs.is_node(to_graph, "RunModel"):
+				deferred_train_links.append(connection)
+	
+	if deferred_train_links:
+		await get_tree().process_frame
+
+	for c in deferred_train_links:
+		var from_graph = glob.tags_1d.get(c.from.tag)
+		var to_graph = glob.tags_1d.get(c.to.tag)
+		if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
+			continue
+		var anc = graphs.get_input_graph_by_name(to_graph.name_graph)
+		var ok = from_graph.output_keys[int(c.from.port)].connect_to(to_graph.input_keys[int(c.to.port)])
 
 	
 	await get_tree().process_frame

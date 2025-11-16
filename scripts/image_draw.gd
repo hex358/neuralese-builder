@@ -121,6 +121,8 @@ func _draw_segment(prev_img: Vector2, curr_img: Vector2, dt: float) -> void:
 
 @export var active: bool = true
 
+var drawing: float = 50.0
+
 var lst = Vector2()
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint(): return
@@ -140,8 +142,11 @@ func _process(delta: float) -> void:
 			_accumulate_circle_at(img_pos, delta)
 		_last_img_pos = img_pos
 		_was_drawing = true
+		drawing = 0.5
 	else:
 		_was_drawing = false
+	drawing -= delta
+	if is_zero_approx(drawing): drawing = 0
 
 	if Input.is_action_just_pressed("ui_accept") and mouse_inside:
 		clear()

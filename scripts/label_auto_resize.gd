@@ -41,11 +41,13 @@ func _resize_simple() -> void:
 	var txt = text
 	add_theme_font_size_override("font_size", base_font_size)
 	if txt.is_empty():
+		override = base_font_size
 		add_theme_font_size_override("font_size", base_font_size)
 		return
 	
 	var n = txt.length()
 	if n <= simple_letters:
+		override = base_font_size
 		add_theme_font_size_override("font_size", base_font_size)
 		return
 
@@ -53,8 +55,10 @@ func _resize_simple() -> void:
 	var ratio = float(simple_letters) / float(n)
 	var new_fs = int(round(base_font_size * ratio))
 	new_fs = clamp(new_fs, 6, base_font_size)
+	override = new_fs
 	add_theme_font_size_override("font_size", new_fs)
 
+var override: int = 32
 @export var unscaled_size: bool = false
 @export var debug: bool = false
 @export var pivoting: bool = false

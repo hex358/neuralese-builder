@@ -168,4 +168,8 @@ func _on_minigames_released() -> void:
 
 @onready var export = $Control/export
 func _on_export_released() -> void:
-	var a = await ui.splash_and_get_result("model_export", export)
+	var res = 1
+	if not cookies.get_auth_header():
+		res = await ui.splash_and_get_result("login", export)
+	if res:
+		var a = await ui.splash_and_get_result("model_export", export)

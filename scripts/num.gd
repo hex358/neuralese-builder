@@ -1,25 +1,41 @@
 extends TableCell
 func _map_data(data: Dictionary) -> void:
-	#print(data)
-	cell_data = data
+	#if coord.y == 2:
+	#	print(data)
+	#	print_stack()
 	var argpack = table.get_column_arg_pack(coord.y)
+	#print(coord.y, " ", argpack)
 	if not argpack: return
+	cell_data = data
+	#if not table.data_map_allowed: return
+	#print(coord.y, " ", argpack, " ", data["num"])
+	#if coord.y == 2:
+	#	print(table.adapter_data)
+	#	print_stack()
 	data["num"] = clamp(data["num"], argpack.min, argpack.max)
+	#print("======", coord.y)
 	$Label.min_value = argpack.min
 	$Label.placeholder_text = str(argpack.min)
 	$Label.max_value = argpack.max
 	if int(data["num"]) == $Label.min_value:
+		$Label.prev = data["num"]
 		$Label.set_line("")
 	else:
+		$Label.prev = data["num"]
 		$Label.set_line(str(data["num"]))
+	$Label._revalidate_limits()
+	#print($Label.min_value, " ", $Label.max_value)
 	#_on_label_changed.call_deferred()
 
 func _height_key(info: Dictionary) :
 	return 0
 
 func _convert(data: Dictionary, dtype: String) -> Dictionary:
-	if dtype == "text":
-		return {"type": "text", "text": str(data["num"]), "ok": true}
+	match dtype:
+		"text":
+			return {"type": "text", "text": str(data["num"]), "ok": true}
+		"float":
+			return {"type": "float", "val": float(data["num"]), "ok": true}
 	return {}
 
 func _field_convert(who: String, data: String):
@@ -56,11 +72,19 @@ func _resized():
 func _on_label_line_enter() -> void:
 	if $Label.is_valid:
 		cell_data["num"] = int($Label.get_value())
+		#print(cell_data)
+		#print(table._get_cell(coord.x, coord.y))
+		#print(get_instance_id())
+		#print(cell_data)
 
 
 
 func _on_label_changed() -> void:
-	pass
+	var argpack = table.get_column_arg_pack(coord.y)
+	if argpack:
+		$Label.min_value = argpack.min
+		$Label.max_value = argpack.max
+	#print($Label.max_value, " ", coord.y, " ", table.get_column_arg_pack(coord.y))
 	#await get_tree().process_frame
 ##	print(cell_data["text"])
 	#var minimal = (size.x - 40)/$Label.scale.x 

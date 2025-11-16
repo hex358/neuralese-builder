@@ -144,14 +144,14 @@ offset_bottom = 129.0
 layout_mode = 2
 
 [node name="Control" type="Control" parent="ColorRect2/Control/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(90, 30)
+custom_minimum_size = Vector2(90, 35)
 layout_mode = 2
 
 [node name="name" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control"]
 layout_mode = 0
-offset_left = 5.0
+offset_left = 2.0
 offset_top = -8.0
-offset_right = 125.65209
+offset_right = 122.65209
 offset_bottom = 35.0
 scale = Vector2(0.48072103, 0.48072103)
 pivot_offset = Vector2(0, 21.5)
@@ -164,7 +164,8 @@ padding = Vector2(0, 0)
 min_scale = 0.0
 parent_indep = true
 base_size = Vector2(120.65209, 43)
-simple_letters = 10
+simple = true
+simple_letters = 6
 unscaled_size = true
 pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
@@ -172,9 +173,9 @@ metadata/_custom_type_script = "uid://bjncugq5805ty"
 [node name="dtype" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control"]
 self_modulate = Color(0.77, 0.77, 0.77, 1)
 layout_mode = 0
-offset_left = 4.9999995
+offset_left = 2.0
 offset_top = 4.0
-offset_right = 168.36394
+offset_right = 165.36394
 offset_bottom = 47.0
 scale = Vector2(0.31218642, 0.31218642)
 pivot_offset = Vector2(0, 21.5)
@@ -194,14 +195,15 @@ metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="value" type="Label" parent="ColorRect2/Control/ScrollContainer/VBoxContainer/Control"]
 layout_mode = 0
-offset_left = 65.0
+offset_left = 58.0
 offset_top = 5.0
-offset_right = 194.08492
+offset_right = 187.08492
 offset_bottom = 64.16392
 scale = Vector2(0.37184826, 0.37184826)
 theme = ExtResource("6_qoxl0")
 theme_override_font_sizes/font_size = 27
 text = "0/1"
+horizontal_alignment = 2
 autowrap_mode = 3
 
 [node name="Label2" type="Label" parent="ColorRect2/Control"]
@@ -246,7 +248,7 @@ auto_get_base_size = true
 padding = Vector2(0, 0)
 min_scale = 0.0
 parent_indep = true
-base_size = Vector2(130.64719, 43)
+base_size = Vector2(268.55255, 43)
 simple_letters = 10
 unscaled_size = true
 debug = true

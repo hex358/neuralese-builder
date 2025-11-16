@@ -13,11 +13,18 @@ func _defaults() -> Dictionary:
 func _field_convert(who: String, data: String):
 	return data
 func _convert(data: Dictionary, dtype: String) -> Dictionary:
-	if dtype == "num":
-		if data["text"].is_valid_int():
-			return {"type": "num", "num": int(data["text"]), "ok": true}
-		else:
-			return {"type": "num", "num": 0, "ok": false}
+	match dtype:
+		"num":
+			if data["text"].is_valid_int():
+				return {"type": "num", "num": int(data["text"]), "ok": true}
+			else:
+				return {"type": "num", "num": 0, "ok": false}
+		"float":
+			if data["text"].is_valid_float():
+				return {"type": "float", "val": float(data["text"]), "ok": true}
+			else:
+				return {"type": "float", "val": 0, "ok": false}
+			
 	return {}
 
 

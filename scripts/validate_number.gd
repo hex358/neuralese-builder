@@ -8,6 +8,19 @@ class_name ValidNumber
 var prev: float = min_value
 @onready var bef = text
 
+
+func _revalidate_limits() -> void:
+	var v := _parse_number(text)
+	if v < min_value:
+		v = min_value
+	if v > max_value:
+		v = max_value
+
+	prev = v
+	text = _format_number(v)
+	update_valid()
+
+
 func _can_change_to(emit: bool) -> String:
 	var before = prev
 	var prev_text = text
@@ -18,8 +31,8 @@ func _can_change_to(emit: bool) -> String:
 		o = _format_number(min_value)
 		prev = min_value
 	
-	if min_value == 0 and o == _format_number(min_value):
-		o = ""
+	#if min_value == 0 and o == _format_number(min_value) and !allow_float:
+		#o = ""
 	
 	if prev < min_value or prev > max_value:
 		set_text_color(Color(1.0, 0.5, 0.5, 1.0))
@@ -60,6 +73,7 @@ func submit(new: String):
 	reset_text_color()
 
 func inte():
+	#print(max_value)
 	prev_pos = caret_column
 	#print(text)
 	
@@ -111,7 +125,13 @@ func inte():
 		elif i == "+" and num < max_value:
 			if "." in text:
 				var exp = text.split(".")[-1]
-				new = str(float(num + 1/(pow(10, len(exp)-1))))
+				exp = exp.trim_suffix("+")
+				#print(exp)
+				if !exp: exp = "0"
+				#print(exp)
+				new = str(float(num + 1/(pow(10, len(exp)))))
+				var new_exp = new.split(".")[-1]
+				new += "0".repeat(len(exp)-len(new_exp))
 			else:
 				new = _format_number(num + 1)
 			break
@@ -120,7 +140,10 @@ func inte():
 			#print("AA")
 			if "." in text:
 				var exp = text.split(".")[-1]
-				new = str(float(num - 1/(pow(10, len(exp)-1))))
+				exp = exp.trim_suffix("-")
+				new = str(float(num - 1/(pow(10, len(exp)))))
+				var new_exp = new.split(".")[-1]
+				new += "0".repeat(len(exp)-len(new_exp))
 			else:
 				new = _format_number(num - 1)# if num - 1 != 0 else ""
 			break

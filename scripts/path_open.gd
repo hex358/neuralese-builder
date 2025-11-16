@@ -26,15 +26,21 @@ func _ready() -> void:
 			lbl_valid = input
 		return exists)
 var old_dir: String = ""
+var prev_filter = null
 func _just_splash():
-	if !old_dir:
+	var got = passed_data.get("filter", [])
+	var hs = got.hash()
+	if !old_dir or (prev_filter == null or prev_filter != hs):
+		grid.hide()
 		await stable
 		old_dir = OS.get_system_dir(OS.SYSTEM_DIR_DESKTOP)
 	#print("AA")
+		prev_filter = hs
 		grid.current_dir = old_dir
 		#print(old_dir)
-		grid.filter_extensions = glob.to_set(passed_data.get("filter", []))
+		grid.filter_extensions = glob.to_set(got)
 		grid.refresh()
+		grid.show()
 
 func _process(delta: float) -> void:
 	super(delta)
@@ -76,7 +82,7 @@ func _quit_request():
 		await quitting
 		pass
 		hide()
-		##ui.blur.self_modulate.a = 0.0
+		ui.blur.self_modulate.a = 0.0
 
 func _on_trainn_released() -> void:
 	ress()

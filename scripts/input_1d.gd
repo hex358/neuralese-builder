@@ -152,7 +152,7 @@ func _useful_properties() -> Dictionary:
 	for i in units:
 		input_features.append({"value": i.get_value(), "features": i.get_meta("kw").get("features", {})})
 	return {
-		"raw_values": [0.0],
+		"raw_values": to_tensor(),
 		"config": {"input_features": input_features,
 		"subname": "Input1D"}, "shape": len(to_tensor())
 	}
@@ -201,6 +201,7 @@ func _can_drag() -> bool:
 func _proceed_hold() -> bool:
 	#if prev_adding_size:
 	#	return true
+	if running: return true
 	if features["type"] == "class" and ui.is_focus($input/tabs/class/Control/HFlowContainer.line_edit):
 		return true
 	if something_focus(): return true
@@ -310,14 +311,28 @@ func _after_process(delta: float):
 				i.modulate.a = lerpf(i.modulate.a, 1.0, delta * 20.0)
 	#print(cfg)
 	#push_values(range(len(units)), true)
-	if nn.is_infer_channel(self) and glob.space_just_pressed:
-		nn.send_inference_data(self, useful_properties())
+	if nn.is_infer_channel(self) and cd < 0.001:
+		cd = 0.3
+		var new_sent = to_tensor()
+		if last_sent == null or last_sent.hash() != new_sent.hash():
+			last_sent = new_sent
+		#print(new_sent)
+		#	print(useful_properties())
+			nn.send_inference_data(self, useful_properties())
+	cd -= delta
+	if cd <= 0.0001:
+		cd = 0.0
 	if features["type"] == "class":
 		var hflow = $input/tabs/class/Control/HFlowContainer
 		adding_size_y = 18 + max((hflow.size.y-18)*$input/tabs/class/Control.scale.y, 0)
 	
 	
 	#print($input/tabs/class/Control.custom_minimum_size.y)
+
+var last_sent = null
+var cd: float = 0.0
+var prev_tensor
+
 
 func _unit_removal(id: int):
 	if not undo_redo_opened and not glob.is_auto_action() and not manually:
@@ -409,6 +424,8 @@ func graph_updated():
 var running: bool = false
 func _on_run_released() -> void:
 	if not nn.is_infer_channel(self):
+		
+		cd = 2.0
 		if await nn.open_infer_channel(self, close_runner, run_but):
 			running = true
 			run_but.text_offset.x = 0

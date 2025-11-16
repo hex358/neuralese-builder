@@ -89,7 +89,8 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 	unit_labels[dup] = kw["text"]
 	dup.set_meta("label", kw["text"])
 	dup.get_node("Control/Label").text = kw["text"].to_pascal_case()
-	var vec = str(kw["x"]) if kw["datatype"] == "1d" else str(kw["x"]) + "," + str(kw["y"])
+	var vec = str(int(kw["x"])) if kw["datatype"] != "2d" else str(int(kw["x"])) + "," + str(int(kw["y"]))
+
 	dup.get_node("Control/Label2").text = kw["datatype"] + "(" + vec + ")"
 	dup.show()
 	dup.modulate.a = 0.0

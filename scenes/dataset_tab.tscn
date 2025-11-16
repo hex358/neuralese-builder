@@ -318,9 +318,9 @@ layout_mode = 2
 [node name="name" type="Label" parent="Control/view/Control/ScrollContainer/VBoxContainer/Control"]
 layout_mode = 0
 offset_left = 5.0
-offset_top = -8.0
+offset_top = -9.472687
 offset_right = 125.65209
-offset_bottom = 35.0
+offset_bottom = 33.527313
 scale = Vector2(0.59502, 0.59502)
 pivot_offset = Vector2(0, 21.5)
 theme = ExtResource("14_bwfib")
@@ -332,7 +332,8 @@ padding = Vector2(0, 0)
 min_scale = 0.0
 parent_indep = true
 base_size = Vector2(120.65209, 43)
-simple_letters = 10
+simple = true
+simple_letters = 6
 unscaled_size = true
 pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
@@ -340,25 +341,14 @@ metadata/_custom_type_script = "uid://bjncugq5805ty"
 [node name="dtype" type="Label" parent="Control/view/Control/ScrollContainer/VBoxContainer/Control"]
 self_modulate = Color(0.77, 0.77, 0.77, 1)
 layout_mode = 0
-offset_left = 5.0
-offset_top = 10.0
-offset_right = 168.36394
-offset_bottom = 53.0
+offset_left = 4.8916626
+offset_top = 19.144833
+offset_right = 168.2556
+offset_bottom = 213.35635
 scale = Vector2(0.5168145, 0.5168145)
-pivot_offset = Vector2(0, 21.5)
 theme = ExtResource("14_bwfib")
 theme_override_font_sizes/font_size = 27
 text = "bool"
-script = ExtResource("7_q5lcu")
-auto_get_base_size = true
-padding = Vector2(0, 0)
-min_scale = 0.0
-parent_indep = true
-base_size = Vector2(163.36394, 43)
-simple_letters = 10
-unscaled_size = true
-pivoting = true
-metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="value" type="Label" parent="Control/view/Control/ScrollContainer/VBoxContainer/Control" node_paths=PackedStringArray("top")]
 layout_mode = 0
@@ -374,6 +364,8 @@ horizontal_alignment = 2
 autowrap_mode = 3
 script = ExtResource("13_7knke")
 top = NodePath("../../../..")
+
+[node name="n" type="Node2D" parent="Control/view/Control/ScrollContainer/VBoxContainer/Control/value"]
 
 [node name="Label2" type="Label" parent="Control/view/Control"]
 modulate = Color(0.88, 0.76, 1, 1)
@@ -440,6 +432,23 @@ theme = ExtResource("2_fn1yt")
 text = "Preview"
 script = ExtResource("7_q5lcu")
 padding = Vector2(11, 4)
+
+[node name="warn" type="Label" parent="Control/view"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 13.000061
+offset_top = 66.0
+offset_right = -21.0
+offset_bottom = -38.90338
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1, 1.035)
+theme = ExtResource("14_bwfib")
+theme_override_font_sizes/font_size = 16
+text = "Hello world!ппппппппппппппп"
+autowrap_mode = 3
 
 [node name="CodeEdit" type="Control" parent="Control" node_paths=PackedStringArray("vscrollbar", "hscrollbar")]
 visible = false
@@ -708,6 +717,7 @@ config = ExtResource("25_j7vbt")
 
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
+[connection signal="item_rect_changed" from="Control/view/Control" to="." method="_on_control_item_rect_changed"]
 [connection signal="preview_refreshed" from="Control/CodeEdit" to="." method="_on_code_edit_preview_refreshed"]
 [connection signal="released" from="Control/console/train2" to="." method="_on_train_2_released"]
 [connection signal="released" from="Control/console/9" to="." method="_on__released"]

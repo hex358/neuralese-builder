@@ -4,7 +4,23 @@ func _can_drag() -> bool:
 #	print(run)
 	return not run.is_mouse_inside()
 
+func _llm_map(pack: Dictionary):
+	if not pack: return
+	var old = pack["dataset_name"]
+	pack.erase("dataset_name")
+	pack["name"] = old
+	if len(base_config) == 1:
+		update_config({base_config.keys()[0]: pack.values()[0]})
+		if pack.values()[0] is Dictionary:
+			update_config_subfield({base_config.keys()[0]: pack.values()[0]})
+	else:
+		update_config(pack)
+		for f in pack:
+			if pack[f] is Dictionary:
+				update_config_subfield({f: pack[f]})
+
 func _config_field(field: StringName, value: Variant):
+	#print(llm_mapping)
 	if field == "name":
 		if not upd:
 			if not value: value = "[none]"
@@ -14,7 +30,7 @@ func _config_field(field: StringName, value: Variant):
 			await get_tree().process_frame
 			push_meta(glob.load_dataset(value))
 	if field == "meta":
-		push_meta(value)
+		push_meta(glob.load_dataset(cfg["name"]))
 
 var upd: bool = false
 

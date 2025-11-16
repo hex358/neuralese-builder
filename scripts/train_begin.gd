@@ -1,8 +1,9 @@
 extends Graph
 
 func get_training_data():
-	return {"epochs": epochs if epochs else 1, "dataset": "mnist", "test_dataset": "", 
-	"batch_size": 32,}
+	if get_ancestor() and get_ancestor().cfg["name"]:
+		return {"epochs": epochs if epochs else 1, "dataset": get_ancestor().cfg["name"], "test_dataset": "", 
+		"batch_size": 32,}
 
 @onready var clearbut = $train2
 

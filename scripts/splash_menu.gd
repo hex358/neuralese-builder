@@ -7,6 +7,7 @@ var indexed = []
 @export var accept: BlockComponent = null
 @export var first_line: Control = null
 @export var persistent: bool = false
+@export var show_on_ready: bool = true
 
 var t: float = 0.0
 var target_mod: float = 0.0
@@ -14,7 +15,8 @@ var from_scale: Vector2
 var to_scale: Vector2
 
 func _ready() -> void:
-	readys()
+	if show_on_ready:
+		readys()
 
 func readys():
 	RenderingServer.global_shader_parameter_set("_view_scale", 1.0)

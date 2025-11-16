@@ -40,6 +40,7 @@ func quit(data: Dictionary = {}):
 		#get_parent().remove_child(self)
 
 func re_recv():
+	if not glob._logged_in: return
 	var received = await glob.request_chat(str(chat_id))
 	if received:
 		for i in received:
@@ -81,7 +82,11 @@ func re_recv():
 
 
 func _ready() -> void:
+	hide()
 	super()
+	hide()
+	if passed_data.has("away"):
+		go_away()
 	#get_stuff()
 	#quitting.connect(reparent_stuff)
 	_user_message.queue_free()
