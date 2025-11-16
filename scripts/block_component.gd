@@ -704,6 +704,7 @@ func _process_block_button(delta: float) -> void:
 	var frozen = is_contained and parent.is_frozen or is_frozen
 	blocked = blocked or (ui.active_splashed() and not in_splash) or ui.topr_inside
 	blocked = blocked or (!base_in_splash and ui.splashed_in)
+	blocked = blocked or (graph and graph is Graph and graph.dragging)
 	
 	#if _wrapped_in.get_parent().name == "Control2":
 	#	print(ui.splashed_in.keys()[0].menu_name)#if name == "run" and _wrapped_in.get_parent() is Label:

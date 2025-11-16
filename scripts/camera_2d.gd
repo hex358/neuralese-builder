@@ -124,8 +124,8 @@ func change_cam(zoom, center):
 
 var rise_mult := 0.0
 func _process(delta: float) -> void:
-	if not glob.is_scroll_possible():
-		target_zoom = zoom.x
+	#if not glob.is_scroll_possible():
+	#	target_zoom = zoom.x
 	if glob.mouse_middle_just_pressed and not paused:
 		acc = glob.get_display_mouse_position().x < glob.space_end.x
 

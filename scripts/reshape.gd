@@ -34,7 +34,7 @@ func _just_attached(who: Connection, to: Connection):
 	#print("A")
 	var cond = graphs.is_layer(who.parent_graph, "Dense")
 	if who.parent_graph.server_typename in "Flatten" or cond:
-		var total:int = who.parent_graph.neuron_count
+		var total:int = who.parent_graph.get_x()
 		var rows:int = cfg.rows; var columns:int = cfg.columns
 		if rows == 0 and columns == 0:
 			var factors = _find_balanced_factors(total)

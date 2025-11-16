@@ -320,7 +320,8 @@ func just_connected(who: Connection, to: Connection):
 	in_abstraction = true
 	graphs.update_dependencies()
 	_just_connected(who, to)
-	graphs.spline_connected.emit(who, to)
+	if not deleting:
+		graphs.spline_connected.emit(who, to)
 	in_abstraction = false
 
 
@@ -448,7 +449,8 @@ func just_disconnected(who: Connection, from: Connection):
 
 func disconnecting(who: Connection, from: Connection):
 	#print(server_typename)
-	graphs.spline_disconnected.emit(who, from)
+	if not deleting:
+		graphs.spline_disconnected.emit(who, from)
 	#graphs.update_dependencies(who.parent_graph)
 	from.parent_graph.deattaching(who, from)
 	_disconnecting(who, from)
@@ -1283,26 +1285,37 @@ func delete_call():
 			existed[val] = true
 			res.append(dict)
 	#print(res)
-	if selected:
-		glob.open_action_batch()
-		for i in dup:
-			var pos = i.position
-			var callb = graphs.get_graph.bind(i.get_meta("created_with"), Flags.NEW, i.graph_id, i.llm_tag)
-			glob.add_action(glob.bound.bind(callb, pos, i.cfg.duplicate(true)), 
-			graphs.delete_graph_by_id.bind(i.graph_id))
-			#print(i.get_title())
-			i.delete(false)
-		glob.add_action(glob.create_conns.bind(res), glob.destroy_conns.bind(res))
-		glob.close_action_batch()
-	else:
-		glob.open_action_batch()
-		var pos = position
-		var callb = graphs.get_graph.bind(get_meta("created_with"), Flags.NEW, graph_id, llm_tag)
-		glob.add_action(glob.bound.bind(callb, pos, cfg.duplicate(true), false), graphs.delete_graph_by_id.bind(graph_id))
-		
-		glob.add_action(glob.create_conns.bind(res), glob.destroy_conns.bind(res))
-		delete(false)
-		glob.close_action_batch()
+	#if len(res) != 1:
+	glob.open_action_batch()
+	for i in dup:
+		var pos = i.position
+		i.deleting = true
+		var callb = graphs.get_graph.bind(i.get_meta("created_with"), Flags.NEW, i.graph_id, i.llm_tag)
+		glob.add_action(glob.bound.bind(callb, pos, i.cfg.duplicate(true)), 
+		graphs.delete_graph_by_id.bind(i.graph_id))
+		#print(i.get_title())
+		i.delete(false)
+	glob.add_action(glob.create_conns.bind(res), glob.destroy_conns.bind(res))
+	
+	#if len(res) != 1:
+	#await get_tree().process_frame
+	#await get_tree().process_frame
+	glob.delay_close()
+	#else:
+		#glob.open_action_batch()
+		#var pos = i.position
+		#i.deleting = true
+		#var callb = graphs.get_graph.bind(i.get_meta("created_with"), Flags.NEW, i.graph_id, i.llm_tag)
+		#glob.add_action(glob.bound.bind(callb, pos, i.cfg.duplicate(true)), 
+		#graphs.delete_graph_by_id.bind(i.graph_id))
+		##print(i.get_title())
+		#i.delete(false)
+		#glob.add_action(glob.create_conns.bind(res), glob.destroy_conns.bind(res))
+		#glob.close_action_batch()
+		#deleting = false
+
+
+var deleting: bool = false
 
 func copy():
 	request_save()

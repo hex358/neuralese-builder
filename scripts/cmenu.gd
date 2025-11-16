@@ -53,6 +53,8 @@ func _menu_handle_release(button: BlockComponent):
 			type = "train_rl"
 		"dropout":
 			type = "dropout"
+		"concat":
+			type = "concat"
 
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
 	var world_pos = graphs.get_global_mouse_position()

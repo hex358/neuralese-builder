@@ -25,11 +25,13 @@ func set_names(names: Array):
 
 func _config_field(field: StringName, value: Variant):
 	if not manually and field == "label_names" and not trigger:
+		#print_stack()
 		#_applying_labels += 1
+		if units: return
 		for i in len(units):
 			remove_unit(0)
 		for i in len(value):
-			add_unit({"text": value[i]})
+			add_unit({"text": value[i]}, true)
 		push_values(value_cache, per)
 		#_applying_labels -= 1
 		hold_for_frame()

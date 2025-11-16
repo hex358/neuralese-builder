@@ -265,8 +265,12 @@ func detatch_spline(spline: Spline, manual: bool = false):
 	#if parent_graph.server_typename == "InputNode":
 	#	print("AAA")
 
+@export var auto_rename: bool = false
+
 var conn_counts: Dictionary = {&"": [0]}
 func _ready() -> void:
+	if auto_rename:
+		server_name += str(hint)
 	if !Engine.is_editor_hint() and !is_instance_valid(parent_graph):
 		parent_graph = get_parent()
 	if !Engine.is_editor_hint() and parent_graph:
@@ -339,6 +343,8 @@ func disconnect_from(target: Connection, force: bool = false, manual: bool = fal
 			outputs[i].tied_to.detatch_spline(outputs[i], manual)
 
 func connect_to(target: Connection, force: bool = false) -> bool:
+	#if parent_graph.server_typename == "TrainBegin":
+	#	print(target.parent_graph)
 	if not is_instance_valid(target) or target == self:
 		return false
 	if connection_type != OUTPUT:
@@ -357,6 +363,9 @@ func connect_to(target: Connection, force: bool = false) -> bool:
 	var slot = add_spline()
 	start_spline(slot)
 	attach_spline(slot, target)
+	#if parent_graph.server_typename == "TrainBegin":
+		
+	#	print("fjfj")
 	return true
 
 func dtype(conn: Connection):

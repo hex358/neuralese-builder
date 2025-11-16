@@ -641,8 +641,8 @@ func _process(delta: float) -> void:
 	#if _menu_type_occupator and _menu_type_occupator is Connection:
 	#	print(_menu_type_occupator.parent_graph.process_mode == Node.PROCESS_MODE_DISABLED)
 	
-	if space_just_pressed:
-		save_datasets()
+	#if space_just_pressed:
+	#	save_datasets()
 	if not ui.active_splashed():
 		if Input.is_action_just_pressed("ctrl_z"):
 			#print("A")
@@ -808,6 +808,7 @@ var llm_name_mapping = {
 	load_environment = "lua_env",
 	train_rl = "train_rl",
 	dropout = "dropout",
+	concat = "concat",
 }
 
 var tag_types = {}
@@ -1328,6 +1329,7 @@ func add_action(undo: Callable, redo: Callable, ...args):
 
 	var undo_callable = func():
 		is_undoing = true
+		#print(undo)
 		if undo.is_valid():
 			if args:
 				undo.callv(args)
@@ -1344,6 +1346,7 @@ func add_action(undo: Callable, redo: Callable, ...args):
 				redo.call()
 		call_deferred("_end_auto_action", "redo")   # ← defer flag reset
 
+	#print_stack()
 	if in_batch:
 		action_batch.append([redo_callable, undo_callable])
 	else:
@@ -1352,6 +1355,11 @@ func add_action(undo: Callable, redo: Callable, ...args):
 		undo_redo.add_undo_method(undo_callable)
 		undo_redo.commit_action(false)
 
+
+func delay_close():
+	await get_tree().process_frame
+	await get_tree().process_frame
+	close_action_batch()
 
 func _end_auto_action(kind: String):
 	if kind == "undo":
@@ -1519,7 +1527,7 @@ func _ready() -> void:
 	await get_loaded_datasets()
 	#print(_load)
 	#print(load_dataset("mnist"))
-	open_last_project()
+	await open_last_project()
 	#await wait(1)
 	#test_place()
 	load_datasets()

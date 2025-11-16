@@ -404,6 +404,24 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
+[node name="23" parent="add_graph" instance=ExtResource("2_rnbi1")]
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)
+layout_mode = 0
+offset_left = 302.667
+offset_top = -258.667
+offset_right = 521.667
+offset_bottom = -217.66699
+pivot_offset = Vector2(109.5, 20.5)
+color = Color(0.463817, 0.4505, 0.85, 1)
+button_type = 1
+hint = &"concat"
+text = "Concat"
+base_size = Vector2(219, 41)
+alignment = Vector2(0.5, 0.5)
+config = ExtResource("5_0ypn7")
+
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
 material = ExtResource("3_gygdu")

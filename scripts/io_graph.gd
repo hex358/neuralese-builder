@@ -133,6 +133,11 @@ func _add_q(kw: Dictionary):
 @export var lerp_size: bool = true
 @export var input_y_add: float = 0.0
 
+
+func _unit_pos_change(un: Control):
+	pass
+
+
 var prev_frame_changed: bool = false
 var prev_adding_size: float = 0.0
 func _after_process(delta: float):
@@ -206,8 +211,10 @@ func _after_process(delta: float):
 		var target = offset_units[unit]
 		if not is_instance_valid(unit): to_del.append(unit); continue
 		unit.position.y = lerpf(unit.position.y, target, delta*20.0)
+		_unit_pos_change(unit)
 		if abs(target - unit.position.y) < 1:
 			unit.position.y = target
+			_unit_pos_change(unit)
 			to_del.append(unit)
 	for unit in to_del:
 		offset_units.erase(unit)

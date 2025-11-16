@@ -79,6 +79,7 @@ func _infer_state_received(bytes: PackedByteArray, ws: SocketConnection):
 			#print("ACK")
 			ws.ack.emit()
 		if "result" in _dict and _dict["result"] is Dictionary:
+			#print(_dict)
 			for i in _dict["result"]:
 				var node: Graph = graphs._graphs.get(int(i))
 				if not node: continue
@@ -154,6 +155,7 @@ func send_inference_data(input: Graph, data: Dictionary, output: bool = false):
 	if not (input in inference_sockets):
 		push_warning("No inference channel open for this graph")
 		return
+	#print(data)
 	if "full_graph" in data:
 		if not check_valid(input):
 			

@@ -39,6 +39,7 @@ func _process(delta: float) -> void:
 		q = false
 	if glob.curr_window != "graph":
 		hide()
+		graphs.unselect_all()
 	if q and not ui.active_splashed() and glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
 	and not graphs.dragged and not graphs.conning() and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y \
 	and not glob.is_occupied(self, "graph_buffer"):
@@ -101,7 +102,7 @@ func _process(delta: float) -> void:
 			else:
 				graphs._graphs[g].unselect()
 
-	if selecting and visible:
+	if selecting and visible and (size.x > 20 or size.y > 20):
 		var vp_rect = get_viewport_rect()
 		var mouse = get_viewport().get_mouse_position()
 		var edge_margin = 80.0  # pixels from edge where panning starts

@@ -15,6 +15,7 @@ func display_ds_meta():
 func set_dataset_meta(meta: Dictionary):
 	var old_meta = dataset_meta
 	dataset_meta = meta
+	#print(meta)
 	display_ds_meta()
 	var a 
 	#print(meta)
@@ -32,10 +33,11 @@ func set_dataset_meta(meta: Dictionary):
 	await get_tree().process_frame
 #	print(get_descendant())
 #	print(get_descendant().input_keys[0].hint)
-	if not "env" in old_meta and get_descendant() and not get_descendant()._is_suitable_other_conn(outputs[0], get_descendant().input_keys[0]):
+	if not graphs.loading and not "env" in old_meta and get_descendant() and not get_descendant()._is_suitable_other_conn(outputs[0], get_descendant().input_keys[0]):
 		#print(get_descendant()._is_suitable_conn(outputs[0], get_descendant().input_keys[0]))
 		#await get_tree().process_frame
 		#print(dataset_meta["name"])
+		#print_stack()
 		outputs[0].disconnect_all()
 
 #func _just_attached(other_conn: Connection, my_conn: Connection):
@@ -137,8 +139,8 @@ func _stopped_processing():
 	glob.set_scroll_possible(self)
 
 func _process(delta: float) -> void:
-	if glob.space_just_pressed:
-		print(graphs.get_syntax_tree(self))
+	#if glob.space_just_pressed:
+	#	print(graphs.get_syntax_tree(self))
 	super(delta)
 	if $ColorRect2.get_global_rect().has_point(get_global_mouse_position()) and vbox_vis():
 		glob.set_scroll_impossible(self)

@@ -286,7 +286,7 @@ function __set_user_src(code)
   if not fn then
     __had_error = true
     __last_error = tostring(err)
-    print('[color=coral]' .. __last_error .. '[/color]')
+	print('[color=coral]' .. __last_error .. '[/color]')
     return __last_error
   end
   __user_chunk = fn
@@ -308,7 +308,7 @@ function __step()
     if not ok then
       __had_error = true
       __last_error = tostring(err)
-      --print('[lua runtime error]\\n' .. __last_error)
+	  --print('[lua runtime error]\\n' .. __last_error)
       return __last_error
     end
   end
@@ -327,7 +327,7 @@ function __call_newFrame(dt)
   if not ok then
     __had_error = true
     __last_error = tostring(res)
-    --print('[lua runtime error in newFrame]\\n' .. __last_error)
+	--print('[lua runtime error in newFrame]\\n' .. __last_error)
     return __last_error
   end
   return nil
@@ -340,7 +340,7 @@ function __call_createScene()
   if not ok then
     __had_error = true
     __last_error = tostring(res)
-    --print('[lua runtime error in createScene]\\n' .. __last_error)
+	--print('[lua runtime error in createScene]\\n' .. __last_error)
     return __last_error
   end
   return nil

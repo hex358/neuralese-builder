@@ -381,15 +381,18 @@ func get_cache(name: String, whose: Graph = null):
 	if whose: name = str(whose.graph_id) + name
 	return caches.get(name, {})
 
+var loading: bool = false
+
 func load_graph(state: Dictionary, reg: Dictionary):
 	z_count = RenderingServer.CANVAS_ITEM_Z_MIN
+	loading = true
 	var chain = glob.base_node.importance_chain
 	var type_layers = {}
 	var sequence = {}
 	for i in len(chain):
 		type_layers[chain[i]] = i
 		sequence[i] = []
-
+	_graphs.clear()
 		
 	for id in state:
 		var pack = state[id]
@@ -397,6 +400,7 @@ func load_graph(state: Dictionary, reg: Dictionary):
 		sequence[type_layers[pack.created_with]].append(pack)
 	
 	var edges = {} # from: [to1, to2, ...]
+	var skip = {}
 	for layer in sequence:
 		for pack in sequence[layer]:
 			var graph: Graph = get_graph(pack.created_with, Graph.Flags.NONE, pack.id)
@@ -407,15 +411,35 @@ func load_graph(state: Dictionary, reg: Dictionary):
 				graph.output_keys[port_key].update_conn_id(id)
 				pack.outputs[port_key].remove_at(-1)
 				edges[id] = pack.outputs[port_key]
+			if graph.server_typename == "DatasetName":
+				skip[graph] = true
+			#	print(pack)
+				graph.map_properties(pack)
 			for port_id in pack.inputs:
+				if not graph.input_keys.has(pack.inputs[port_id]):
+					continue
 				graph.input_keys[pack.inputs[port_id]].update_conn_id(port_id)
 	await get_tree().process_frame
 	for conn_id in edges:
 		for other_conn_id in edges[conn_id]:
+			if not conn_id in connection_ids:
+				continue
+			if not other_conn_id in connection_ids:
+				continue
 			connection_ids[conn_id].connect_to(connection_ids[other_conn_id], true)
-	
+			if connection_ids[conn_id].parent_graph.server_typename == "TrainBegin":
+				#print(connection_ids[conn_id].parent_graph.server_typename)
+				#print("connection happens..!")
+				skip[connection_ids[conn_id].parent_graph] = true
+			if connection_ids[conn_id].parent_graph.server_typename == "DatasetName":
+				#print(connection_ids[conn_id].parent_graph.server_typename)
+				#print("connection happens..! (dsname)")
+				skip[connection_ids[conn_id].parent_graph] = true
 	Graph._subgraph_registry.clear()
 	for g in _graphs:
+		if _graphs[g] in skip:
+			#print("fkfk")
+			continue
 		_graphs[g].map_properties(_graphs[g].get_meta("pack", {}))
 		_graphs[g].hold_for_frame.call_deferred()
 	
@@ -425,6 +449,10 @@ func load_graph(state: Dictionary, reg: Dictionary):
 			for node_id in graphs._graphs:
 				if graphs._graphs[node_id].graph_id == gid:
 					Graph._subgraph_registry[int(sub_id)].append(graphs._graphs[node_id])
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	loading = false
 	return true
 	#Graph.debug_print_contexts()
 
@@ -768,6 +796,7 @@ var graph_types = {
 	"lua_env": gload("res://scenes/env_tag.tscn"),
 	"train_rl": gload("res://scenes/train_rl.tscn"),
 	"dropout": gload("res://scenes/dropout.tscn"),
+	"concat": gload("res://scenes/layer_concat.tscn"),
 }
 
 
@@ -837,6 +866,8 @@ func push_1d(columns: int, who: Graph):
 			push_1d(columns, i)
 		if is_node(i, "ClassifierNode"):
 			i.push_result_meta({"datatype": "1d", "x": columns})
+		if is_node(i, "Concat"):
+			push_1d(i.get_x(), i)
 
 func push_2d(columns: int, rows: int, target):
 	#print("repush..")

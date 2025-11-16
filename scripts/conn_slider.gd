@@ -12,6 +12,8 @@ func get_value():
 	match features.type:
 		"float":
 			return $HSlider.value / $HSlider.max_value
+		"sfloat":
+			return lerpf(features.min, features.max, $HSlider.value)
 		"int":
 			return ($val.get_value() - $val.min_value) / ($val.max_value - $val.min_value)
 		

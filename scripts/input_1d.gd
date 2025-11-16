@@ -67,6 +67,18 @@ func _adding_unit(who: Control, kw: Dictionary):
 			kw["min"] = 0.0
 			kw["max"] = 1.0
 			hslider_val_changed(0.0, hslider, kw)
+		"sfloat":
+			var hslider = who.get_node("HSlider")
+			hslider.value_changed.connect(hslider_val_changed.bind(hslider, kw))
+			hslider.show()
+			who.get_node("Label2").show()
+			#print(kw)
+			hslider.tree_exiting.connect(func(): hsliders.erase(idx))
+			hsliders[idx] = hslider
+			#await get_tree().process_frame
+			kw["min"] = -1.0
+			kw["max"] = 1.0
+			hslider_val_changed(0.0, hslider, kw)
 		"class":
 			var got = who.get_node("loss")
 			got.show()
@@ -119,6 +131,8 @@ func to_tensor(cells: bool = false):
 		match features.type:
 			"float":
 				a.append(i.get_value() if !cells else [i.get_value()])
+			"sfloat":
+				a.append(i.get_value() if !cells else [i.get_value()])
 			"int":
 				a.append(i.get_value() if !cells else [i.get_value()])
 			"bool":
@@ -140,7 +154,7 @@ func to_tensor(cells: bool = false):
 
 
 func hslider_val_changed(val: float, slider: HSlider, kw: Dictionary):
-	var k = (val / slider.max_value)
+	var k = lerp(kw["min"], kw["max"], (val / slider.max_value))
 	var fit = k
 	var capped = str(glob.cap(fit, 2))
 	if len(capped.split(".")[-1]) == 1: capped += "0"
@@ -151,6 +165,7 @@ func _useful_properties() -> Dictionary:
 	var input_features = []
 	for i in units:
 		input_features.append({"value": i.get_value(), "features": i.get_meta("kw").get("features", {})})
+	#print(to_tensor())
 	return {
 		"raw_values": to_tensor(),
 		"config": {"input_features": input_features,
@@ -295,6 +310,8 @@ func set_state_open():
 var target_tab: String = ""
 func _after_process(delta: float):
 #	print(adding_size_y)
+	#if glob.space_just_pressed:
+	#	print(graphs.get_syntax_tree(self))
 	#print(to_tensor())
 	super(delta)
 	if target_tab:
