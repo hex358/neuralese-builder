@@ -72,7 +72,15 @@ func stepping() -> bool:
 func update(d: float):
 	if not is_inside_tree() or lua == null:
 		return
-
+	
+	#for i in model_qs:
+	#	if i[1] != null and i[1] is not InferJob:
+	#		pass
+		#i = i[1]
+		#var first = i.pop_front()
+		#if first:
+			#
+	
 	if _lua_step:
 		#print("Lua step valid:", _lua_step.is_valid(), " type:", typeof(_lua_step))
 
@@ -148,9 +156,9 @@ func _draw() -> void:
 	if stopped: return
 	for shape in shapes:
 		if shape == null: continue
-		var pos = Vector2(shape["x"], -shape["y"])
+		var pos = Vector2(shape["x"], shape["y"])
 		var rot = float(shape.get("rotation", 0.0))
-		draw_set_transform(pos, -rot, Vector2.ONE)
+		draw_set_transform(pos, rot, Vector2.ONE)
 		if shape["type"] == "circle":
 			draw_circle(Vector2.ZERO, shape["r"], shape["color"])
 		elif shape["type"] == "rect":
@@ -586,6 +594,85 @@ func lua_get_mouse_pos() -> Dictionary:
 # Inference
 # -------------------------
 
+var model_qs = {}
+func enq_open_model(node: Graph, name: String):
+	created_models[name] = true
+	var open_res = await nn.open_infer_channel(node, node.close_runner)
+	if open_res:
+		
+		model_qs[name] = [node, null, false]
+
+func lua_open_model(name: String):
+	var node = graphs.get_input_graph_by_name(name)
+	if node == null:
+		return {"_error":"no_node"}
+	if not cookies.get_auth_header():
+		return {"_error":"no_login", "type": -1, "repr": ""}
+	if not nn.validate_infer_channel(node):
+		return {"_error": "graph_invalid"}
+	
+	if not nn.is_infer_channel(node):
+		enq_open_model.call_deferred(node, name)
+	else:
+		model_qs[name] = [node, null, false]
+	return {}
+		#var open_res = await nn.open_infer_channel(node, node.close_runner)
+
+func lua_push_model(name: String, input: Array):
+	var node
+	if name in model_qs:
+		node = model_qs[name][0]
+		if model_qs[name][2]:
+			return {"_error": "please_pull_result"}
+	else:
+		return {"_error":"model_not_started"}
+	
+	if node == null:
+		return {"_error":"no_node"}
+	if not cookies.get_auth_header():
+		return {"_error":"no_login", "type": -1, "repr": ""}
+	if not nn.validate_infer_channel(node):
+		return {"_error": "graph_invalid"}
+	var useful = node.useful_properties()
+	useful["raw_values"] = input
+	model_qs[name][1] = InferJob.new()
+	infer_job.call_deferred(name, node, useful, model_qs[name][1])
+	#if not nn.is_infer_channel(node):
+
+func lua_can_pull_model(name: String):
+	return name in model_qs and model_qs[name][1] != null and not model_qs[name][1] is InferJob
+
+func lua_pull_model(name: String):
+	var node
+	if name in model_qs:
+		node = model_qs[name][0]
+	else:
+		return {"_error":"model_not_started", "result": []}
+	if node == null:
+		return {"_error":"no_node"}
+	if not cookies.get_auth_header():
+		return {"_error":"no_login", "type": -1, "repr": "", "result": []}
+	if not nn.validate_infer_channel(node):
+		return {"_error": "graph_invalid", "result": []}
+	#print(model_qs)
+	if model_qs[name][1] != null and not model_qs[name][1] is InferJob:
+		model_qs[name][2] = false
+		#print(model_qs[name][1])
+		return {"result": model_qs[name][1]}
+	return {"result": []}
+	#if not nn.is_infer_channel(node):
+
+class InferJob:
+	signal finished
+
+func infer_job(name, node, useful, job: InferJob):
+	var result = await nn.send_inference_data(node, useful, true)
+	model_qs[name][2] = true
+#	print(useful)
+	job.finished.emit()
+	model_qs[name][1] = result
+
+
 func async_lua_run_model(name: String, input: Array) -> LuaFuture:
 	var f := LuaFuture.new()
 	_call_inference(name, input, f)
@@ -614,19 +701,20 @@ func _exit_tree() -> void:
 func _call_inference_task(name: String, input: Array, fut: LuaFuture) -> void:
 	var node = graphs.get_input_graph_by_name(name)
 	if node == null:
-		fut._complete({"_error":"no_node"})
+		fut._complete({"_error":"no_node", "result": []})
 		return
 
 	var useful = node.useful_properties()
 	useful["raw_values"] = input
 	if not cookies.get_auth_header():
-		fut._complete({"_error":"no_login", "type": -1, "repr": ""})
+		fut._complete({"_error":"no_login", "type": -1, "repr": "", "result": []})
 		return
 
 	if not nn.is_infer_channel(node):
 		var open_res = await nn.open_infer_channel(node, node.close_runner)
+		created_models[name] = true
 		if not open_res:
-			fut._complete({"_error":"invalid_graph", "type": -1, "repr": ""})
+			fut._complete({"_error":"invalid_graph", "type": -1, "repr": "", "result": []})
 			return
 		#await open_res.connected
 		#while not open_res.is_listening():
@@ -637,8 +725,9 @@ func _call_inference_task(name: String, input: Array, fut: LuaFuture) -> void:
 	var result = await nn.send_inference_data(node, useful, true)
 
 	if typeof(result) != TYPE_DICTIONARY:
-		result = {"_error":"bad_type", "type": typeof(result), "repr": str(result)}
-
+		result = {"_error":"bad_type", "type": typeof(result), "repr": str(result), "result": []}
+	else:
+		result = {"result": result}
 	fut._complete(result)
 
 
@@ -663,20 +752,15 @@ func lua_clear() -> void:
 
 var stopped: bool = false
 
+var created_models: Dictionary = {}
+
 func stop() -> void:
 	if stopped:
 		return
 	#print("djdfj")
 	stopped = true
 
-	# Free any physics bodies
-	for s in shapes:
-		if typeof(s) == TYPE_DICTIONARY and s.get("physics_enabled", false) and s.has("body"):
-			var b = s["body"]
-			s["body"] = null
-			if is_instance_valid(b):
-				b.queue_free()
-	shapes.clear()
+
 
 	# Nuke Lua VM cleanly
 	if lua:
@@ -686,6 +770,20 @@ func stop() -> void:
 	_lua_coroutines.clear()
 
 	# Defer freeing this node to avoid freeing mid-callback
+	await get_tree().process_frame
+	for i in created_models:
+		var got = graphs.get_input_graph_by_name(i)
+		if not got: continue
+		nn.close_infer_channel(got)
+	created_models.clear()
+	# Free any physics bodies
+	for s in shapes:
+		if typeof(s) == TYPE_DICTIONARY and s.get("physics_enabled", false) and s.has("body"):
+			var b = s["body"]
+			s["body"] = null
+			if is_instance_valid(b):
+				b.queue_free()
+	shapes.clear()
 	call_deferred("queue_free")
 
 func lua_set_rotation(id: int, angle: float) -> void:

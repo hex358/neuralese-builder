@@ -10,6 +10,8 @@ func _useful_properties() -> Dictionary:
 	
 	return {"config": {"concat_order": body}}
 
+
+
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
 	dup.get_node("Label").text = "Slot " + str(len(units))
@@ -64,7 +66,7 @@ func _config_field(field: StringName, value: Variant):
 
 var trigger: bool = false
 func _unit_removal(id: int):
-	
+	units[id].get_node('o').queue_free()
 	if not glob.is_auto_action():
 		var res = len(units)
 		glob.add_action((

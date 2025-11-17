@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=10 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="Script" uid="uid://drad1dm8hrqwt" path="res://scripts/project.gd" id="1_6ipd3"]
 [ext_resource type="PackedScene" uid="uid://tjiw5jmnnrgh" path="res://scenes/fg.tscn" id="1_djuk3"]
@@ -9,9 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://by1briddb0hwg" path="res://scenes/bg.tscn" id="5_sa0gx"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://scripts/camera_2d.gd" id="6_agq83"]
 [ext_resource type="Script" uid="uid://ddn84p6nhiie0" path="res://scripts/follow_menus.gd" id="7_ioxnp"]
-[ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="10_sa0gx"]
-[ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="11_agq83"]
-[ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="12_3560t"]
 
 [node name="base" type="Node2D"]
 script = ExtResource("1_6ipd3")
@@ -44,25 +41,3 @@ follow_viewport_enabled = true
 script = ExtResource("7_ioxnp")
 
 [node name="bg" parent="WIN_GRAPH" instance=ExtResource("5_sa0gx")]
-
-[node name="ColorRect2" parent="." instance=ExtResource("10_sa0gx")]
-material = ExtResource("11_agq83")
-instance_shader_parameters/corner_radius_width_add = Vector2(-3, 0.3)
-instance_shader_parameters/outline_color = Color(0.78039217, 0.78039217, 0.78039217, 1)
-instance_shader_parameters/tuning = Color(0.65882355, 0.65882355, 0.65882355, 0.4627451)
-offset_left = -1.0
-offset_top = 4.0
-offset_right = 98.0
-offset_bottom = 26.0
-scale = Vector2(0.601426, 0.601426)
-pivot_offset = Vector2(49.5, 11)
-color = Color(1, 1, 1, 0)
-button_type = 1
-top = true
-hint = &"float"
-base_scale_x = 0.6
-resize_after = 5
-text = "float"
-base_size = Vector2(99, 22)
-alignment = Vector2(0.5, 0.5)
-config = ExtResource("12_3560t")

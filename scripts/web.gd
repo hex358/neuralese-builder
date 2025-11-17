@@ -1,9 +1,10 @@
 extends Node
+class_name WebAPI
 
 const api_url: String = "http://localhost:8000/"
 
 func _ready() -> void:
-	pass
+	add_child(Transcriber.new())
 
 class RequestHandle:
 	extends RefCounted

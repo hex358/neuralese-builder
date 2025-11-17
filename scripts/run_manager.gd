@@ -42,6 +42,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def, run_b
 	if !is_instance_valid(train_input_origin) or !execute_input_origin: return false
 	#print(execute_input_origin.server_typename)
 	#print(train_input_origin.server_typename)
+	if not check_valid(execute_input_origin, false): return false
 	request_save()
 	var compressed = glob.compress_dict_zstd({
 		"session": "neriqward",
@@ -109,6 +110,16 @@ func check_valid(input: Graph, train: bool = false):
 		if not i.is_valid():
 			return false
 	return has_necc
+
+func validate_infer_channel(input: Graph):
+	#if input in inference_sockets and is_instance_valid(inference_sockets[input]):
+	#	return false# already open
+	if not check_valid(input): 
+	#	print("fals")
+		return false
+	if not glob._logged_in:
+		return false
+	return true
 
 func open_infer_channel(input: Graph, on_close: Callable = glob.def, run_but: BlockComponent = null):
 	if input in inference_sockets and is_instance_valid(inference_sockets[input]):

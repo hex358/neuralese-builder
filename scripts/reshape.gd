@@ -32,8 +32,8 @@ func _can_drag() -> bool:
 
 func _just_attached(who: Connection, to: Connection):
 	#print("A")
-	var cond = graphs.is_layer(who.parent_graph, "Dense")
-	if who.parent_graph.server_typename in "Flatten" or cond:
+#	var cond = graphs.is_layer(who.parent_graph, "Dense")
+	if 1:
 		var total:int = who.parent_graph.get_x()
 		var rows:int = cfg.rows; var columns:int = cfg.columns
 		if rows == 0 and columns == 0:
@@ -88,16 +88,7 @@ func _is_valid() -> bool:
 	var ancestors = get_first_ancestors()
 	if ancestors:
 		var graph = ancestors[0]
-		match graph.server_typename:
-			"Flatten": 
-				return total == graph.display_count
-			"NeuronLayer":
-				if graph.layer_name == "Dense":
-					return total == graph.cfg.neuron_count
-				#elif graph.layer_name == "Conv2D":
-				#	return cfg.rows == 
-			"InputNode":
-				return total == 28*28
+		return total == graph.get_x()
 	return true
 
 func _visualise_valid(ok: bool):

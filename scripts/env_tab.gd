@@ -65,6 +65,7 @@ func _window_hide():
 	glob.un_occupy(list, "menu_inside")
 	if process != null and running_name in luas.processes:
 		run_bt.get_node("TextureRect").texture = run_base_txt
+		
 		luas.remove_process(running_name); return
 	
 func reload_scenes():
@@ -154,6 +155,7 @@ var max_game_size_ncode: float = 1800.0
 func set_code_hidden(hidden: bool) -> void:
 	code_hidden = hidden
 	$Control/CodeEdit.visible = not hidden
+	$Control/console.visible = not hidden
 	tick(true)
 	ui.move_mouse(get_global_mouse_position())
 
@@ -407,7 +409,7 @@ func _on_run_released() -> void:
 		run_bt.get_node("TextureRect").texture = run_base_txt)
 	process.debug_printer = debug_print
 	viewport.add_child(process)
-	process.position.y = viewport.size.y
+	process.position.y = 0
 
 func reset():
 	current_lua_env = null
