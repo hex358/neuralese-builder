@@ -310,8 +310,8 @@ func set_state_open():
 var target_tab: String = ""
 func _after_process(delta: float):
 #	print(adding_size_y)
-	if glob.space_just_pressed:
-		print(graphs.get_syntax_tree(self))
+	#if glob.space_just_pressed:
+	#	print(graphs.get_syntax_tree(self))
 	#print(to_tensor())
 	super(delta)
 	if target_tab:

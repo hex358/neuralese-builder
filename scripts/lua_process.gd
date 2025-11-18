@@ -30,6 +30,8 @@ func _process(delta: float) -> void:
 	if _accum_time < _frame_interval:
 		return
 	_accum_time -= _frame_interval
+	if stopping or stopped:
+		return
 
 	# regular update tick
 	update(_frame_interval)
@@ -72,7 +74,8 @@ func stepping() -> bool:
 func update(d: float):
 	if not is_inside_tree() or lua == null:
 		return
-	
+	if stopping or stopped:
+		return
 	#for i in model_qs:
 	#	if i[1] != null and i[1] is not InferJob:
 	#		pass
@@ -405,20 +408,29 @@ end
 		var cb: Callable = lua.get_registry_value(reg_key)
 		if cb == null or not cb.is_valid():
 			printerr("[LuaBridge] invalid callable for ", reg_key)
-			return null
-		var out = cb.callv(args)
+			return {"_error":"bad_callable"}
+		var out
+		var ok := true
+		# Guard callv
+		if cb.is_valid():
+			# Use a try-like pattern
+			# (Godot doesn’t have try/catch in GDScript; rely on defensive checks)
+			out = cb.callv(args)
+		else:
+			ok = false
+		if not ok:
+			return {"_error":"call_failed"}
 		var guard := 0
 		while typeof(out) == TYPE_CALLABLE and guard < 8:
 			if not out.is_valid():
-				printerr("[LuaBridge] nested callable invalid for ", reg_key)
-				return null
+				return {"_error":"nested_callable_invalid"}
 			out = out.call()
 			guard += 1
 		if typeof(out) == TYPE_CALLABLE:
-			printerr("[LuaBridge] callable after guard; abort recursion.")
-			return null
+			return {"_error":"callable_after_guard"}
 		return out
 	)
+
 
 	var bridge_callable = lua.get_registry_value("__gd_call_bridge")
 	lua.push_variant("__gd_call_bridge", bridge_callable)
@@ -753,38 +765,63 @@ func lua_clear() -> void:
 var stopped: bool = false
 
 var created_models: Dictionary = {}
+var stopping: bool = false
 
 func stop() -> void:
+	if stopping or stopped:
+		return
+	stopping = true
+
+	# stop logic is async-safe now
+	await get_tree().process_frame
+
 	if stopped:
 		return
-	#print("djdfj")
 	stopped = true
 
+	# --- freeze all further Lua steps ---
+	if _lua_step:
+		_lua_step = null
+	if new_frame:
+		new_frame = null
 
-
-	# Nuke Lua VM cleanly
+	# --- safely clear Lua VM ---
 	if lua:
+		var tmp = lua
 		lua = null
-	_lua_step = null
-	new_frame = null
+		tmp = null
+
+	# --- cancel any coroutines still hanging ---
+	for c in _lua_coroutines:
+		if c and c.has_method("close"):
+			c.close()
 	_lua_coroutines.clear()
 
-	# Defer freeing this node to avoid freeing mid-callback
-	await get_tree().process_frame
-	for i in created_models:
-		var got = graphs.get_input_graph_by_name(i)
-		if not got: continue
-		nn.close_infer_channel(got)
+	# --- close inference channels safely ---
+	for name in created_models.keys():
+		var node = graphs.get_input_graph_by_name(name)
+		if node and nn.is_infer_channel(node):
+			nn.close_infer_channel(node)
 	created_models.clear()
-	# Free any physics bodies
+
+	# --- clean up physics bodies ---
 	for s in shapes:
-		if typeof(s) == TYPE_DICTIONARY and s.get("physics_enabled", false) and s.has("body"):
-			var b = s["body"]
-			s["body"] = null
+		if typeof(s) == TYPE_DICTIONARY and s.get("physics_enabled", false):
+			var b = s.get("body")
 			if is_instance_valid(b):
 				b.queue_free()
 	shapes.clear()
-	call_deferred("queue_free")
+
+	# --- final deferred self-free to prevent mid-call freeing ---
+	call_deferred("_safe_free")
+
+
+func _safe_free():
+	# if UI or signal callbacks still reference this node, wait another frame
+	await get_tree().process_frame
+	if is_inside_tree():
+		queue_free()
+
 
 func lua_set_rotation(id: int, angle: float) -> void:
 	var s = _get_shape(id)

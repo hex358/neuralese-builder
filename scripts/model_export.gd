@@ -30,18 +30,33 @@ func _resultate(data: Dictionary):
 	#glob.tree_windows["env"].reload_scenes()
 	go_away()
 
+@onready var dl_but = $ColorRect/train
+func set_downloading():
+	$ColorRect/ProgressBar.show()
+	dl_but.hide()
 
+func reset_downloading():
+	$ColorRect/ProgressBar.hide()
+	dl_but.show()
 
 func _on_trainn_released() -> void:
 	$ColorRect/Label.update_valid()
 	
 	if $ColorRect/Label.is_valid:
+		set_downloading()
+		#await glob.wait(1)
+		#reset_downloading()
+		#return
 		var got = graphs.get_input_graph_by_name($ColorRect/Label.text)
-		web.POST("export", {"user": cookies.user(), "pass": cookies.pwd(), 
+		var handle = web.POST("export", {"user": cookies.user(), "pass": cookies.pwd(), 
 		"graph": graphs.get_syntax_tree(got),
 		"context": str(got.context_id), "scene_id": glob.get_project_id(),
 		"quant": type_quant,
-		"platform": type})
+		"platform": type}, false, true)
+		#handle.on_chunk.connect(print)
+		var a = await handle.completed
+		print(a["body"].size() / 1024.0)
+		reset_downloading()
 	#	resultate({"text": $ColorRect/Label.text})
 
 

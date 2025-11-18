@@ -643,13 +643,14 @@ func _process(delta: float) -> void:
 	
 	#if space_just_pressed:
 	#	save_datasets()
-	if not ui.active_splashed():
-		if Input.is_action_just_pressed("ctrl_z"):
-			#print("A")
-			undo_redo.undo()
-		if Input.is_action_just_pressed("ctrl_y"):
-			#print("A")
-			undo_redo.redo()
+	if curr_window == "graph":
+		if not ui.active_splashed():
+			if Input.is_action_just_pressed("ctrl_z"):
+				#print("A")
+				undo_redo.undo()
+			if Input.is_action_just_pressed("ctrl_y"):
+				#print("A")
+				undo_redo.redo()
 	enter_just_pressed = Input.is_action_just_pressed("ui_enter")
 	if not is_instance_valid(_menu_type_occupator):
 		menu_type = ""

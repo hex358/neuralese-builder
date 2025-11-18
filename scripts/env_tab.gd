@@ -20,10 +20,10 @@ func _ready() -> void:
 	border_console.color.a = 0
 	border_console.mouse_default_cursor_shape = Control.CURSOR_VSIZE
 	add_child(border_console)
-
+	
 	repos()
-	border_console.position.y -= 3
-	$Control/console.position.y -= 3
+	#border_console.position.y -= 3
+	#$Control/console.position.y -= 3
 
 var border_console: ColorRect
 var _dragging_console: bool = false
@@ -63,9 +63,10 @@ func _window_hide():
 	$CanvasLayer.hide()
 	glob.un_occupy(list, &"menu")
 	glob.un_occupy(list, "menu_inside")
+	var viewport = $Control/view/game
+	viewport.render_target_clear_mode = viewport.CLEAR_MODE_ALWAYS
 	if process != null and running_name in luas.processes:
 		run_bt.get_node("TextureRect").texture = run_base_txt
-		
 		luas.remove_process(running_name); return
 	
 func reload_scenes():
@@ -394,10 +395,12 @@ var process: LuaProcess = null; var running_name = null
 func _on_run_released() -> void:
 	#if process:
 	#	print(process.stepping())
+	var viewport = $Control/view/game
 	if process != null and running_name in luas.processes:
 		run_bt.get_node("TextureRect").texture = run_base_txt
+		viewport.render_target_clear_mode = viewport.CLEAR_MODE_NEVER
 		luas.remove_process(running_name); return
-	var viewport = $Control/view/game
+	viewport.render_target_clear_mode = viewport.CLEAR_MODE_ALWAYS
 	$Control/console.clear()
 	run_bt.get_node("TextureRect").texture = glob.stop_icon
 	
@@ -423,6 +426,8 @@ var last_button: BlockComponent = null
 var current_lua_env = null
 var cursors: Dictionary[String, Vector2i] =  {}
 func _on_list_child_button_release(button: BlockComponent) -> void:
+	var viewport = $Control/view/game
+	viewport.render_target_clear_mode = viewport.CLEAR_MODE_ALWAYS
 	var code = $Control/CodeEdit
 	if last_button:
 		cursors[current_lua_env] = Vector2i(code.get_caret_column(), code.get_caret_line())

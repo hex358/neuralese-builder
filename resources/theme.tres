@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=6 format=3 uid="uid://cxe1714v2p0a1"]
+[gd_resource type="Theme" load_steps=8 format=3 uid="uid://cxe1714v2p0a1"]
 
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="1_e1x85"]
 
@@ -52,6 +52,20 @@ expand_margin_right = 5.0
 expand_margin_bottom = 5.0
 anti_aliasing_size = 4.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7ct1h"]
+bg_color = Color(0.33, 0.33, 0.33, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_886mr"]
+bg_color = Color(0.6045, 0.93, 0.631625, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [sub_resource type="ImageTexture" id="ImageTexture_e1x85"]
 
 [resource]
@@ -64,6 +78,8 @@ LineEdit/constants/minimum_character_width = 0
 LineEdit/styles/focus = SubResource("StyleBoxFlat_vj6dk")
 LineEdit/styles/normal = SubResource("StyleBoxFlat_mihib")
 LineEdit/styles/read_only = SubResource("StyleBoxFlat_d4nwg")
+ProgressBar/styles/background = SubResource("StyleBoxFlat_7ct1h")
+ProgressBar/styles/fill = SubResource("StyleBoxFlat_886mr")
 VScrollBar/icons/decrement = SubResource("ImageTexture_e1x85")
 VScrollBar/icons/decrement_highlight = SubResource("ImageTexture_e1x85")
 VScrollBar/icons/decrement_pressed = SubResource("ImageTexture_e1x85")

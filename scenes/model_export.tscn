@@ -115,9 +115,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -37.700592
-offset_top = -46.99997
+offset_top = -55.99997
 offset_right = 37.700592
-offset_bottom = -21.99997
+offset_bottom = -30.99997
 grow_horizontal = 2
 grow_vertical = 0
 scale = Vector2(1.4688723, 1.4688723)
@@ -365,6 +365,22 @@ offset_bottom = 218.0
 scale = Vector2(0.6499783, 0.6499783)
 theme = ExtResource("10_av5ob")
 text = "Quantization"
+
+[node name="ProgressBar" type="ProgressBar" parent="ColorRect"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 148.0
+offset_top = 263.0
+offset_right = -149.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("10_av5ob")
+indeterminate = true
+editor_preview_indeterminate = false
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_18gy4")
