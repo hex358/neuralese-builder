@@ -6,8 +6,10 @@ const _READ_CHUNK: int = 64 * 1024
 const _CONNECT_TIMEOUT_S: float = 3.0
 const _IO_YIELD_US: int = 500
 
+var transcriber: Transcriber
 func _ready() -> void:
-	add_child(Transcriber.new())
+	transcriber = Transcriber.new()
+	add_child(transcriber)
 
 class RequestHandle:
 	extends RefCounted

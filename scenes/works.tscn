@@ -64,6 +64,7 @@ offset_right = 159.0
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
 script = ExtResource("12_sfqu4")
+implement = true
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
 base_size = Vector2(159, 46)
@@ -256,5 +257,6 @@ in_splash = true
 script = ExtResource("8_cmq6o")
 
 [connection signal="child_button_release" from="ColorRect/list" to="." method="_on_list_child_button_release"]
+[connection signal="scroll_changed" from="ColorRect/list" to="." method="_on_list_scroll_changed"]
 [connection signal="released" from="ColorRect/train" to="." method="_on_logout"]
 [connection signal="released" from="ColorRect/train2" to="." method="_on_add"]

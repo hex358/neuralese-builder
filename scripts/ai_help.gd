@@ -96,7 +96,9 @@ func _ready() -> void:
 	#	])
 	re_recv()
 
+var last_recv = null
 func text_receive(arr):
+	if not get_last_message(): return
 	if arr[1]:
 		if not get_last_message().get("marked_thinking", false):
 			get_last_message().object.set_thinking(true)
@@ -104,7 +106,7 @@ func text_receive(arr):
 	else:
 		get_last_message().object.set_thinking(false)
 		get_last_message()["marked_thinking"] = false
-		
+	
 	get_last_message().text += arr[0]
 	get_last_message().object.push_text(arr[0])
 
@@ -131,6 +133,9 @@ func send_message(text: String):
 	if sock:
 		await sock.kill
 	get_last_message().erase("_pending")
+	
+	get_last_message().object.actual_text = ""
+	get_last_message().object.push_text(get_last_message().text)
 	first_line.grab_focus()
 	first_line.grab_click_focus()
 	trect.texture = mic_texture
@@ -163,10 +168,15 @@ func add_message(message: Dictionary):
 
 func _just_splash():
 	ui.blur.set_tuning(Color(0,0,0,0.5))
+	#print("A")
+	if get_last_message():
+		get_last_message().object.actual_text = ""
+		get_last_message().object.push_text(get_last_message().text)
 
 var fixed_mode: bool = false
 @onready var bs = $ColorRect/ScrollContainer.size.y
 func _process(delta: float) -> void:
+	
 	if not visible: return
 	super(delta)
 	var tr = $ColorRect/root/TextureRect
@@ -217,22 +227,50 @@ func get_last_message():
 func get_my_ws():
 	return glob.message_sockets.get(chat_id)
 
+var rec: bool = false
 func on_send(txt: String) -> void:
 	#if get_last_message().has("_pending"):
 	#	return
 	#print(get_last_message())
 
-	if trect.texture == stop and get_last_message() and get_last_message().has("_pending") and get_my_ws() and not txt and get_last_message().get("timing", [0.0])[0] > 0.1:
+
+	if not rec and trect.texture == stop and get_last_message() and get_last_message().has("_pending") and get_my_ws() and not txt and get_last_message().get("timing", [0.0])[0] > 0.1:
 		get_my_ws().send(glob.compress_dict_zstd({"stop": true}))
+		return
 		#get_last_message().object.queue_free()
 		#_message_list.remove_at(-1)
 		#glob.rem_chat_cache(str(chat_id))
 		
 		#print("ff")
 
-	if (not get_last_message() or not get_last_message().has("_pending")) and $ColorRect/Label2.text:
+	if not rec and (not get_last_message() or not get_last_message().has("_pending")) and $ColorRect/Label2.text:
 		send_message($ColorRect/Label2.text)
 		trect.texture = stop
+		return
+
+	if (!$ColorRect/Label2.text or rec) and not (get_last_message() and get_last_message().has("_pending")):
+		if not rec:
+			rec = true
+			trect.texture = stop
+			$ColorRect/Label2.disable()
+			$ColorRect/Label2.text = "Say something..."
+			web.transcriber.begin_recording(60.0, func(): trect.texture = mic_texture)
+		else:
+			web.transcriber.end_recording()
+			trect.texture = mic_texture
+			if web.transcriber.t_record > 0.5:
+				var handle = await web.transcriber.send_recording().completed
+				if handle and handle.body and "text" in handle.body:
+					(func():
+						$ColorRect/Label2.text = handle.body.text
+						_on_label_2_text_changed()
+						
+						).call_deferred()
+			$ColorRect/Label2.enable()
+			rec = false
+			#print(len(web.transcriber.buf))
+			
+		return
 var can_enter: bool = false
 
 @onready var trect = $ColorRect/Label2/train/TextureRect

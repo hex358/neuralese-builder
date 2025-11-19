@@ -742,8 +742,9 @@ func _ready() -> void:
 	#glob.push_action(self, invoked_with, delete)
 	#glob.close_action(self)
 	#print("FWRJFPKWEPFJ")
-	if not llm_tag:
-		llm_tag = glob.get_llm_tag(self)
+	#if not llm_tag:
+	#	llm_tag = glob.get_llm_tag(self)
+	#	print(glob.tags_1d.size())
 	position -= rect.position
 	animate(0)
 	#graphs.add(self)

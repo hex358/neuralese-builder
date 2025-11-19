@@ -501,6 +501,7 @@ anchor_mode = 0
 [connection signal="draw" from="Control/console" to="." method="_on_console_draw"]
 [connection signal="released" from="Control/console/train2" to="." method="_on_train_2_released"]
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
+[connection signal="scroll_changed" from="Control/scenes/list" to="." method="_on_list_scroll_changed"]
 [connection signal="released" from="Control/scenes/9" to="." method="_on__released"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
 [connection signal="released" from="Control/view/run" to="." method="_on_run_released"]

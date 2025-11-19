@@ -486,6 +486,10 @@ func _ready() -> void:
 		_create_scaler_wrapper.call_deferred()
 	if button_type == ButtonType.DROPOUT_MENU:
 		update_children_reveal()
+	if button_type != ButtonType.BLOCK_BUTTON:
+		if scroll:
+			scroll.get_v_scroll_bar().value_changed.connect(func(x): 
+				scroll_changed.emit())
 
 
 	
@@ -1048,7 +1052,7 @@ func unroll():
 		else:
 			glob.un_occupy(self, "menu_inside")
 
-
+signal scroll_changed
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
 	var reset_menu = not static_mode and _is_not_menu()
@@ -1137,6 +1141,7 @@ func _process_context_menu(delta: float) -> void:
 			elif !is_in_bar: 
 				update_children_reveal()
 				scroll.scroll_vertical = (-get_global_mouse_position().y  / scale.y + scroll_anchor.y  / scale.y + scroll_value_anchor)
+				scroll_changed.emit()
 		else:
 			scroll_checking = false
 			scrolling = false

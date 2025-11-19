@@ -57,3 +57,7 @@ func _on_logout() -> void:
 	go_away()
 	await quitting
 	queue_free()
+
+
+func _on_list_scroll_changed() -> void:
+	glob.hide_all_menus()

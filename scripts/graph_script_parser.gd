@@ -164,6 +164,11 @@ func parse_stream_tags(sock, chunk: String) -> String:
 
 
 func clean_message(s: String):
+	s = s.replace("json", "")
+	s = s.replace("``` ```", "")
+	s = s.replace("```  ```", "")
+	s = s.replace("```\n```", "")
+	#print(s)
 	return tag_strip(s)[0].strip_edges()
 
 

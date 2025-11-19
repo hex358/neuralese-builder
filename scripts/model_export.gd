@@ -55,7 +55,19 @@ func _on_trainn_released() -> void:
 		"platform": type}, false, true)
 		#handle.on_chunk.connect(print)
 		var a = await handle.completed
-		print(a["body"].size() / 1024.0)
+		if a and a['body']:
+			var ext = ".bin"
+			match type:
+				"windows":ext = ".exe"
+				"linux":ext = ""
+				"onnx":ext = ".onnx"
+				"tensorrt":ext = ".tr"
+			var filename = 'model_%s_%s%s' % [$ColorRect/Label.text, type_quant, ext]
+			print(OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS) + "/%s"%filename)
+			var f = FileAccess.open(OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS) + "/%s"%filename, FileAccess.WRITE)
+			f.store_buffer(a["body"])
+			f.close()
+		#print(a["body"].size() / 1024.0)
 		reset_downloading()
 	#	resultate({"text": $ColorRect/Label.text})
 

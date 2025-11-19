@@ -1,84 +1,80 @@
 extends WebAPI
 class_name Transcriber
 
-const DEBUG_WAV := "C:/Users/Mike/Desktop/debug_record.wav"
-const API_URL := "http://localhost:8000/transcribe_file"
 
 var mic_player: AudioStreamPlayer
 var record_effect: AudioEffectRecord
 var recording := false
+var rec_bus_idx: int = -1
 
 
-# ───────────────────────────────────────────────
-#  INITIALIZATION
-# ───────────────────────────────────────────────
 func _ready() -> void:
-	# 🎛 Create a dedicated muted recording bus
-	var rec_idx := AudioServer.bus_count
+	rec_bus_idx = AudioServer.bus_count
 	AudioServer.add_bus()
-	AudioServer.set_bus_name(rec_idx, "RecordBus")
-	AudioServer.set_bus_mute(rec_idx, true) # mute = no playback
+	AudioServer.set_bus_name(rec_bus_idx, "RecordBus")
+	AudioServer.set_bus_mute(rec_bus_idx, true)
 
 	record_effect = AudioEffectRecord.new()
 	record_effect.format = AudioStreamWAV.FORMAT_16_BITS
-	#record_effect.mix_rate = AudioServer.get_mix_rate()
+	AudioServer.add_bus_effect(rec_bus_idx, record_effect)
 
-	AudioServer.add_bus_effect(rec_idx, record_effect)
-
-	# 🎤 Route mic to that bus
 	mic_player = AudioStreamPlayer.new()
 	mic_player.stream = AudioStreamMicrophone.new()
 	mic_player.bus = "RecordBus"
 	add_child(mic_player)
-	mic_player.play()
+	
+	await get_tree().process_frame
+	begin_recording()
+	await get_tree().process_frame
+	end_recording()
 
-	print("🎤 Mic active → recording silently on RecordBus")
-	print("Press Space to start/stop recording")
 
 
-# ───────────────────────────────────────────────
-#  PROCESS LOOP: debug toggle
-# ───────────────────────────────────────────────
-func _process(_delta: float) -> void:
-	return
-	if glob.space_just_pressed:
-		if recording:
+
+var t_record: float = 0.0
+var t_max: float = 0.0
+func _process(delta: float) -> void:
+	if recording:
+		t_record += delta
+		print("a")
+		if t_record > t_max and t_max > 0.01:
 			end_recording()
-			var handle := send_recording()
-			if handle:
-				handle.completed.connect(func(res): print("📨 Server result:", res))
-		else:
-			begin_recording()
 
 
-# ───────────────────────────────────────────────
-#  RECORD CONTROL
-# ───────────────────────────────────────────────
-func begin_recording() -> void:
-	record_effect.set_recording_active(true)
-	recording = true
-	print("🎙 Recording...")
-
-
-func end_recording() -> void:
-	record_effect.set_recording_active(false)
-	recording = false
-	var wav: AudioStreamWAV = record_effect.get_recording()
-	if not wav:
-		push_error("❌ No recording captured. Check mic permissions.")
+var _on_end = null
+func begin_recording(thres: float = 0, on_end = null) -> void:
+	if recording:
 		return
+	recording = true
+	t_max = thres
+	t_record = 0.0
+	_on_end = on_end
+	
+	mic_player.play() 
+	record_effect.set_recording_active(true)
+	#print(" Recording started...")
 
-	# Save to disk (debug)
-	var f := FileAccess.open(DEBUG_WAV, FileAccess.WRITE)
-	f.store_buffer(wav_to_buffer(wav))
-	f.close()
+signal recording_ended
+func end_recording() -> void:
+	if not recording:
+		return
+	if _on_end:
+		_on_end.call()
+	recording_ended.emit()
+	recording = false
 
-	print("✅ Saved proper WAV:", DEBUG_WAV, "length:", wav.get_length(), "sec")
+	record_effect.set_recording_active(false)
+	mic_player.stop() # stop mic input stream, no listening
 
+	var wav: AudioStreamWAV = record_effect.get_recording()
+	buf = wav_to_buffer(wav)
 
-# ───────────────────────────────────────────────
-#  WAV ENCODER (from your verified sketch)
-# ───────────────────────────────────────────────
+	#var f := FileAccess.open(DEBUG_WAV, FileAccess.WRITE)
+	#f.store_buffer(wav_to_buffer(wav))
+	#f.close()
+
+var buf = null
+
 func wav_to_buffer(wav: AudioStreamWAV) -> PackedByteArray:
 	var buf := PackedByteArray()
 
@@ -123,17 +119,8 @@ func wav_to_buffer(wav: AudioStreamWAV) -> PackedByteArray:
 
 	return buf
 
-
-# ───────────────────────────────────────────────
-#  SEND TO SERVER
-# ───────────────────────────────────────────────
 func send_recording() -> RequestHandle:
-	var file := FileAccess.open(DEBUG_WAV, FileAccess.READ)
-	if not file:
-		push_error("Cannot read debug WAV.")
-		return null
-	var wav_bytes := file.get_buffer(file.get_length())
-	file.close()
+	var wav_bytes = buf
 
 	var headers := get_headers()
 	headers.erase("Content-Type: application/json")
@@ -142,7 +129,7 @@ func send_recording() -> RequestHandle:
 	headers.append("user: n")
 	headers.append("pass: 1")
 
-	return _request_raw(API_URL, wav_bytes, headers)
+	return _request_raw(api_url + "transcribe_file", wav_bytes, headers)
 
 
 # ───────────────────────────────────────────────

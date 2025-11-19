@@ -870,6 +870,7 @@ func set_llm_tag(who: Graph, val: String):
 	tag_types[g][val] = true
 	#print(who.llm_tag)
 	tags_1d[who.llm_tag] = who
+	#print(tags_1d.size())
 
 var llm_name_unmapping = (func():
 	var dict = {}
