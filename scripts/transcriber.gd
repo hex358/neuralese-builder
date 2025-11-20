@@ -36,7 +36,7 @@ var t_max: float = 0.0
 func _process(delta: float) -> void:
 	if recording:
 		t_record += delta
-		print("a")
+		#print("a")
 		if t_record > t_max and t_max > 0.01:
 			end_recording()
 

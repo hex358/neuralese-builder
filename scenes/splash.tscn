@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cqdev2bbac1o5"]
+[gd_scene load_steps=13 format=3 uid="uid://cqdev2bbac1o5"]
 
 [ext_resource type="Script" uid="uid://bq63htf3tigxl" path="res://scripts/splash_menu.gd" id="1_86pdq"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_5svwm"]
@@ -7,6 +7,7 @@
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="5_r4d6w"]
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="6_651hb"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_x1bu2"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="8_3idxy"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_x1bu2"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_440nw"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_440nw"]
@@ -90,6 +91,14 @@ auto_red = true
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
+[node name="Loc" type="Node" parent="ColorRect/Label"]
+script = ExtResource("8_3idxy")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"name": "ник"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Label2" type="LineEdit" parent="ColorRect"]
 layout_mode = 1
 anchors_preset = 5
@@ -111,6 +120,14 @@ resize_after = 250
 auto_red = true
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
+
+[node name="Loc" type="Node" parent="ColorRect/Label2"]
+script = ExtResource("8_3idxy")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"pass": "пароль"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="train" parent="ColorRect" instance=ExtResource("8_x1bu2")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
@@ -147,6 +164,14 @@ max_size = 170
 config = SubResource("Resource_3idxy")
 in_splash = true
 
+[node name="Loc" type="Node" parent="ColorRect/train"]
+script = ExtResource("8_3idxy")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"login": "Вход"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="train2" parent="ColorRect" instance=ExtResource("8_x1bu2")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -181,6 +206,14 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_3idxy")
 in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/train2"]
+script = ExtResource("8_3idxy")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"signup": "Новый"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_440nw")

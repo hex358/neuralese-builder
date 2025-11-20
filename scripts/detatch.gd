@@ -16,7 +16,7 @@ func _get_nodes(args, kwargs = {}) -> Array[Node]:
 		i += 1
 		var new: BlockComponent = frozen_duplicate.duplicate()
 		new.placeholder = false
-		new.text = "Spline %s"%i
+		new.text = "Spline %s"%i if glob.get_lang() == "en" else "Связь %s"%i
 		var line = _i if _i is Spline else args[_i]
 		new.metadata["inst"] = line
 		new.metadata["all"] = false

@@ -33,8 +33,15 @@ static var cached_scroller = null
 
 func quit(data: Dictionary = {}):
 	quitting.emit()
+	if rec:
+		web.transcriber.end_recording()
+		rec = false
+		$ColorRect/Label2.enable()
+		$ColorRect/Label2.text = ""
+		_on_label_2_text_changed()
 	if can_go:
 		hide()
+		$ColorRect/Label2.release_focus()
 		ui.blur.self_modulate.a = 0
 		emitter.res.emit(data)
 		#get_parent().remove_child(self)
@@ -216,6 +223,8 @@ func _process(delta: float) -> void:
 			tr.position = $ColorRect/Label2.position + Vector2(0,-1)
 		
 
+func _quit_request():
+	pass
 
 func _on_train_hovering() -> void:
 	pass # Replace with function body.

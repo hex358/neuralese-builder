@@ -66,6 +66,10 @@ func _resultate(data: Dictionary):
 		#glob.env_dump[data["text"]] = glob.get_default_script(data["text"])
 		#glob.tree_windows["env"].reload_scenes()
 		go_away()
+		await quitting
+		pass
+		hide()
+		ui.blur.self_modulate.a = 0.0
 
 
 func _quit_request():

@@ -855,9 +855,34 @@ func get_loaded_datasets():
 
 
 
+func get_lang():
+	return "en"
 
 
+class BitPacker:
+	var data = PackedByteArray()
+	var bit_pos = 0  # next free bit index (0 = first bit of data[0])
 
+	func push(value: int, bits: int) -> void:
+		for i in range(bits):
+			var bit = (value >> (bits - 1 - i)) & 1
+			_set_bit(bit_pos, bit)
+			bit_pos += 1
+
+	func _set_bit(pos: int, bit: int) -> void:
+		var byte_i = pos >> 3
+		var bit_i  = 7 - (pos & 7)
+
+		if byte_i >= data.size():
+			data.append(0)
+
+		if bit == 1:
+			data[byte_i] |= (1 << bit_i)
+		else:
+			data[byte_i] &= ~(1 << bit_i)
+
+	func to_bytes() -> PackedByteArray:
+		return data
 
 
 

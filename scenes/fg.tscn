@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=36 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
@@ -16,6 +16,8 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_5i506"]
 [ext_resource type="Texture2D" uid="uid://cifmknshu7jyt" path="res://game_assets/icons/chat.png" id="11_x67tc"]
 [ext_resource type="Material" uid="uid://dhpvvvjn14qxk" path="res://resources/fg_block.tres" id="12_thedb"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="12_v7s1j"]
+[ext_resource type="Script" uid="uid://dvv2j3fprmh8e" path="res://scripts/loc2.gd" id="13_luhqm"]
 [ext_resource type="PackedScene" uid="uid://bsbdls0nw0uf2" path="res://scenes/topr.tscn" id="14_v7s1j"]
 [ext_resource type="Script" uid="uid://bunhhg1bg443j" path="res://scripts/selector_box.gd" id="19_v7s1j"]
 
@@ -216,6 +218,14 @@ resize_after = 250
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
+[node name="Loc" type="Node" parent="ColorRect/Label"]
+script = ExtResource("12_v7s1j")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"untitled": "Безымянный"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="ColorRect3" type="TextureRect" parent="ColorRect"]
 layout_mode = 0
 offset_left = 15.0
@@ -280,6 +290,7 @@ color = Color(0.49019608, 0.627451, 0.83137256, 1)
 button_type = 1
 top = true
 hint = &"layer"
+resize_after = 8
 text = "  Export"
 base_size = Vector2(119.231445, 36)
 alignment = Vector2(0.5, 0.5)
@@ -289,6 +300,14 @@ config = SubResource("Resource_5i506")
 position = Vector2(20.670837, 17.999998)
 scale = Vector2(1.1249341, 1.1249341)
 texture = ExtResource("7_frmgw")
+
+[node name="Loc" type="Node" parent="ColorRect/Control/export"]
+script = ExtResource("12_v7s1j")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"export": "  Скачать"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="ai" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
 material = ExtResource("12_thedb")
@@ -306,6 +325,7 @@ color = Color(0.87576675, 0.5546, 0.94, 1)
 button_type = 1
 top = true
 hint = &"ai_help"
+resize_after = 6
 text = "  Axon"
 text_offset = Vector2(2, 0)
 base_size = Vector2(98.50604, 36)
@@ -315,6 +335,14 @@ config = SubResource("Resource_5i506")
 [node name="i" type="Sprite2D" parent="ColorRect/Control/ai"]
 position = Vector2(22.920776, 19.12493)
 texture = ExtResource("11_x67tc")
+
+[node name="Loc" type="Node" parent="ColorRect/Control/ai"]
+script = ExtResource("13_luhqm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"axon": "  Аксон"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="9" parent="ColorRect" instance=ExtResource("4_5k5he")]
 self_modulate = Color(1, 1, 1, 0)
@@ -431,6 +459,14 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_x67tc")
 
+[node name="Loc" type="Node" parent="ColorRect/Control3/graphs"]
+script = ExtResource("12_v7s1j")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"sandbox": "Сцены"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="datasets" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -465,6 +501,14 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_luhqm")
 
+[node name="Loc" type="Node" parent="ColorRect/Control3/datasets"]
+script = ExtResource("12_v7s1j")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"datasets": "Датасеты"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="minigames" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -498,6 +542,14 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_v7s1j")
+
+[node name="Loc" type="Node" parent="ColorRect/Control3/minigames"]
+script = ExtResource("12_v7s1j")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"graphs": "Графы"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="ColorRect" type="ColorRect" parent="ColorRect/Control3"]
 layout_mode = 0

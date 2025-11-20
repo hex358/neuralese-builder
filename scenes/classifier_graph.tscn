@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://de6mgawywaidj"]
+[gd_scene load_steps=20 format=3 uid="uid://de6mgawywaidj"]
 
 [ext_resource type="Script" uid="uid://itl55srlcsih" path="res://scripts/classifier.gd" id="1_eb5hl"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_pa8wt"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_lckd6"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="9_2xc02"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="10_giqb5"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="10_n00y3"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pa8wt"]
 
@@ -120,6 +121,14 @@ script = ExtResource("4_cdbc0")
 resize_after = 18
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
+[node name="Loc" type="Node" parent="ColorRect/root/Label"]
+script = ExtResource("10_n00y3")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Имя группы..."
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="connection" type="Control" parent="."]
 anchors_preset = 0
 offset_left = -85.0
@@ -209,6 +218,14 @@ alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_jeojw")
 graph = NodePath("../..")
 
+[node name="Loc" type="Node" parent="input/ColorRect2"]
+script = ExtResource("10_n00y3")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Доб.+"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="LineEdit" parent="input" node_paths=PackedStringArray("accept_button") instance=ExtResource("7_e0fxs")]
 layout_mode = 0
 offset_left = 3.0000045
@@ -222,6 +239,14 @@ placeholder_text = "Label name"
 max_length = 14
 context_menu_enabled = false
 accept_button = NodePath("../ColorRect2")
+
+[node name="Loc" type="Node" parent="input/LineEdit"]
+script = ExtResource("10_n00y3")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Имя лейбла"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="ni" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("6_m7mi5")]
 layout_mode = 0

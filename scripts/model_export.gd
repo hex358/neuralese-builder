@@ -39,6 +39,7 @@ func reset_downloading():
 	$ColorRect/ProgressBar.hide()
 	dl_but.show()
 
+@onready var export_but: BlockComponent = $ColorRect/train
 func _on_trainn_released() -> void:
 	$ColorRect/Label.update_valid()
 	
@@ -47,6 +48,7 @@ func _on_trainn_released() -> void:
 		#await glob.wait(1)
 		#reset_downloading()
 		#return
+		export_but.text = "  Export"
 		var got = graphs.get_input_graph_by_name($ColorRect/Label.text)
 		var handle = web.POST("export", {"user": cookies.user(), "pass": cookies.pwd(), 
 		"graph": graphs.get_syntax_tree(got),
@@ -55,18 +57,28 @@ func _on_trainn_released() -> void:
 		"platform": type}, false, true)
 		#handle.on_chunk.connect(print)
 		var a = await handle.completed
+		#print(a)
 		if a and a['body']:
 			var ext = ".bin"
 			match type:
 				"windows":ext = ".exe"
 				"linux":ext = ""
 				"onnx":ext = ".onnx"
-				"tensorrt":ext = ".tr"
+				"tensorrt":ext = ".trt"
 			var filename = 'model_%s_%s%s' % [$ColorRect/Label.text, type_quant, ext]
-			print(OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS) + "/%s"%filename)
+
+			#print(OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS) + "/%s"%filename)
+			#print("a")
 			var f = FileAccess.open(OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS) + "/%s"%filename, FileAccess.WRITE)
 			f.store_buffer(a["body"])
 			f.close()
+			reset_downloading()
+			export_but.text = "  Saved!"
+			#print(export_but.text)
+			#await glob.wait(1.0)
+			#export_but.text = "   Downloads"
+			await glob.wait(1.0)
+			export_but.text = "  Export"
 		#print(a["body"].size() / 1024.0)
 		reset_downloading()
 	#	resultate({"text": $ColorRect/Label.text})

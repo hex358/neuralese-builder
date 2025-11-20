@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://274a5p56vhfv"]
+[gd_scene load_steps=15 format=3 uid="uid://274a5p56vhfv"]
 
 [ext_resource type="Script" uid="uid://c0nii2r70t0mx" path="res://scripts/train_begin.gd" id="1_oiu5h"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_oiu5h"]
@@ -11,6 +11,7 @@
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="6_qoxl0"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="7_bo1ga"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="8_qoxl0"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="12_5puut"]
 
 [sub_resource type="Resource" id="Resource_5puut"]
 script = ExtResource("6_8dwpr")
@@ -282,6 +283,14 @@ max_size = 170
 config = SubResource("Resource_5puut")
 graph = NodePath("..")
 
+[node name="Loc" type="Node" parent="train"]
+script = ExtResource("12_5puut")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Учись!"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="YY" parent="." instance=ExtResource("7_bo1ga")]
 layout_mode = 0
 offset_left = 18.746696
@@ -331,6 +340,14 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_qoxl0")
 in_splash = true
+
+[node name="Loc" type="Node" parent="train2"]
+script = ExtResource("12_5puut")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"clear": "сброс"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [connection signal="released" from="train" to="." method="_on_train_released"]
 [connection signal="released" from="train2" to="." method="_on_train_2_released"]

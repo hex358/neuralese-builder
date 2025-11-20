@@ -51,12 +51,20 @@ func unblock_input(re_on: bool = false) -> void:
 			text = text
 @onready var label = $Label
 
+func set_txt_no_emit(txt: String):
+	no_emit = true
+	text = txt
+	no_emit = false
 
+signal text_changed(new_text: String)
+var no_emit: bool = false
 @export var text: String = "":
 	set(value):
 		text = value
 		if not is_node_ready():
 			await ready
+		if not no_emit:
+			text_changed.emit(text)
 		#if is_contained and is_contained.name == "list" and is_mouse_inside():
 		#	print("====")
 		#	print_stack()
@@ -477,6 +485,7 @@ func _notification(what: int) -> void:
 
 func _ready() -> void:
 	if not auto_ready: return
+	if Engine.is_editor_hint(): return
 	#if graph == null and get_parent() is Control and button_type in [ButtonType.CONTEXT_MENU, ButtonType.DROPOUT_MENU]: 
 	#	graph = get_parent()
 	initialize()

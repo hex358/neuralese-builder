@@ -52,12 +52,14 @@ signal text_accept(text: String)
 
 var prev_text = ""
 func _process(_delta: float) -> void:
+	if not is_visible_in_tree():
+		return
 	var shift_down = Input.is_action_pressed("shift")
 	if Input.is_action_just_pressed("ui_shift_enter") or (shift_down and Input.is_action_just_pressed("ui_enter")):
 		_insert_newline_at_caret()
 		return
 
-	if editable and Input.is_action_just_pressed("ui_enter") and not shift_down:
+	if text and editable and Input.is_action_just_pressed("ui_enter") and not shift_down:
 		text = prev_text
 		text_accept.emit(text)
 		if enter_event:

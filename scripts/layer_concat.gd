@@ -14,7 +14,7 @@ func _useful_properties() -> Dictionary:
 
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
-	dup.get_node("Label").text = "Slot " + str(len(units))
+	dup.get_node("Label").text = "Slot " + str(len(units)) if glob.get_lang() == "en" else "Слот "+str(len(units))
 	dup.get_node("o").hint = randi_range(0,999999)
 	dup.show()
 	dup.modulate.a = 0.0
@@ -79,7 +79,7 @@ func _unit_removal(id: int):
 			, remove_unit.bind(id))
 	await get_tree().process_frame
 	for i in len(units):
-		units[i].get_node("Label").text = "Slot "+str(i)
+		units[i].get_node("Label").text = "Slot "+str(i) if glob.get_lang() == "en" else "Слот "+str(i)
 
 
 func _ready() -> void:

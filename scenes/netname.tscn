@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://wav7n44fxbkf"]
+[gd_scene load_steps=7 format=3 uid="uid://wav7n44fxbkf"]
 
 [ext_resource type="Script" uid="uid://pf8xsmviatgx" path="res://scripts/netname.gd" id="1_3yi81"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_focgl"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_uarpl"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="3_3yi81"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_x05q1"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="6_uarpl"]
 
 [node name="Base" type="Control"]
 layout_mode = 3
@@ -79,5 +80,13 @@ max_length = 40
 expand_to_text_length = true
 context_menu_enabled = false
 resize_after = 16
+
+[node name="Loc" type="Node" parent="LineEdit"]
+script = ExtResource("6_uarpl")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Имя модели"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [connection signal="changed" from="LineEdit" to="." method="_on_line_edit_changed"]

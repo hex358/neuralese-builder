@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bsgahiw7rcbh5"]
+[gd_scene load_steps=15 format=3 uid="uid://bsgahiw7rcbh5"]
 
 [ext_resource type="Script" uid="uid://b25xb6hedwhsv" path="res://scripts/dataset.gd" id="1_erg8n"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_5t588"]
@@ -9,6 +9,7 @@
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="8_pf6vt"]
 [ext_resource type="Script" uid="uid://o3vi7hhcmjs5" path="res://scripts/list_datasets.gd" id="9_pow88"]
 [ext_resource type="Script" uid="uid://1x036rwyt23r" path="res://scripts/listds.gd" id="10_whmsd"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="11_5t588"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="11_8yyrq"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="11_erg8n"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="12_oo6fr"]
@@ -78,18 +79,16 @@ offset_top = 120.0
 offset_right = 556.5556
 offset_bottom = 120.0
 scale = Vector2(0.9, 0.9)
+pivot_offset = Vector2(286819.8, 0)
 color = Color(1, 1, 1, 0)
 script = ExtResource("9_pow88")
-marquee_enabled = null
 base_size = Vector2(535.5556, 0)
 alignment = Vector2(535.5556, 0)
 static_mode = true
 _scroll_container = 0.0
-scale_anim = 0
 mouse_open = false
 dynamic_size = true
 max_size = 305
-expand_upwards = 0
 config = null
 
 [node name="name" parent="ColorRect/list" instance=ExtResource("2_5t588")]
@@ -130,6 +129,14 @@ offset_bottom = 77.0
 theme = ExtResource("11_8yyrq")
 text = "Select dataset"
 
+[node name="Loc" type="Node" parent="ColorRect/Label"]
+script = ExtResource("11_5t588")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Выбор датасета"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Label2" type="LineEdit" parent="ColorRect"]
 layout_mode = 0
 offset_left = 39.0
@@ -145,6 +152,14 @@ script = ExtResource("11_erg8n")
 resize_after = 250
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
+
+[node name="Loc" type="Node" parent="ColorRect/Label2"]
+script = ExtResource("11_5t588")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Поиск..."
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("12_oo6fr")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://coifi5ok0t7lo"]
+[gd_scene load_steps=25 format=3 uid="uid://coifi5ok0t7lo"]
 
 [ext_resource type="Script" uid="uid://cvwlkwi2gv6rf" path="res://scripts/input_1d.gd" id="1_gbdyi"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_7nifx"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="12_ov5bv"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="13_7nifx"]
 [ext_resource type="PackedScene" uid="uid://3ysaq3xq2pay" path="res://scenes/tags.tscn" id="14_pxsba"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="15_nsvjh"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nifx"]
 bg_color = Color(0.24, 0.24, 0.24, 1)
@@ -404,6 +405,14 @@ alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_ca2jg")
 graph = NodePath("../..")
 
+[node name="Loc" type="Node" parent="input/ColorRect2"]
+script = ExtResource("15_nsvjh")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Доб.+"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="type" parent="input" node_paths=PackedStringArray("graph", "graph_root") instance=ExtResource("9_tpmcl")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-8, -0.3)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -651,6 +660,14 @@ max_size = 170
 config = SubResource("Resource_gbdyi")
 graph = NodePath("../input")
 graph_root = NodePath("..")
+
+[node name="Loc" type="Node" parent="run"]
+script = ExtResource("15_nsvjh")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Пуск"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [connection signal="pressed" from="input/ColorRect2" to="." method="_on_color_rect_2_pressed"]
 [connection signal="child_button_release" from="input/type" to="." method="_on_type_child_button_release"]

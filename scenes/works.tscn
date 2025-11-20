@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://e3jqwgerexfo"]
+[gd_scene load_steps=18 format=3 uid="uid://e3jqwgerexfo"]
 
 [ext_resource type="Script" uid="uid://d1g4ifompwdu4" path="res://scripts/works.gd" id="1_m1hsh"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_kxyc6"]
@@ -11,7 +11,9 @@
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="8_cmq6o"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="8_jips7"]
 [ext_resource type="Script" uid="uid://3iluo5wg2wdh" path="res://scripts/works_unroll.gd" id="9_r0m0m"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="12_jips7"]
 [ext_resource type="Script" uid="uid://cb40vkd5uu1g1" path="res://scripts/edit_graph.gd" id="12_sfqu4"]
+[ext_resource type="Script" uid="uid://cde6ymj4s7co" path="res://scenes/loca.gd" id="13_r0m0m"]
 
 [sub_resource type="Resource" id="Resource_jips7"]
 script = ExtResource("8_jips7")
@@ -221,6 +223,14 @@ max_size = 170
 config = SubResource("Resource_5kbvu")
 in_splash = true
 
+[node name="Loc" type="Node" parent="ColorRect/train"]
+script = ExtResource("12_jips7")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Выход"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="train2" parent="ColorRect" instance=ExtResource("5_bysnc")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -252,6 +262,14 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_5kbvu")
 in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/train2"]
+script = ExtResource("13_r0m0m")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "+Нов."
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("8_cmq6o")

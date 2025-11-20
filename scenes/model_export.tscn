@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://d2yowpw486lai"]
+[gd_scene load_steps=15 format=3 uid="uid://d2yowpw486lai"]
 
 [ext_resource type="Script" uid="uid://c5el7w3tkb8gj" path="res://scripts/model_export.gd" id="1_ekrhp"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_av5ob"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_l3ogd"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_rwf5r"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_18gy4"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="10_53j4e"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="10_av5ob"]
 
 [sub_resource type="Resource" id="Resource_3idxy"]
@@ -105,6 +106,14 @@ auto_red = true
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
+[node name="Loc" type="Node" parent="ColorRect/Label"]
+script = ExtResource("10_53j4e")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "имя модели"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="train" parent="ColorRect" instance=ExtResource("8_l3ogd")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -145,6 +154,14 @@ position = Vector2(13.124161, 12.924782)
 scale = Vector2(0.73342, 0.73342)
 texture = ExtResource("3_av5ob")
 
+[node name="Loc" type="Node" parent="ColorRect/train"]
+script = ExtResource("10_53j4e")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "  Скачать"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="windows" parent="ColorRect" instance=ExtResource("8_l3ogd")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -182,6 +199,14 @@ offset_bottom = 142.0
 scale = Vector2(0.6499783, 0.6499783)
 theme = ExtResource("10_av5ob")
 text = "Export Mode"
+
+[node name="Loc" type="Node" parent="ColorRect/Label2"]
+script = ExtResource("10_53j4e")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Режим"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="linux" parent="ColorRect" instance=ExtResource("8_l3ogd")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
@@ -365,6 +390,14 @@ offset_bottom = 218.0
 scale = Vector2(0.6499783, 0.6499783)
 theme = ExtResource("10_av5ob")
 text = "Quantization"
+
+[node name="Loc" type="Node" parent="ColorRect/quant/Label2"]
+script = ExtResource("10_53j4e")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Квантизация"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="ProgressBar" type="ProgressBar" parent="ColorRect"]
 visible = false

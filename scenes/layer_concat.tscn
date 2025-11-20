@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://dedy0f202jvre"]
+[gd_scene load_steps=14 format=3 uid="uid://dedy0f202jvre"]
 
 [ext_resource type="Script" uid="uid://bucavow0hwn4e" path="res://scripts/layer_concat.gd" id="1_6v2qv"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_gcg34"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="7_ubncg"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="8_5mo5q"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_6ovrf"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="10_ldvu6"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="12_nhdu8"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pa8wt"]
@@ -152,6 +153,14 @@ base_size = Vector2(88, 37.806435)
 alignment = Vector2(0.5, 0.5)
 config = SubResource("Resource_6u7a3")
 graph = NodePath("../..")
+
+[node name="Loc" type="Node" parent="input/ColorRect2"]
+script = ExtResource("10_ldvu6")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Слот+"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="o" parent="." node_paths=PackedStringArray("parent_graph") instance=ExtResource("12_nhdu8")]
 layout_mode = 0

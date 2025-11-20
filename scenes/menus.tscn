@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://8u7275kgyen4"]
+[gd_scene load_steps=14 format=3 uid="uid://8u7275kgyen4"]
 
 [ext_resource type="Script" uid="uid://bnmswwbafj7fb" path="res://scripts/menus.gd" id="1_chs3c"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_rnbi1"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://dqx0m845e4ld3" path="res://scripts/cmenu.gd" id="4_rgbxd"]
 [ext_resource type="Resource" uid="uid://b87f7qp31583q" path="res://resources/lite_config.tres" id="5_0ypn7"]
 [ext_resource type="Script" uid="uid://1afleute7nbb" path="res://scripts/detatch_menu.gd" id="6_r44s1"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="6_rgbxd"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_w6445"]
 [ext_resource type="Script" uid="uid://ynrhp2d5ge1o" path="res://scripts/detatch.gd" id="8_6how5"]
 [ext_resource type="Script" uid="uid://cb40vkd5uu1g1" path="res://scripts/edit_graph.gd" id="9_rxqxn"]
@@ -28,16 +29,18 @@ script = ExtResource("1_chs3c")
 [node name="Node2D" type="Node2D" parent="."]
 
 [node name="add_graph" parent="." instance=ExtResource("2_rnbi1")]
-visible = false
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
 offset_right = 239.0
 scale = Vector2(0.75, 0.75)
+pivot_offset = Vector2(57121, 2500)
 script = ExtResource("4_rgbxd")
 text = "Add node        +"
 base_size = Vector2(239, 50)
+alignment = Vector2(239, 50)
 size_add = 4.0
+_scroll_container = 0.0
 expanded_size = 0
 scale_anim = true
 arrangement_padding = Vector2(10, 8)
@@ -422,8 +425,15 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
+[node name="Loc" type="Node" parent="add_graph"]
+script = ExtResource("6_rgbxd")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Новый нод       +"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
-visible = false
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0.509804, 0.509804, 0.509804, 0.439216)
@@ -432,10 +442,13 @@ offset_top = 46.0
 offset_right = 159.0
 offset_bottom = 96.0
 scale = Vector2(0.75, 0.75)
+pivot_offset = Vector2(25600, 2500)
 script = ExtResource("6_r44s1")
 hint = &"detatch"
 text = "Detatch   -"
 base_size = Vector2(160, 50)
+alignment = Vector2(160, 50)
+_scroll_container = 0.0
 scale_anim = true
 mouse_open = false
 menu_name = &"detatch"
@@ -466,6 +479,14 @@ script = ExtResource("8_6how5")
 instance = NodePath("../delete")
 metadata/_custom_type_script = "uid://cppqde4187p8n"
 
+[node name="Loc" type="Node" parent="detatch"]
+script = ExtResource("6_rgbxd")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Удалить   -"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="edit_graph" parent="." instance=ExtResource("2_rnbi1")]
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -473,12 +494,14 @@ instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
 offset_right = 182.66667
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
+pivot_offset = Vector2(33367.113, 2116)
 script = ExtResource("9_rxqxn")
 implement = true
 placeholder = true
 text = "Edit node   *"
 base_size = Vector2(182.66667, 46)
-_scroll_container = false
+alignment = Vector2(182.66667, 46)
+_scroll_container = 0.0
 expanded_size = 144
 scale_anim = true
 arrangement_padding = Vector2(10, 8)
@@ -504,6 +527,14 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
+[node name="Loc" type="Node" parent="edit_graph/neuron"]
+script = ExtResource("6_rgbxd")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Удалить"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="copy" parent="edit_graph" instance=ExtResource("2_rnbi1")]
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.86, 0.86, 0.86, 1)
@@ -521,6 +552,22 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("5_0ypn7")
 
+[node name="Loc" type="Node" parent="edit_graph/copy"]
+script = ExtResource("6_rgbxd")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Копировать"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
+[node name="Loc" type="Node" parent="edit_graph"]
+script = ExtResource("6_rgbxd")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Изменить   *"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="delete_i" parent="." instance=ExtResource("2_rnbi1")]
 visible = false
 material = ExtResource("3_gygdu")
@@ -529,12 +576,14 @@ instance_shader_parameters/tuning = Color(0.51, 0.51, 0.51, 0.439216)
 offset_right = 159.0
 offset_bottom = 46.0
 scale = Vector2(0.75, 0.75)
+pivot_offset = Vector2(25281, 2116)
 script = ExtResource("9_rxqxn")
 implement = true
 text_alignment = Vector2(-1, 0)
 text_offset = Vector2(15, 0)
 base_size = Vector2(159, 46)
-_scroll_container = false
+alignment = Vector2(159, 46)
+_scroll_container = 0.0
 expanded_size = 96
 scale_anim = true
 mouse_open = false
@@ -560,6 +609,14 @@ alignment = Vector2(0.5, 0.5)
 mouse_open = false
 config = SubResource("Resource_77dp3")
 
+[node name="Loc" type="Node" parent="delete_i/delete"]
+script = ExtResource("6_rgbxd")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Удалить"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="detatch3" parent="." instance=ExtResource("2_rnbi1")]
 material = ExtResource("3_gygdu")
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -569,8 +626,12 @@ offset_top = 46.0
 offset_right = 159.0
 offset_bottom = 54.0
 scale = Vector2(0.75, 0.75)
+pivot_offset = Vector2(25600, 64)
 script = ExtResource("10_gygdu")
+text_color = Color(0, 0, 0, 1)
 base_size = Vector2(160, 8)
+alignment = Vector2(160, 8)
+_scroll_container = 0.0
 secondary = true
 mouse_open = false
 menu_name = &"subctx"

@@ -961,7 +961,7 @@ func get_default_row(where: int = -1):
 func _hide(arg):
 	if !querying:
 		glob.menus["row_mod"].menu_hide()
-var query_lock := false
+var query_lock = false
 func to_query(row: int, mp: Vector2):
 	if querying:
 		glob.menus["row_mod"].menu_hide()
@@ -1070,7 +1070,7 @@ func refresh_dataset(force_full: bool = false) -> void:
 				cell.coord = Vector2i(r, c)
 
 	if not uniform_row_heights:
-		var visible_range := get_visible_row_range()
+		var visible_range = get_visible_row_range()
 		_ensure_row_metrics_visible(visible_range.x, visible_range.y)
 
 	_sum_heights = (uniform_row_height * rows) if uniform_row_heights else row_offsets[min(row_offsets.size() - 1, rows)]
@@ -1153,7 +1153,7 @@ func _process_hover_detection(row: int) -> void:
 		_clear_hover(true)
 		return
 
-	var col := -1
+	var col = -1
 	for i in range(cols):
 		if x_in >= col_offsets[i] and x_in < col_offsets[i + 1]:
 			col = i
@@ -1163,7 +1163,7 @@ func _process_hover_detection(row: int) -> void:
 		_clear_hover(true)
 		return
 
-	var key := Vector2i(row, col)
+	var key = Vector2i(row, col)
 	var new_cell: TableCell = null
 	if active_cells.has(key):
 		new_cell = active_cells[key]
@@ -1172,7 +1172,7 @@ func _process_hover_detection(row: int) -> void:
 		_clear_hover(true)
 		return
 
-	var rect := Rect2(new_cell.global_position, new_cell.size)
+	var rect = Rect2(new_cell.global_position, new_cell.size)
 	if not rect.has_point(mp_global):
 		_clear_hover(true)
 		return
@@ -1187,7 +1187,7 @@ func _process_hover_detection(row: int) -> void:
 	_hovered_cell._mouse_enter()
 
 
-func _clear_hover(force := false) -> void:
+func _clear_hover(force = false) -> void:
 	if _hovered_cell and is_instance_valid(_hovered_cell):
 		_hovered_cell._mouse_exit()
 	_hovered_cell = null
@@ -1209,6 +1209,8 @@ var prev_row = {}
 
 
 func _process(delta: float) -> void:
+	if glob.space_just_pressed:
+		compress_and_send()
 	#if dataset_obj:
 	#	print(dataset_obj["col_args"])
 	#print(dataset_obj["col_args"])
@@ -1726,6 +1728,129 @@ func get_preview(validate_cols: bool = false):
 		res.input_hints.append({"name": column_names[to_validate], "value": val, "dtype": "image"})
 	#print(res)
 	return res
+
+
+
+func _encode_image_column(col: int) -> PackedByteArray:
+	var out = PackedByteArray()
+
+	for r in rows:
+		var cell = _get_cell(r, col)
+		var img = cell.img
+		if img == null:
+			continue
+
+		var data = img.get_data().data
+		var pixel_count = img.get_width() * img.get_height()
+
+		var idx = 0
+		for p in range(pixel_count):
+			var r8 = data[idx]
+			var g8 = data[idx + 1]
+			var b8 = data[idx + 2]
+
+			var gray = int(0.299 * r8 + 0.587 * g8 + 0.114 * b8)
+			out.append(gray)
+
+			idx += 3
+
+	return out
+
+func _encode_float_column(col: int) -> PackedByteArray:
+	var out = PackedByteArray()
+	out.resize(rows)
+
+	for r in rows:
+		var cell = _get_cell(r, col)
+		var v = float(cell.val)
+		var q = clamp(int(v * 255.0), 0, 255)
+		out[r] = q
+
+	return out
+
+
+func _encode_int_column(col: int) -> PackedByteArray:
+	var args = get_column_arg_pack(col)
+	var mn = int(args.get("min", 0))
+	var mx = int(args.get("max", 0))
+
+	var range = mx - mn
+	var bits = max(1, int(ceil(log(range + 1) / log(2))))
+	bits = clamp(bits, 1, 32)
+
+	var bp = glob.BitPacker.new()
+
+	for r in rows:
+		var cell = _get_cell(r, col)
+		var v: int = int(cell.num)
+		var offset = v - mn
+		bp.push(offset, bits)
+
+	return bp.to_bytes()
+
+func _rle_encode_into(src: PackedByteArray, dst: PackedByteArray) -> void:
+	if src.is_empty():
+		return
+
+	var last: int = src[0]
+	var count: int = 1
+
+	for i in range(1, src.size()):
+		var v := src[i]
+		if v == last and count < 65535:
+			count += 1
+		else:
+			dst.append(count >> 8)
+			dst.append(count & 0xFF)
+			dst.append(last)
+			last = v
+			count = 1
+
+	dst.append(count >> 8)
+	dst.append(count & 0xFF)
+	dst.append(last)
+
+
+
+func compress_and_send():
+	var inputs_count := outputs_from
+	var outputs_count := cols - outputs_from
+
+	var result_inputs := []
+	var result_outputs := []
+	result_inputs.resize(inputs_count)
+	result_outputs.resize(outputs_count)
+
+	for c in cols:
+		var dtype = column_datatypes[c]
+		var raw = PackedByteArray()
+
+		match dtype:
+			"num":
+				raw = _encode_int_column(c)
+			"float":
+				raw = _encode_float_column(c)
+			"image":
+				raw = _encode_image_column(c)
+			"text":
+				# untouched for now
+				raw = PackedByteArray()  # or skip entirely
+
+		# apply RLE
+		var rle := PackedByteArray()
+		_rle_encode_into(raw, rle)
+
+		if c < outputs_from:
+			result_inputs[c] = rle
+		else:
+			result_outputs[c - outputs_from] = rle
+	
+	#print(len(result_inputs[0]), " ", len(result_outputs[0]))
+	return [result_inputs, result_outputs]
+
+
+
+
 
 func ds_to_val(i: int):
 	var dt = column_datatypes[i]

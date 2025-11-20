@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://f081neg4h7dv"]
+[gd_scene load_steps=21 format=3 uid="uid://f081neg4h7dv"]
 
 [ext_resource type="Script" uid="uid://bang6a1r87sqa" path="res://scripts/ai_help.gd" id="1_tb6sx"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_o277e"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_32ht4"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_hh2om"]
 [ext_resource type="Texture2D" uid="uid://cwe4nkiqegj6f" path="res://game_assets/icons/mic.png" id="11_h3ok5"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="12_42jti"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_42jti"]
 content_margin_left = 10.0
@@ -318,6 +319,14 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_h3ok5")
 in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/train"]
+script = ExtResource("12_42jti")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "сброс"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_hh2om")

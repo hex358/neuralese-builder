@@ -37,7 +37,7 @@ var console_max_height: float = 500.0
 func repos():
 	border_rect_1.position = Vector2($Control/scenes.size.x - border_hit, 
 	$Control/scenes.global_position.y)
-	border_rect_1.size = Vector2(border_hit*2, $Control/scenes.size.y)
+	border_rect_1.size = Vector2(border_hit*1, $Control/scenes.size.y)
 	border_rect_2.position = Vector2($Control/CodeEdit.size.x + $Control/CodeEdit.position.x, 
 	$Control/scenes.global_position.y)
 	border_rect_2.size = Vector2(border_hit, $Control/scenes.size.y)
@@ -290,7 +290,6 @@ func tick(force: bool = false) -> void:
 		prev_win = glob.window_size
 		repos()
 	
-	
 	$Control/view/Label.resize()
 
 
@@ -321,7 +320,7 @@ func handle_division_drag() -> void:
 
 
 	if glob.mouse_just_pressed and in_y:
-		if abs(mp.x - border1) <= border_hit:
+		if border1 - mp.x < border_hit and border1 - mp.x > 0:
 			_dragging = 0
 			_drag_anchor = border1 - mp.x
 		elif mp.x - border2 <= border_hit and mp.x >= border2:
@@ -436,6 +435,8 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	last_button = button
 	current_lua_env = button.hint
 	last_hint = button.hint
+	$Control/view/Label.text = last_hint
+	$Control/view/Label.resize()
 	$Control/CodeEdit.text = received_texts[button.hint]
 	if current_lua_env and current_lua_env in cursors:
 		code.set_caret_column(cursors[current_lua_env].x)
