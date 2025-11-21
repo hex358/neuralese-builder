@@ -87,6 +87,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Имя модели"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Модель атауы"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [connection signal="changed" from="LineEdit" to="." method="_on_line_edit_changed"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://coifi5ok0t7lo"]
+[gd_scene load_steps=26 format=3 uid="uid://coifi5ok0t7lo"]
 
 [ext_resource type="Script" uid="uid://cvwlkwi2gv6rf" path="res://scripts/input_1d.gd" id="1_gbdyi"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_7nifx"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="13_7nifx"]
 [ext_resource type="PackedScene" uid="uid://3ysaq3xq2pay" path="res://scenes/tags.tscn" id="14_pxsba"]
 [ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="15_nsvjh"]
+[ext_resource type="Script" uid="uid://bigshts3ul8jd" path="res://scripts/loc2a.gd" id="16_1fsst"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nifx"]
 bg_color = Color(0.24, 0.24, 0.24, 1)
@@ -235,7 +236,7 @@ text = "Input1D"
 anchors_preset = 0
 offset_left = -85.0
 offset_top = -32.0
-offset_right = 97.0
+offset_right = 63.0
 offset_bottom = 20.0
 script = ExtResource("5_ca2jg")
 
@@ -386,6 +387,17 @@ max_length = 14
 context_menu_enabled = false
 accept_button = NodePath("../ColorRect2")
 
+[node name="Loc" type="Node" parent="input/LineEdit"]
+script = ExtResource("15_nsvjh")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Имя признака"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Белгі атауы"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="ColorRect2" parent="input" node_paths=PackedStringArray("graph") instance=ExtResource("9_tpmcl")]
 material = ExtResource("10_m57n5")
 instance_shader_parameters/corner_radius_width_add = Vector2(-2, 0)
@@ -410,6 +422,9 @@ script = ExtResource("15_nsvjh")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Доб.+"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Қос.+"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -645,7 +660,6 @@ pivot_offset = Vector2(25.263783, 11.360636)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
-top = true
 base_scale_x = 0.45
 resize_after = 6
 text = "Run!"
@@ -662,10 +676,13 @@ graph = NodePath("../input")
 graph_root = NodePath("..")
 
 [node name="Loc" type="Node" parent="run"]
-script = ExtResource("15_nsvjh")
+script = ExtResource("16_1fsst")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Пуск"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Қосу"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

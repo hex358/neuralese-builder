@@ -14,8 +14,9 @@
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="11_erg8n"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="12_oo6fr"]
 
-[sub_resource type="Resource" id="Resource_sfqu4"]
+[sub_resource type="Resource" id="Resource_5t588"]
 script = ExtResource("5_s5omi")
+as_mult = true
 hover_color = Color(1.300188, 1.300188, 1.300188, 1)
 hover_mult = 1.15
 _hover_scale = 1.02
@@ -94,8 +95,7 @@ config = null
 [node name="name" parent="ColorRect/list" instance=ExtResource("2_5t588")]
 z_index = 5
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.43137255, 0.5882353, 0.9019608, 1)
-instance_shader_parameters/tuning = Color(0.26400003, 0.3593334, 0.55, 0.5647059)
+instance_shader_parameters/tuning = Color(0.55, 0.55, 0.55, 0.5647059)
 layout_mode = 0
 offset_left = 200.0
 offset_top = 221.333
@@ -111,7 +111,7 @@ text_offset = Vector2(15, 15)
 base_size = Vector2(236, 75.333694)
 alignment = Vector2(0.5, 0.5)
 mouse_open = false
-config = SubResource("Resource_sfqu4")
+config = SubResource("Resource_5t588")
 in_splash = true
 still_hover_in_block = true
 
@@ -134,6 +134,9 @@ script = ExtResource("11_5t588")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Выбор датасета"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Датасетті таңдау"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -158,6 +161,9 @@ script = ExtResource("11_5t588")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Поиск..."
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Іздеу…"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

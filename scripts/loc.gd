@@ -14,12 +14,12 @@ var _translation_fn: Callable
 func _ready() -> void:
 	lang = glob.get_lang()
 	_parent = get_parent()
-	if localizations_ru and localizations_ru.keys()[0] == "_":
+	if localizations_ru and localizations_ru.keys().size() == 1:
 		var old = localizations_ru.keys()[0]
 		var val = localizations_ru[old]
 		localizations_ru.erase(localizations_ru.keys()[0])
 		localizations_ru[sanitize(_get_text())] = val
-	if localizations_kz and localizations_kz.keys()[0] == "_":
+	if localizations_kz and localizations_kz.keys().size() == 1:
 		var old = localizations_kz.keys()[0]
 		var val = localizations_kz[old]
 		localizations_kz.erase(localizations_kz.keys()[0])
@@ -144,7 +144,10 @@ func _translate_to(text: String, lang: String) -> String:
 	#print(text, " ", lang)
 	if auto:
 		if lang == "kz":
-			return localizations_kz.get(sanitize(text), text)
+			var sanitized = sanitize(text)
+			if not sanitized in localizations_kz:
+				return localizations_ru.get(sanitized, text)
+			return localizations_kz.get(sanitized, text)
 		if lang == "ru":
 			return localizations_ru.get(sanitize(text), text)
 	return text

@@ -224,6 +224,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "untitled": "Безымянный"
 })
+localizations_kz = Dictionary[String, String]({
+"kz": "Атаусыз"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="ColorRect3" type="TextureRect" parent="ColorRect"]
@@ -307,6 +310,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "export": "  Скачать"
 })
+localizations_kz = Dictionary[String, String]({
+"export": "  Жүктеу"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="ai" parent="ColorRect/Control" instance=ExtResource("4_5k5he")]
@@ -340,6 +346,9 @@ texture = ExtResource("11_x67tc")
 script = ExtResource("13_luhqm")
 auto = true
 localizations_ru = Dictionary[String, String]({
+"axon": "  Аксон"
+})
+localizations_kz = Dictionary[String, String]({
 "axon": "  Аксон"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
@@ -465,6 +474,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "sandbox": "Сцены"
 })
+localizations_kz = Dictionary[String, String]({
+"sandbox": "Сахналар"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="datasets" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
@@ -507,6 +519,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "datasets": "Датасеты"
 })
+localizations_kz = Dictionary[String, String]({
+"datasets": "Датасеттар"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="minigames" parent="ColorRect/Control3" instance=ExtResource("4_5k5he")]
@@ -548,6 +563,9 @@ script = ExtResource("12_v7s1j")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "graphs": "Графы"
+})
+localizations_kz = Dictionary[String, String]({
+"graphs": "Графтар"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

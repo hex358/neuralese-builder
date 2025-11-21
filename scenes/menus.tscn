@@ -431,6 +431,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Новый нод       +"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Жаңа нод        +"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="detatch" parent="." instance=ExtResource("2_rnbi1")]
@@ -485,6 +488,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Удалить   -"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Өшіру     -"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="edit_graph" parent="." instance=ExtResource("2_rnbi1")]
@@ -533,6 +539,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Удалить"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Өшіру"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="copy" parent="edit_graph" instance=ExtResource("2_rnbi1")]
@@ -558,6 +567,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Копировать"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Көшіру"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Loc" type="Node" parent="edit_graph"]
@@ -565,6 +577,9 @@ script = ExtResource("6_rgbxd")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Изменить   *"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Өзгерту     *"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -614,6 +629,9 @@ script = ExtResource("6_rgbxd")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Удалить"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Өшіру"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

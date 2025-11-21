@@ -274,6 +274,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "clear": "сброс"
 })
+localizations_kz = Dictionary[String, String]({
+"clear": "Тазарт"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="scenes" type="ColorRect" parent="Control"]
@@ -305,6 +308,9 @@ script = ExtResource("10_hu0bw")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "scenes": "Сцены"
+})
+localizations_kz = Dictionary[String, String]({
+"scenes": "Сахна"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -498,6 +504,9 @@ script = ExtResource("10_hu0bw")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "game name": "Имя игры"
+})
+localizations_kz = Dictionary[String, String]({
+"game name": "Ойын атауы"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

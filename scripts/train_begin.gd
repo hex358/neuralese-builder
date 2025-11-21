@@ -1,9 +1,10 @@
 extends Graph
 
 func get_training_data():
+	#print(not dataset_meta["name"] in glob._load)
 	if get_ancestor() and get_ancestor().cfg["name"]:
 		return {"epochs": epochs if epochs else 1, "dataset": get_ancestor().cfg["name"], "test_dataset": "", 
-		"batch_size": 32,}
+		"batch_size": 32, "local": not dataset_meta["name"] in glob._load}
 
 @onready var clearbut = $train2
 
@@ -14,6 +15,7 @@ func display_ds_meta():
 
 func set_dataset_meta(meta: Dictionary):
 	var old_meta = dataset_meta
+#	print(meta)
 	dataset_meta = meta
 	#print(meta)
 	display_ds_meta()
@@ -140,7 +142,7 @@ func _stopped_processing():
 
 func _process(delta: float) -> void:
 	#if glob.space_just_pressed:
-	#	print(graphs.get_syntax_tree(self))
+	#	print(get_training_data())
 	super(delta)
 	if $ColorRect2.get_global_rect().has_point(get_global_mouse_position()) and vbox_vis():
 		glob.set_scroll_impossible(self)

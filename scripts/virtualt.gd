@@ -1209,8 +1209,9 @@ var prev_row = {}
 
 
 func _process(delta: float) -> void:
-	if glob.space_just_pressed:
-		compress_and_send()
+	#if glob.space_just_pressed:
+	#	print( DsObjRLE.compress_and_send(dataset_obj, false))
+	#	web.POST("cache_ds", {"dataset": DsObjRLE.compress_and_send(dataset_obj, true)})
 	#if dataset_obj:
 	#	print(dataset_obj["col_args"])
 	#print(dataset_obj["col_args"])
@@ -1673,7 +1674,9 @@ func _cell_exited_view(cell: TableCell, row: int, col: int) -> void:
 signal preview_refreshed(pr: Dictionary)
 var preview = null
 func refresh_preview():
+	#print(dataset_obj)
 	preview = get_preview()
+	#print(preview)
 	if preview:
 		preview_refreshed.emit(preview)
 	#print(_dataset_cache)
@@ -1681,189 +1684,8 @@ func refresh_preview():
 
 #no_outputs no_1d_outs mix_2d bad_img
 func get_preview(validate_cols: bool = false):
-	var res = {}
-	if not dataset_obj: 
-		return {"fatal": ""}
-	if not column_datatypes:
-		return {"fatal": ""}
-	if cols == 1:
-		return {"fail": "no_outputs"}
-	res["size"] = rows
-	res["name"] = dataset_obj["name"]
-	res["input_hints"] = []
-	var cur = {"label_names": [], "datatype": "1d", "x": 0, "label": "Output"}
-	if not column_datatypes: return
-	for i in range(outputs_from, cols):
-		if i >= column_datatypes.size() or column_datatypes[i] == "image":
-			return {"fail": "no_1d_outs"}
-		cur.label_names.append(column_names[i])
-	res.outputs = [cur]
-	var inputs = {"datatype": "", "x": 0}
-	var to_validate = -1
-	for i in range(0, max(1,outputs_from)):
-		var dt = column_datatypes[i]
-		if dt == "image":
-			if inputs["datatype"]: return {"fail": "mix_2d"}
-			inputs["datatype"] = "2d"
-			to_validate = i
-		else:
-			if inputs["datatype"] == "2d": return {"fail": "mix_2d"}
-			inputs["datatype"] = "1d(len:1)"
-			inputs["x"] += 1
-			res.input_hints.append({"name": column_names[i], "value": ds_to_val(i), "dtype": column_datatypes[i]})
-	if to_validate != -1:
-		var xs: int = 0
-		var ys: int = 0
-		var got = _dataset_cache["cols"][to_validate]
-		if got.size() > 1 or got.size() == 0 or got.keys()[0] == 0:
-			return {"fail": 'bad_img'}
-		var first_key = got.keys()[0]
-		xs = first_key >> 16
-		ys = first_key & 0xFFFF
-		var cell = _get_cell(0, to_validate)
-		inputs["x"] = xs
-		inputs["y"] = ys
-		var val = str(inputs.x) + "x" + str(inputs.y)
-		#var val = 
-		res.input_hints.append({"name": column_names[to_validate], "value": val, "dtype": "image"})
-	#print(res)
-	return res
-
-
-
-func _encode_image_column(col: int) -> PackedByteArray:
-	var out = PackedByteArray()
-
-	for r in rows:
-		var cell = _get_cell(r, col)
-		var img = cell.img
-		if img == null:
-			continue
-
-		var data = img.get_data().data
-		var pixel_count = img.get_width() * img.get_height()
-
-		var idx = 0
-		for p in range(pixel_count):
-			var r8 = data[idx]
-			var g8 = data[idx + 1]
-			var b8 = data[idx + 2]
-
-			var gray = int(0.299 * r8 + 0.587 * g8 + 0.114 * b8)
-			out.append(gray)
-
-			idx += 3
-
-	return out
-
-func _encode_float_column(col: int) -> PackedByteArray:
-	var out = PackedByteArray()
-	out.resize(rows)
-
-	for r in rows:
-		var cell = _get_cell(r, col)
-		var v = float(cell.val)
-		var q = clamp(int(v * 255.0), 0, 255)
-		out[r] = q
-
-	return out
-
-
-func _encode_int_column(col: int) -> PackedByteArray:
-	var args = get_column_arg_pack(col)
-	var mn = int(args.get("min", 0))
-	var mx = int(args.get("max", 0))
-
-	var range = mx - mn
-	var bits = max(1, int(ceil(log(range + 1) / log(2))))
-	bits = clamp(bits, 1, 32)
-
-	var bp = glob.BitPacker.new()
-
-	for r in rows:
-		var cell = _get_cell(r, col)
-		var v: int = int(cell.num)
-		var offset = v - mn
-		bp.push(offset, bits)
-
-	return bp.to_bytes()
-
-func _rle_encode_into(src: PackedByteArray, dst: PackedByteArray) -> void:
-	if src.is_empty():
-		return
-
-	var last: int = src[0]
-	var count: int = 1
-
-	for i in range(1, src.size()):
-		var v := src[i]
-		if v == last and count < 65535:
-			count += 1
-		else:
-			dst.append(count >> 8)
-			dst.append(count & 0xFF)
-			dst.append(last)
-			last = v
-			count = 1
-
-	dst.append(count >> 8)
-	dst.append(count & 0xFF)
-	dst.append(last)
-
-
-
-func compress_and_send():
-	var inputs_count := outputs_from
-	var outputs_count := cols - outputs_from
-
-	var result_inputs := []
-	var result_outputs := []
-	result_inputs.resize(inputs_count)
-	result_outputs.resize(outputs_count)
-
-	for c in cols:
-		var dtype = column_datatypes[c]
-		var raw = PackedByteArray()
-
-		match dtype:
-			"num":
-				raw = _encode_int_column(c)
-			"float":
-				raw = _encode_float_column(c)
-			"image":
-				raw = _encode_image_column(c)
-			"text":
-				# untouched for now
-				raw = PackedByteArray()  # or skip entirely
-
-		# apply RLE
-		var rle := PackedByteArray()
-		_rle_encode_into(raw, rle)
-
-		if c < outputs_from:
-			result_inputs[c] = rle
-		else:
-			result_outputs[c - outputs_from] = rle
-	
-	#print(len(result_inputs[0]), " ", len(result_outputs[0]))
-	return [result_inputs, result_outputs]
-
-
-
-
-
-func ds_to_val(i: int):
-	var dt = column_datatypes[i]
-	var val = "0"
-	var args = get_column_arg_pack(i).merged(default_argpacks[dt].duplicate(true))
-	match dt:
-		"num":
-			val = str(args.min if args.min < 9999 else glob.compact(args.min)) + "-\n" + str(args.max if args.max < 9999 else glob.compact(args.max))
-		"float":
-			val = "0..1"
-		"text":
-			val = "_"
-	return val
+	if not dataset_obj: return {"fatal": ""}
+	return DsObjRLE.get_preview(dataset_obj, validate_cols)
 
 
 func get_visible_row_range() -> Vector2i:

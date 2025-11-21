@@ -403,7 +403,7 @@ func load_graph(state: Dictionary, reg: Dictionary):
 	var skip = {}
 	for layer in sequence:
 		for pack in sequence[layer]:
-			var graph: Graph = get_graph(pack.created_with, Graph.Flags.NONE, pack.id)
+			var graph: Graph = get_graph(pack.created_with, Graph.Flags.NONE, pack.id, pack.llm_tag)
 			graph.position = pack.position
 			graph.set_meta("pack", pack)
 			for port_key in pack.outputs:
@@ -754,8 +754,10 @@ func get_llm_summary():
 					"to":
 					{"port": j.outputs[o].tied_to.hint, "tag": j.outputs[o].tied_to.parent_graph.llm_tag}})
 			outputs[j.hint] = output_splines
+		#print(node.llm_tag)
 		summary["nodes"][node.llm_tag] = {"type": glob.llm_name_unmapping[node.get_meta("created_with")],
 		"config": node.llm_config(), "outputs": outputs}
+	#print(summary)
 	return summary
 	#print(JSON.stringify(summary, "\t"))
 
@@ -767,10 +769,38 @@ func get_llm_summary():
 	#"graph": syntax_tree}), true)
 
 
-func gload(path: String):
-	var loaded = load(path)
-	loaded.set_meta("_loaded_with", path)
+func gload(sp: String):
+	var loaded = load(sp)
+	var state: SceneState = loaded.get_state()
+	var node_count = state.get_node_count()
+	var locked: bool = false
+	var outline_color: Color = Color.WHITE
+	var tuning: Color = Color.WHITE
+	var title: String = ""
+	for i in range(node_count):
+		var path = str(state.get_node_path(i))
+		var to_break: bool = false
+		var is_lab: bool = (path) == "./ColorRect/root/Label" or (path) == "./ColorRect/root/Label2"
+		if not (path) == "./ColorRect" and not is_lab:
+			continue
+		var property_count = state.get_node_property_count(i)
+		for j in range(property_count):
+			var prop_name = state.get_node_property_name(i, j)
+			if prop_name == "instance_shader_parameters/outline_color":
+				outline_color = state.get_node_property_value(i, j)
+				#print(prop_name, "=", prop_value)
+			if prop_name == "instance_shader_parameters/tuning":
+				tuning = state.get_node_property_value(i, j)
+				break
+			if prop_name == "text":
+				title = state.get_node_property_value(i, j)
+				break
+		if is_lab:
+			break
+	loaded.set_meta("_loaded_with", sp)
+	print(sp, " ", title)
 	return loaded
+
 
 var graph_types = {
 	"io": gload("res://scenes/io_graph.tscn"),
@@ -836,6 +866,8 @@ func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: St
 	new.z_index = z_count
 	if tag:
 		glob.set_llm_tag(new, tag)
+	else:
+		glob.set_llm_tag(new, glob.get_llm_tag(new))
 	new.invoked_with = get_graph.bind(typename, flags, id, tag)
 	storage.add_child(new)
 	add(new)
@@ -894,6 +926,8 @@ func conning() -> bool:
 var pos_cache: Dictionary = {}
 var last_frame_visible: bool = true
 func _process(delta: float) -> void:
+	#print(_graphs.size())
+	#print(get_llm_summary().nodes.keys())
 	#for i in input_graph_names.keys():
 	#	if not is_instance_valid(input_graph_names[i]):
 	#		input_graphs.erase(input_graph_names[i])

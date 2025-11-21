@@ -324,7 +324,10 @@ in_splash = true
 script = ExtResource("12_42jti")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "сброс"
+"_": "Сброс"
+})
+localizations_kz = Dictionary[String, String]({
+"clear": "Тазарт"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

@@ -269,7 +269,6 @@ pivot_offset = Vector2(31.000004, 12.499998)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
-top = true
 base_scale_x = 0.45
 resize_after = 6
 text = "Train!"
@@ -288,6 +287,9 @@ script = ExtResource("12_5puut")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Учись!"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Оку!"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -326,7 +328,6 @@ pivot_offset = Vector2(25.488007, 9.669777)
 mouse_filter = 1
 color = Color(0.59, 0.59, 0.59, 1)
 button_type = 1
-top = true
 hint = &"login"
 base_scale_x = 0.45
 resize_after = 4
@@ -339,13 +340,15 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_qoxl0")
-in_splash = true
 
 [node name="Loc" type="Node" parent="train2"]
 script = ExtResource("12_5puut")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"clear": "сброс"
+"clear": "Сброс"
+})
+localizations_kz = Dictionary[String, String]({
+"clear": "Тазарт"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

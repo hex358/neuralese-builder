@@ -43,7 +43,15 @@ func _ready() -> void:
 	#})
 	#if a.body:
 		#parsed = JSON.parse_string(a.body.get_string_from_utf8())["list"]
-	list.show_up(loaded_datasets)
+	var result = {}
+	for i in glob.dataset_datas:
+		var preview = DsObjRLE.get_preview(glob.dataset_datas[i])
+		#print(preview)
+		preview["local"] = true
+		result[i] = {"data": preview, "local": true}
+	for i in loaded_datasets:
+		result[i] = {"data": loaded_datasets[i], "local": false}
+	list.show_up(result)
 	await get_tree().process_frame
 
 func _resultate(data: Dictionary):
@@ -52,7 +60,9 @@ func _resultate(data: Dictionary):
 
 
 func _on_list_child_button_release(button: BlockComponent) -> void:
-	resultate({"ds": button.hint, "meta": loaded_datasets[button.hint]})
+	#print(button.metadata["local_preview"])# = DsObjRLE.get_preview(glob.ds_dump[button.hint])
+	#print(glob.ds_dump[button.hint])
+	resultate({"ds": button.hint, "meta": loaded_datasets[button.hint] if not button.metadata["local"] else button.metadata["local_preview"]})
 
 
 func _on_add() -> void:

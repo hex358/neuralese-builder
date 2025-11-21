@@ -262,7 +262,13 @@ func on_send(txt: String) -> void:
 			rec = true
 			trect.texture = stop
 			$ColorRect/Label2.disable()
-			$ColorRect/Label2.text = "Say something..."
+			match glob.get_lang():
+				"ru":
+					$ColorRect/Label2.text = "Говорите..."
+				"kz":
+					$ColorRect/Label2.text = "Сөйле..."
+				_:
+					$ColorRect/Label2.text = "Speak..."
 			web.transcriber.begin_recording(60.0, func(): trect.texture = mic_texture)
 		else:
 			web.transcriber.end_recording()

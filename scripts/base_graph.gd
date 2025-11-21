@@ -742,9 +742,7 @@ func _ready() -> void:
 	#glob.push_action(self, invoked_with, delete)
 	#glob.close_action(self)
 	#print("FWRJFPKWEPFJ")
-	#if not llm_tag:
-	#	llm_tag = glob.get_llm_tag(self)
-	#	print(glob.tags_1d.size())
+
 	position -= rect.position
 	animate(0)
 	#graphs.add(self)
@@ -753,7 +751,13 @@ func _ready() -> void:
 	if is_input and root_context_id == 0:
 		root_context_id = _new_context_id()
 		context_id = root_context_id
-
+	await get_tree().process_frame
+	if llm_tag:
+		glob.set_llm_tag(self, llm_tag)
+	else:
+		glob.get_llm_tag(self)
+#	if not llm_tag:
+	#llm_tag = glob.get_llm_tag(self)
 	#graphs.collider(rect)
 
 func all_connections() -> Array[Connection]:
@@ -901,8 +905,10 @@ func map_properties(pack: Dictionary, careful: bool = false):
 		Graph._subgraph_registry[subgraph_id] = []
 	if not self in Graph._subgraph_registry[subgraph_id]:
 		Graph._subgraph_registry[subgraph_id].append(self)
-	if "llm_tag" in pack:
+	if  pack.get("llm_tag", ""):
 		glob.set_llm_tag(self, pack.llm_tag)
+	else:
+		glob.get_llm_tag(self)
 	update_config(pack.cfg)
 	for f in pack.cfg:
 		if pack.cfg[f] is Dictionary:

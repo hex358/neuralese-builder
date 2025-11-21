@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://oaujm3r8gbfd"]
+[gd_scene load_steps=15 format=3 uid="uid://oaujm3r8gbfd"]
 
 [ext_resource type="Script" uid="uid://cfpaq7saikp5w" path="res://scripts/dataset_create.gd" id="1_bjprd"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_bpkdg"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_lokuc"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="9_7yuwm"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_gptba"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="10_7yuwm"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_qqasl"]
 
 [sub_resource type="Resource" id="Resource_3idxy"]
@@ -108,6 +109,17 @@ simple = true
 simple_letters = 13
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
+[node name="Loc" type="Node" parent="ColorRect/Label"]
+script = ExtResource("10_7yuwm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "имя датасета"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "датасет атауы"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="train" parent="ColorRect" instance=ExtResource("8_lokuc")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -143,6 +155,17 @@ max_size = 170
 config = SubResource("Resource_3idxy")
 in_splash = true
 
+[node name="Loc" type="Node" parent="ColorRect/train"]
+script = ExtResource("10_7yuwm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "+Доб."
+})
+localizations_kz = Dictionary[String, String]({
+"_": "+Қос."
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="train2" parent="ColorRect" instance=ExtResource("8_lokuc")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -177,6 +200,17 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_3idxy")
 in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/train2"]
+script = ExtResource("10_7yuwm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Импорт"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Импорт"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_qqasl")

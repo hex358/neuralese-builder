@@ -190,6 +190,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "datasets": "Датасеты"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Датасет"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="list" parent="Control/scenes" instance=ExtResource("8_jf34i")]
@@ -572,6 +575,17 @@ in_splash = true
 [node name="Commands" type="Node" parent="Control/console/train2"]
 script = ExtResource("23_jf34i")
 metadata/_custom_type_script = "uid://4d3i1e2dctun"
+
+[node name="Loc" type="Node" parent="Control/console/train2"]
+script = ExtResource("15_51ak0")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"clear": "Сброс"
+})
+localizations_kz = Dictionary[String, String]({
+"clear": "Тазарт"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="9" parent="Control/console" instance=ExtResource("8_jf34i")]
 self_modulate = Color(1, 1, 1, 0)

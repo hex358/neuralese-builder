@@ -49,7 +49,9 @@ var saved_meta: Dictionary = {}
 
 func push_meta(meta: Dictionary):
 	saved_meta = meta
+	#print(saved_meta)
 	saved_meta.merge({"name": "", "outputs": [], "inputs": {}}, false)
+	#print(saved_meta)
 	if get_descendant():
 		get_descendant().set_dataset_meta(saved_meta)
 
@@ -66,6 +68,7 @@ func _on_run_released() -> void:
 	var res = await ui.splash_and_get_result("select_dataset", run, null, false, {"with_who": cfg["name"]})
 	hold_for_frame()
 	if res:
+	#	print(res["meta"])
 		update_config({"name": res["ds"]})
 		update_config({"meta": res["meta"]})
 	await get_tree().process_frame

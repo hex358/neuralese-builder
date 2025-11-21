@@ -643,7 +643,7 @@ func _process(delta: float) -> void:
 	
 	#if space_just_pressed:
 	#	save_datasets()
-	if curr_window == "graph":
+	if curr_window == "graph" and not get_viewport().gui_get_focus_owner() is LineEdit:
 		if not ui.active_splashed():
 			if Input.is_action_just_pressed("ctrl_z"):
 				#print("A")
@@ -835,7 +835,12 @@ func get_llm_tag(who: Graph) -> String:
 
 
 
+
+
+
 func load_dataset(name: String) -> Dictionary:
+	if name in dataset_datas:
+		return DsObjRLE.get_preview(dataset_datas[name])
 	return _load.get(name, {})
 
 var _load = {}
@@ -861,7 +866,7 @@ func get_lang():
 
 class BitPacker:
 	var data = PackedByteArray()
-	var bit_pos = 0  # next free bit index (0 = first bit of data[0])
+	var bit_pos = 0
 
 	func push(value: int, bits: int) -> void:
 		for i in range(bits):
@@ -887,14 +892,21 @@ class BitPacker:
 
 
 func set_llm_tag(who: Graph, val: String):
-	if who.llm_tag in tags_1d:
+	#print("=======")
+	#print(who.llm_tag)
+	if who.llm_tag in tags_1d and tags_1d[who.llm_tag] == who:
 		tags_1d.erase(who.llm_tag)
 	var g = who.get_meta("created_with")
 	if not g in tag_types: tag_types[g] = {}
 	who.llm_tag = val
 	tag_types[g][val] = true
 	#print(who.llm_tag)
+	#print(val)
+	#if !who.llm_tag:
+	#	print_stack()
+	#	breakpoint
 	tags_1d[who.llm_tag] = who
+	#print(len(tags_1d))
 	#print(tags_1d.size())
 
 var llm_name_unmapping = (func():

@@ -42,6 +42,7 @@ func tune(with_who: String):
 	if with_who:
 		var wh = button_by_hint.get(with_who)
 		if wh:
-			wh.set_tuning(wh.base_tuning * 2.2)
+			wh.set_tuning(wh.base_tuning * 1.8)
+			#print(wh.base_tuning * 2.2)
 	
 	#menu_expand()

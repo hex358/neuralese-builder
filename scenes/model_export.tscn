@@ -112,6 +112,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "имя модели"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Модель атауы"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="train" parent="ColorRect" instance=ExtResource("8_l3ogd")]
@@ -160,6 +163,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "  Скачать"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "  Жүктеу"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="windows" parent="ColorRect" instance=ExtResource("8_l3ogd")]
@@ -204,7 +210,10 @@ text = "Export Mode"
 script = ExtResource("10_53j4e")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "Режим"
+"_": "Режим экспорта"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Экспорт режимі"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

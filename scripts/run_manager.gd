@@ -42,19 +42,25 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def, run_b
 	if !is_instance_valid(train_input_origin) or !execute_input_origin: return false
 	#print(execute_input_origin.server_typename)
 	#print(train_input_origin.server_typename)
+	if not train_input_origin.dataset_meta: return false
+	if not train_input_origin.dataset_meta.get("name", ""): return false
 	if not check_valid(execute_input_origin, false): return false
 	request_save()
+	var tdata = train_input_origin.get_training_data()
 	var compressed = glob.compress_dict_zstd({
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(execute_input_origin),
 		"train_graph": graphs.get_syntax_tree(train_input_origin),
 		"scene_id": str(glob.get_project_id()),
-		"context": str(execute_input_origin.context_id)
-	}.merged(train_input_origin.get_training_data()))
+		"context": str(execute_input_origin.context_id),
+	}.merged(tdata))
 	#print(compressed)
 	var a = sockets.connect_to("ws/train", train_state_received.bind(additional_call), cookies.get_auth_header())
 	training_sockets[train_input] = a
 	a.connected.connect(func():
+		#if tdata.get("local"):
+		#	var data = DsObjRLE.compress_and_send(train_input_origin.dataset_meta["name"]) if tdata.get("local") else {}
+		#	a.send()
 		a.send(compressed))
 	a.kill.connect(func(...x):
 		#print("AA")
@@ -149,7 +155,8 @@ func open_infer_channel(input: Graph, on_close: Callable = glob.def, run_but: Bl
 	)
 	sock.kill.connect(func(...x) -> void:
 		if input in inference_sockets:
-			inference_sockets.erase(input)
+			if inference_sockets[input] == sock:
+				inference_sockets.erase(input)
 		on_close.call()
 	)
 	#await sock.connected

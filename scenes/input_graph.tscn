@@ -7,7 +7,7 @@
 [ext_resource type="Shader" uid="uid://xdax0svtqhn4" path="res://shaders/rounded.gdshader" id="4_6o5ig"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="6_6o5ig"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_g0n8j"]
-[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="8_g0n8j"]
+[ext_resource type="Script" uid="uid://bigshts3ul8jd" path="res://scripts/loc2a.gd" id="8_g0n8j"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_g0n8j"]
 shader = ExtResource("4_6o5ig")
@@ -135,7 +135,6 @@ pivot_offset = Vector2(26.575306, 12.499998)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
-top = true
 base_scale_x = 0.45
 resize_after = 6
 text = "Run!"
@@ -155,6 +154,9 @@ script = ExtResource("8_g0n8j")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Пуск"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Қосу"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

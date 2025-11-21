@@ -48,7 +48,16 @@ func _on_trainn_released() -> void:
 		#await glob.wait(1)
 		#reset_downloading()
 		#return
-		export_but.text = "  Export"
+		var export_txt = "  Export"
+		var saved_txt = "  Saved!"
+		match glob.get_lang():
+			"ru":
+				export_txt = "  Скачать"
+				saved_txt = "  Скачано"
+			"kz":
+				export_txt = "  Жүктеу"
+				saved_txt = "  Сақт.!"
+		export_but.text = export_txt
 		var got = graphs.get_input_graph_by_name($ColorRect/Label.text)
 		var handle = web.POST("export", {"user": cookies.user(), "pass": cookies.pwd(), 
 		"graph": graphs.get_syntax_tree(got),
@@ -73,12 +82,12 @@ func _on_trainn_released() -> void:
 			f.store_buffer(a["body"])
 			f.close()
 			reset_downloading()
-			export_but.text = "  Saved!"
+			export_but.text = saved_txt
 			#print(export_but.text)
 			#await glob.wait(1.0)
 			#export_but.text = "   Downloads"
 			await glob.wait(1.0)
-			export_but.text = "  Export"
+			export_but.text = export_txt
 		#print(a["body"].size() / 1024.0)
 		reset_downloading()
 	#	resultate({"text": $ColorRect/Label.text})

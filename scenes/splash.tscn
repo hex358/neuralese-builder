@@ -97,6 +97,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "name": "ник"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "аты"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Label2" type="LineEdit" parent="ColorRect"]
@@ -126,6 +129,9 @@ script = ExtResource("8_3idxy")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "pass": "пароль"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "құпиясөз"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -170,6 +176,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "login": "Вход"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Кіру"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="train2" parent="ColorRect" instance=ExtResource("8_x1bu2")]
@@ -212,6 +221,9 @@ script = ExtResource("8_3idxy")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "signup": "Новый"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Тіркеу"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
