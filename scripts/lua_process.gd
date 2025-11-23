@@ -607,51 +607,109 @@ func lua_get_mouse_pos() -> Dictionary:
 # -------------------------
 
 var model_qs = {}
-func enq_open_model(node: Graph, name: String):
+# --- add back the opener ---
+func enq_open_model(node: Graph, name: String) -> void:
 	created_models[name] = true
 	var open_res = await nn.open_infer_channel(node, node.close_runner)
-	if open_res:
-		
-		model_qs[name] = [node, null, false]
+	if not open_res:
+		return
+	# Optional: await ACK so the runner is fully ready
+	await open_res.ack
+
+	# ensure queue shape and mark idle
+	var q = model_qs.get(name, null)
+	if q == null:
+		q = [node, null, false, false, null] # [node, slot, has_unread, in_flight, pending]
+	else:
+		q[0] = node
+		while q.size() < 5: q.append(null)
+		q[2] = false
+		q[3] = false
+	model_qs[name] = q
+
+	# if Lua pushed something while we were opening — start it now
+	if q[4] != null and not q[3]:
+		var useful = node.useful_properties()
+		useful["raw_values"] = q[4]
+		q[4] = null
+		var job := InferJob.new()
+		q[1] = job
+		q[2] = false
+		q[3] = true
+		model_qs[name] = q
+		infer_job.call_deferred(name, node, useful, job)
+
 
 func lua_open_model(name: String):
 	var node = graphs.get_input_graph_by_name(name)
-	if node == null:
-		return {"_error":"no_node"}
-	if not cookies.get_auth_header():
-		return {"_error":"no_login", "type": -1, "repr": ""}
-	if not nn.validate_infer_channel(node):
-		return {"_error": "graph_invalid"}
-	
+	if node == null: return {"_error":"no_node"}
+	if not cookies.get_auth_header(): return {"_error":"no_login", "type": -1, "repr": ""}
+
+	# ensure queue
+	if not (name in model_qs):
+		model_qs[name] = [node, null, false, false, null]
+	else:
+		model_qs[name][0] = node
+
+	# open if not yet open
 	if not nn.is_infer_channel(node):
 		enq_open_model.call_deferred(node, name)
-	else:
-		model_qs[name] = [node, null, false]
+
 	return {}
+
 		#var open_res = await nn.open_infer_channel(node, node.close_runner)
 
+
+func _ensure_qshape(name: String):
+	if not (name in model_qs):
+		return
+	var q = model_qs[name]
+	while q.size() < 5:
+		q.append(null) # fill [3],[4]
+	# normalize types
+	if typeof(q[2]) != TYPE_BOOL: q[2] = false
+	if typeof(q[3]) != TYPE_BOOL: q[3] = false
+	model_qs[name] = q
+
 func lua_push_model(name: String, input: Array):
-	var node
-	if name in model_qs:
-		node = model_qs[name][0]
-		if model_qs[name][2]:
-			return {"_error": "please_pull_result"}
-	else:
-		return {"_error":"model_not_started"}
-	
-	if node == null:
-		return {"_error":"no_node"}
-	if not cookies.get_auth_header():
-		return {"_error":"no_login", "type": -1, "repr": ""}
+	#print(input)
+	if not (name in model_qs): return {"_error":"model_not_started"}
+	_ensure_qshape(name)
+	var q = model_qs[name]
+	var node = q[0]
+	if node == null: return {"_error":"no_node"}
+	if not cookies.get_auth_header(): return {"_error":"no_login", "type": -1, "repr": ""}
+
+	# not validated yet → schedule open and coalesce latest input
 	if not nn.validate_infer_channel(node):
-		return {"_error": "graph_invalid"}
+		if not nn.is_infer_channel(node):
+			enq_open_model.call_deferred(node, name)
+		q[4] = input          # pending
+		model_qs[name] = q
+		return {}
+
+	# already have a job running → coalesce latest and return
+	if q[3]:
+		q[4] = input
+		model_qs[name] = q
+		return {}
+
+	# start new job immediately
 	var useful = node.useful_properties()
 	useful["raw_values"] = input
-	model_qs[name][1] = InferJob.new()
-	infer_job.call_deferred(name, node, useful, model_qs[name][1])
+	var job := InferJob.new()
+	q[1] = job
+	q[2] = false
+	q[3] = true
+	q[4] = null
+	model_qs[name] = q
+	infer_job.call_deferred(name, node, useful, job)
+	return {}
+
 	#if not nn.is_infer_channel(node):
 
 func lua_can_pull_model(name: String):
+#	print(model_qs)
 	return name in model_qs and model_qs[name][1] != null and not model_qs[name][1] is InferJob
 
 func lua_pull_model(name: String):
@@ -679,10 +737,35 @@ class InferJob:
 
 func infer_job(name, node, useful, job: InferJob):
 	var result = await nn.send_inference_data(node, useful, true)
-	model_qs[name][2] = true
-#	print(useful)
+	#print(result)
+	var q = model_qs.get(name, null)
+	if q == null:
+		return
+
+	# keep the original shape so Lua's: out.result.LabelGroup works
+	if typeof(result) != TYPE_DICTIONARY:
+		result = {"_error": "bad_type", "repr": str(result)}
+
+	q[1] = result   # <-- RAW
+	q[2] = true     # has_unread
+	q[3] = false    # in_flight
+	model_qs[name] = q
+	#print(model_qs)
 	job.finished.emit()
-	model_qs[name][1] = result
+
+	# if Lua pushed a newer input while we were running → run it now
+	#if q[4] != null:
+		#var next_input = q[4]
+		#q[4] = null
+		#var useful2 = node.useful_properties()
+		#useful2["raw_values"] = next_input
+		#var job2 := InferJob.new()
+		#q[1] = job2
+		#q[2] = false
+		#q[3] = true
+		#model_qs[name] = q
+		#infer_job.call_deferred(name, node, useful2, job2)
+
 
 
 func async_lua_run_model(name: String, input: Array) -> LuaFuture:

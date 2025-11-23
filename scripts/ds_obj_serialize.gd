@@ -199,9 +199,12 @@ static func encode_int_column(dataset_obj: Dictionary, col: int) -> PackedByteAr
 
 
 static func rle_encode_into(src: PackedByteArray) -> PackedByteArray:
-	var dst := PackedByteArray()
-	if src.is_empty(): return dst
+	if src.is_empty():
+		var out := PackedByteArray()
+		out.append(0) # flag = raw
+		return out
 
+	var rle := PackedByteArray()
 	var last := src[0]
 	var count := 1
 	for i in range(1, src.size()):
@@ -209,15 +212,26 @@ static func rle_encode_into(src: PackedByteArray) -> PackedByteArray:
 		if v == last and count < 65535:
 			count += 1
 		else:
-			dst.append(count >> 8)
-			dst.append(count & 0xFF)
-			dst.append(last)
+			rle.append(count >> 8)
+			rle.append(count & 0xFF)
+			rle.append(last)
 			last = v
 			count = 1
-	dst.append(count >> 8)
-	dst.append(count & 0xFF)
-	dst.append(last)
-	return dst
+	rle.append(count >> 8)
+	rle.append(count & 0xFF)
+	rle.append(last)
+
+	# choose compressed only if smaller
+	if rle.size() + 1 < src.size() + 1:
+		var out := PackedByteArray()
+		out.append(1) # flag = compressed
+		out.append_array(rle)
+		return out
+	else:
+		var out := PackedByteArray()
+		out.append(0) # flag = raw
+		out.append_array(src)
+		return out
 
 
 static func compress_and_send(dataset_obj: Dictionary, b64: bool = false) -> Dictionary:
@@ -282,7 +296,23 @@ static func compress_and_send(dataset_obj: Dictionary, b64: bool = false) -> Dic
 			"image":
 				raw = encode_image_column(dataset_obj, c)
 			"text":
-				raw = PackedByteArray()
+				# Always raw UTF-8
+				var text_bytes := PackedByteArray()
+				for r in range(rows):
+					var s = str(arr[r][c].get("text", ""))
+					text_bytes.append_array(s.to_utf8_buffer())
+					text_bytes.append(0) # null separator for row boundary
+				raw = text_bytes
+
+				var encoded = rle_encode_into(raw)
+				if b64:
+					encoded = Marshalls.raw_to_base64(encoded)
+
+				if c < outputs_from:
+					result_inputs[c] = encoded
+				else:
+					result_outputs[c - outputs_from] = encoded
+
 
 		var rle = rle_encode_into(raw)
 		if b64:

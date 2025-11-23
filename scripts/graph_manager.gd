@@ -775,38 +775,54 @@ func gload(sp: String):
 	var node_count = state.get_node_count()
 	var locked: bool = false
 	var outline_color: Color = Color.WHITE
-	var tuning: Color = Color.WHITE
+	var tuning: Color = Color(0.0, 0.0, 0.0, 0.639)
 	var title: String = ""
+	var mat: ShaderMaterial = null
+	var modulate: Color = Color.WHITE
 	for i in range(node_count):
 		var path = str(state.get_node_path(i))
 		var to_break: bool = false
 		var is_lab: bool = (path) == "./ColorRect/root/Label" or (path) == "./ColorRect/root/Label2"
 		if not (path) == "./ColorRect" and not is_lab:
 			continue
+		#print("=========")
 		var property_count = state.get_node_property_count(i)
 		for j in range(property_count):
 			var prop_name = state.get_node_property_name(i, j)
+			if prop_name == "material" and not is_lab:
+				mat = state.get_node_property_value(i, j)
+			#print(prop_name)
 			if prop_name == "instance_shader_parameters/outline_color":
 				outline_color = state.get_node_property_value(i, j)
 				#print(prop_name, "=", prop_value)
 			if prop_name == "instance_shader_parameters/tuning":
 				tuning = state.get_node_property_value(i, j)
-				break
+				#break
 			if prop_name == "text":
 				title = state.get_node_property_value(i, j)
+				#if title.begins_with("Image"):
+				#	print(tuning)
+				break
+			if prop_name == "self_modulate" and not is_lab:
+				modulate = state.get_node_property_value(i, j)
 				break
 		if is_lab:
 			break
 	loaded.set_meta("_loaded_with", sp)
-	print(sp, " ", title)
+	loaded.set_meta("title", title)
+	loaded.set_meta("outline_color", outline_color)
+	loaded.set_meta("tuning", tuning)
+	loaded.set_meta("mat", mat)
+	loaded.set_meta("mod", modulate)
+	#print(sp, " ", title)
 	return loaded
 
 
 var graph_types = {
-	"io": gload("res://scenes/io_graph.tscn"),
+	#"io": gload("res://scenes/io_graph.tscn"),
 	"neuron": gload("res://scenes/neuron.tscn"),
-	"loop": gload("res://scenes/loop.tscn"),
-	"base": gload("res://scenes/base_graph.tscn"),
+	#"loop": gload("res://scenes/loop.tscn"),
+	#"base": gload("res://scenes/base_graph.tscn"),
 	"input": gload("res://scenes/input_graph.tscn"),
 	"layer": gload("res://scenes/layer.tscn"),
 	"train_input": gload("res://scenes/train_input.tscn"),
@@ -829,6 +845,24 @@ var graph_types = {
 	"concat": gload("res://scenes/layer_concat.tscn"),
 }
 
+func _enter_tree() -> void:
+	_reindex_for_buttons()
+
+var graph_buttons = []
+
+func _reindex_for_buttons():
+	for i in graph_types:
+		var type = graph_types[i]
+		var title = type.get_meta("title")
+		if i == "classifier":
+			title = "LabelGroup"
+		#print(type.get_meta("mat"))
+		graph_buttons.append({"name": i, 
+		"title": title, 
+		"outline_color": type.get_meta("outline_color"),
+		"mod": type.get_meta("mod"),
+		"material": type.get_meta("mat"),
+		"tuning": type.get_meta("tuning")})
 
 var top_graph_at_mouse: Graph = null
 

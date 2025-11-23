@@ -60,13 +60,14 @@ offset_bottom = 40.0
 self_modulate = Color(0.85882354, 0.4, 1, 1)
 z_index = 1
 layout_mode = 0
-offset_left = 35.0
+offset_left = 2.0
 offset_top = 3.0
-offset_right = 247.0
+offset_right = 259.55435
 offset_bottom = 46.0
 scale = Vector2(0.419329, 0.419329)
 theme = ExtResource("3_3yi81")
 text = "Model"
+horizontal_alignment = 1
 
 [node name="LineEdit" parent="." instance=ExtResource("5_x05q1")]
 layout_mode = 0

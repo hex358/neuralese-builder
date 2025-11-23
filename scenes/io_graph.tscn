@@ -18,10 +18,8 @@ hover_mult = 1.4
 _hover_scale = 1.037
 press_color = Color(0.9, 0.9, 0.9, 1)
 _press_scale = 0.97
-animation_scale = 0.0
 animation_speed = 1.951
 animation_decay = 4.564
-animation_duration = 1.0
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Base" node_paths=PackedStringArray("unit", "add_button", "input", "line_edit") instance=ExtResource("1_2pdka")]
@@ -34,14 +32,17 @@ input = NodePath("input")
 padding = -7.0
 line_edit = NodePath("input/LineEdit")
 unit_offset_y = 0.0
+wait_enclose = false
+enclose_pad = 0.0
 target_size = 96.0
 min_size = 0.0
 size_add = 0.0
+lerp_size = true
+input_y_add = 0.0
 z_space = 1
 
 [node name="ColorRect" parent="." index="0"]
 z_index = 1
-instance_shader_parameters/corner_radius_add = -4.0
 instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
 instance_shader_parameters/tuning = Color(0.05, 0.05, 0.05, 0.541176)
 offset_right = 82.0
@@ -121,8 +122,6 @@ accept_button = NodePath("../ColorRect2")
 
 [node name="ColorRect2" parent="input" index="1" node_paths=PackedStringArray("graph") instance=ExtResource("3_5xco4")]
 material = ExtResource("5_jeojw")
-instance_shader_parameters/corner_radius_add = -1.0
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -140,7 +139,6 @@ config = SubResource("Resource_jeojw")
 graph = NodePath("../..")
 
 [node name="i" parent="." index="3" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_rxypt")]
-instance_shader_parameters/corner_radius_add = 5.0
 instance_shader_parameters/tuning = Color(1, 1, 1, 1)
 layout_mode = 0
 offset_left = -10.0

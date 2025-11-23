@@ -42,7 +42,7 @@ func _gui_input(event: InputEvent) -> void:
 		else:
 			var cmd_name = result["command"]
 			var def: Commands.CommandDef = parser.registry[cmd_name]
-			await glob.join_ds_save()
+			await glob.join_ds_processing()
 			def.handler.call(result)
 		await get_tree().process_frame
 		clear()
@@ -233,6 +233,7 @@ func _on_dcol_command(_data: Dictionary):
 	if col_idx < -table.cols or col_idx >= table.cols:
 		debug_print("[color=coral]Invalid column index %d.[/color]" % col_idx)
 		return
+	table.dirtify()
 	if col_idx < 0:
 		col_idx += table.cols
 	#print(col_idx)
@@ -278,6 +279,7 @@ func _on_outs_command(_data: Dictionary):
 	if col_idx == 0:
 		debug_print("[color=coral]Dataset must have at least 1 input column.[/color]")
 		return
+	table.dirtify()
 	#if col_idx == table.cols:
 		#debug_print("[color=coral]Dataset must have at least 1 output column.[/color]" % col_idx)
 		#return
@@ -372,6 +374,7 @@ func _on_acol_command(_data: Dictionary):
 	if parts.size() < 2:
 		debug_print("[color=coral]Usage: acol [index] <name>:<type>[/color]")
 		return
+	table.dirtify()
 
 	var insert_at: int = table.cols  # default append mode
 	var token: String
@@ -489,6 +492,7 @@ func _on_convert_command(_data: Dictionary):
 	if not idx_str.is_valid_int():
 		debug_print("[color=coral]Column index must be an integer.[/color]")
 		return
+	table.dirtify()
 	var col_idx = int(idx_str)
 	var to_dtype = parts[2]
 	
@@ -505,6 +509,7 @@ func _on_cols_command(_data: Dictionary):
 	if parts.size() < 2:
 		debug_print("[color=coral]Usage: cols <name:type> [name:type(...)] [--force][/color]")
 		return
+	table.dirtify()
 
 	var cols_str = line.substr(line.find(parts[0]) + parts[0].length()).strip_edges()
 	var force: bool = _data["flags"].has("force")
@@ -665,6 +670,7 @@ func _on_filter_command(data: Dictionary):
 	if expr.parse(cond, ["row"]) != OK:
 		debug_print("Invalid expression: %s" % expr.get_error_text())
 		return
+	table.dirtify()
 
 	var new_ds: Array = []
 	for row in len(dataset):
@@ -689,6 +695,7 @@ func _on_shuffle_command(_data: Dictionary):
 	dataset.shuffle()
 	dataset_updated(true)
 	debug_print("Dataset shuffled.")
+	table.dirtify()
 
 
 # ---- DROP ----

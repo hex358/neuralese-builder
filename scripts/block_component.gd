@@ -60,11 +60,14 @@ signal text_changed(new_text: String)
 var no_emit: bool = false
 @export var text: String = "":
 	set(value):
+		#print(value)
 		text = value
 		if not is_node_ready():
 			await ready
 		if not no_emit:
+			#print("emit!")
 			text_changed.emit(text)
+			#print_stack()
 		#if is_contained and is_contained.name == "list" and is_mouse_inside():
 		#	print("====")
 		#	print_stack()
@@ -1125,7 +1128,7 @@ func _process_context_menu(delta: float) -> void:
 
 	if inside and visible and not state.tween_hide and (max_size and max_size < expanded_size):
 		bar.scale.x = bar_scale_x
-		var _bar = ui.is_focus(bar) or get_global_mouse_position().x > global_position.x + (size.x-40) * scale.x * parent.scale.x
+		var _bar = ui.is_focus(bar) or get_global_mouse_position().x > global_position.x + (size.x-20) * scale.x * parent.scale.x
 		if glob.mouse_just_pressed:
 			is_in_bar = _bar
 		if _bar:

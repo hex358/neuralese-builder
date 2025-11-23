@@ -161,7 +161,13 @@ func train_start():
 	if not training and not delaying:
 		$YY.editable = false
 		training = true
-		train.text = "Stop"
+		match glob.get_lang():
+			"kz":
+				train.text = "Тоқта"
+			"ru":
+				train.text = "Стоп"
+			_:
+				train.text = "Stop"
 		old_head = get_training_head()
 		#print(old_head)
 		if not $YY.text: $YY.set_line("1"); epochs = 1

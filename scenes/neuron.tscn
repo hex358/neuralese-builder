@@ -76,7 +76,6 @@ offset_bottom = 12.0
 scale = Vector2(0.733764, 0.733764)
 color = Color(0.298039, 0.670588, 0.901961, 1)
 button_type = 2
-top = true
 base_scale_x = 0.45
 text = "None"
 base_size = Vector2(95, 26)

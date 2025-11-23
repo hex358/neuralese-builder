@@ -23,6 +23,73 @@ func request_save():
 	for g in graphs._graphs:
 		graphs._graphs[g].request_save()
 
+func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConnection):
+	var ds_name = train_input_origin.dataset_meta.get("name", "")
+	if ds_name == "": return
+
+	var is_ds = null
+	var upload_chunk_size: int = 256
+
+	if initial.get("local", false):
+		is_ds = DsObjRLE.compress_and_send(glob.dataset_datas[ds_name])
+	if is_ds == null:
+		return
+
+	var inputs: Array = is_ds["data"][0]
+	var outputs: Array = is_ds["data"][1]
+	var input_cols: int = inputs.size()
+	var output_cols: int = outputs.size()
+
+	# use the longest column to compute frame count
+	var max_col_len := 0
+	for col in inputs:  max_col_len = max(max_col_len, col.size())
+	for col in outputs: max_col_len = max(max_col_len, col.size())
+	var num_frames := int(ceil(max_col_len / float(upload_chunk_size)))
+
+	initial["header"] = is_ds["header"]
+	initial["input_cols"] = input_cols
+	initial["output_cols"] = output_cols
+	initial["chunk_size"] = upload_chunk_size
+	initial["num_frames"] = num_frames
+
+	ws.send(glob.compress_dict_zstd(initial))
+
+	var current_index := 0
+	while current_index < max_col_len:
+		# Build per-frame header: u16 lengths for each column chunk (inputs then outputs)
+		var lengths := PackedByteArray()
+		lengths.resize((input_cols + output_cols) * 2) # 2 bytes per length, big-endian
+		var lp := 0
+
+		var payload := PackedByteArray()
+
+		# inputs
+		for col: PackedByteArray in inputs:
+			var end_idx = min(current_index + upload_chunk_size, col.size())
+			var piece := col.slice(current_index, end_idx)
+			var L := piece.size()
+			# write u16 big-endian
+			lengths[lp] = (L >> 8) & 0xFF; lengths[lp + 1] = L & 0xFF; lp += 2
+			payload.append_array(piece)
+
+		# outputs
+		for col: PackedByteArray in outputs:
+			var end_idx = min(current_index + upload_chunk_size, col.size())
+			var piece := col.slice(current_index, end_idx)
+			var L := piece.size()
+			lengths[lp] = (L >> 8) & 0xFF; lengths[lp + 1] = L & 0xFF; lp += 2
+			payload.append_array(piece)
+
+		# final frame = [length-table][payload]
+		var frame := PackedByteArray()
+		frame.append_array(lengths)
+		frame.append_array(payload)
+
+		ws.send(frame)
+		current_index += upload_chunk_size
+
+
+
 var training_sockets = {}
 func start_train(train_input: Graph, additional_call: Callable = glob.def, run_but: BlockComponent = null) -> bool:
 	if not check_valid(train_input, true): return false
@@ -47,7 +114,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def, run_b
 	if not check_valid(execute_input_origin, false): return false
 	request_save()
 	var tdata = train_input_origin.get_training_data()
-	var compressed = glob.compress_dict_zstd({
+	var compressed = ({
 		"session": "neriqward",
 		"graph": graphs.get_syntax_tree(execute_input_origin),
 		"train_graph": graphs.get_syntax_tree(train_input_origin),
@@ -61,7 +128,8 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def, run_b
 		#if tdata.get("local"):
 		#	var data = DsObjRLE.compress_and_send(train_input_origin.dataset_meta["name"]) if tdata.get("local") else {}
 		#	a.send()
-		a.send(compressed))
+		a.send(glob.compress_dict_zstd(compressed)))
+		#ws_ds_frames(train_input_origin, compressed, a))
 	a.kill.connect(func(...x):
 		#print("AA")
 		train_input_origin.train_stop(true))
@@ -205,7 +273,18 @@ func send_inference_data(input: Graph, data: Dictionary, output: bool = false):
 	#print(data)
 
 func _process(delta: float) -> void:
-	pass
+	if glob.space_just_pressed:
+		pass
+		#upl_dataset(null)
+
+func upl_dataset(from: Graph):
+	for graph in graphs._graphs.values():
+		if graph.server_typename == "TrainBegin":
+			
+			var tdata = graph.get_training_data()
+			var a = await sockets.connect_to("ws/ds_load", print, cookies.get_auth_header())
+
+			ws_ds_frames(graph, tdata, a)
 
 func close_all():
 	for i in inference_sockets:

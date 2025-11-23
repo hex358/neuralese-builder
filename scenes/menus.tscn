@@ -57,7 +57,6 @@ offset_top = -258.667
 offset_right = 521.667
 offset_bottom = -217.66699
 pivot_offset = Vector2(109.5, 20.5)
-color = Color(1, 0.996, 0.76, 1)
 button_type = 1
 hint = &"input"
 text = "NodeInput"

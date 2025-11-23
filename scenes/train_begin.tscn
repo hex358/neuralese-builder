@@ -286,10 +286,10 @@ graph = NodePath("..")
 script = ExtResource("12_5puut")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "Учись!"
+"train": "Учись!"
 })
 localizations_kz = Dictionary[String, String]({
-"_": "Оку!"
+"train": "Оку!"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

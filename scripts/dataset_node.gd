@@ -28,8 +28,10 @@ func _config_field(field: StringName, value: Variant):
 			$LabelAutoResize.resize()
 		if llm_mapping and value:
 			await get_tree().process_frame
+			print(glob.dataset_datas.keys())
 			push_meta(glob.load_dataset(value))
 	if field == "meta":
+	#	print(glob.dataset_datas.keys())
 		push_meta(glob.load_dataset(cfg["name"]))
 
 var upd: bool = false

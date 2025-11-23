@@ -73,14 +73,13 @@ gradient_color = Color(1, 0.47058824, 0.47843137, 1)
 [node name="ColorRect" type="ColorRect" parent="."]
 material = ExtResource("3_u46ua")
 instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
-instance_shader_parameters/outline_color = Color(1, 1, 1, 1)
-instance_shader_parameters/tuning = Color(1, 1, 1, 0.1764706)
+instance_shader_parameters/outline_color = Color(0.85, 0.561, 0.5658166, 1)
+instance_shader_parameters/tuning = Color(0.35, 0.05600001, 0.060899924, 0.5882353)
 layout_mode = 0
 offset_left = -49.0
 offset_top = -69.0
 offset_right = 88.0
 offset_bottom = 122.0
-color = Color(0.65, 0.31849998, 0.32402492, 1)
 
 [node name="root" type="Control" parent="ColorRect"]
 anchors_preset = 0

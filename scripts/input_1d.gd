@@ -303,7 +303,13 @@ func validate(pack: Dictionary):
 func set_state_open():
 	running = true
 	run_but.text_offset.x = 0
-	run_but.text = "Stop"
+	match glob.get_lang():
+		"kz":
+			run_but.text = "Тоқта"
+		"ru":
+			run_but.text = "Стоп"
+		_:
+			run_but.text = "Stop"
 
 
 
@@ -446,7 +452,13 @@ func _on_run_released() -> void:
 		if await nn.open_infer_channel(self, close_runner, run_but):
 			running = true
 			run_but.text_offset.x = 0
-			run_but.text = "Stop"
+			match glob.get_lang():
+				"kz":
+					run_but.text = "Тоқта"
+				"ru":
+					run_but.text = "Стоп"
+				_:
+					run_but.text = "Stop"
 		
 	else:
 		#run_but.text = "Run!"

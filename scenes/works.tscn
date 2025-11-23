@@ -229,6 +229,9 @@ auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "Выход"
 })
+localizations_kz = Dictionary[String, String]({
+"_": "Шығу"
+})
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="train2" parent="ColorRect" instance=ExtResource("5_bysnc")]
@@ -268,6 +271,9 @@ script = ExtResource("13_r0m0m")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "_": "+Нов."
+})
+localizations_kz = Dictionary[String, String]({
+"_": "+Жаңа"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

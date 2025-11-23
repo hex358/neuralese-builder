@@ -289,11 +289,14 @@ func create_empty_project(name: String) -> int:
 
 func request_projects():
 	var a = await web.POST("project_list", {
-	"user": "n", 
-	"pass": "1"
+	"user": cookies.user(), 
+	"pass": cookies.pwd()
 	})
 	if a.body:
-		a = JSON.parse_string(a.body.get_string_from_utf8())["list"]
+		#print(a.body.get_string_from_utf8())
+		var parsed = JSON.parse_string(a.body.get_string_from_utf8())
+		if parsed.answer == "wrong": return {}
+		a = parsed["list"]
 		parsed_projects = a
 		for i in a.keys():
 			if a[i] == null: a.erase(i)
@@ -861,7 +864,7 @@ func get_loaded_datasets():
 
 
 func get_lang():
-	return "en"
+	return "kz"
 
 
 class BitPacker:
@@ -1199,6 +1202,7 @@ func load_empty_scene(pr_id: int, name: String):
 	#
 
 func save(from: String):
+	save_datasets()
 	nn.request_save()
 	var bytes = var_to_bytes(get_project_data())
 	var blob = Marshalls.raw_to_base64(bytes)
@@ -1281,11 +1285,35 @@ func _ds_save_finish():
 	ds_saved.emit()
 	threading = false
 
+var rle_compressing: Dictionary = {}
+var rle_cache = {}
+func _comp_thread(dict: Dictionary, who: String):
+	var comped = DsObjRLE.compress_and_send(dict)
+	_comp_finish.call_deferred(comped, who)
+
+func _comp_finish(dict: Dictionary, who: String):
+	rle_cache[who] = dict
+	rle_compressing.erase(who)
+
+func cache_rle_compress(who: String):
+	if who in rle_compressing: return
+	var thread = Thread.new()
+	thread.start(_comp_thread.bind(dataset_datas[who], who))
+	#rle_cache[who] = DsObjRLE.compress_and_send(dataset_datas[who])
+
+func join_ds_processing():
+	await join_ds_save()
+	while rle_compressing.size() > 0:
+		await get_tree().process_frame
+
+func ds_processing() -> bool:
+	return threading or rle_compressing.size() > 0
 
 var virtualt: VirtualTable
 
 func load_datasets():
 	for i in cookies.dir_or_create("datasets").get_files():
+		#print(i)
 		var opened = cookies.open_or_create("datasets/" + i)#.decompress(FileAccess.COMPRESSION_ZSTD)
 		if not opened: continue
 		var length = opened.get_var()
@@ -1305,7 +1333,7 @@ func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
 		ds_obj = var_to_bytes(ds_obj)
 	var ds = cookies.open_or_create(path)
 	#print(ds_obj.compress(FileAccess.COMPRESSION_ZSTD))
-	OS.delay_msec(2000)
+	#OS.delay_msec(2000)
 	var length: int = len(ds_obj)
 	ds.store_var(length)
 	ds.store_var(ds_obj.compress(FileAccess.COMPRESSION_ZSTD), true)
@@ -1324,7 +1352,7 @@ var saving_thread = Thread.new()
 var threading: bool = false
 func save_godot_dataset(ds_obj: Dictionary):
 	var a = (ds_obj)
-	if threading and saving_thread.is_alive():
+	if threading and saving_thread.is_alive() and saving_thread.is_started():
 		#print("awaa")
 		await ds_saved
 		saving_thread.wait_to_finish()

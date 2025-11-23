@@ -58,9 +58,13 @@ func _bind_signals() -> void:
 	else:
 		_handle_custom(_parent)
 
-func _on_parent_text_changed() -> void:
-	_source_text = _get_text()
-	_translate_now()
+func _on_parent_text_changed(arg=null) -> void:
+	_source_text = _get_text() if arg == null else arg
+	if arg == null:
+	#print(_source_text)
+		_translate_now()
+	else:
+		_translate_now.call_deferred()
 
 func _get_text() -> String:
 	if _parent is LabelAutoResize or _parent is BlockComponent or _parent is Label:
@@ -88,7 +92,6 @@ func _set_text(t: String) -> void:
 func _translate_now() -> void:
 	if not _parent:
 		return
-
 	var new_text := _translate_to(_source_text, lang)
 	if new_text != _last_display:
 		_set_text(new_text)

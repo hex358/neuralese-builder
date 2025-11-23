@@ -136,7 +136,7 @@ mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
 base_scale_x = 0.45
-resize_after = 6
+resize_after = 5
 text = "Run!"
 text_offset = Vector2(2, 0)
 base_size = Vector2(53.15061, 24.999996)
@@ -153,10 +153,10 @@ graph = NodePath("..")
 script = ExtResource("8_g0n8j")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "Пуск"
+"run": "Пуск"
 })
 localizations_kz = Dictionary[String, String]({
-"_": "Қосу"
+"run": "Қосу"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

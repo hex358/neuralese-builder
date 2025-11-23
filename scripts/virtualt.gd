@@ -714,6 +714,12 @@ func _del_cells(at_index: int):
 	adapter_data.remove_at(at_index)
 	dataset_obj["arr"] = adapter_data
 
+var dirty: bool = false
+
+func dirtify():
+	pass
+
+
 var types_changed: bool = false
 func add_row(cells: Array = [], at_index: int = -1) -> void:
 	if at_index < 0 or at_index > rows:
@@ -732,6 +738,7 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 		if not adapter_data:
 			adapter_data.clear()
 
+	dirtify()
 	_add_cells(at_index, cells)
 	rows += 1
 
@@ -785,7 +792,7 @@ func remove_row(index: int) -> void:
 		_del_cells(index)
 		load_empty_dataset(false)
 		return
-
+	dirtify()
 	var old_h: float = 0.0
 	if uniform_row_heights:
 		old_h = uniform_row_height
@@ -979,7 +986,7 @@ func to_query(row: int, mp: Vector2):
 	next_query = null
 	#print(a)
 	querying = false
-	if a:
+	if a and not glob.ds_processing():
 		if a.hint == "delete":
 			#print("FJFJ")
 			var old_rows = rows-1
