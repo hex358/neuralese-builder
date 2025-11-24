@@ -19,11 +19,11 @@ func _map_data(data: Dictionary) -> void:
 		#$TextureRect.anchor_bottom = -6
 	if img:
 		var dims = get_dims()
-		cell_data["x"] = int(dims.x)
-		cell_data["y"] = int(dims.y)
+		_modify("x", int(dims.x))
+		_modify("y", int(dims.y))
 	else:
-		cell_data["x"] = 0
-		cell_data["y"] = 0
+		_modify("x", 0)
+		_modify("y", 0)
 	
 	#_on_label_changed.call_deferred()
 

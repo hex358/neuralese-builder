@@ -73,9 +73,21 @@ func reload_scenes():
 	$Control/scenes/list.show_up(request_texts())
 	if not current_lua_env:
 		if not received_texts:
-			$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
+			match glob.get_lang():
+				"kz":
+					$Control/CodeEdit.text = "-- Көріністер мәзірінде өз көрінісіңізді жасаңыз."
+				"ru":
+					$Control/CodeEdit.text = "-- Создайте вашу сцену в меню сцен слева."
+				_:
+					$Control/CodeEdit.text = "-- Create your scene in the Scenes menu."
 		else:
-			$Control/CodeEdit.text = "-- Select your scene from the Scenes menu."
+			match glob.get_lang():
+				"kz":
+					$Control/CodeEdit.text = "-- Көріністер мәзірінен көріністі таңдаңыз."
+				"ru":
+					$Control/CodeEdit.text = "-- Выберите вашу сцену в меню сцен слева."
+				_:
+					$Control/CodeEdit.text = "-- Select your scene from the Scenes menu."
 	await get_tree().process_frame
 	if !is_instance_valid(last_button):
 		if last_hint in $Control/scenes/list.button_by_hint:

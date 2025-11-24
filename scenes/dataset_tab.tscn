@@ -727,6 +727,17 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("25_j7vbt")
 
+[node name="Loc" type="Node" parent="CanvasLayer2/row_mod/neuron"]
+script = ExtResource("15_51ak0")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Удалить"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Өшіру"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="copy" parent="CanvasLayer2/row_mod" instance=ExtResource("8_jf34i")]
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.86, 0.86, 0.86, 1)
@@ -744,9 +755,21 @@ base_size = Vector2(219, 41)
 alignment = Vector2(0.5, 0.5)
 config = ExtResource("25_j7vbt")
 
+[node name="Loc" type="Node" parent="CanvasLayer2/row_mod/copy"]
+script = ExtResource("15_51ak0")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Вставить"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Кірістіру"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
 [connection signal="item_rect_changed" from="Control/view/Control" to="." method="_on_control_item_rect_changed"]
+[connection signal="dirtified" from="Control/CodeEdit" to="." method="_on_code_edit_dirtified"]
 [connection signal="preview_refreshed" from="Control/CodeEdit" to="." method="_on_code_edit_preview_refreshed"]
 [connection signal="released" from="Control/console/train2" to="." method="_on_train_2_released"]
 [connection signal="released" from="Control/console/9" to="." method="_on__released"]

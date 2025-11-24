@@ -12,7 +12,13 @@ func show_up(input: String, call: Callable):
 	state.holding = false
 
 func set_txt(txt: String):
-	txt = "Row " + txt
+	match glob.get_lang():
+		"en":
+			txt = "Row " + txt
+		"ru":
+			txt = "Строка " + txt
+		"kz":
+			txt = "Сызық " + txt
 	#print(max(10 - len(text), 0))
 	text = txt + " ".repeat(max(10 - len(txt), 0)) + " *"
 

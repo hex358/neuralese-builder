@@ -60,6 +60,9 @@ func _resultate(data: Dictionary):
 			glob.ds_dump[data["text"]] = glob.create_dataset(rand_dataset_id, 
 			data["text"],
 			dsreader.parse_csv_dataset(passed_data["path"]))
+			
+			glob.cache_rle_compress(data["text"])
+			await glob.join_ds_processing()
 		else:
 			glob.ds_dump[data["text"]] = glob.create_dataset(rand_dataset_id, data["text"])
 		glob.tree_windows["ds"].reload_scenes()

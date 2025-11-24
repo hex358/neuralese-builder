@@ -55,7 +55,7 @@ func _resized():
 
 
 func _on_label_line_enter() -> void:
-	cell_data["text"] = $Label.text
+	_modify("text", $Label.text)
 
 
 

@@ -22,71 +22,76 @@ func train_state_received(bytes: PackedByteArray, additional: Callable):
 func request_save():
 	for g in graphs._graphs:
 		graphs._graphs[g].request_save()
-
-func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConnection):
+func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConnection) -> void:
+	# --- Get dataset name and ensure we have cached blocks ---
 	var ds_name = train_input_origin.dataset_meta.get("name", "")
-	if ds_name == "": return
-
-	var is_ds = null
-	var upload_chunk_size: int = 256
-
-	if initial.get("local", false):
-		is_ds = DsObjRLE.compress_and_send(glob.dataset_datas[ds_name])
-	if is_ds == null:
+	if ds_name == "":
+		push_warning("No dataset name found.")
+		return
+	if not glob.rle_cache.has(ds_name):
+		push_warning("Dataset not yet compressed or cached.")
 		return
 
-	var inputs: Array = is_ds["data"][0]
-	var outputs: Array = is_ds["data"][1]
-	var input_cols: int = inputs.size()
-	var output_cols: int = outputs.size()
+	var ds: Dictionary = glob.rle_cache[ds_name]
+	var inputs: Array = ds["data"][0]
+	var outputs: Array = ds["data"][1]
 
-	# use the longest column to compute frame count
-	var max_col_len := 0
-	for col in inputs:  max_col_len = max(max_col_len, col.size())
-	for col in outputs: max_col_len = max(max_col_len, col.size())
-	var num_frames := int(ceil(max_col_len / float(upload_chunk_size)))
+	# --- Construct per-block hash manifest ---
+	var block_hashes := {"inputs": [], "outputs": []}
+	for col in inputs:
+		block_hashes["inputs"].append(col["hashes"])
+	for col in outputs:
+		block_hashes["outputs"].append(col["hashes"])
 
-	initial["header"] = is_ds["header"]
-	initial["input_cols"] = input_cols
-	initial["output_cols"] = output_cols
-	initial["chunk_size"] = upload_chunk_size
-	initial["num_frames"] = num_frames
+	# --- Prepare initial handshake payload ---
+	initial["header"] = ds["header"]
+	initial["block_hashes"] = block_hashes
+	initial["session"] = "neriqward"  # temporary MVP user id, matches backend field
+	initial["header"]["name"] = ds_name
 
+	# --- Send the header (compressed) ---
 	ws.send(glob.compress_dict_zstd(initial))
 
-	var current_index := 0
-	while current_index < max_col_len:
-		# Build per-frame header: u16 lengths for each column chunk (inputs then outputs)
-		var lengths := PackedByteArray()
-		lengths.resize((input_cols + output_cols) * 2) # 2 bytes per length, big-endian
-		var lp := 0
+	# --- Wait for backend to reply with list of missing blocks ---
+	var need_raw = await ws.recv()
+	var need_json = JSON.parse_string(need_raw.get_string_from_utf8())
+	if need_json == null or not need_json is Dictionary:
+		push_warning("Server returned invalid 'need' response.")
+		return
+	var need: Dictionary = need_json
 
-		var payload := PackedByteArray()
-
-		# inputs
-		for col: PackedByteArray in inputs:
-			var end_idx = min(current_index + upload_chunk_size, col.size())
-			var piece := col.slice(current_index, end_idx)
-			var L := piece.size()
-			# write u16 big-endian
-			lengths[lp] = (L >> 8) & 0xFF; lengths[lp + 1] = L & 0xFF; lp += 2
-			payload.append_array(piece)
-
-		# outputs
-		for col: PackedByteArray in outputs:
-			var end_idx = min(current_index + upload_chunk_size, col.size())
-			var piece := col.slice(current_index, end_idx)
-			var L := piece.size()
-			lengths[lp] = (L >> 8) & 0xFF; lengths[lp + 1] = L & 0xFF; lp += 2
-			payload.append_array(piece)
-
-		# final frame = [length-table][payload]
+	# --- Helper to send one block frame ---
+	var _send_block = func _send_block(side: String, col_i: int, blk_i: int, blk_data: PackedByteArray) -> void:
+		var meta := {"side": side, "col": col_i, "blk": blk_i}
+		var meta_str := JSON.stringify(meta)
+		var meta_bytes := meta_str.to_utf8_buffer()
 		var frame := PackedByteArray()
-		frame.append_array(lengths)
-		frame.append_array(payload)
-
+		var len := meta_bytes.size()
+		frame.append((len >> 8) & 0xFF)
+		frame.append(len & 0xFF)
+		frame.append_array(meta_bytes)
+		frame.append_array(blk_data)
 		ws.send(frame)
-		current_index += upload_chunk_size
+
+	# --- Send only missing blocks requested by backend ---
+	for side in ["inputs", "outputs"]:
+		var arr := inputs if side == "inputs" else outputs
+		if not need.has(side):
+			continue
+		for col_key in need[side].keys():
+			var col_i := int(col_key)
+			var missing_blocks: Array = need[side][col_key]
+			if missing_blocks.is_empty():
+				continue
+			var col_data = arr[col_i]
+			for blk_i in missing_blocks:
+				var blk: PackedByteArray = col_data["blocks"][blk_i]
+				_send_block.call(side, col_i, blk_i, blk)
+
+	# --- Notify backend of completion ---
+	var end_marker := "__end__".to_utf8_buffer()
+	ws.send(end_marker)
+
 
 
 

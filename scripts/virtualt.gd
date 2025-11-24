@@ -716,8 +716,10 @@ func _del_cells(at_index: int):
 
 var dirty: bool = false
 
-func dirtify():
-	pass
+signal dirtified(idx, is_add, is_delete)
+
+func dirtify(idx=null, is_add=false, is_delete=false):
+	dirtified.emit(idx, is_add, is_delete)
 
 
 var types_changed: bool = false
@@ -738,8 +740,8 @@ func add_row(cells: Array = [], at_index: int = -1) -> void:
 		if not adapter_data:
 			adapter_data.clear()
 
-	dirtify()
 	_add_cells(at_index, cells)
+	dirtify(at_index, true)
 	rows += 1
 
 	var base_h = 0.0
@@ -790,9 +792,9 @@ func remove_row(index: int) -> void:
 		return
 	if rows <= 1:
 		_del_cells(index)
+		dirtify(index, false, true)
 		load_empty_dataset(false)
 		return
-	dirtify()
 	var old_h: float = 0.0
 	if uniform_row_heights:
 		old_h = uniform_row_height
@@ -826,6 +828,7 @@ func remove_row(index: int) -> void:
 	_need_visible_refresh = true
 	queue_redraw()
 	refresh_preview()
+	dirtify(index, false, true)
 
 
 
@@ -986,6 +989,7 @@ func to_query(row: int, mp: Vector2):
 	next_query = null
 	#print(a)
 	querying = false
+	#print(a.hint)
 	if a and not glob.ds_processing():
 		if a.hint == "delete":
 			#print("FJFJ")
@@ -1443,6 +1447,8 @@ func _hide_all_cells() -> void:
 
 func push_textures(who: TableCell, imgs):
 	#print(imgs)
+	if glob.ds_processing():
+		return
 	for i in len(imgs):
 		var r = i+who.coord.x
 		#print(r)

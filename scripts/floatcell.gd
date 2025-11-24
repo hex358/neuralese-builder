@@ -78,7 +78,7 @@ func _resized():
 func _on_label_changed() -> void:
 	var new_text = $Label.text
 	if new_text.is_valid_float():
-		cell_data["val"] = float(new_text)
+		_modify("val", float(new_text))
 		$HSlider.set_value_no_signal(float(new_text) * 100.0)
 	#await get_tree().process_frame
 ##	print(cell_data["text"])
@@ -99,7 +99,7 @@ func _on_label_changed() -> void:
 
 func _on_h_slider_value_changed(value: float) -> void:
 	value /= 100.0
-	cell_data["val"] = value
+	_modify("val", value)
 	var capped = str(glob.cap(value, 2))
 	var exp = len(capped.split(".")[-1])
 	if exp == 1: capped += "0"

@@ -71,7 +71,7 @@ func _resized():
 
 func _on_label_line_enter() -> void:
 	if $Label.is_valid:
-		cell_data["num"] = int($Label.get_value())
+		_modify("num", int($Label.get_value()))
 		#print(cell_data)
 		#print(table._get_cell(coord.x, coord.y))
 		#print(get_instance_id())

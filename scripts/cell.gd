@@ -26,6 +26,15 @@ func get_data() -> Dictionary:
 func _height_key(info: Dictionary):
 	return ""
 
+func _modify(field: String, value):
+	if glob.ds_processing(): 
+		map_data.bind(cell_data).call_deferred()
+		return
+	#print("a")
+	table.dirtify(coord.x)
+	cell_data[field] = value
+
+
 func _resized():
 	pass
 

@@ -1287,18 +1287,46 @@ func _ds_save_finish():
 
 var rle_compressing: Dictionary = {}
 var rle_cache = {}
-func _comp_thread(dict: Dictionary, who: String):
-	var comped = DsObjRLE.compress_and_send(dict)
+func _comp_thread(dict: Dictionary, who: String, changed_rows = null):
+	#print(changed_rows)
+	var t = Time.get_ticks_msec()
+	var comped: Dictionary
+	if changed_rows == null:
+		comped = DsObjRLE.compress_blocks(dict)
+	else:
+		comped = DsObjRLE.recompress_changed_blocks(dict, changed_rows)
 	_comp_finish.call_deferred(comped, who)
+	print(Time.get_ticks_msec() - t)
 
 func _comp_finish(dict: Dictionary, who: String):
 	rle_cache[who] = dict
 	rle_compressing.erase(who)
+	print(DsObjProbe.probe_dataset(who, 4))
 
-func cache_rle_compress(who: String):
-	if who in rle_compressing: return
-	var thread = Thread.new()
-	thread.start(_comp_thread.bind(dataset_datas[who], who))
+func cache_rle_compress(who: String, changed_rows = null):
+	# Fast no-op
+	if changed_rows != null and (changed_rows is Array and changed_rows.size() == 0):
+		return
+
+	# Full rebuilds only: go threaded
+	if changed_rows == null:
+		if who in rle_compressing: return
+		rle_compressing[who] = true
+
+		var dupped = dataset_datas[who]
+		var thread := Thread.new()
+		thread.start(_comp_thread.bind(dupped, who, null))
+		return
+
+	var t = Time.get_ticks_msec()
+	# Delta path (non-threaded)
+	var dupped = dataset_datas[who]
+	var comped: Dictionary = DsObjRLE.recompress_changed_blocks(dupped, changed_rows)
+	_comp_finish.call_deferred(comped, who)
+	print(Time.get_ticks_msec() - t)
+
+	
+
 	#rle_cache[who] = DsObjRLE.compress_and_send(dataset_datas[who])
 
 func join_ds_processing():
@@ -1327,6 +1355,7 @@ func load_datasets():
 			ds_dump[ds["name"]] = create_dataset(randi_range(0,999999999), ds["name"])
 			dataset_datas[ds["name"]] = ds
 		virtualt.cached_once[ds["name"]] = true
+		cache_rle_compress(ds["name"])
 	
 func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
 	if not pre_bytes:

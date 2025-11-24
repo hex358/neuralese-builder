@@ -105,8 +105,69 @@ func _window_show():
 
 @export var line_edit: Control
 @export var console: RichTextLabel
+var last_demand: float = -1
 func _process(delta: float) -> void:
 	var vbar: VScrollBar = ($Control/console.get_v_scroll_bar())
+	if last_demand > -0.01:
+		last_demand += delta
+	if last_demand > 1.0 and not pending_lock:
+		last_demand = -1
+		pending_lock = true
+
+		var name = $Control/CodeEdit.dataset_obj["name"]
+
+		# --- determine which mode to run ---
+		var do_full_rebuild = pending_rebuild
+		var do_inserts = pending_inserts.size() > 0
+		var do_deletes = pending_deletes.size() > 0
+		var do_deltas = idxs.size() > 0
+		print("a")
+
+		# --- priority: rebuild > insert/delete > delta ---
+		if do_full_rebuild:
+			pending_rebuild = false
+			pending_inserts.clear()
+			pending_deletes.clear()
+			idxs.clear()
+			glob.cache_rle_compress(name)
+
+		elif do_inserts:
+			var insert_rows = pending_inserts.duplicate()
+			pending_inserts.clear()
+
+			var earliest := 1 << 30
+			for row_i in insert_rows:
+				# marks header.dirty_from and updates header.rows
+				DsObjRLE.insert_rows($Control/CodeEdit.dataset_obj, name, row_i, [])
+				earliest = min(earliest, row_i)
+
+			# single suffix recompress (non-threaded)
+		#	var t = Time.get_ticks_msec()
+			glob.cache_rle_compress(name, [earliest])
+		#	print(Time.get_ticks_msec() - t)
+
+			# probe AFTER recompress so blocks are fresh
+			#print(DsObjProbe.probe_dataset(name))
+
+		elif do_deletes:
+			var delete_rows = pending_deletes.duplicate()
+			pending_deletes.clear()
+
+			var earliest := 1 << 30
+			for row_i in delete_rows:
+				DsObjRLE.delete_rows($Control/CodeEdit.dataset_obj, name, row_i, row_i + 1)
+				earliest = min(earliest, row_i)
+
+			glob.cache_rle_compress(name, [earliest])
+			print(DsObjProbe.probe_dataset(name))
+
+
+		elif do_deltas:
+			glob.cache_rle_compress(name, idxs.keys())
+
+		idxs.clear()
+		pending_lock = false
+
 	#vbar.position.x = $Control/console.size.x - 10
 	tick()
 	#if get_global_mouse_position().x > border_rect_1.position.x:
@@ -528,3 +589,43 @@ func _on_control_item_rect_changed() -> void:
 	)
 	$Control/view/Control.re($Control/view.size.x)
 	$Control/view/Control.re($Control/view.size.x)
+
+var demanded: Callable
+var idxs = {}
+var once_null = false
+var pending_inserts: Array[int] = []
+var pending_deletes: Array[int] = []
+var pending_rebuild = false
+var pending_lock = false
+func _on_code_edit_dirtified(idx: Variant, is_insert: bool = false, is_delete: bool = false) -> void:
+	# If a worker pass is already running, ignore new dirties until it finishes.
+	if pending_lock:
+		return
+
+	# Always arm the debounce so _process() wakes up after ~1s
+	last_demand = 0.0
+
+	# Full rebuild path
+	if idx == null:
+		pending_rebuild = true
+		# Clear partial queues: rebuild supersedes them
+		pending_inserts.clear()
+		pending_deletes.clear()
+		idxs.clear()
+		# (Optional) keep this if you use it elsewhere
+		demanded = func():
+			var name = $Control/CodeEdit.dataset_obj["name"]
+			glob.cache_rle_compress(name)
+		return
+
+	# If a rebuild is already queued, no need to accumulate partials
+	if pending_rebuild:
+		return
+
+	# Partial changes
+	if is_insert:
+		pending_inserts.append(idx)
+	elif is_delete:
+		pending_deletes.append(idx)
+	else:
+		idxs[idx] = true
