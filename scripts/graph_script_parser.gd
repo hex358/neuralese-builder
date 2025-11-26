@@ -260,15 +260,15 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 
 func model_changes_apply(actions: Dictionary, txt: String):
 	if not (actions.get("change_nodes", []).size() > 0 and actions.get("change_nodes", [""])[0] is not String):
-		print(actions)
+		#print(actions)
 		actions = preprocess(actions)
-		print(actions)
+		#print(actions)
 
 
 	if not actions["connect_ports"] and not actions["change_nodes"] and\
 	not actions["delete_nodes"] and not actions["disconnect_ports"]:
 		return
-	print(actions)
+	#print(actions)
 	for i in actions:
 		for a in actions[i]:
 			if a == null:

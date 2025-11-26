@@ -63,40 +63,66 @@ func _menu_handle_release(button: BlockComponent):
 	menu_hide()
 	#unfreeze_input()
 
+@export var name_groups: Array[PackedStringArray] = []
+
 func _ready():
-	if not Engine.is_editor_hint():
-		var base = $"5".duplicate()
-		for child in get_children():
-			if child is BlockComponent:
-				child.free()
+	if Engine.is_editor_hint():
+		return
 
-		for i in graphs.graph_buttons:
-			if not i.name in glob.base_node.importance_chain:
-				continue
+	var base: BlockComponent = $"5".duplicate()
+	for child in get_children():
+		if child is BlockComponent:
+			child.free()
 
-			var dup: BlockComponent = base.duplicate()
-			var title = i.title
-			if title == "Model": title = "ModelName"
-			if title == "Dataset": title = "LoadDataset"
-			if title == "Dense": title = "DenseLayer"
-			if title == "Conv2D": title = "Conv2DLayer"
-			if title == "Flatten": title = "Flatten1D"
-			if title == "RLEnv": title = "RLEnviron"
-			#if title.begins_with("Train"):
-			#	print(i)
-			dup.hint = i.name
-			dup.text = title
+	# Build quick access: name -> button
+	var button_map: Dictionary = {}
 
-			var outline_color: Color = i.outline_color
-			var tuning_color: Color = i.tuning
+	for i in graphs.graph_buttons:
+		if not i.name in glob.base_node.importance_chain:
+			continue
 
-			outline_color = _lift_color(outline_color, 0.65)
-			tuning_color = _lift_color(tuning_color, 0.65)
+		var dup: BlockComponent = base.duplicate()
+		var title = i.title
+		match title:
+			"Model": title = "ModelName"
+			"Dataset": title = "LoadDataset"
+			"Dense": title = "DenseLayer"
+			"Conv2D": title = "Conv2DLayer"
+			"Flatten": title = "Flatten1D"
+			"RLEnv": title = "RLEnviron"
 
-			dup.set_instance_shader_parameter("outline_color", outline_color)
-			dup.set_instance_shader_parameter("tuning", tuning_color)
-			add_child(dup)
+		dup.hint = i.name
+		dup.text = title
+		var outline_color: Color = _lift_color(i.outline_color, 0.65)
+		var tuning_color: Color = _lift_color(i.tuning, 0.65)
+		dup.set_instance_shader_parameter("outline_color", outline_color)
+		dup.set_instance_shader_parameter("tuning", tuning_color)
+
+		button_map[i.name] = dup
+
+	# --- Build final list following exact order in name_groups ---
+	var final_buttons: Array = []
+	var used_names: Dictionary = {}
+
+	for group in name_groups:
+		for name in group:
+			if button_map.has(name):
+				final_buttons.append(button_map[name])
+				used_names[name] = true
+
+	# --- Add ungrouped buttons at the end, preserving discovery order ---
+	for i in graphs.graph_buttons:
+		if not i.name in used_names and i.name in button_map:
+			final_buttons.append(button_map[i.name])
+
+	# --- Add them in final order ---
+	for btn in final_buttons:
+		add_child(btn)
+
 	super()
+
+
+
 
 
 func _lift_color(c: Color, min_v: float = 0.55) -> Color:

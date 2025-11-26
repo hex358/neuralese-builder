@@ -43,7 +43,9 @@ func _gui_input(event: InputEvent) -> void:
 			var cmd_name = result["command"]
 			var def: Commands.CommandDef = parser.registry[cmd_name]
 			await glob.join_ds_processing()
-			def.handler.call(result)
+			if table.dataset_obj:
+				
+				def.handler.call(result)
 		await get_tree().process_frame
 		clear()
 
@@ -56,7 +58,7 @@ func _ready():
 
 func compile():
 	syntax_highlighter.define_group("commands", syntax_highlighter.C_CMD, 
-		["go", "filter", "shuffle", "drop", "nrow", "drow", "cols", "keep", "outs", "acol", "dcol", "conv"])
+		["go", "filter", "shuffle", "delete", "drop", "nrow", "drow", "cols", "keep", "outs", "acol", "dcol", "conv"])
 	syntax_highlighter.define_group("meta", syntax_highlighter.C_META, 
 		["begin", "commit", "undo", "redo"])
 	syntax_highlighter.define_group("arguments", syntax_highlighter.C_ARG, 
@@ -98,6 +100,18 @@ func compile():
 		[],
 		[],
 		"Randomly shuffles dataset rows.",
+		false,
+		[],
+		true
+	))
+
+	# DELETE
+	parser.register(Commands.CommandDef.new(
+		"delete",
+		_on_delete_command,
+		[],
+		[],
+		"Deletes the dataset.",
 		false,
 		[],
 		true
@@ -492,13 +506,14 @@ func _on_convert_command(_data: Dictionary):
 	if not idx_str.is_valid_int():
 		debug_print("[color=coral]Column index must be an integer.[/color]")
 		return
-	table.dirtify()
 	var col_idx = int(idx_str)
 	var to_dtype = parts[2]
 	
 	if table.rows:
 		_convert_column(col_idx, to_dtype, force)
 	table.refresh_preview()
+	await get_tree().process_frame
+	table.dirtify()
 
 
 
@@ -670,7 +685,7 @@ func _on_filter_command(data: Dictionary):
 	if expr.parse(cond, ["row"]) != OK:
 		debug_print("Invalid expression: %s" % expr.get_error_text())
 		return
-	table.dirtify()
+	#table.dirtify()
 
 	var new_ds: Array = []
 	for row in len(dataset):
@@ -688,6 +703,8 @@ func _on_filter_command(data: Dictionary):
 		table.load_empty_dataset(false, dataset)
 	#dataset_updated(true)
 	debug_print("Filter applied. Rows: %d" % dataset.size())
+	await get_tree().process_frame
+	table.dirtify()
 
 
 # ---- SHUFFLE ----
@@ -695,7 +712,14 @@ func _on_shuffle_command(_data: Dictionary):
 	dataset.shuffle()
 	dataset_updated(true)
 	debug_print("Dataset shuffled.")
+	await get_tree().process_frame
 	table.dirtify()
+
+func _on_delete_command(_data: Dictionary):
+	table.delete_myself()
+	dataset_updated(true)
+	debug_print("Dataset deleted.")
+	#table.dirtify()
 
 
 # ---- DROP ----

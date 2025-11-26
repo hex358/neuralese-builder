@@ -147,9 +147,9 @@ func set_menu_type(occ: Node, type: StringName, low_priority_types=null ):
 		_menu_type_occupator = occ
 		menu_type = type
 func reset_menu_type(occ, type: StringName):
-	#print_stack()
+	#_stack()
 	if is_instance_valid(_menu_type_occupator) and _menu_type_occupator == occ:
-		#print_stack()
+		#_stack()
 		_menu_type_occupator = null
 		menu_type = &""
 
@@ -293,7 +293,7 @@ func request_projects():
 	"pass": cookies.pwd()
 	})
 	if a.body:
-		#print(a.body.get_string_from_utf8())
+		#(a.body.get_string_from_utf8())
 		var parsed = JSON.parse_string(a.body.get_string_from_utf8())
 		if parsed.answer == "wrong": return {}
 		a = parsed["list"]
@@ -629,7 +629,7 @@ func logged_in() -> bool:
 
 func _process(delta: float) -> void:
 	#if space_just_pressed:
-	#print(project_id)
+	#(project_id)
 		#(graphs.get_llm_summary())
 
 	
@@ -649,10 +649,10 @@ func _process(delta: float) -> void:
 	if curr_window == "graph" and not get_viewport().gui_get_focus_owner() is LineEdit:
 		if not ui.active_splashed():
 			if Input.is_action_just_pressed("ctrl_z"):
-				#print("A")
+				#("A")
 				undo_redo.undo()
 			if Input.is_action_just_pressed("ctrl_y"):
-				#print("A")
+				#("A")
 				undo_redo.redo()
 	enter_just_pressed = Input.is_action_just_pressed("ui_enter")
 	if not is_instance_valid(_menu_type_occupator):
@@ -779,7 +779,7 @@ func message_chunk_received(data, sock: SocketConnection):
 	var text: String = parsed.text
 	var changed = text
 	var clean_text = parser.parse_stream_tags(sock, text)
-	print(sock.cache)
+	#print(sock.cache)
 	#clean_text = clean_text.replace("```json\n", "").replace("\n```", "").strip_edges()`
 	#if clean_text.is_empty():
 	#	return
@@ -820,7 +820,7 @@ var tag_types = {}
 var tags_1d: Dictionary[String, Graph] = {}
 
 func get_llm_tag(who: Graph) -> String:
-	#print(who.llm_tag)
+	#(who.llm_tag)
 	var g: String = who.get_meta("created_with")
 	if not g in tag_types:
 		tag_types[g] = {}
@@ -841,10 +841,10 @@ func get_llm_tag(who: Graph) -> String:
 
 
 
-
+var previewed = {}
 func load_dataset(name: String) -> Dictionary:
 	if name in dataset_datas:
-		return DsObjRLE.get_preview(dataset_datas[name])
+		return previewed.get(name, DsObjRLE.get_preview(dataset_datas[name]))
 	return _load.get(name, {})
 
 var _load = {}
@@ -861,11 +861,14 @@ func get_loaded_datasets():
 		_load = {}
 	return _load
 
-
-
+func del_dataset_file(nm: String):
+	var a = Thread.new()
+	a.start(func(): 
+		var f = DirAccess.open("user://")
+		f.remove("datasets/"+nm+".ds"))
 
 func get_lang():
-	return "kz"
+	return "en"
 
 
 class BitPacker:
@@ -896,22 +899,22 @@ class BitPacker:
 
 
 func set_llm_tag(who: Graph, val: String):
-	#print("=======")
-	#print(who.llm_tag)
+	#("=======")
+	#(who.llm_tag)
 	if who.llm_tag in tags_1d and tags_1d[who.llm_tag] == who:
 		tags_1d.erase(who.llm_tag)
 	var g = who.get_meta("created_with")
 	if not g in tag_types: tag_types[g] = {}
 	who.llm_tag = val
 	tag_types[g][val] = true
-	#print(who.llm_tag)
-	#print(val)
+	#(who.llm_tag)
+	#(val)
 	#if !who.llm_tag:
 	#	print_stack()
 	#	breakpoint
 	tags_1d[who.llm_tag] = who
-	#print(len(tags_1d))
-	#print(tags_1d.size())
+	#(len(tags_1d))
+	#(tags_1d.size())
 
 var llm_name_unmapping = (func():
 	var dict = {}
@@ -989,14 +992,14 @@ func test_place():
 	#for action in acts:
 	#	for el in len(acts[action]):
 	#		acts[action][el] = JSON.parse_string(acts[action][el])
-	#print("text, ", txt)
+	#("text, ", txt)
 	await glob.wait(0.5)
 	parser.model_changes_apply(sock.cache.actions, txt)
 	#var a = cookies.open_or_create("debug_changes.bin").get_var()
 	#parser.model_changes_apply(a, "hi")
 
 func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
-	#print(message_sockets[chat_id].cache.get("message", [""])[0])
+	#(message_sockets[chat_id].cache.get("message", [""])[0])
 	var txt = message_sockets[chat_id].cache.get("message", [""])[0]
 	glob.update_chat_cache(str(chat_id), {"role": "ai", "text": txt})
 	message_sockets.erase(chat_id)
@@ -1006,11 +1009,11 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 	#for action in acts:
 	#	for el in len(acts[action]):
 	#		acts[action][el] = JSON.parse_string(acts[action][el])
-	#print("text, ", txt)
+	#("text, ", txt)
 	await glob.wait(0.5)
-	#print(txt)
+	#(txt)
 	parser.model_changes_apply(acts, txt)
-		#print()
+		#()
 
 
 var last_summary_hash: int = -1
@@ -1046,7 +1049,7 @@ func update_message_stream(input_text: String, chat_id: int, text_update: Callab
 	"scene": str(get_project_id()), "summary": {"nodes": {}, "edges": {}}}
 	var summary = graphs.get_llm_summary()
 	var new_hash = summary.hash()
-	#print(new_hash)
+	#(new_hash)
 	if new_hash != last_summary_hash or cached_chats.get(str(chat_id), []).size() <= 1:
 		last_summary_hash = new_hash
 		payload["summary"] = summary
@@ -1169,7 +1172,7 @@ func clear_chat(chat_id: int, req=true):
 
 func request_chat(chat_id: String):
 	var posted =  null
-	#print(cached_chats)
+	#(cached_chats)
 	if chat_id in cached_chats:
 		posted = cached_chats[chat_id]
 	else:
@@ -1179,7 +1182,7 @@ func request_chat(chat_id: String):
 		"scene": str(get_project_id())})
 		if received and received.body:
 			var json = JSON.parse_string(received.body.get_string_from_utf8())
-			#print(json)
+			#(json)
 			if json.has("messages"):
 				cached_chats[chat_id] = json.messages
 				posted = json.messages
@@ -1218,9 +1221,9 @@ func save(from: String):
 	var blob = Marshalls.raw_to_base64(bytes)
 	var acc = cookies.open_or_create("cached_projects/%s.scn" % from)
 	acc.store_var(bytes)
-	#print("save...")
-	#print(Graph.get_ctx_groups().keys())
-	#print(get_project_data())
+	#("save...")
+	#(Graph.get_ctx_groups().keys())
+	#(get_project_data())
 	return await web.POST("save", {"scene": from, 
 	"blob": blob,
 	"name": fg.get_scene_name(),
@@ -1308,12 +1311,12 @@ func _comp_thread(dict: Dictionary, who: String, changed_rows: Array):
 	else:
 		comped = DsObjRLE.recompress_changed_blocks(dict, changed_rows)
 	call_deferred("_comp_finish", comped, who)
-	print("threaded compress:", who, "took", Time.get_ticks_msec() - t, "ms")
+	#print("threaded compress:", who, "took", Time.get_ticks_msec() - t, "ms")
 
 func _comp_finish(dict: Dictionary, who: String):
 	rle_cache[who] = dict
 	rle_compressing.erase(who)
-	print("[cache] updated:", who, "rows=", dict["header"]["rows"])
+	#print("[cache] updated:", who, "rows=", dict["header"]["rows"])
 
 func cache_rle_compress(who: String, changed_rows: Variant = null, mode: Variant = null):
 	# mode: "thread" (full rebuild), "suffix" (insert/delete threaded), "delta" (sync)
@@ -1374,7 +1377,7 @@ var virtualt: VirtualTable
 
 func load_datasets():
 	for i in cookies.dir_or_create("datasets").get_files():
-		#print(i)
+		#(i)
 		var opened = cookies.open_or_create("datasets/" + i)#.decompress(FileAccess.COMPRESSION_ZSTD)
 		if not opened: continue
 		var length = opened.get_var()
@@ -1382,30 +1385,35 @@ func load_datasets():
 		if not got: continue
 		var decomp = got.decompress(length, FileAccess.COMPRESSION_ZSTD)
 		var ds = bytes_to_var_with_objects(decomp)
-		#print(ds)
-		#print(decomp)
+		#(ds)
+		#(decomp)
 		if ds:
+			#var rle_comp = ds.get("rle_cached", {})
+			#rle_cache[ds["name"]] = rle_comp
+			#ds.erase("rle_cached")
 			ds_dump[ds["name"]] = create_dataset(randi_range(0,999999999), ds["name"])
 			dataset_datas[ds["name"]] = ds
 		virtualt.cached_once[ds["name"]] = true
 		cache_rle_compress(ds["name"], null, "thread")
 	
 func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
+	#print("compress...")
 	if not pre_bytes:
-		ds_obj = var_to_bytes(ds_obj)
+		ds_obj = var_to_bytes_with_objects(ds_obj)
+	#print("fin...")
 	var ds = cookies.open_or_create(path)
-	#print(ds_obj.compress(FileAccess.COMPRESSION_ZSTD))
+	#(ds_obj.compress(FileAccess.COMPRESSION_ZSTD))
 	#OS.delay_msec(2000)
 	var length: int = len(ds_obj)
 	ds.store_var(length)
 	ds.store_var(ds_obj.compress(FileAccess.COMPRESSION_ZSTD), true)
 	ds.close()
-	#print(cookies.open_or_create(path).get_var().decompress(FileAccess.COMPRESSION_ZSTD))
+	#(cookies.open_or_create(path).get_var().decompress(FileAccess.COMPRESSION_ZSTD))
 	_ds_save_finish.call_deferred()
 
 func join_ds_save():
 	if threading and saving_thread.is_alive():
-		#print("awaa")
+		#("awaa")
 		await ds_saved
 		saving_thread.wait_to_finish()
 
@@ -1414,24 +1422,44 @@ var saving_thread = Thread.new()
 var threading: bool = false
 func save_godot_dataset(ds_obj: Dictionary):
 	var a = (ds_obj)
+#	a["rle_cached"] = rle_cache.get(ds_obj.name, {})
+	#print("begin...")
 	if threading and saving_thread.is_alive() and saving_thread.is_started():
-		#print("awaa")
+		#("awaa")
+		#print("wait 1...")
 		await ds_saved
+		#print("wait 2...")
 		saving_thread.wait_to_finish()
+	#print("create...")
 	saving_thread = Thread.new()
 	threading = true
+	#print("start...")
 	saving_thread.start(
-	_save_worker.bind("datasets/"+ds_obj.name+".ds", a))
+	_save_worker.bind("datasets/"+ds_obj.name+".ds", (a)))
 	
 
+var dirty_datasets = {}
+
 func save_datasets(filter=null):
+	while ds_processing():
+		await get_tree().process_frame
+	#print(dirty_datasets)
 	for i in dataset_datas:
+		if not dirty_datasets.has(i): continue
 		if filter == null or i in filter:
-			#print(i)
+			#(i)
 			save_godot_dataset(dataset_datas[i])
+			while ds_processing():
+				await get_tree().process_frame
+	dirty_datasets.clear()
 
 var ds_dump = {}
 var dataset_datas = {}
+
+
+signal ds_invalid(who: String)
+func invalidate_local_ds(who: String):
+	ds_invalid.emit(who)
 
 func default_dataset() -> Dictionary:
 	return {"arr": [[{"type": "text", "text": "Hello"}, 
@@ -1446,6 +1474,7 @@ func get_dataset_at(id: String):
 func create_dataset(id: int, name: String, data = null):
 	if data:
 		dataset_datas[name] = data
+	dirty_datasets[name] = true
 	return {"id": id, "content": {}, "name": name}
 
 
@@ -1453,12 +1482,12 @@ func add_action(undo: Callable, redo: Callable, ...args):
 	if is_auto_action(): return
 	if batch_permanent: 
 		return
-	#print(batch_permanent)
-	#print_stack()
+	#(batch_permanent)
+	#_stack()
 
 	var undo_callable = func():
 		is_undoing = true
-		#print(undo)
+		#(undo)
 		if undo.is_valid():
 			if args:
 				undo.callv(args)
@@ -1475,7 +1504,7 @@ func add_action(undo: Callable, redo: Callable, ...args):
 				redo.call()
 		call_deferred("_end_auto_action", "redo")   # ← defer flag reset
 
-	#print_stack()
+	#_stack()
 	if in_batch:
 		action_batch.append([redo_callable, undo_callable])
 	else:
@@ -1501,19 +1530,19 @@ func _end_auto_action(kind: String):
 var in_batch: bool = false; var batch_permanent: bool = false
 func open_action_batch(permanent: bool = false):
 	in_batch = true; batch_permanent = permanent
-	#print_stack()
-	#print(batch_permanent)
-	#print("=====")
+	#_stack()
+	#(batch_permanent)
+	#("=====")
 
 func close_action_batch():
-	#print("close!")
+	#("close!")
 	undo_redo.create_action("Action")
 	var batch = action_batch.duplicate()
 	undo_redo.add_do_method(func():
 		for i in batch:
 			i[0].call())
 	undo_redo.add_undo_method(func():
-		#print("AA")
+		#("AA")
 		for i in batch:
 			i[1].call())
 	undo_redo.commit_action(false)
@@ -1525,13 +1554,13 @@ func close_action_batch():
 
 
 func close_action(owner):
-	#print("clos")
+	#("clos")
 	var batch = action_batch.duplicate()
 	undo_redo.add_do_method(func():
 		for i in batch:
 			i[0].call())
 	undo_redo.add_undo_method(func():
-		#print("AA")
+		#("AA")
 		for i in batch:
 			i[1].call())
 	action_batch.clear()
@@ -1553,7 +1582,7 @@ func rget_children(from_root: Node) -> Array:
 
 
 func create_conns(conns):
-	#print(conns)
+	#(conns)
 	await get_tree().process_frame
 	for i in conns:
 		var from: Graph = graphs._graphs.get(i.from_id); var to: Graph = graphs._graphs.get(i.to_id)
@@ -1655,8 +1684,8 @@ func _ready() -> void:
 
 	load_datasets()
 	await get_loaded_datasets()
-	#print(_load)
-	#print(load_dataset("mnist"))
+	#(_load)
+	#(load_dataset("mnist"))
 	await open_last_project()
 	#await wait(1)
 	#test_place()

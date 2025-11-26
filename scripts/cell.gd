@@ -28,7 +28,7 @@ func _height_key(info: Dictionary):
 
 func _modify(field: String, value):
 	if glob.ds_processing(): 
-		map_data.bind(cell_data).call_deferred()
+		map_data.bind(cell_data.duplicate(true)).call_deferred()
 		return
 	#print("a")
 	table.dirtify(coord.x)

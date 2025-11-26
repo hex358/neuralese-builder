@@ -857,6 +857,7 @@ func _reindex_for_buttons():
 		if i == "classifier":
 			title = "LabelGroup"
 		#print(type.get_meta("mat"))
+		#print(title)
 		graph_buttons.append({"name": i, 
 		"title": title, 
 		"outline_color": type.get_meta("outline_color"),

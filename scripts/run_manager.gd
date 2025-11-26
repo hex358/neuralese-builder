@@ -167,8 +167,13 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def, run_b
 		"scene_id": str(glob.get_project_id()),
 		"context": str(execute_input_origin.context_id),
 	}.merged(tdata))
+				#var tdata = graph.get_training_data()
+			#var a = await sockets.connect_to("ws/ds_load", func(a): null, cookies.get_auth_header())
+
 	#print(compressed)
 	var a = sockets.connect_to("ws/train", train_state_received.bind(additional_call), cookies.get_auth_header())
+	
+	ws_ds_frames(train_input_origin, tdata, a)
 	training_sockets[train_input] = a
 	a.connected.connect(func():
 		#if tdata.get("local"):
@@ -319,9 +324,10 @@ func send_inference_data(input: Graph, data: Dictionary, output: bool = false):
 	#print(data)
 
 func _process(delta: float) -> void:
-	if glob.space_just_pressed:
-		pass
-		upl_dataset(null)
+	pass
+	#if glob.space_just_pressed:
+	#	pass
+	#	upl_dataset(null)
 
 func upl_dataset(from: Graph):
 	for graph in graphs._graphs.values():

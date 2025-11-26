@@ -28,14 +28,34 @@ func _config_field(field: StringName, value: Variant):
 			$LabelAutoResize.resize()
 		if llm_mapping and value:
 			await get_tree().process_frame
-			print(glob.dataset_datas.keys())
-			push_meta(glob.load_dataset(value))
+			#print(glob.dataset_datas.keys())
+			var loaded = glob.load_dataset(value)
+			if "fail" in loaded: 
+				unpush_meta()
+				output_key_by_conn.keys()[0].disconnect_all()
+			else:push_meta(loaded)
 	if field == "meta":
 	#	print(glob.dataset_datas.keys())
-		push_meta(glob.load_dataset(cfg["name"]))
+		#if value == ""
+		var loaded = glob.load_dataset(cfg["name"])
+		if "fail" in loaded: unpush_meta()
+		else:push_meta(loaded)
 
 var upd: bool = false
 
+func _ready() -> void:
+	super()
+	glob.ds_invalid.connect(func(who: String):
+		if who == cfg["name"] and get_first_descendants():
+			update_config({"name": cfg["name"], "meta": ""})
+			unpush_meta()
+			output_key_by_conn.keys()[0].disconnect_all()
+			)
+			
+
+func _is_suitable_conn(who: Connection, other: Connection) -> bool:
+	var loaded = glob.load_dataset(cfg["name"])
+	return not "fail" in loaded
 
 func _on_line_edit_changed() -> void:
 	upd = true
@@ -54,12 +74,12 @@ func push_meta(meta: Dictionary):
 	#print(saved_meta)
 	saved_meta.merge({"name": "", "outputs": [], "inputs": {}}, false)
 	#print(saved_meta)
-	if get_descendant():
-		get_descendant().set_dataset_meta(saved_meta)
+	for i in get_first_descendants():
+		i.set_dataset_meta(saved_meta)
 
 func unpush_meta():
-	if get_descendant():
-		get_descendant().set_dataset_meta({"name": "", "outputs": [], "inputs": {}})
+	for i in get_first_descendants():
+		i.set_dataset_meta({"name": "", "outputs": [], "inputs": {}})
 
 func _just_disconnected(who: Connection, to: Connection):
 	to.parent_graph.set_dataset_meta({"name": "", "outputs": []})

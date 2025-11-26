@@ -546,26 +546,64 @@ func _on_run_released() -> void:
 
 #no_outputs no_1d_outs mix_2d bad_img
 func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
+	if not $Control/CodeEdit.dataset_obj: 
+		$Control/view/warn.text = ""
+		return
 	var prev = pr.duplicate(true)
 	var dt = "1d"# "\n".join(prev["outputs"][0]["label_names"])
 	#print(prev)
 	$Control/view/warn.text = ""
-	if "fatal" in prev: return
+	var lang = glob.get_lang()
+	if "fatal" in prev: 
+		glob.invalidate_local_ds($Control/CodeEdit.dataset_obj.name)
+		$Control/view/warn.text = ""
+		return
 	if not "fail" in prev:
-		prev["input_hints"].append({"name": "Output", "value": 
+		var nm = "Output"
+		if glob.get_lang() == "kz":
+			nm = "Шығыс"
+		if glob.get_lang() == "ru":
+			nm = "Вывод"
+		prev["input_hints"].append({"name": nm, "value": 
 			"len:\n"+str(len(prev["outputs"][0]["label_names"])), 
 		"dtype": "%s"%dt})
 	else:
+		glob.invalidate_local_ds($Control/CodeEdit.dataset_obj.name)
 		var txt = ""
 		match prev["fail"]:
 			"no_outputs":
-				txt = "No outputs properly configured"
+				match lang:
+					"ru":
+						txt = "Выходы не настроены должным образом"
+					"kz":
+						txt = "Шығыстар дұрыс бапталмаған"
+					_:
+						txt = "No outputs properly configured"
 			"no_1d_outs":
-				txt = "Outputs can be only 1D (no images)"
+				match lang:
+					"ru":
+						txt = "Выходы могут быть только одномерными (без изображений)"
+					"kz":
+						txt = "Шығыстар тек бір өлшемді болуы тиіс (кескіндерсіз)"
+					_:
+						txt = "Outputs can be only 1D (no images)"
 			"mix_2d":
-				txt = "1D and 2D mix in inputs is prohibited"
+				match lang:
+					"ru":
+						txt = "1D и 2D входы не могут смешиваться"
+					"kz":
+						txt = "1D және 2D кірістерді араластыруға болмайды"
+					_:
+						txt = "1D and 2D mix in inputs is prohibited"
 			"bad_img":
-				txt = "Image columns aren't properly configured (different sizes or empty rows)"
+				match lang:
+					"ru":
+						txt = "Изображения настроены неверно (разные размеры или пустые строки)"
+					"kz":
+						txt = "Кескін бағандары дұрыс бапталмаған (өлшемдері әртүрлі немесе бос жолдар)"
+					_:
+						txt = "Image columns aren't properly configured (different sizes or empty rows)"
+		
 		$Control/view/warn.text = txt
 		$Control/view/warn.self_modulate = Color.CORAL
 		prev = {"name": $Control/CodeEdit.dataset_obj.name}
@@ -595,6 +633,8 @@ func _on_code_edit_dirtified(idx: Variant, is_insert: bool = false, is_delete: b
 		return
 
 	var name = $Control/CodeEdit.dataset_obj["name"]
+	#print("a")
+	glob.previewed[name] = DsObjRLE.get_preview($Control/CodeEdit.dataset_obj)
 
 	# --- FULL REBUILD ---
 	if idx == null:
@@ -621,3 +661,11 @@ func _on_code_edit_dirtified(idx: Variant, is_insert: bool = false, is_delete: b
 		#DsObjRLE.flush_now(name, $Control/CodeEdit.dataset_obj)  # <-- immediate flush
 		idxs.clear()
 		pending_lock = false
+
+
+func _on_code_edit_deleted() -> void:
+	$Control/scenes/list.show_up(request_texts())
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if list._contained:
+		_on_list_child_button_release(list._contained[-1])

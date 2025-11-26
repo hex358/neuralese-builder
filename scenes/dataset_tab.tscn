@@ -136,7 +136,6 @@ anti_aliasing_size = 2.0
 
 [node name="Control" type="Node2D" node_paths=PackedStringArray("line_edit", "console", "camera")]
 script = ExtResource("1_hsuaq")
-console_bottom_offset = null
 line_edit = NodePath("Control/LineEdit")
 console = NodePath("Control/console")
 window_name = "ds"
@@ -280,6 +279,15 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_n8ca6")
+
+[node name="ColorRect" type="ColorRect" parent="Control/scenes"]
+z_index = -1
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 77.0
+grow_horizontal = 2
+color = Color(0.12156863, 0.12156863, 0.12156863, 1)
 
 [node name="view" type="ColorRect" parent="Control"]
 material = SubResource("ShaderMaterial_epnia")
@@ -770,6 +778,7 @@ metadata/_custom_type_script = "uid://dtwj74o465brs"
 [connection signal="child_button_release" from="Control/scenes/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="Control/scenes/plus" to="." method="_on_plus_released"]
 [connection signal="item_rect_changed" from="Control/view/Control" to="." method="_on_control_item_rect_changed"]
+[connection signal="deleted" from="Control/CodeEdit" to="." method="_on_code_edit_deleted"]
 [connection signal="dirtified" from="Control/CodeEdit" to="." method="_on_code_edit_dirtified"]
 [connection signal="preview_refreshed" from="Control/CodeEdit" to="." method="_on_code_edit_preview_refreshed"]
 [connection signal="released" from="Control/console/train2" to="." method="_on_train_2_released"]

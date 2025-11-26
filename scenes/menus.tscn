@@ -36,6 +36,7 @@ offset_right = 239.0
 scale = Vector2(0.75, 0.75)
 pivot_offset = Vector2(57121, 2500)
 script = ExtResource("4_rgbxd")
+name_groups = Array[PackedStringArray]([PackedStringArray("model_name", "input", "input_1d", "classifier"), PackedStringArray("flatten", "reshape2d", "softmax"), PackedStringArray("layer", "conv2d", "maxpool", "dropout", "neuron"), PackedStringArray("lua_env", "dataset"), PackedStringArray("output_map", "train_begin", "run_model", "train_input", "train_rl"), PackedStringArray("augment_tf", "concat")])
 text = "Add node        +"
 base_size = Vector2(239, 50)
 alignment = Vector2(239, 50)

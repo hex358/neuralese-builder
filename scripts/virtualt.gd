@@ -641,6 +641,15 @@ func _rebuild_row_heights_estimate() -> void:
 		total += max_h
 	_sum_heights = total
 
+signal deleted
+func delete_myself():
+	glob.del_dataset_file(dataset_obj.name)
+	glob.ds_dump.erase(dataset_obj.name)
+	glob.dataset_datas.erase(dataset_obj.name)
+	glob.rle_cache.erase(dataset_obj.name)
+	dataset_obj.clear()
+	load_empty_dataset(true)
+	deleted.emit()
 
 func _ensure_offsets_capacity() -> void:
 	if row_offsets.size() == 0:
@@ -719,6 +728,7 @@ var dirty: bool = false
 signal dirtified(idx, is_add, is_delete)
 
 func dirtify(idx=null, is_add=false, is_delete=false):
+	glob.dirty_datasets[dataset_obj.name] = true
 	dirtified.emit(idx, is_add, is_delete)
 
 
@@ -1243,8 +1253,8 @@ func _process(delta: float) -> void:
 	#print(glob.menu_type)
 	#print(disabled)
 	#print(query_lock)
-	#print(disabled)
-	if addition_enabled and not disabled:
+	#print(dataset_obj)
+	if addition_enabled and not disabled and dataset_obj and dataset_obj.size() > 1:
 		if next_query and not querying and not query_lock:
 			query_lock = true
 			await to_query.callv(next_query)
@@ -1462,10 +1472,11 @@ func push_textures(who: TableCell, imgs):
 		var got = _get_cell(r, who.coord.y)
 		var old_dims = Vector2i(got["x"], got["y"])
 		got["img"] = imgs[i]
-		got["x"] = int(imgs[i].get_width())
-		got["y"] = int(imgs[i].get_height())
+		got["x"] = int(imgs[i].get_width()) if imgs[i] else 0
+		got["y"] = int(imgs[i].get_height()) if imgs[i] else 0
 		cell_defaults["image"].change_cache(r, who.coord.y, old_dims, got)
 		_set_cell(r, who.coord.y, got)
+		dirtify(who.coord.x)
 			#print(got)
 	_need_layout = true
 	_need_visible_refresh = true

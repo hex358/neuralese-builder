@@ -83,6 +83,7 @@ func go_into_graph():
 #	play.text = " Test"
 #	play.get_node("i").texture = game_icon
 	glob.go_window("graph")
+	set_def()
 
 var logged_in: bool = false
 
@@ -151,7 +152,10 @@ func _on_graphs_released() -> void:
 	$Control3/graphsbg.show()
 	$Control3/minigamesbg.hide()
 	glob.go_window("env")
-
+func set_def():
+	$Control3/dsbg.hide()
+	$Control3/graphsbg.hide()
+	$Control3/minigamesbg.show()
 
 func _on_datasets_released() -> void:
 	$Control3/dsbg.show()

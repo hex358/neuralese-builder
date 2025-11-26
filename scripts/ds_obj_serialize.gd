@@ -10,17 +10,17 @@ const UNSAFE_FAST_HASH := true   # set false for stronger but slower hashing
 # =========================
 static func get_preview(dataset_obj: Dictionary, validate_cols: bool = false) -> Dictionary:
 	if not dataset_obj or not dataset_obj.has("arr"):
-		return {"fatal": "no_dataset"}
+		return {"fatal": "no_dataset", "fail": true}
 	var arr: Array = dataset_obj["arr"]
 	if arr.is_empty():
-		return {"fatal": "empty"}
+		return {"fatal": "empty", "fail": true}
 	var cols: int = (arr[0].size() if arr.size() > 0 else 0)
 	if cols <= 0:
-		return {"fatal": "no_columns"}
+		return {"fatal": "no_columns", "fail": true}
 
 	var col_names: Array = dataset_obj.get("col_names", [])
 	if col_names.is_empty():
-		return {"fatal": "missing_schema"}
+		return {"fatal": "missing_schema", "fail": true}
 
 	var col_dtypes: Array = []
 	for name in col_names:
@@ -64,16 +64,18 @@ static func get_preview(dataset_obj: Dictionary, validate_cols: bool = false) ->
 				"value": ds_to_val(dataset_obj, i),
 				"dtype": col_dtypes[i]
 			})
-
+	
+	#print(cache_cols[0])
 	if to_validate != -1:
 		if cache_cols.is_empty() or to_validate >= cache_cols.size():
 			return {"fail": "bad_img"}
 		var got_col_container = cache_cols[to_validate]
 		var got: Dictionary = {}
-		if got_col_container.size() == 1 and got_col_container.has(0):
-			got = got_col_container[0]
-		else:
-			got = got_col_container
+	#	if got_col_container.size() == 1 and got_col_container.has(0):
+		#	got = got_col_container[0]
+		#else:
+		got = got_col_container
+		#print(got)
 		if got.is_empty() or got.size() != 1 or got.keys()[0] == 0:
 			return {"fail": "bad_img"}
 		var key: int = got.keys()[0]
@@ -290,7 +292,12 @@ static func _build_block_image(arr: Array, col: int, s: int, e: int) -> PackedBy
 	for r in range(s, e):
 		var cell = arr[r][col]
 		if cell.has("img") and cell["img"] != null:
-			var img: Image = cell["img"].get_image()
+			var img: Image
+			if not cell["img"] is EncodedObjectAsID:
+				img = cell["img"].get_image()
+			else:
+				cell["img"] = null
+				continue
 			raw.append_array(img.get_data())
 	var o := PackedByteArray(); o.append(0); o.append_array(raw); return o
 
