@@ -22,8 +22,8 @@ func train_state_received(bytes: PackedByteArray, additional: Callable):
 func request_save():
 	for g in graphs._graphs:
 		graphs._graphs[g].request_save()
+
 func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConnection) -> void:
-	# --- Get dataset name and ensure we have cached blocks ---
 	var ds_name = train_input_origin.dataset_meta.get("name", "")
 	if ds_name == "":
 		push_warning("No dataset name found.")
@@ -32,65 +32,106 @@ func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConn
 		push_warning("Dataset not yet compressed or cached.")
 		return
 
+	# --- prepare dataset ---
+	await glob.join_ds_processing()
+	DsObjRLE.flush_now(ds_name, glob.dataset_datas[ds_name])
+	print(DsObjProbe.probe_dataset(ds_name))
+	#return
 	var ds: Dictionary = glob.rle_cache[ds_name]
 	var inputs: Array = ds["data"][0]
 	var outputs: Array = ds["data"][1]
+	var header: Dictionary = ds["header"]
 
-	# --- Construct per-block hash manifest ---
 	var block_hashes := {"inputs": [], "outputs": []}
 	for col in inputs:
-		block_hashes["inputs"].append(col["hashes"])
+		block_hashes["inputs"].append(col.get("hashes", []))
 	for col in outputs:
-		block_hashes["outputs"].append(col["hashes"])
+		block_hashes["outputs"].append(col.get("hashes", []))
 
-	# --- Prepare initial handshake payload ---
-	initial["header"] = ds["header"]
-	initial["block_hashes"] = block_hashes
-	initial["session"] = "neriqward"  # temporary MVP user id, matches backend field
+	initial["session"] = "neriqward"
+	initial["header"] = header
 	initial["header"]["name"] = ds_name
+	initial["block_hashes"] = block_hashes
+	initial["hash_algo"] = "sha256"
 
-	# --- Send the header (compressed) ---
-	ws.send(glob.compress_dict_zstd(initial))
+	# --- send header ---
+	var header_bytes = glob.compress_dict_zstd(initial)
+	ws.send(header_bytes)
+	print("[WS] Sent compressed header (%.2f KB)" % [float(header_bytes.size()) / 1024.0])
 
-	# --- Wait for backend to reply with list of missing blocks ---
-	var need_raw = await ws.recv()
-	var need_json = JSON.parse_string(need_raw.get_string_from_utf8())
-	if need_json == null or not need_json is Dictionary:
-		push_warning("Server returned invalid 'need' response.")
-		return
-	var need: Dictionary = need_json
+	# --- shared counters (persist across closure) ---
+	var stats := {
+		"total_bytes": 0.0,
+		"total_blocks": 0,
+		"side_bytes": {"inputs": 0.0, "outputs": 0.0}
+	}
 
-	# --- Helper to send one block frame ---
-	var _send_block = func _send_block(side: String, col_i: int, blk_i: int, blk_data: PackedByteArray) -> void:
-		var meta := {"side": side, "col": col_i, "blk": blk_i}
-		var meta_str := JSON.stringify(meta)
-		var meta_bytes := meta_str.to_utf8_buffer()
-		var frame := PackedByteArray()
-		var len := meta_bytes.size()
-		frame.append((len >> 8) & 0xFF)
-		frame.append(len & 0xFF)
-		frame.append_array(meta_bytes)
-		frame.append_array(blk_data)
-		ws.send(frame)
+	# --- packet callback ---
+	var _on_packet = func(data: PackedByteArray) -> void:
+		var text = data.get_string_from_utf8()
+		if text == "__end__":
+			return
 
-	# --- Send only missing blocks requested by backend ---
-	for side in ["inputs", "outputs"]:
-		var arr := inputs if side == "inputs" else outputs
-		if not need.has(side):
-			continue
-		for col_key in need[side].keys():
-			var col_i := int(col_key)
-			var missing_blocks: Array = need[side][col_key]
-			if missing_blocks.is_empty():
+		var need_json = JSON.parse_string(text)
+		if typeof(need_json) != TYPE_DICTIONARY:
+			push_warning("Invalid NEED payload: " + text)
+			return
+		var need: Dictionary = need_json
+
+		var _send_block = func(side: String, col_i: int, blk_i: int, blk_data: PackedByteArray) -> void:
+			var meta := {"side": side, "col": col_i, "blk": blk_i}
+			var meta_bytes := JSON.stringify(meta).to_utf8_buffer()
+
+			var frame := PackedByteArray()
+			frame.append((meta_bytes.size() >> 8) & 0xFF)
+			frame.append(meta_bytes.size() & 0xFF)
+			frame.append_array(meta_bytes)
+			frame.append_array(blk_data)
+
+			ws.send(frame)
+
+			var bytes_sent = float(frame.size())
+			stats["total_bytes"] += bytes_sent
+			stats["total_blocks"] += 1
+			stats["side_bytes"][side] += bytes_sent
+
+			if int(stats["total_blocks"]) % 50 == 0:
+				print("[WS] Sent %d blocks (%.2f KB so far)" % [
+					int(stats["total_blocks"]), stats["total_bytes"] / 1024.0
+				])
+
+		# --- transmit all requested blocks ---
+		for side in ["inputs", "outputs"]:
+			if not need.has(side):
 				continue
-			var col_data = arr[col_i]
-			for blk_i in missing_blocks:
-				var blk: PackedByteArray = col_data["blocks"][blk_i]
-				_send_block.call(side, col_i, blk_i, blk)
+			var cols_arr := (inputs if side == "inputs" else outputs)
+			for col_key in need[side].keys():
+				var col_i := int(col_key)
+				var missing: Array = need[side][col_key]
+				if missing.is_empty():
+					continue
+				var col_data: Dictionary = cols_arr[col_i]
+				var blocks: Array = col_data.get("blocks", [])
+				for blk_i in missing:
+					if blk_i >= 0 and blk_i < blocks.size():
+						var blk_data: PackedByteArray = blocks[blk_i]
+						_send_block.call(side, col_i, blk_i, blk_data)
 
-	# --- Notify backend of completion ---
-	var end_marker := "__end__".to_utf8_buffer()
-	ws.send(end_marker)
+		# --- end transmission ---
+		ws.send("__end__".to_utf8_buffer())
+
+		print("[WS] Sent all missing dataset blocks to server.")
+		print("[WS] Blocks sent: %d  |  Total bytes: %.2f KB (%.2f MB)" %
+			[int(stats["total_blocks"]), stats["total_bytes"] / 1024.0, stats["total_bytes"] / 1024.0 / 1024.0])
+		print("[WS] Inputs: %.2f KB   Outputs: %.2f KB" %
+			[stats["side_bytes"]["inputs"] / 1024.0, stats["side_bytes"]["outputs"] / 1024.0])
+
+	# --- connect listener ---
+	ws.packet.connect(_on_packet)
+
+
+
+
 
 
 
@@ -280,14 +321,14 @@ func send_inference_data(input: Graph, data: Dictionary, output: bool = false):
 func _process(delta: float) -> void:
 	if glob.space_just_pressed:
 		pass
-		#upl_dataset(null)
+		upl_dataset(null)
 
 func upl_dataset(from: Graph):
 	for graph in graphs._graphs.values():
 		if graph.server_typename == "TrainBegin":
 			
 			var tdata = graph.get_training_data()
-			var a = await sockets.connect_to("ws/ds_load", print, cookies.get_auth_header())
+			var a = await sockets.connect_to("ws/ds_load", func(a): null, cookies.get_auth_header())
 
 			ws_ds_frames(graph, tdata, a)
 

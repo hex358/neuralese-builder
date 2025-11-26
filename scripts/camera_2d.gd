@@ -80,9 +80,9 @@ func _input(event: InputEvent) -> void:
 			var prev_zoom = target_zoom
 			match event.button_index:
 				MOUSE_BUTTON_WHEEL_DOWN:
-					target_zoom = max(0.5, zoom.x - factor)
+					target_zoom = max(0.4, zoom.x - factor)
 				MOUSE_BUTTON_WHEEL_UP:
-					target_zoom = min(2, zoom.x + factor)
+					target_zoom = min(3, zoom.x + factor)
 			if target_zoom != prev_zoom:
 				move_intensity = 1.0
 				glob.hide_all_menus()

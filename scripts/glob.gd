@@ -779,6 +779,7 @@ func message_chunk_received(data, sock: SocketConnection):
 	var text: String = parsed.text
 	var changed = text
 	var clean_text = parser.parse_stream_tags(sock, text)
+	print(sock.cache)
 	#clean_text = clean_text.replace("```json\n", "").replace("\n```", "").strip_edges()`
 	#if clean_text.is_empty():
 	#	return
@@ -925,42 +926,50 @@ func test_place():
 	#message_sockets.erase(chat_id)
 	#on_close.call()
 	var chunk = """
+<thinking>The user wants to build an MNIST CNN. This is a clear command to construct a specific type of neural network. Since the canvas is currently empty, I can use the specialized `build_graph_digit_2_conv` function which creates a two-layer CNN suitable for digit classification. This function will build the complete model with all necessary layers and connections for an MNIST CNN. I will then inform the user that the model has been built.</thinking>Отлично! Я построил для вас MNIST CNN с двумя сверточными слоями. Теперь вы можете его обучать!
 <change_nodes>
 [
-  {"tag": "model_mnist_recognizer", "type": "model_name", "config": {"name": "mnist_recognizer"}},
+  {"tag": "model_mnist_cnn", "type": "model_name", "config": {"name": "mnist_cnn"}},
   {"tag": "input_image_small_0", "type": "input_image_small", "config": {}},
-  {"tag": "activation_relu_conv", "type": "activation", "config": {"activ": "relu"}},
-  {"tag": "conv2d_layer_0", "type": "conv2d_layer", "config": {"filters": 32, "window": 3, "stride": 1}},
-  {"tag": "maxpool_layer_0", "type": "maxpool_layer", "config": {"group": 2}},
-  {"tag": "flatten_0", "type": "flatten", "config": {}},
-  {"tag": "activation_relu_dense", "type": "activation", "config": {"activ": "relu"}},
-  {"tag": "dense_layer_0", "type": "dense_layer", "config": {"neuron_amount": 128}},
-  {"tag": "dense_layer_1", "type": "dense_layer", "config": {"neuron_amount": 10}},
-  {"tag": "softmax_0", "type": "softmax", "config": {}},
+  {"tag": "activation_relu_1", "type": "activation", "config": {"activ": "relu"}},
+  {"tag": "conv2d_layer_1", "type": "conv2d_layer", "config": {"filters": 32, "window": 3, "stride": 1}},
+  {"tag": "maxpool_layer_1", "type": "maxpool_layer", "config": {"group": 2}},
+  {"tag": "activation_relu_2", "type": "activation", "config": {"activ": "relu"}},
+  {"tag": "conv2d_layer_2", "type": "conv2d_layer", "config": {"filters": 64, "window": 3, "stride": 1}},
+  {"tag": "maxpool_layer_2", "type": "maxpool_layer", "config": {"group": 2}},
+  {"tag": "flatten_1", "type": "flatten", "config": {}},
+  {"tag": "activation_relu_3", "type": "activation", "config": {"activ": "relu"}},
+  {"tag": "dense_layer_128", "type": "dense_layer", "config": {"neuron_amount": 128}},
+  {"tag": "dense_layer_10", "type": "dense_layer", "config": {"neuron_amount": 10}},
+  {"tag": "softmax_1", "type": "softmax", "config": {}},
   {"tag": "out_labels_digits", "type": "out_labels", "config": {"label_names": ["0","1","2","3","4","5","6","7","8","9"], "title": "digits"}},
   {"tag": "load_dataset_mnist", "type": "load_dataset", "config": {"dataset_name": "mnist"}},
   {"tag": "train_begin_0", "type": "train_begin", "config": {}},
-  {"tag": "run_model_0", "type": "run_model", "config": {"branches": {"digits": "cross_entropy"}, "mapped": {"digits": "labels"}}},
-  {"tag": "output_map_0", "type": "output_map", "config": {}},
-  {"tag": "train_step_0", "type": "train_step", "config": {"optimizer": "adam", "lr": 1}}
+  {"tag": "run_model_0", "type": "run_model", "config": {"branches": {"digits": "cross_entropy"}, "mapped": {"digits": "digit"}}},
+  {"tag": "output_map_0", "type": "output_map", "config": {}}, 
+  {"tag": "train_step_0", "type": "train_step", "config": {"optimizer": "adam", "lr": 1, "momentum": 0.0, "weight_decay": 0}}
 ]
 </change_nodes>
 
+
 <connect_ports>
 [
-  {"from": {"tag": "model_mnist_recognizer", "port": 0}, "to": {"tag": "input_image_small_0", "port": 0}},
-  {"from": {"tag": "model_mnist_recognizer", "port": 0}, "to": {"tag": "run_model_0", "port": 1}},
-  {"from": {"tag": "input_image_small_0", "port": 0}, "to": {"tag": "conv2d_layer_0", "port": 1}},
-  {"from": {"tag": "activation_relu_conv", "port": 0}, "to": {"tag": "conv2d_layer_0", "port": 0}},
-  {"from": {"tag": "conv2d_layer_0", "port": 0}, "to": {"tag": "maxpool_layer_0", "port": 0}},
-  {"from": {"tag": "maxpool_layer_0", "port": 0}, "to": {"tag": "flatten_0", "port": 0}},
-  {"from": {"tag": "flatten_0", "port": 0}, "to": {"tag": "dense_layer_0", "port": 1}},
-  {"from": {"tag": "activation_relu_dense", "port": 0}, "to": {"tag": "dense_layer_0", "port": 0}},
-  {"from": {"tag": "dense_layer_0", "port": 0}, "to": {"tag": "dense_layer_1", "port": 1}},
-  {"from": {"tag": "dense_layer_1", "port": 0}, "to": {"tag": "softmax_0", "port": 0}},
-  {"from": {"tag": "softmax_0", "port": 0}, "to": {"tag": "out_labels_digits", "port": 0}},
+  {"from": {"tag": "model_mnist_cnn", "port": 0}, "to": {"tag": "input_image_small_0", "port": 0}},
+  {"from": {"tag": "input_image_small_0", "port": 0}, "to": {"tag": "conv2d_layer_1", "port": 1}},
+  {"from": {"tag": "activation_relu_1", "port": 0}, "to": {"tag": "conv2d_layer_1", "port": 0}},
+  {"from": {"tag": "conv2d_layer_1", "port": 0}, "to": {"tag": "maxpool_layer_1", "port": 0}},
+  {"from": {"tag": "maxpool_layer_1", "port": 0}, "to": {"tag": "conv2d_layer_2", "port": 1}},
+  {"from": {"tag": "activation_relu_2", "port": 0}, "to": {"tag": "conv2d_layer_2", "port": 0}},
+  {"from": {"tag": "conv2d_layer_2", "port": 0}, "to": {"tag": "maxpool_layer_2", "port": 0}},
+  {"from": {"tag": "maxpool_layer_2", "port": 0}, "to": {"tag": "flatten_1", "port": 0}},
+  {"from": {"tag": "flatten_1", "port": 0}, "to": {"tag": "dense_layer_128", "port": 1}},
+  {"from": {"tag": "activation_relu_3", "port": 0}, "to": {"tag": "dense_layer_128", "port": 0}},
+  {"from": {"tag": "dense_layer_128", "port": 0}, "to": {"tag": "dense_layer_10", "port": 1}},
+  {"from": {"tag": "dense_layer_10", "port": 0}, "to": {"tag": "softmax_1", "port": 0}},
+  {"from": {"tag": "softmax_1", "port": 0}, "to": {"tag": "out_labels_digits", "port": 0}},
   {"from": {"tag": "load_dataset_mnist", "port": 0}, "to": {"tag": "train_begin_0", "port": 0}},
   {"from": {"tag": "train_begin_0", "port": 0}, "to": {"tag": "run_model_0", "port": 0}},
+  {"from": {"tag": "model_mnist_cnn", "port": 0}, "to": {"tag": "run_model_0", "port": 1}},
   {"from": {"tag": "run_model_0", "port": 0}, "to": {"tag": "output_map_0", "port": 0}},
   {"from": {"tag": "output_map_0", "port": 0}, "to": {"tag": "train_step_0", "port": 0}}
 ]
@@ -999,6 +1008,7 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 	#		acts[action][el] = JSON.parse_string(acts[action][el])
 	#print("text, ", txt)
 	await glob.wait(0.5)
+	#print(txt)
 	parser.model_changes_apply(acts, txt)
 		#print()
 
@@ -1287,43 +1297,66 @@ func _ds_save_finish():
 
 var rle_compressing: Dictionary = {}
 var rle_cache = {}
-func _comp_thread(dict: Dictionary, who: String, changed_rows = null):
-	#print(changed_rows)
+
+var dirty_blocks := {}
+# global state
+func _comp_thread(dict: Dictionary, who: String, changed_rows: Array):
 	var t = Time.get_ticks_msec()
 	var comped: Dictionary
-	if changed_rows == null:
+	if changed_rows.is_empty():
 		comped = DsObjRLE.compress_blocks(dict)
 	else:
 		comped = DsObjRLE.recompress_changed_blocks(dict, changed_rows)
-	_comp_finish.call_deferred(comped, who)
-	print(Time.get_ticks_msec() - t)
+	call_deferred("_comp_finish", comped, who)
+	print("threaded compress:", who, "took", Time.get_ticks_msec() - t, "ms")
 
 func _comp_finish(dict: Dictionary, who: String):
 	rle_cache[who] = dict
 	rle_compressing.erase(who)
-	print(DsObjProbe.probe_dataset(who, 4))
+	print("[cache] updated:", who, "rows=", dict["header"]["rows"])
 
-func cache_rle_compress(who: String, changed_rows = null):
-	# Fast no-op
-	if changed_rows != null and (changed_rows is Array and changed_rows.size() == 0):
+func cache_rle_compress(who: String, changed_rows: Variant = null, mode: Variant = null):
+	# mode: "thread" (full rebuild), "suffix" (insert/delete threaded), "delta" (sync)
+	var rows_arr: Array = []
+	if changed_rows != null:
+		if changed_rows is Array:
+			rows_arr = changed_rows
+		else:
+			rows_arr = [changed_rows]
+	# skip if nothing
+	if rows_arr.is_empty() and mode == null:
 		return
 
-	# Full rebuilds only: go threaded
-	if changed_rows == null:
+	var mode_str := ""
+	if mode is bool and mode == true:
+		mode_str = "suffix"
+	elif typeof(mode) == TYPE_STRING:
+		mode_str = mode
+	else:
+		mode_str = "delta"
+
+	# --- FULL REBUILD (threaded)
+	if mode_str == "thread":
 		if who in rle_compressing: return
 		rle_compressing[who] = true
-
 		var dupped = dataset_datas[who]
 		var thread := Thread.new()
-		thread.start(_comp_thread.bind(dupped, who, null))
+		thread.start(_comp_thread.bind(dupped, who, []))  # <-- pass empty Array
 		return
 
-	var t = Time.get_ticks_msec()
-	# Delta path (non-threaded)
+	# --- SUFFIX REBUILD (insert/delete)
+	if mode_str == "suffix":
+		if who in rle_compressing: return
+		rle_compressing[who] = true
+		var dupped = dataset_datas[who]
+		var thread := Thread.new()
+		thread.start(_comp_thread.bind(dupped, who, rows_arr))
+		return
+
+	# --- DELTA (fast, synchronous)
 	var dupped = dataset_datas[who]
-	var comped: Dictionary = DsObjRLE.recompress_changed_blocks(dupped, changed_rows)
-	_comp_finish.call_deferred(comped, who)
-	print(Time.get_ticks_msec() - t)
+	var comped: Dictionary = DsObjRLE.recompress_changed_blocks(dupped, rows_arr)
+	rle_cache[who] = comped
 
 	
 
@@ -1355,7 +1388,7 @@ func load_datasets():
 			ds_dump[ds["name"]] = create_dataset(randi_range(0,999999999), ds["name"])
 			dataset_datas[ds["name"]] = ds
 		virtualt.cached_once[ds["name"]] = true
-		cache_rle_compress(ds["name"])
+		cache_rle_compress(ds["name"], null, "thread")
 	
 func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
 	if not pre_bytes:
@@ -1620,13 +1653,13 @@ func _ready() -> void:
 	await try_auto_login()
 	#if _logged_in:
 
+	load_datasets()
 	await get_loaded_datasets()
 	#print(_load)
 	#print(load_dataset("mnist"))
 	await open_last_project()
 	#await wait(1)
 	#test_place()
-	load_datasets()
 	ui.splash("ai_help", null, null, false, {"away": true})
 
 func disconnect_all(from_signal: Signal):

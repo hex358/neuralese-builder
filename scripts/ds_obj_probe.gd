@@ -1,17 +1,22 @@
 extends Node
 class_name DsObjProbe
 
-
+# =========================
+# BitReader (unchanged)
+# =========================
 class _BitReader:
 	var _data: PackedByteArray
 	var _bit_pos: int
 	var _total_bits: int
+
 	func _init(buf: PackedByteArray) -> void:
 		_data = buf
 		_bit_pos = 0
 		_total_bits = buf.size() * 8
+
 	func set_pos(bitpos: int) -> void:
 		_bit_pos = clamp(bitpos, 0, _total_bits)
+
 	func pop(bits: int) -> int:
 		var v = 0
 		for i in range(bits):
@@ -24,8 +29,41 @@ class _BitReader:
 			_bit_pos += 1
 		return v
 
+
 # =========================================================
-# Probe cache that uses block addressing (no row_ptrs)
+# RLE decoder (kept minimal, same semantics)
+# =========================================================
+static func _rle_decode(data: PackedByteArray) -> PackedByteArray:
+	var out := PackedByteArray()
+	var i := 0
+	while i + 2 < data.size():
+		var cnt = (data[i] << 8) | data[i + 1]
+		var val = data[i + 2]
+		for _j in range(cnt):
+			out.append(val)
+		i += 3
+	return out
+
+
+# =========================================================
+# Adaptive block decoder (1-byte flag prefix)
+# =========================================================
+static func _decode_block(block: PackedByteArray) -> PackedByteArray:
+	if block.is_empty():
+		return PackedByteArray()
+	var flag = block[0]
+	var payload = block.slice(1, block.size())
+	match flag:
+		0:
+			return payload
+		1:
+			return _rle_decode(payload)
+		_:
+			return payload
+
+
+# =========================================================
+# Probe: safe preview of numeric, float, text, image columns
 # =========================================================
 static func probe_dataset(name: String, sample_rows: int = 3, from_row: int = 0, to_row: int = -1) -> Dictionary:
 	if not glob.rle_cache.has(name):
@@ -33,35 +71,31 @@ static func probe_dataset(name: String, sample_rows: int = 3, from_row: int = 0,
 
 	var cached: Dictionary = glob.rle_cache[name]
 	if not cached.has("header") or not cached.has("data"):
-		return {"ok": false, "reason": "incomplete cache structure"}
+		return {"ok": false, "reason": "incomplete cache"}
 
 	var header: Dictionary = cached["header"]
 	var inputs: Array = cached["data"][0]
 	var outputs: Array = cached["data"][1]
 
 	var total_rows: int = int(header.get("rows", 0))
-	var rpb: int = int(header.get("rows_per_block", DsObjRLE.BLOCK_ROWS))
+	var rpb: int = int(header.get("rows_per_block", DsObjRLE.BLOCK_ROWS_DEFAULT))
 	if rpb <= 0:
-		rpb = 1024
+		rpb = 256
 
-	# ---- normalize range (negative indices + swap) ----
+	# ---- normalize range ----
 	if to_row < 0:
 		to_row = total_rows + to_row + 1
 	if from_row < 0:
 		from_row = total_rows + from_row
-	if from_row > to_row:
-		var t = from_row
-		from_row = to_row
-		to_row = t
 	from_row = clamp(from_row, 0, total_rows)
-	to_row = clamp(to_row, 0, total_rows)
+	to_row = clamp(to_row, from_row, total_rows)
 
-	var span: int = max(0, to_row - from_row)
-	var rows_to_show: int = min(sample_rows, (span if span > 0 else total_rows))
+	var span = max(0, to_row - from_row)
+	var rows_to_show = min(sample_rows, (span if span > 0 else total_rows))
 	if rows_to_show <= 0:
-		rows_to_show = 0
+		return {"ok": false, "reason": "empty range"}
 
-	var info = {
+	var info := {
 		"ok": true,
 		"name": name,
 		"rows": total_rows,
@@ -73,132 +107,96 @@ static func probe_dataset(name: String, sample_rows: int = 3, from_row: int = 0,
 
 	# ---------------- helpers ----------------
 
-	var _rle_decode_adaptive = func(data: PackedByteArray) -> PackedByteArray:
-		if data.is_empty():
-			return PackedByteArray()
-		var flag = data[0]
-		var payload = data.slice(1, data.size())
-		if flag == 0:
-			return payload
-		elif flag == 1:
-			return rle_decode(payload)
-		return payload
-
-	var _get_block_raw = func(col_entry: Dictionary, block_idx: int) -> PackedByteArray:
-		var blocks: Array = col_entry.get("blocks", [])
-		if block_idx < 0 or block_idx >= blocks.size():
-			return PackedByteArray()
-		return _rle_decode_adaptive.call(blocks[block_idx])
-
 	var _col_meta = func(col_i: int) -> Dictionary:
 		return header.get("columns", {}).get(str(col_i), {})
 
-	# --- numeric bit access at row ---
-
-
-	# --- typed getters (per logical row) ---
-	var _get_num_at = func(col_entry: Dictionary, col_i: int, logical_row: int) -> int:
-		var meta: Dictionary = _col_meta.call(col_i)
+	var _decode_num_block = func(block: PackedByteArray, meta: Dictionary) -> PackedInt32Array:
 		var mn: int = int(meta.get("min", 0))
 		var mx: int = int(meta.get("max", 100))
-		var range: int = max(1, mx - mn)
-		var bits: int = clamp(int(ceil(log(range + 1) / log(2.0))), 1, 32)
+		var rng: int = max(1, mx - mn)
+		var w: int = 1
+		if rng > 255: w = 2
+		if rng > 65535: w = 4
 
-		var block_idx: int = logical_row / rpb
-		var within: int = logical_row - block_idx * rpb
-		var buf = _get_block_raw.call(col_entry, block_idx)
-		if buf.is_empty():
-			return mn
+		var dec = _decode_block(block)
+		var nvals = int(dec.size() / w)
+		var out := PackedInt32Array()
+		out.resize(nvals)
 
-		var br = _BitReader.new(buf)
-		br.set_pos(within * bits)
-		return br.pop(bits) + mn
-
-	var _get_float_at = func(col_entry: Dictionary, logical_row: int) -> float:
-		var block_idx: int = logical_row / rpb
-		var within: int = logical_row - block_idx * rpb
-		var buf = _get_block_raw.call(col_entry, block_idx)
-		if buf.is_empty() or within < 0 or within >= buf.size():
-			return 0.0
-		return float(buf[within]) / 255.0
-
-	# Text is null-terminated per row; scan to the N-th string in block.
-	var _get_text_at = func(col_entry: Dictionary, logical_row: int) -> String:
-		var block_idx: int = logical_row / rpb
-		var within: int = logical_row - block_idx * rpb
-		var buf = _get_block_raw.call(col_entry, block_idx)
-		if buf.is_empty():
-			return ""
-		var idx: int = 0
-		var row_i: int = 0
-		while idx < buf.size():
-			# gather until '\0'
-			var start = idx
-			while idx < buf.size() and buf[idx] != 0:
-				idx += 1
-			if row_i == within:
-				var slice = buf.slice(start, idx)  # no terminator
-				return slice.get_string_from_utf8()
-			row_i += 1
-			# skip terminator
-			idx += 1
-		return ""
-
-	# Images are variable length; without per-row size table we only can show a placeholder
-	var _get_image_at = func(col_entry: Dictionary, logical_row: int) -> String:
-		var block_idx: int = logical_row / rpb
-		var buf = _get_block_raw.call(col_entry, block_idx)
-		return str(buf.size()) + " bytes img"
-
-	var _extract_preview = func(col_entry: Dictionary, col_i: int, dtype: String) -> Array:
-		var out: Array = []
-		if rows_to_show <= 0:
-			return out
-		match dtype:
-			"num":
-				for k in range(rows_to_show):
-					out.append(_get_num_at.call(col_entry, col_i, from_row + k))
-			"float":
-				for k in range(rows_to_show):
-					out.append(_get_float_at.call(col_entry, from_row + k))
-			"text":
-				for k in range(rows_to_show):
-					out.append(_get_text_at.call(col_entry, from_row + k))
-			"image":
-				# For images: show a coarse indicator
-				for k in range(rows_to_show):
-					out.append(_get_image_at.call(col_entry, from_row + k))
-			_:
-				for k in range(rows_to_show):
-					out.append("unknown")
+		var ri = 0
+		for i in range(nvals):
+			var v: int = 0
+			if w == 1:
+				v = int(dec[ri])
+				ri += 1
+			elif w == 2:
+				v = (int(dec[ri]) << 8) | int(dec[ri + 1])
+				ri += 2
+			else:
+				v = (int(dec[ri]) << 24) | (int(dec[ri + 1]) << 16) | (int(dec[ri + 2]) << 8) | int(dec[ri + 3])
+				ri += 4
+			out[i] = v + mn
 		return out
 
-	var _probe_side = func(side: Array, label: String, offset: int):
+	var _decode_float_block = func(block: PackedByteArray) -> PackedFloat32Array:
+		var dec = _decode_block(block)
+		var out := PackedFloat32Array()
+		out.resize(dec.size())
+		for i in range(dec.size()):
+			out[i] = float(dec[i]) / 255.0
+		return out
+
+	var _decode_text_block = func(block: PackedByteArray) -> Array:
+		var dec = _decode_block(block)
+		var out: Array = []
+		var cur := []
+		for b in dec:
+			if b == 0:
+				out.append("".join(cur))
+				cur.clear()
+			else:
+				cur.append(char(b))
+		if not cur.is_empty():
+			out.append("".join(cur))
+		return out
+
+	# --- main per-type accessors ---
+	var _get_at = func(col_entry: Dictionary, col_i: int, logical_row: int, dtype: String) -> Variant:
+		var block_idx = logical_row / rpb
+		var within = logical_row - block_idx * rpb
+		var blocks: Array = col_entry.get("blocks", [])
+		if block_idx < 0 or block_idx >= blocks.size():
+			return null
+		var block = blocks[block_idx]
+		if dtype == "num":
+			var vals = _decode_num_block.call(block, _col_meta.call(col_i))
+			return (vals[within] if within < vals.size() else 0)
+		elif dtype == "float":
+			var vals = _decode_float_block.call(block)
+			return (vals[within] if within < vals.size() else 0.0)
+		elif dtype == "text":
+			var vals = _decode_text_block.call(block)
+			return (vals[within] if within < vals.size() else "")
+		elif dtype == "image":
+			var raw = _decode_block(block)
+			return str(raw.size()) + " bytes img"
+		else:
+			return "unknown"
+
+	var _extract_preview = func(side: Array, offset: int, label: String):
 		var side_samples: Dictionary = {}
 		for i in range(side.size()):
 			var col_entry: Dictionary = side[i]
-			var col_i: int = i + offset
+			var col_i = i + offset
 			var dtype: String = str(col_entry.get("dtype", header.get("columns", {}).get(str(col_i), {}).get("dtype", "unknown")))
-			var vals: Array = _extract_preview.call(col_entry, col_i, dtype)
+			var vals: Array = []
+			for k in range(rows_to_show):
+				vals.append(_get_at.call(col_entry, col_i, from_row + k, dtype))
 			side_samples["col_%d:%s" % [col_i, dtype]] = vals
 		info["sample"][label] = side_samples
 
-	_probe_side.call(inputs, "inputs", 0)
-	_probe_side.call(outputs, "outputs", int(header.get("inputs_count", 0)))
+	# --- run ---
+	_extract_preview.call(inputs, 0, "inputs")
+	_extract_preview.call(outputs, int(header.get("inputs_count", 0)), "outputs")
 
 	return info
-
-
-# =========================================================
-# RLE decode (same as before)
-# =========================================================
-static func rle_decode(data: PackedByteArray) -> PackedByteArray:
-	var out = PackedByteArray()
-	var i = 0
-	while i + 2 < data.size():
-		var count = (data[i] << 8) | data[i + 1]
-		var value = data[i + 2]
-		for _j in range(count):
-			out.append(value)
-		i += 3
-	return out

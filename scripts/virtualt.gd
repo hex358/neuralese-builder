@@ -1221,7 +1221,10 @@ var prev_row = {}
 
 func _process(delta: float) -> void:
 	#if glob.space_just_pressed:
-	#	print( DsObjRLE.compress_and_send(dataset_obj, false))
+	#	var t = Time.get_ticks_msec()
+	#	( DsObjRLE.flush_now(dataset_obj.name, dataset_obj))
+		#print(Time.get_ticks_msec() - t)
+		#print(DsObjProbe.probe_dataset(dataset_obj.name))
 	#	web.POST("cache_ds", {"dataset": DsObjRLE.compress_and_send(dataset_obj, true)})
 	#if dataset_obj:
 	#	print(dataset_obj["col_args"])

@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3 uid="uid://dnhvvwjmwgaag"]
+
+[ext_resource type="Shader" uid="uid://cc63krvosem2" path="res://shaders/ai_progress.gdshader" id="1_musil"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2q7gl"]
+shader = ExtResource("1_musil")
+shader_parameter/speed = 0.5290000218676201
+shader_parameter/density = 1.0
+shader_parameter/fluidity = 0.42800002033
+shader_parameter/blob_radius = 0.22900000761762002
+shader_parameter/edge_softness = 0.3570000169575
+shader_parameter/grain_amount = 0.0
+shader_parameter/color_primary = Color(0.88829994, 0.549, 0.9, 1)
+shader_parameter/color_secondary = Color(0, 0.8, 0.8, 1)
+shader_parameter/color_tertiary = Color(0.8, 0.2, 0.7399998, 1)
+shader_parameter/alpha_power = 1.0
+
+[node name="Aiload" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_2q7gl")
+layout_mode = 0
+offset_right = 830.0
+offset_bottom = 431.0

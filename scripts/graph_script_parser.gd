@@ -175,6 +175,7 @@ func clean_message(s: String):
 func preprocess(actions: Dictionary):
 	var res = {}
 	for tag in tags:
+		if tag == "thinking": continue
 		res[tag] = []
 		if not actions.has(tag):
 			res[tag] = []
@@ -259,12 +260,19 @@ func _find_best_position(bbox: Rect2, padding: float) -> Vector2:
 
 func model_changes_apply(actions: Dictionary, txt: String):
 	if not (actions.get("change_nodes", []).size() > 0 and actions.get("change_nodes", [""])[0] is not String):
+		print(actions)
 		actions = preprocess(actions)
+		print(actions)
 
 
 	if not actions["connect_ports"] and not actions["change_nodes"] and\
 	not actions["delete_nodes"] and not actions["disconnect_ports"]:
 		return
+	print(actions)
+	for i in actions:
+		for a in actions[i]:
+			if a == null:
+				return
 	nn.request_save()
 	ui.set_topr_text(txt)
 	#actions["connect_ports"][-1].remove_at(1)

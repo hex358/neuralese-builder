@@ -136,6 +136,7 @@ anti_aliasing_size = 2.0
 
 [node name="Control" type="Node2D" node_paths=PackedStringArray("line_edit", "console", "camera")]
 script = ExtResource("1_hsuaq")
+console_bottom_offset = null
 line_edit = NodePath("Control/LineEdit")
 console = NodePath("Control/console")
 window_name = "ds"

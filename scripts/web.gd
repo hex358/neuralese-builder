@@ -167,11 +167,12 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 			call_deferred("_cleanup_thread", thread)
 			return
 		OS.delay_usec(_IO_YIELD_US)
-
+	
+	var is_get = p.method == HTTPClient.METHOD_GET
 	if send_bytes:
-		err = client.request_raw(method, url.path, hdrs, body_data)
+		err = client.request_raw(method, url.path, hdrs, body_data if not is_get else PackedByteArray())
 	else:
-		err = client.request(method, url.path, hdrs, body_data.get_string_from_utf8())
+		err = client.request(method, url.path, hdrs, body_data.get_string_from_utf8() if not is_get else "")
 	if err != OK:
 		call_deferred("_emit_http_done", handle, {
 			"ok": false, "error": err, "code": 0, "body": PackedByteArray(),

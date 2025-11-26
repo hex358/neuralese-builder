@@ -181,6 +181,17 @@ config = SubResource("Resource_sfqu4")
 in_splash = true
 still_hover_in_block = true
 
+[node name="Loc" type="Node" parent="ColorRect/list/name"]
+script = ExtResource("12_jips7")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"Untitled": "Безымянный"
+})
+localizations_kz = Dictionary[String, String]({
+"Untitled": "Атаусыз"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="ProceduralNodes" type="Node" parent="ColorRect/list" node_paths=PackedStringArray("instance")]
 script = ExtResource("9_r0m0m")
 instance = NodePath("../name")

@@ -53,7 +53,7 @@ func _llm_map(pack: Dictionary):
 	#cfg["branches"].clear()
 	#for i in pack["mapped"]:
 	#	
-	for i in pack["branches"]:
+	for i in pack.get("branches", []):
 		#i = cfg[""]
 		#var node = glob.tags_1d.get(i)
 		#print(node)
