@@ -217,6 +217,7 @@ func _is_suitable_other_conn(other: Connection, mine: Connection) -> bool:
 	#print((other.parent_graph.get_meta("input_features", {"x": -1, "y": -1, "datatype": ""})))
 	#print("validd")
 #	print(anc)
+#	print(other.parent_graph.get_meta("input_features"))
 	return anc.validate(other.parent_graph.get_meta("input_features", {"x": -1, "y": -1, "datatype": ""}))
 
 

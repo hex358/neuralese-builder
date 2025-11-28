@@ -1,6 +1,7 @@
 extends Camera2D
 class_name GraphViewport
 
+@export var main: bool = false
 @export var zoom_speed: float = 300.0
 @export var drag_button: int = 1
 @export var drag_speed: float = 1.0
@@ -18,6 +19,8 @@ var drag_move_vec := Vector2()
 var _last_disp := Vector2.ZERO
 
 func _enter_tree() -> void:
+	if main:
+		glob.main_cam = self
 	glob.cam = self
 	glob.viewport = get_viewport()
 

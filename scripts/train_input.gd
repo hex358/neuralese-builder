@@ -6,7 +6,7 @@ extends Graph
 func _useful_properties() -> Dictionary:
 	return {
 		"config":{
-			"optimizer":"adam", "lr": 1e-3, "weight_decay": "0",
+			"optimizer":"adam", "lr": 1e-2, "weight_decay": "0",
 		}
 	}
 

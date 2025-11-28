@@ -22,6 +22,18 @@ func _llm_map(pack: Dictionary):
 func _config_field(field: StringName, value: Variant):
 	#print(llm_mapping)
 	if field == "name":
+		#print(value)
+		if not value:
+			#print("B")
+			(func():
+			#	print("A")
+				await get_tree().process_frame
+				await get_tree().process_frame
+				await get_tree().process_frame
+				output_key_by_conn.keys()[0].disconnect_all()).call()
+		if value and glob.load_dataset(value).size() == 0:
+			update_config({"name": ""})
+			return
 		if not upd:
 			if not value: value = "[none]"
 			$LabelAutoResize.text = value
@@ -51,10 +63,16 @@ func _ready() -> void:
 			unpush_meta()
 			output_key_by_conn.keys()[0].disconnect_all()
 			)
+	glob.ds_change.connect(func(who: String):
+		#print("aa ", who, " ", cfg['name'])
+		if who == cfg["name"]:
+			push_meta(glob.previewed.get(who))
+			)
 			
 
 func _is_suitable_conn(who: Connection, other: Connection) -> bool:
 	var loaded = glob.load_dataset(cfg["name"])
+	#print(loaded)
 	return not "fail" in loaded
 
 func _on_line_edit_changed() -> void:
@@ -71,6 +89,7 @@ var saved_meta: Dictionary = {}
 
 func push_meta(meta: Dictionary):
 	saved_meta = meta
+	#print(meta)
 	#print(saved_meta)
 	saved_meta.merge({"name": "", "outputs": [], "inputs": {}}, false)
 	#print(saved_meta)

@@ -43,7 +43,9 @@ static func get_preview(dataset_obj: Dictionary, validate_cols: bool = false) ->
 		if i >= col_dtypes.size() or col_dtypes[i] == "image":
 			return {"fail": "no_1d_outs"}
 		cur_out["label_names"].append(col_names[i].split(":")[0])
+		cur_out["x"] = cols-outputs_from
 	res["outputs"] = [cur_out]
+	#print(res)
 
 	var inputs: Dictionary = {"datatype": "", "x": 0}
 	var to_validate = -1
@@ -66,7 +68,11 @@ static func get_preview(dataset_obj: Dictionary, validate_cols: bool = false) ->
 			})
 	
 	#print(cache_cols[0])
+	var got_x: int = 0
+	var got_y = null
+	var dt = "1d"
 	if to_validate != -1:
+		dt = "2d"
 		if cache_cols.is_empty() or to_validate >= cache_cols.size():
 			return {"fail": "bad_img"}
 		var got_col_container = cache_cols[to_validate]
@@ -81,13 +87,22 @@ static func get_preview(dataset_obj: Dictionary, validate_cols: bool = false) ->
 		var key: int = got.keys()[0]
 		var xs = key >> 16
 		var ys = key & 0xFFFF
+		got_y = ys
 		if xs <= 0 or ys <= 0:
 			return {"fail": "bad_img"}
+		got_x = xs; got_y = ys
 		res["input_hints"].append({
 			"name": col_names[to_validate].split(":")[0],
 			"value": str(xs) + "x" + str(ys),
 			"dtype": "image"
 		})
+	else:
+		got_x = dataset_obj.outputs_from
+	#print("REGOT!!!")
+	res["inputs"] = {"x": got_x, "datatype": dt}
+	if got_y != null:
+		res["inputs"]["y"] = got_y
+	#print(res)
 	return res
 
 

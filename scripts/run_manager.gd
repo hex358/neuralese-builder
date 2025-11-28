@@ -32,11 +32,10 @@ func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConn
 		push_warning("Dataset not yet compressed or cached.")
 		return
 
-	# --- prepare dataset ---
 	await glob.join_ds_processing()
 	DsObjRLE.flush_now(ds_name, glob.dataset_datas[ds_name])
-	print(DsObjProbe.probe_dataset(ds_name))
-	#return
+	#print(DsObjProbe.probe_dataset(ds_name))
+
 	var ds: Dictionary = glob.rle_cache[ds_name]
 	var inputs: Array = ds["data"][0]
 	var outputs: Array = ds["data"][1]
@@ -57,26 +56,37 @@ func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConn
 	# --- send header ---
 	var header_bytes = glob.compress_dict_zstd(initial)
 	ws.send(header_bytes)
-	print("[WS] Sent compressed header (%.2f KB)" % [float(header_bytes.size()) / 1024.0])
+	#print("[WS] Sent compressed header (%.2f KB)" % [float(header_bytes.size()) / 1024.0])
 
-	# --- shared counters (persist across closure) ---
 	var stats := {
 		"total_bytes": 0.0,
 		"total_blocks": 0,
 		"side_bytes": {"inputs": 0.0, "outputs": 0.0}
 	}
 
-	# --- packet callback ---
-	var _on_packet = func(data: PackedByteArray) -> void:
-		var text = data.get_string_from_utf8()
+	### FIX: add dataset upload phase state flag
+	var ds_phase_done := false
+
+	var _on_packet: Callable
+	_on_packet = func(data: PackedByteArray) -> void:
+		# --- ignore if already done ---
+		if ds_phase_done:
+			return
+
+		var text := data.get_string_from_utf8()
 		if text == "__end__":
 			return
 
-		var need_json = JSON.parse_string(text)
-		if typeof(need_json) != TYPE_DICTIONARY:
-			push_warning("Invalid NEED payload: " + text)
+		var parsed = JSON.parse_string(text)
+		if typeof(parsed) != TYPE_DICTIONARY:
+			# not JSON or not a dict — ignore
 			return
-		var need: Dictionary = need_json
+
+		### FIX: only react to valid NEED payloads
+		if not (parsed.has("inputs") or parsed.has("outputs")):
+			return
+
+		var need: Dictionary = parsed
 
 		var _send_block = func(side: String, col_i: int, blk_i: int, blk_data: PackedByteArray) -> void:
 			var meta := {"side": side, "col": col_i, "blk": blk_i}
@@ -95,10 +105,10 @@ func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConn
 			stats["total_blocks"] += 1
 			stats["side_bytes"][side] += bytes_sent
 
-			if int(stats["total_blocks"]) % 50 == 0:
-				print("[WS] Sent %d blocks (%.2f KB so far)" % [
-					int(stats["total_blocks"]), stats["total_bytes"] / 1024.0
-				])
+			#if int(stats["total_blocks"]) % 50 == 0:
+				#print("[WS] Sent %d blocks (%.2f KB so far)" % [
+				#	int(stats["total_blocks"]), stats["total_bytes"] / 1024.0
+				#])
 
 		# --- transmit all requested blocks ---
 		for side in ["inputs", "outputs"]:
@@ -120,14 +130,19 @@ func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConn
 		# --- end transmission ---
 		ws.send("__end__".to_utf8_buffer())
 
-		print("[WS] Sent all missing dataset blocks to server.")
-		print("[WS] Blocks sent: %d  |  Total bytes: %.2f KB (%.2f MB)" %
-			[int(stats["total_blocks"]), stats["total_bytes"] / 1024.0, stats["total_bytes"] / 1024.0 / 1024.0])
-		print("[WS] Inputs: %.2f KB   Outputs: %.2f KB" %
-			[stats["side_bytes"]["inputs"] / 1024.0, stats["side_bytes"]["outputs"] / 1024.0])
+		#print("[WS] Sent all missing dataset blocks to server.")
+		#print("[WS] Blocks sent: %d  |  Total bytes: %.2f KB (%.2f MB)" %
+		#	[int(stats["total_blocks"]), stats["total_bytes"] / 1024.0, stats["total_bytes"] / 1024.0 / 1024.0])
+		#print("[WS] Inputs: %.2f KB   Outputs: %.2f KB" %
+		#	[stats["side_bytes"]["inputs"] / 1024.0, stats["side_bytes"]["outputs"] / 1024.0])
 
-	# --- connect listener ---
+		### FIX: disconnect after sending once
+		ds_phase_done = true
+		if ws.packet.is_connected(_on_packet):
+			ws.packet.disconnect(_on_packet)
+
 	ws.packet.connect(_on_packet)
+
 
 
 
@@ -172,14 +187,19 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def, run_b
 
 	#print(compressed)
 	var a = sockets.connect_to("ws/train", train_state_received.bind(additional_call), cookies.get_auth_header())
-	
-	ws_ds_frames(train_input_origin, tdata, a)
+
 	training_sockets[train_input] = a
 	a.connected.connect(func():
 		#if tdata.get("local"):
 		#	var data = DsObjRLE.compress_and_send(train_input_origin.dataset_meta["name"]) if tdata.get("local") else {}
 		#	a.send()
-		a.send(glob.compress_dict_zstd(compressed)))
+		#print("send...")
+		a.send(glob.compress_dict_zstd(compressed))
+		#await a.packet
+		if tdata["local"]:
+			#print("A")
+			ws_ds_frames(train_input_origin, tdata, a)
+		)
 		#ws_ds_frames(train_input_origin, compressed, a))
 	a.kill.connect(func(...x):
 		#print("AA")

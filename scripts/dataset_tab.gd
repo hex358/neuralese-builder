@@ -549,6 +549,9 @@ func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
 	if not $Control/CodeEdit.dataset_obj: 
 		$Control/view/warn.text = ""
 		return
+	#print("AAAAAAAAAAAAAAH")
+	glob.previewed[$Control/CodeEdit.dataset_obj.name] = pr
+
 	var prev = pr.duplicate(true)
 	var dt = "1d"# "\n".join(prev["outputs"][0]["label_names"])
 	#print(prev)
@@ -559,7 +562,8 @@ func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
 		$Control/view/warn.text = ""
 		return
 	if not "fail" in prev:
-		var nm = "Output"
+		var nm = $Control/CodeEdit.dataset_obj.name
+		glob.change_local_ds(nm)
 		if glob.get_lang() == "kz":
 			nm = "Шығыс"
 		if glob.get_lang() == "ru":
@@ -634,7 +638,6 @@ func _on_code_edit_dirtified(idx: Variant, is_insert: bool = false, is_delete: b
 
 	var name = $Control/CodeEdit.dataset_obj["name"]
 	#print("a")
-	glob.previewed[name] = DsObjRLE.get_preview($Control/CodeEdit.dataset_obj)
 
 	# --- FULL REBUILD ---
 	if idx == null:

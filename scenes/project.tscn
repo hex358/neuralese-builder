@@ -32,6 +32,7 @@ script = ExtResource("3_hyn5d")
 [node name="Camera2D" type="Camera2D" parent="WIN_GRAPH"]
 position_smoothing_speed = 22.0
 script = ExtResource("6_agq83")
+main = true
 zoom_speed = 0.2
 drag_button = 3
 

@@ -844,7 +844,9 @@ func get_llm_tag(who: Graph) -> String:
 var previewed = {}
 func load_dataset(name: String) -> Dictionary:
 	if name in dataset_datas:
-		return previewed.get(name, DsObjRLE.get_preview(dataset_datas[name]))
+		if not name in previewed:
+			previewed[name] = DsObjRLE.get_preview(dataset_datas[name])
+		return previewed.get(name)
 	return _load.get(name, {})
 
 var _load = {}
@@ -868,7 +870,7 @@ func del_dataset_file(nm: String):
 		f.remove("datasets/"+nm+".ds"))
 
 func get_lang():
-	return "en"
+	return "kz"
 
 
 class BitPacker:
@@ -1099,7 +1101,7 @@ func world_to_canvas(p: Vector2) -> Vector2:
 	return total * p
 
 
-
+var main_cam: GraphViewport
 var env_dump = {}
 var cached_projects = {}
 func load_scene(from: String):
@@ -1129,12 +1131,13 @@ func load_scene(from: String):
 	env_dump = dat["lua"]
 	tree_windows["env"].request_texts()
 	if "camera" in dat and dat["camera"]:
-		if cam is GraphViewport:
-			cam.target_zoom = dat.camera.z
-			cam.target_position = Vector2(dat.camera.x, dat.camera.y)
-		#else:
-		cam.zoom = Vector2(dat.camera.z, dat.camera.z)
-		cam.position = Vector2(dat.camera.x, dat.camera.y)
+		main_cam.target_zoom = dat.camera.z
+		main_cam.target_position = Vector2(dat.camera.x, dat.camera.y)
+	#else:
+		main_cam.zoom = Vector2(dat.camera.z, dat.camera.z)
+		main_cam.position = Vector2(dat.camera.x, dat.camera.y)
+	else:
+		pass
 
 	for i in 15:
 		await get_tree().process_frame
@@ -1460,6 +1463,11 @@ var dataset_datas = {}
 signal ds_invalid(who: String)
 func invalidate_local_ds(who: String):
 	ds_invalid.emit(who)
+
+signal ds_change(who: String)
+func change_local_ds(who: String):
+	#print("AAAA")
+	ds_change.emit(who)
 
 func default_dataset() -> Dictionary:
 	return {"arr": [[{"type": "text", "text": "Hello"}, 

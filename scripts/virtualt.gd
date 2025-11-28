@@ -1011,7 +1011,12 @@ func to_query(row: int, mp: Vector2):
 			else:
 				next_query = [row if row != -1 else 0, mp]
 		elif a.hint == "insert":
+			if row != -1:
+				print("dd")
+				row += 1
+			#add_row(get_default_row(), row)
 			add_row(get_default_row(), row)
+			#remove_row(row)
 			if row == -1:
 				set_row_color(0, Color(1, 1, 1, 0.1))
 			next_query = [row if row != -1 else 0, mp]
@@ -1573,6 +1578,7 @@ func set_outputs_from(i: int):
 	dataset_obj["outputs_from"] = i
 	queue_redraw()
 	refresh_preview()
+	
 	
 func _draw() -> void:
 	_overlay.queue_redraw()

@@ -4,7 +4,7 @@ func get_training_data():
 	#print(not dataset_meta["name"] in glob._load)
 	if get_ancestor() and get_ancestor().cfg["name"]:
 		return {"epochs": epochs if epochs else 1, "dataset": get_ancestor().cfg["name"], "test_dataset": "", 
-		"batch_size": 32, "local": not dataset_meta["name"] in glob._load}
+		"batch_size": 0, "local": not dataset_meta["name"] in glob._load}
 
 @onready var clearbut = $train2
 
@@ -14,6 +14,7 @@ func display_ds_meta():
 	$ColorRect2/Control.push_cfg(dataset_meta)
 
 func set_dataset_meta(meta: Dictionary):
+	#print(meta)
 	var old_meta = dataset_meta
 #	print(meta)
 	dataset_meta = meta
