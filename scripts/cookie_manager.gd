@@ -10,6 +10,8 @@ func _ready() -> void:
 func get_auth_header() -> Dictionary:
 	return glob._logged_in
 
+var downloads_dir = OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
+
 func get_username() -> String:
 	return glob._logged_in.user
 
@@ -22,10 +24,11 @@ func user() -> String:
 func pwd() -> String:
 	return glob._logged_in.pass
 
-func open_or_create(path: String) -> FileAccess:
-	var full_path = "user://" + path
+func open_or_create(path: String, path_from: String = "user://") -> FileAccess:
+	
+	var full_path = path_from + path
 	var dir_path = full_path.get_base_dir()
-	var dir := DirAccess.open("user://")
+	var dir := DirAccess.open(path_from)
 	if not dir.dir_exists(dir_path):
 		var err = dir.make_dir_recursive(dir_path)
 		if err != OK:

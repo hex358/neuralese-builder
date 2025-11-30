@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://cn053wastjqhs"]
+[gd_scene load_steps=32 format=3 uid="uid://cn053wastjqhs"]
 
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="1_r7hpq"]
 [ext_resource type="Script" uid="uid://dypdiu1layg61" path="res://scripts/env_tab.gd" id="1_waelc"]
@@ -14,6 +14,7 @@
 [ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://resources/context_menu.tres" id="8_5xxu1"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="8_81s2i"]
 [ext_resource type="Script" uid="uid://c8207sv1hbg2e" path="res://scripts/unr.gd" id="9_5x1c3"]
+[ext_resource type="Script" uid="uid://rehn60f8al4q" path="res://scripts/loc3.gd" id="10_fts6j"]
 [ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="10_hu0bw"]
 [ext_resource type="Script" uid="uid://xegaq4ui6oi1" path="res://scenes/other_procnodes.gd" id="11_5xxu1"]
 [ext_resource type="Material" uid="uid://xv1yxheu5sfq" path="res://resources/another_corners.tres" id="14_n8ca6"]
@@ -269,10 +270,10 @@ config = SubResource("Resource_ngk34")
 in_splash = true
 
 [node name="Loc" type="Node" parent="Control/console/train2"]
-script = ExtResource("10_hu0bw")
+script = ExtResource("10_fts6j")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"clear": "сброс"
+"clear": "Сброс"
 })
 localizations_kz = Dictionary[String, String]({
 "clear": "Тазарт"

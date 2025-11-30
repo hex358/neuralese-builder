@@ -185,10 +185,10 @@ still_hover_in_block = true
 script = ExtResource("12_jips7")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"Untitled": "Безымянный"
+"untitled": "Безымянный"
 })
 localizations_kz = Dictionary[String, String]({
-"Untitled": "Атаусыз"
+"untitled": "Атаусыз"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -288,6 +288,77 @@ localizations_kz = Dictionary[String, String]({
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
+[node name="import" parent="ColorRect" instance=ExtResource("5_bysnc")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -178.0
+offset_top = 82.00002
+offset_right = -113.310974
+offset_bottom = 107.00002
+grow_horizontal = 0
+scale = Vector2(1.1770253, 1.1770253)
+pivot_offset = Vector2(32.344513, 12.5)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 1)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 6
+text = "Import"
+base_size = Vector2(64.689026, 25)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_5kbvu")
+in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/import"]
+script = ExtResource("13_r0m0m")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Импорт"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Импорт"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
+[node name="lang" parent="ColorRect" instance=ExtResource("5_bysnc")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 443.128
+offset_top = 42.999992
+offset_right = 487.27307
+offset_bottom = 68.0
+scale = Vector2(1.1770253, 1.1770253)
+pivot_offset = Vector2(22.07254, 12.500004)
+mouse_filter = 1
+color = Color(0.59, 0.59, 0.59, 1)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 6
+text = "ENG"
+base_size = Vector2(44.14508, 25.000008)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_5kbvu")
+in_splash = true
+
 [node name="Node" type="Node" parent="."]
 script = ExtResource("8_cmq6o")
 
@@ -295,3 +366,4 @@ script = ExtResource("8_cmq6o")
 [connection signal="scroll_changed" from="ColorRect/list" to="." method="_on_list_scroll_changed"]
 [connection signal="released" from="ColorRect/train" to="." method="_on_logout"]
 [connection signal="released" from="ColorRect/train2" to="." method="_on_add"]
+[connection signal="released" from="ColorRect/lang" to="." method="_on_lang_released"]

@@ -250,8 +250,8 @@ func set_var(n: String, val: Variant):
 	var op = cookies.open_or_create("memory.bin")
 	op.store_var(got)
 
-func get_var(n: String) -> Variant:
-	return get_stored().get(n, null)
+func get_var(n: String, deft = null) -> Variant:
+	return get_stored().get(n, deft)
 
 func get_stored() -> Dictionary:
 	var op = cookies.open_or_create("memory.bin")
@@ -629,6 +629,9 @@ func logged_in() -> bool:
 
 func _process(delta: float) -> void:
 	#if space_just_pressed:
+	#print(graphs.get_llm_summary())
+	#print((graphs.get_llm_summary()).hash())
+	#print(last_summary_hash)
 	#(project_id)
 		#(graphs.get_llm_summary())
 
@@ -869,9 +872,27 @@ func del_dataset_file(nm: String):
 		var f = DirAccess.open("user://")
 		f.remove("datasets/"+nm+".ds"))
 
-func get_lang():
-	return "kz"
+signal language_changed
 
+var lang_wheel = ["en", "ru", "kz"]; var lang_idx: int = 0
+func switch_lang():
+	lang_idx += 1
+	if lang_idx >= len(lang_wheel):
+		lang_idx = 0
+	change_lang(lang_wheel[lang_idx])
+
+var curr_lang: String = "en"
+func change_lang(lang: String):
+	curr_lang = lang
+	set_var("lang", lang)
+	language_changed.emit()
+
+func get_lang():
+	return curr_lang
+
+func _enter_tree() -> void:
+	curr_lang = get_var("lang", "en")
+	lang_idx = lang_wheel.find(curr_lang)
 
 class BitPacker:
 	var data = PackedByteArray()
@@ -1018,7 +1039,7 @@ func sock_end_life(chat_id: int, on_close: Callable, sock: SocketConnection):
 		#()
 
 
-var last_summary_hash: int = -1
+var last_summary_hash = -1
 
 
 func splash_login(run_but: BlockComponent = null) -> bool:
@@ -1040,27 +1061,125 @@ func splash_login(run_but: BlockComponent = null) -> bool:
 	await wait.call()
 	return false
 
-func update_message_stream(input_text: String, chat_id: int, text_update: Callable = def, on_close: Callable = def, clear: bool = false, user_id: int = 0, ai_id: int = 0) -> SocketConnection:
-	if chat_id in message_sockets: return
+
+
+func stable_json(val: Variant) -> String:
+	# sort keys for Dictionaries
+	match typeof(val):
+		TYPE_DICTIONARY:
+			var keys = val.keys()
+			keys.sort()
+			var parts = []
+			for k in keys:
+				parts.append('"%s":%s' % [str(k).json_escape(), stable_json(val[k])])
+			return "{%s}" % ",".join(parts)
+		TYPE_ARRAY:
+			var arr = []
+			for v in val: arr.append(stable_json(v))
+			return "[%s]" % ",".join(arr)
+		_:
+			return JSON.stringify(val, "", false, true)  # primitives
+
+var last_summary_hash_by_project: Dictionary = {}  # key: String(project_id) -> String (sha256 hex)
+
+# Helpers (put once in the same script):
+func _stable_json(val: Variant) -> String:
+	# Deterministic JSON: sort dict keys, no whitespace, full precision
+	match typeof(val):
+		TYPE_DICTIONARY:
+			var keys = val.keys()
+			keys.sort()
+			var parts: Array[String] = []
+			for k in keys:
+				parts.append('"%s":%s' % [str(k).json_escape(), _stable_json(val[k])])
+			return "{%s}" % ",".join(parts)
+		TYPE_ARRAY:
+			var arr: Array[String] = []
+			for v in val:
+				arr.append(_stable_json(v))
+			return "[%s]" % ",".join(arr)
+		_:
+			return JSON.stringify(val, "", false, true)
+
+func _sha256_text(s: String) -> String:
+	var h = HashingContext.new()
+	h.start(HashingContext.HASH_SHA256)
+	h.update(s.to_utf8_buffer())
+	return h.finish().hex_encode()
+
+func update_message_stream(
+	input_text: String,
+	chat_id: int,
+	text_update: Callable = def,
+	on_close: Callable = def,
+	clear: bool = false,
+	user_id: int = 0,
+	ai_id: int = 0
+) -> SocketConnection:
+	if chat_id in message_sockets:
+		return
+
 	var sock = await sockets.connect_to("ws/talk", def, cookies.get_auth_header())
-	#var ai_id: int = randi_range(0,999999)
-	var payload = {"user": cookies.user(), "pass": cookies.pwd(), "chat_id": str(chat_id), 
-	"text": input_text, "_clear": "1" if clear else "", 
-	"user_id": user_id,
-	"ai_id": ai_id,
-	"scene": str(get_project_id()), "summary": {"nodes": {}, "edges": {}}}
+
+	# --- 1. compute deterministic hash of current graph ---
 	var summary = graphs.get_llm_summary()
-	var new_hash = summary.hash()
-	#(new_hash)
-	if new_hash != last_summary_hash or cached_chats.get(str(chat_id), []).size() <= 1:
-		last_summary_hash = new_hash
-		payload["summary"] = summary
+	var summary_json = _stable_json(summary)
+	var summary_hash = _sha256_text(summary_json)
+
+	# --- 2. build payload with only hash first ---
+	var payload = {
+		"user": cookies.user(),
+		"pass": cookies.pwd(),
+		"chat_id": str(chat_id),
+		"text": input_text,
+		"_clear": "",
+		"user_id": user_id,
+		"ai_id": ai_id,
+		"scene": str(get_project_id()),
+		"summary_hash": summary_hash  # only hash first
+	}
+
+	# DO NOT include summary yet
 	sock.send_json(payload)
-	sock.packet.connect(message_chunk_received.bind(sock))
+
+	var sent_full = false
+
+	# --- 3. handle server response / stream ---
+	sock.packet.connect(func(pkt):
+		var s = pkt.get_string_from_utf8()
+		var j = JSON.parse_string(s)
+
+		if not j:
+			return
+
+		# --- handshake phase ---
+		if j.has("server_hash") or j.has("need_summary") or j.has("updated"):
+			if j.get("updated", false):
+				# server already up to date
+				last_summary_hash = summary_hash
+				return
+			if j.get("need_summary", false) and not sent_full:
+				var resend = payload.duplicate(true)
+				resend["summary"] = summary
+				resend["summary_hash"] = summary_hash
+				print("dd")
+				sock.send_json(resend)
+				sent_full = true
+				last_summary_hash = summary_hash
+				return
+			return
+
+		# --- normal data / chat stream ---
+		message_chunk_received(pkt, sock)
+	)
+
 	message_sockets[chat_id] = sock
 	sock.set_meta("text_update", text_update)
 	sock.kill.connect(sock_end_life.bind(chat_id, on_close, sock))
 	return sock
+
+
+
 
 func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 	if chat_id in message_sockets:
@@ -1108,6 +1227,7 @@ func load_scene(from: String):
 
 	project_id = int(from)
 	cached_chats.clear()
+	last_summary_hash = -1
 	clear_chats()
 	clear_all()
 	var answer = await web.POST("project", {"scene": from, 
@@ -1164,8 +1284,187 @@ func change_chat_cache(chat_id: String, update: Dictionary):
 func rem_chat_cache(chat_id: String):
 	cached_chats.get_or_add(chat_id, []).remove_at(-1)
 
+func _project_header_dict() -> Dictionary:
+	var base = get_project_data()
+	# Explicitly do NOT inline datasets here
+	base.erase("datasets")
+	return {
+		"version": 1,
+		"project": base,
+		# Optional: embed env_dump if you want to lock the export to current env texts
+		"env": env_dump
+	}
+
+func get_packed_ds(name: String) -> Dictionary:
+	# If dataset was saved this session and not re-dirtied, use cached packed bytes
+	if ds_pack_cache.has(name) and not dirty_datasets.has(name):
+		return ds_pack_cache[name]
+
+	# If dirty, we must ensure it is saved so the packed blob reflects latest Dict
+	if dirty_datasets.has(name):
+		# Serialize and persist synchronously through the existing save path
+		# (join saves if a previous save is in flight)
+		save_godot_dataset(dataset_datas[name])
+		while ds_processing():
+			await get_tree().process_frame
+		dirty_datasets.erase(name)
+
+	# Now read packed bytes from disk (fast, no decompress)
+	var from_disk = _read_packed_ds_from_disk(name)
+	if from_disk:
+		ds_pack_cache[name] = from_disk
+	return ds_pack_cache.get(name, {})
+
+func _read_packed_ds_from_disk(name: String) -> Dictionary:
+	var fname := "datasets/%s.ds" % sha1(name)
+	var fa := cookies.open_or_create(fname)
+	if not fa:
+		push_warning("Missing dataset file: %s" % fname)
+		return {}
+
+	if fa.get_length() <= 0:
+		push_warning("Empty dataset file: %s" % fname)
+		return {}
+
+	var length_val = 0
+	var compressed_val: PackedByteArray = PackedByteArray()
+
+	# first var (length)
+	if fa.get_position() < fa.get_length():
+		length_val = int(fa.get_var())
+	else:
+		push_warning("Corrupted dataset file (no length): %s" % fname)
+		return {}
+
+	# second var (compressed data)
+	if fa.get_position() < fa.get_length():
+		var val = fa.get_var(true)
+		if val == null or typeof(val) != TYPE_PACKED_BYTE_ARRAY:
+			push_warning("Corrupted dataset file (no compressed bytes): %s" % fname)
+			return {}
+		compressed_val = val
+	else:
+		push_warning("Corrupted dataset file (truncated): %s" % fname)
+		return {}
+
+	return {"len": length_val, "bytes": compressed_val}
+
+
+
+func preprocess_import_project(bytes: PackedByteArray) -> Dictionary:
+	var result = {
+		"ok": false,
+		"header": {},
+		"datasets": [],
+		"errors": []
+	}
+
+	if bytes.is_empty():
+		result.errors.append("Empty input buffer")
+		return result
+
+	var peer = StreamPeerBuffer.new()
+	peer.data_array = bytes
+	#peer.set_position(0)
+
+	var header = {}
+	if not peer.get_available_bytes() > 0:
+		result.errors.append("Corrupted container: no header")
+		return result
+	header = peer.get_var()
+	if typeof(header) != TYPE_DICTIONARY:
+		result.errors.append("Invalid header section")
+		return result
+
+	if peer.get_available_bytes() <= 0:
+		result.errors.append("Missing dataset index section")
+		return result
+
+	var index_arr = peer.get_var()
+	if typeof(index_arr) != TYPE_ARRAY:
+		result.errors.append("Invalid dataset index section")
+		return result
+
+	var datasets = []
+	for i in index_arr.size():
+		if peer.get_available_bytes() < 4:
+			result.errors.append("Truncated dataset payload before entry %d" % i)
+			break
+
+		var blob_len = peer.get_u32()
+		if blob_len <= 0 or peer.get_available_bytes() < blob_len:
+			result.errors.append("Invalid length for dataset %d" % i)
+			break
+
+		var blob_bytes = peer.get_data(blob_len)
+		var meta = index_arr[i].duplicate(true)
+		meta["bytes"] = blob_bytes
+		datasets.append(meta)
+
+	result.ok = result.errors.is_empty()
+	result.header = header
+	result.datasets = datasets
+	return result
+
+
+
+
+
+
+func export_project(include_contexts: bool = false) -> PackedByteArray:
+	if include_contexts and not logged_in():
+		return PackedByteArray() 
+
+	await save_datasets()
+	while ds_processing():
+		await get_tree().process_frame
+	await get_tree().process_frame
+
+	var dset_names: Array[String] = []
+	for gid in graphs._graphs:
+		var node = graphs._graphs[gid]
+		if node.server_typename == "DatasetName":
+			var nm: String = node.cfg.get("name", "")
+			if nm != "" and not dset_names.has(nm):
+				dset_names.append(nm)
+
+	var index: Array = []
+	var payloads: Array = []
+	for nm in dset_names:
+		var packed = await get_packed_ds(nm)
+		if packed and packed.has("bytes"):
+			index.append({"name": nm, "sha1": sha1(nm), "len": int(packed.len)})
+			payloads.append(packed.bytes)
+
+	var buf = StreamPeerBuffer.new()
+	buf.put_var(_project_header_dict())
+	buf.put_var(index)
+
+	for b in payloads:
+		buf.put_u32(b.size())
+		buf.put_data(b)
+
+	return buf.data_array
+
+
+
+func get_world_visible_rect() -> Rect2:
+	var cam: Camera2D = glob.cam
+	var viewport_size: Vector2 = cam.get_viewport().get_visible_rect().size
+
+	# The world-space half extent is scaled by the inverse zoom.
+	var half_extent = viewport_size * 0.5 / cam.zoom
+	var top_left = cam.global_position - half_extent
+	var rect_size = viewport_size / cam.zoom
+
+	return Rect2(top_left, rect_size)
+
+
+
+
 
 func clear_chat(chat_id: int, req=true):
+	last_summary_hash = -1
 	cached_chats.get(str(chat_id), []).clear()
 	if req:
 		web.POST("clear_chat", {"user": cookies.user(), 
@@ -1296,7 +1595,9 @@ func bound(callable: Callable, pos: Vector2, cfg: Dictionary, select: bool = tru
 
 
 signal ds_saved
-func _ds_save_finish():
+func _ds_save_finish(nm, length, compressed):
+	ds_pack_cache[nm] = {"len": length, "bytes": compressed, "mtime": Time.get_ticks_msec()}
+
 	saving_thread.wait_to_finish()
 	ds_saved.emit()
 	threading = false
@@ -1304,7 +1605,7 @@ func _ds_save_finish():
 var rle_compressing: Dictionary = {}
 var rle_cache = {}
 
-var dirty_blocks := {}
+var dirty_blocks = {}
 # global state
 func _comp_thread(dict: Dictionary, who: String, changed_rows: Array):
 	var t = Time.get_ticks_msec()
@@ -1333,7 +1634,7 @@ func cache_rle_compress(who: String, changed_rows: Variant = null, mode: Variant
 	if rows_arr.is_empty() and mode == null:
 		return
 
-	var mode_str := ""
+	var mode_str = ""
 	if mode is bool and mode == true:
 		mode_str = "suffix"
 	elif typeof(mode) == TYPE_STRING:
@@ -1346,7 +1647,7 @@ func cache_rle_compress(who: String, changed_rows: Variant = null, mode: Variant
 		if who in rle_compressing: return
 		rle_compressing[who] = true
 		var dupped = dataset_datas[who]
-		var thread := Thread.new()
+		var thread = Thread.new()
 		thread.start(_comp_thread.bind(dupped, who, []))  # <-- pass empty Array
 		return
 
@@ -1355,7 +1656,7 @@ func cache_rle_compress(who: String, changed_rows: Variant = null, mode: Variant
 		if who in rle_compressing: return
 		rle_compressing[who] = true
 		var dupped = dataset_datas[who]
-		var thread := Thread.new()
+		var thread = Thread.new()
 		thread.start(_comp_thread.bind(dupped, who, rows_arr))
 		return
 
@@ -1400,19 +1701,31 @@ func load_datasets():
 		cache_rle_compress(ds["name"], null, "thread")
 	
 func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
-	#print("compress...")
-	if not pre_bytes:
-		ds_obj = var_to_bytes_with_objects(ds_obj)
-	#print("fin...")
+	# ds_obj is the dataset Dictionary (not bytes)
+	var bytes_to_store: PackedByteArray = ds_obj if pre_bytes else var_to_bytes_with_objects(ds_obj)
+
+	var length: int = bytes_to_store.size()
+	var compressed: PackedByteArray = bytes_to_store.compress(FileAccess.COMPRESSION_ZSTD)
+
+	# Persist to disk (same format as before)
+	var peer = StreamPeerBuffer.new()
+	peer.put_var(length)
+	peer.put_var(compressed)
+
 	var ds = cookies.open_or_create(path)
-	#(ds_obj.compress(FileAccess.COMPRESSION_ZSTD))
-	#OS.delay_msec(2000)
-	var length: int = len(ds_obj)
-	ds.store_var(length)
-	ds.store_var(ds_obj.compress(FileAccess.COMPRESSION_ZSTD), true)
+	ds.store_buffer(peer.data_array)
 	ds.close()
-	#(cookies.open_or_create(path).get_var().decompress(FileAccess.COMPRESSION_ZSTD))
-	_ds_save_finish.call_deferred()
+
+	# ---- NEW: update in-memory pack cache for export reuse
+	#if typeof(ds_obj) == TYPE_DICTIONARY and ds_obj.has("name"):
+	#	var nm: String = ds_obj.name
+	#	ds_pack_cache[nm] = {"len": length, "bytes": compressed, "mtime": Time.get_ticks_msec()}
+
+	_ds_save_finish.call_deferred(ds_obj.name, length, compressed, )
+
+# Pack cache: name -> {"len": int, "bytes": PackedByteArray, "mtime": int}
+var ds_pack_cache: Dictionary = {}
+
 
 func join_ds_save():
 	if threading and saving_thread.is_alive():
@@ -1437,9 +1750,22 @@ func save_godot_dataset(ds_obj: Dictionary):
 	saving_thread = Thread.new()
 	threading = true
 	#print("start...")
-	saving_thread.start(
-	_save_worker.bind("datasets/"+ds_obj.name+".ds", (a)))
 	
+	saving_thread.start(
+	_save_worker.bind("datasets/"+sha1(ds_obj.name)+".ds", (a)))
+
+
+func sha1(who: String):
+	var crypto: HashingContext = HashingContext.new()
+	var hash_bytes = crypto.start(HashingContext.HASH_SHA1)
+	crypto.update(who.to_utf8_buffer())
+	return crypto.finish().hex_encode()
+
+func md5(who: String):
+	var crypto: HashingContext = HashingContext.new()
+	var hash_bytes = crypto.start(HashingContext.HASH_MD5)
+	crypto.update(who.to_utf8_buffer())
+	return crypto.finish().hex_encode()
 
 var dirty_datasets = {}
 
@@ -1447,6 +1773,7 @@ func save_datasets(filter=null):
 	while ds_processing():
 		await get_tree().process_frame
 	#print(dirty_datasets)
+	var todel = []
 	for i in dataset_datas:
 		if not dirty_datasets.has(i): continue
 		if filter == null or i in filter:
@@ -1454,7 +1781,9 @@ func save_datasets(filter=null):
 			save_godot_dataset(dataset_datas[i])
 			while ds_processing():
 				await get_tree().process_frame
-	dirty_datasets.clear()
+			todel.append(i)
+	for i in todel:
+		dirty_datasets.erase(i)
 
 var ds_dump = {}
 var dataset_datas = {}
@@ -1482,9 +1811,11 @@ func get_dataset_at(id: String):
 func create_dataset(id: int, name: String, data = null):
 	if data:
 		dataset_datas[name] = data
-	dirty_datasets[name] = true
+	dirtify_dataset(name)
 	return {"id": id, "content": {}, "name": name}
 
+func dirtify_dataset(name: String):
+	dirty_datasets[name] = true
 
 func add_action(undo: Callable, redo: Callable, ...args):
 	if is_auto_action(): return

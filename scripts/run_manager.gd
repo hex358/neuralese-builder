@@ -296,7 +296,8 @@ func open_infer_channel(input: Graph, on_close: Callable = glob.def, run_but: Bl
 		if input in inference_sockets:
 			if inference_sockets[input] == sock:
 				inference_sockets.erase(input)
-		on_close.call()
+		if on_close.is_valid():
+			on_close.call()
 	)
 	#await sock.connected
 	return sock

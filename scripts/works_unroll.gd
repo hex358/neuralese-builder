@@ -7,6 +7,7 @@ func _ready():
 func _get_nodes(args, kwargs = {}) -> Array[Node]:
 	var output: Array[Node] = []
 	var i: int = 0
+	#var untitled_text = "Untitled"
 	for _i in args:
 		i += 1
 		var new: BlockComponent = frozen_duplicate.duplicate()
@@ -15,6 +16,7 @@ func _get_nodes(args, kwargs = {}) -> Array[Node]:
 		if not new.text: 
 			(func():
 				new.text = "Untitled"; new.label.self_modulate = Color(0.6,0.6,0.6,1)).call_deferred()
+		#print("a")
 		new.hint = str(_i)
 		new.metadata["project_id"] = int(_i)
 		output.append(new)

@@ -16,7 +16,7 @@ viewport_path = NodePath("SubViewport")
 shader = ExtResource("1_dpp0m")
 shader_parameter/width = 7.98
 shader_parameter/spacing = 110.0
-shader_parameter/grid_color = Color(0.34, 0.34, 0.34, 1)
+shader_parameter/grid_color = Color(0.38, 0.38, 0.38, 1)
 shader_parameter/bg_color = Color(0.25, 0.25, 0.25, 1)
 shader_parameter/aa_pixels = 1.0
 

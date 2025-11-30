@@ -10,6 +10,7 @@ func _process(delta: float) -> void:
 		
 var parsed = {}
 func _ready() -> void:
+	update_lang()
 	super() 
 	await get_tree().process_frame
 	$ColorRect/Label.text = cookies.get_username()
@@ -61,3 +62,18 @@ func _on_logout() -> void:
 
 func _on_list_scroll_changed() -> void:
 	glob.hide_all_menus()
+
+@onready var lang_button = $ColorRect/lang
+func _on_lang_released() -> void:
+	glob.switch_lang()
+	#print(glob.get_lang())
+	update_lang()
+
+func update_lang():
+	match glob.get_lang():
+		"en":
+			lang_button.text = "ENG"
+		"ru":
+			lang_button.text = "RUS"
+		"kz":
+			lang_button.text = "KAZ"

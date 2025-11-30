@@ -196,5 +196,7 @@ func _on_train_2_released() -> void:
 			var a = i.get_named_ancestor("ModelName")
 			if a:
 				anc = graphs.get_input_graph_by_name(a.cfg["name"])
+		if graphs.is_node(i, "TrainInput"):
+			i.clear()
 	if anc:
 		await web.POST("delete_ctx", {"user": cookies.user(), "pass": cookies.pwd(), "scene": str(glob.get_project_id()), "contexts": [str(anc.context_id)]})

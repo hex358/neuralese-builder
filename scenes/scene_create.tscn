@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bw340y1d3u505"]
+[gd_scene load_steps=13 format=3 uid="uid://bw340y1d3u505"]
 
 [ext_resource type="Script" uid="uid://gfgntv15n5vd" path="res://scripts/scene_create.gd" id="1_twx5u"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_p6jia"]
@@ -8,6 +8,7 @@
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="6_172jm"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_0ynod"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_2mgvx"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="8_p6jia"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_0v4p0"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_01lr3"]
 
@@ -91,6 +92,17 @@ auto_red = true
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
+[node name="Loc" type="Node" parent="ColorRect/Label"]
+script = ExtResource("8_p6jia")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "имя сцены"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "сахна атауы"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="train" parent="ColorRect" instance=ExtResource("8_2mgvx")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -125,6 +137,17 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_3idxy")
 in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/train"]
+script = ExtResource("8_p6jia")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "+Доб."
+})
+localizations_kz = Dictionary[String, String]({
+"_": "+Қос."
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_01lr3")

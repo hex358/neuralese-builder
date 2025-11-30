@@ -48,14 +48,14 @@ func _on_trainn_released() -> void:
 		#await glob.wait(1)
 		#reset_downloading()
 		#return
-		var export_txt = "  Export"
+		var export_txt = "  Model"
 		var saved_txt = "  Saved!"
 		match glob.get_lang():
 			"ru":
-				export_txt = "  Скачать"
+				export_txt = "  Модель"
 				saved_txt = "  Скачано"
 			"kz":
-				export_txt = "  Жүктеу"
+				export_txt = "  Модель"
 				saved_txt = "  Сақт.!"
 		export_but.text = export_txt
 		var got = graphs.get_input_graph_by_name($ColorRect/Label.text)
@@ -149,3 +149,25 @@ func _on_int_8_released() -> void:
 func _on_none_released() -> void:
 	quant_un_all()
 	qon(quants[2])
+
+
+@onready var saveall = $ColorRect/train2
+func _on_saveall_released() -> void:
+	var export_txt = "  Project"
+	var saved_txt = "  Saved!"
+	match glob.get_lang():
+		"ru":
+			export_txt = "  Проект"
+			saved_txt = "  Скачано"
+		"kz":
+			export_txt = "  Проект"
+			saved_txt = "  Сақт.!"
+	var bytes = await glob.export_project()
+	
+	cookies.open_or_create(OS.SY)
+	saveall.text = saved_txt
+	#print(export_but.text)
+	#await glob.wait(1.0)
+	#export_but.text = "   Downloads"
+	await glob.wait(1.0)
+	saveall.text = export_txt

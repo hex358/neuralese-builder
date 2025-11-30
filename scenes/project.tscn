@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dbgi78pifb8xh"]
+[gd_scene load_steps=11 format=3 uid="uid://dbgi78pifb8xh"]
 
 [ext_resource type="Script" uid="uid://drad1dm8hrqwt" path="res://scripts/project.gd" id="1_6ipd3"]
 [ext_resource type="PackedScene" uid="uid://tjiw5jmnnrgh" path="res://scenes/fg.tscn" id="1_djuk3"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://by1briddb0hwg" path="res://scenes/bg.tscn" id="5_sa0gx"]
 [ext_resource type="Script" uid="uid://b4hd7meqnpke2" path="res://scripts/camera_2d.gd" id="6_agq83"]
 [ext_resource type="Script" uid="uid://ddn84p6nhiie0" path="res://scripts/follow_menus.gd" id="7_ioxnp"]
+[ext_resource type="PackedScene" uid="uid://dnhvvwjmwgaag" path="res://scenes/aiload.tscn" id="10_hyn5d"]
 
 [node name="base" type="Node2D"]
 script = ExtResource("1_6ipd3")
@@ -42,3 +43,5 @@ follow_viewport_enabled = true
 script = ExtResource("7_ioxnp")
 
 [node name="bg" parent="WIN_GRAPH" instance=ExtResource("5_sa0gx")]
+
+[node name="Aiload" parent="." instance=ExtResource("10_hyn5d")]

@@ -1,10 +1,11 @@
-[gd_scene load_steps=14 format=3 uid="uid://8u7275kgyen4"]
+[gd_scene load_steps=16 format=3 uid="uid://8u7275kgyen4"]
 
 [ext_resource type="Script" uid="uid://bnmswwbafj7fb" path="res://scripts/menus.gd" id="1_chs3c"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_rnbi1"]
 [ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://resources/context_menu.tres" id="3_gygdu"]
 [ext_resource type="Script" uid="uid://dqx0m845e4ld3" path="res://scripts/cmenu.gd" id="4_rgbxd"]
 [ext_resource type="Resource" uid="uid://b87f7qp31583q" path="res://resources/lite_config.tres" id="5_0ypn7"]
+[ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="5_r44s1"]
 [ext_resource type="Script" uid="uid://1afleute7nbb" path="res://scripts/detatch_menu.gd" id="6_r44s1"]
 [ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="6_rgbxd"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="7_w6445"]
@@ -12,6 +13,21 @@
 [ext_resource type="Script" uid="uid://cb40vkd5uu1g1" path="res://scripts/edit_graph.gd" id="9_rxqxn"]
 [ext_resource type="Script" uid="uid://51dbrgobgi36" path="res://scripts/subctx_menu.gd" id="10_gygdu"]
 [ext_resource type="Script" uid="uid://c1u1irg2f37v8" path="res://scripts/subctx.gd" id="10_rnbi1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_w6445"]
+shader = ExtResource("5_r44s1")
+shader_parameter/shape = 0
+shader_parameter/mult_tuning = Color(0.22, 0.22, 0.22, 1)
+shader_parameter/color_mult = Color(1, 1, 1, 1)
+shader_parameter/smoothness = 20.0
+shader_parameter/corner_radius = 16.874
+shader_parameter/blurred_background = true
+shader_parameter/outline_width = 1.5
+shader_parameter/mult = 1.5
+shader_parameter/blur_level = 4.48
+shader_parameter/gaussian_mix = 1.0
+shader_parameter/gaussian_step = 1.0
+shader_parameter/use_bg = false
 
 [sub_resource type="Resource" id="Resource_77dp3"]
 script = ExtResource("7_w6445")
@@ -49,6 +65,7 @@ menu_name = &"add_graph"
 max_size = 250
 
 [node name="5" parent="add_graph" instance=ExtResource("2_rnbi1")]
+material = SubResource("ShaderMaterial_w6445")
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.94, 0.94, 0.94, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.407843)

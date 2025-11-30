@@ -209,3 +209,38 @@ func _process_fade(_delta: float) -> void:
 
 		var m0 = pair[0].modulate; m0.a = a; pair[0].modulate = m0
 		var m1 = pair[1].modulate; m1.a = a; pair[1].modulate = m1
+
+
+func clear_window() -> void:
+	# Reset points and state
+	points.clear()
+	points_q.clear()
+	known.clear()
+	_points.clear()
+	lines.clear()
+
+	sliding_origin = 0
+	_window_end = window_size
+	last_known = 0.0
+	last_known_pos = 0
+	t = 0.0
+	t_last_frame = 0.0
+	killed = true
+	_draw_offset_x = 0.0
+
+	# Reinitialize with zeros
+	for i in window_size:
+		points[i] = 0.0
+	_points = points
+
+	# Remove any Line2D / Polygon2D children currently rendered
+	for child in get_children():
+		if child is Line2D or child is Polygon2D:
+			child.queue_free()
+
+	# Re-init visuals
+	if mode == 0:
+		_init_columns()
+	else:
+		_init_polygon()
+	_reline()

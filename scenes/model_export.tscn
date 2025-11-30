@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://d2yowpw486lai"]
+[gd_scene load_steps=16 format=3 uid="uid://d2yowpw486lai"]
 
 [ext_resource type="Script" uid="uid://c5el7w3tkb8gj" path="res://scripts/model_export.gd" id="1_ekrhp"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_av5ob"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_18gy4"]
 [ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="10_53j4e"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="10_av5ob"]
+[ext_resource type="Script" uid="uid://5juc2cgoh7ut" path="res://scripts/loc4.gd" id="11_rnkic"]
 
 [sub_resource type="Resource" id="Resource_3idxy"]
 script = ExtResource("9_rwf5r")
@@ -48,6 +49,7 @@ typename = "model_export"
 accept = NodePath("ColorRect/train")
 first_line = NodePath("ColorRect/Label")
 persistent = true
+show_on_ready = null
 
 [node name="ColorRect" type="ColorRect" parent="."]
 z_index = 8
@@ -82,7 +84,7 @@ offset_right = 140.84766
 offset_bottom = 52.0
 scale = Vector2(0.600218, 0.600218)
 theme = ExtResource("4_rnkic")
-text = "/model_export"
+text = "/export"
 
 [node name="Label" type="LineEdit" parent="ColorRect"]
 layout_mode = 1
@@ -126,23 +128,23 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -37.700592
-offset_top = -55.99997
-offset_right = 37.700592
-offset_bottom = -30.99997
+offset_left = -94.82321
+offset_top = -56.0
+offset_right = -28.733093
+offset_bottom = -31.0
 grow_horizontal = 2
 grow_vertical = 0
 scale = Vector2(1.4688723, 1.4688723)
-pivot_offset = Vector2(37.700592, 12.5)
+pivot_offset = Vector2(33.04506, 12.5)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
 top = true
 hint = &"Add"
 base_scale_x = 0.45
-resize_after = 7
-text = "  Export"
-base_size = Vector2(75.401184, 25)
+resize_after = 6
+text = "  Model"
+base_size = Vector2(66.09012, 25)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -153,7 +155,7 @@ config = SubResource("Resource_3idxy")
 in_splash = true
 
 [node name="Download" type="Sprite2D" parent="ColorRect/train"]
-position = Vector2(13.124161, 12.924782)
+position = Vector2(12.443375, 12.924782)
 scale = Vector2(0.73342, 0.73342)
 texture = ExtResource("3_av5ob")
 
@@ -161,10 +163,10 @@ texture = ExtResource("3_av5ob")
 script = ExtResource("10_53j4e")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "  Скачать"
+"model": "  Модель"
 })
 localizations_kz = Dictionary[String, String]({
-"_": "  Жүктеу"
+"model": "  Модель"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -424,6 +426,57 @@ theme = ExtResource("10_av5ob")
 indeterminate = true
 editor_preview_indeterminate = false
 
+[node name="train2" parent="ColorRect" instance=ExtResource("8_l3ogd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 14.500061
+offset_top = -56.00003
+offset_right = 98.70148
+offset_bottom = -31.00003
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.4688723, 1.4688723)
+pivot_offset = Vector2(42.100708, 12.5)
+mouse_filter = 1
+color = Color(0.6045, 0.93, 0.631625, 1)
+button_type = 1
+top = true
+hint = &"saveall"
+base_scale_x = 0.45
+resize_after = 8
+text = "  Project"
+base_size = Vector2(84.201416, 25)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_3idxy")
+in_splash = true
+
+[node name="Download" type="Sprite2D" parent="ColorRect/train2"]
+position = Vector2(12.443375, 12.924782)
+scale = Vector2(0.73342, 0.73342)
+texture = ExtResource("3_av5ob")
+
+[node name="Loc" type="Node" parent="ColorRect/train2"]
+script = ExtResource("11_rnkic")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "  Проект"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "  Проект"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_18gy4")
 
@@ -435,3 +488,4 @@ script = ExtResource("10_18gy4")
 [connection signal="released" from="ColorRect/quant/float16" to="." method="_on_float_16_released"]
 [connection signal="released" from="ColorRect/quant/int8" to="." method="_on_int_8_released"]
 [connection signal="released" from="ColorRect/quant/none" to="." method="_on_none_released"]
+[connection signal="released" from="ColorRect/train2" to="." method="_on_saveall_released"]

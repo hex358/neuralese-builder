@@ -77,7 +77,7 @@ var buf = null
 
 func wav_to_buffer(wav: AudioStreamWAV) -> PackedByteArray:
 	var buf := PackedByteArray()
-
+	if not wav: return PackedByteArray()
 	var format_code := 1 # PCM
 	var n_channels := 2 if wav.stereo else 1
 	var sample_rate := AudioServer.get_mix_rate()

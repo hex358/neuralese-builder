@@ -728,7 +728,7 @@ var dirty: bool = false
 signal dirtified(idx, is_add, is_delete)
 
 func dirtify(idx=null, is_add=false, is_delete=false):
-	glob.dirty_datasets[dataset_obj.name] = true
+	glob.dirtify_dataset(dataset_obj.name)
 	dirtified.emit(idx, is_add, is_delete)
 
 

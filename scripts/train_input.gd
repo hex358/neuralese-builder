@@ -6,7 +6,9 @@ extends Graph
 func _useful_properties() -> Dictionary:
 	return {
 		"config":{
-			"optimizer":"adam", "lr": 1e-2, "weight_decay": "0",
+			"optimizer":cfg["optimizer"], "lr": learning_rates[cfg["optimizer"]][cfg["lr"]], 
+			"weight_decay": "1" if cfg["weight_decay"] else "",
+			"momentum": cfg["momentum"]
 		}
 	}
 
@@ -26,6 +28,7 @@ func _after_ready():
 	is_training = true
 	_target_size_y = base_size + tab_size_adds.get(current_optimizer, 0.0)
 
+var last_acc: float = 0.0
 func _after_process(delta: float):
 	for n in _fade_targets.keys():
 		var target_a: float = _fade_targets[n]
@@ -43,14 +46,15 @@ func _after_process(delta: float):
 	$ColorRect.size = sz
 	
 	if $ColorRect2.alive:
+		#print($ColorRect2.get_time())
 		$ColorRect2/time_passed.text = str(glob.cap($ColorRect2.get_time() + timing_offset, 1)) + "s"
-		if abs($ColorRect2.get_last_value()*100) > 1000:
-			$ColorRect2/acc.text = str(glob.compact($ColorRect2.get_last_value()*100)) + "%"
+		if abs(last_acc*100) > 1000:
+			$ColorRect2/acc.text = str(glob.compact(last_acc*100)) + "%"
 		else:
-			$ColorRect2/acc.text = str(glob.cap($ColorRect2.get_last_value()*100, 1)) + "%"
+			$ColorRect2/acc.text = str(glob.cap(last_acc*100, 1)) + "%"
 
 @onready var train_button = $train
-var learning_rates = {"adam": ["1e-2", "1e-3", "1e-4"], "sgd": ["1e-1","1e-2","1e-3"]}
+var learning_rates = {"adam": ["1e-1", "1e-2", "1e-3"], "sgd": ["2e-1","3e-2","1e-2"]}
 
 @onready var base_size: float = $ColorRect.size.y
 @export var tab_size_adds: Dictionary[StringName, float] = {"adam": 0.0, "sgd": 10.0}
@@ -101,6 +105,7 @@ func _on_loss_child_button_release(button: BlockComponent) -> void:
 	pass
 
 func push_acceptance(acc: float, time: float):
+	last_acc = acc
 	$ColorRect2.push_input(time, acc, $ColorRect2._window_end)
 
 func _on_lr_child_button_release(button: BlockComponent) -> void:
@@ -144,21 +149,34 @@ func _config_field(field: StringName, value: Variant):
 
 func train_stop():
 	if 1:#training:
+		if training:
+			if $ColorRect2.get_time() + timing_offset < 0.0:
+				timing_offset = -$ColorRect2.get_time()
+				$ColorRect2/time_passed.text = "0.0"
 		training = false
 		$ColorRect2.alive = false
 		hold_for_frame()
+
+	
 	#train.text = "Train!"
 	#nn.stop_train(self)
 var training: bool = false
 func train_start():
 	if 1:#not training:
 		training = true
+		$ColorRect2.clear_window()
 		timing_offset = -$ColorRect2.get_time()
 		$ColorRect2.alive = true
 		hold_for_frame()
 		$ColorRect2/time_passed.text = "0.0s"
 	#train.text = "Stop"
 	#nn.start_train(self, {"additional_call": additional_call})
+
+func clear():
+	$ColorRect2.clear_window()
+	$ColorRect2/time_passed.text = "0.0s"
+	$ColorRect2/acc.text = "0.0%"
+
 
 var timing_offset: float = 0.0
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://cuuew2v4inm7k"]
+[gd_scene load_steps=39 format=3 uid="uid://cuuew2v4inm7k"]
 
 [ext_resource type="Script" uid="uid://cir1i2gbr8pjh" path="res://scripts/dataset_tab.gd" id="1_hsuaq"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="2_fn1yt"]
@@ -22,6 +22,7 @@
 [ext_resource type="Script" uid="uid://bdd0v81iq8cis" path="res://scripts/console.gd" id="17_6hcr6"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="17_wg51w"]
 [ext_resource type="Theme" uid="uid://6b4rxqrmq3yb" path="res://resources/theme_no_aa.tres" id="18_6hcr6"]
+[ext_resource type="Script" uid="uid://rehn60f8al4q" path="res://scripts/loc3.gd" id="20_empbn"]
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="20_rckiu"]
 [ext_resource type="SyntaxHighlighter" uid="uid://c6jrq0dx3d808" path="res://resources/dscli.tres" id="21_mbiqq"]
 [ext_resource type="Script" uid="uid://cwuexxn8qidxj" path="res://scripts/cli.gd" id="22_q5lcu"]
@@ -586,7 +587,7 @@ script = ExtResource("23_jf34i")
 metadata/_custom_type_script = "uid://4d3i1e2dctun"
 
 [node name="Loc" type="Node" parent="Control/console/train2"]
-script = ExtResource("15_51ak0")
+script = ExtResource("20_empbn")
 auto = true
 localizations_ru = Dictionary[String, String]({
 "clear": "Сброс"

@@ -95,6 +95,7 @@ func _ready():
 		dup.text = title
 		var outline_color: Color = _lift_color(i.outline_color, 0.65)
 		var tuning_color: Color = _lift_color(i.tuning, 0.65)
+		tuning_color.a = 0.7
 		dup.set_instance_shader_parameter("outline_color", outline_color)
 		dup.set_instance_shader_parameter("tuning", tuning_color)
 
