@@ -3,6 +3,12 @@ extends DynamicGraph
 func _get_unit(kw: Dictionary) -> Control: #virtual
 	var dup = _unit.duplicate()
 	dup.get_node("Label").text = kw["text"]
+	if kw["features"]["type"] != "float" and kw["features"]["type"] != "sfloat":
+		dup.get_node("Label").simple_letters = 9
+		dup.get_node("Label").resize()
+	else:
+		dup.get_node("Label").simple_letters = 17
+		dup.get_node("Label").resize()
 	dup.show()
 	dup.modulate.a = 0.0
 	appear_units[dup] = true
@@ -14,6 +20,20 @@ func _get_unit(kw: Dictionary) -> Control: #virtual
 		dup.get_node("bool").graph = dup
 		dup.get_node("bool").auto_ready = true
 	return dup
+
+
+func _llm_map(pack: Dictionary):
+	if not pack: return
+	var result_features = []
+	for i in pack.get("input_features", []):
+		var dup = i.duplicate()
+		dup.erase("text")
+		dup["n"] = 0
+		dup["on"] = false
+		result_features.append({"text": i["text"], "features": dup})
+	update_config({"input_features": result_features})
+
+
 
 func class_unroll(frozen_duplicate: BlockComponent, args, kwargs):
 	var output: Array[Node] = []
@@ -106,6 +126,8 @@ func _adding_unit(who: Control, kw: Dictionary):
 		graphs.model_updated.emit(get_ancestor().cfg["name"])
 
 func set_class(kw: Dictionary, switch):
+	if not "n" in kw["features"]:
+		kw["features"]["n"] = 0
 	kw = kw["features"]
 	switch.text = kw["classes"][kw["n"]]
 	kw["n"] += 1

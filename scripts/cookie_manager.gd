@@ -25,9 +25,12 @@ func pwd() -> String:
 	return glob._logged_in.pass
 
 func open_or_create(path: String, path_from: String = "user://") -> FileAccess:
-	
+	if not path_from.ends_with("/"):
+		path_from += "/"
 	var full_path = path_from + path
 	var dir_path = full_path.get_base_dir()
+	#print(full_path)
+
 	var dir := DirAccess.open(path_from)
 	if not dir.dir_exists(dir_path):
 		var err = dir.make_dir_recursive(dir_path)
@@ -42,6 +45,8 @@ func open_or_create(path: String, path_from: String = "user://") -> FileAccess:
 		push_error("Failed to open or create file: %s" % full_path)
 		return null
 	return file
+
+
 
 func dir_or_create(path: String) -> DirAccess:
 	var full_path = "user://" + path

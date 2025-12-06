@@ -5,6 +5,15 @@ class_name Graph
 @export var server_typename: StringName = ""
 @onready var label = $ColorRect/root/Label
 @onready var rect = $ColorRect
+
+func set_screenshotting():
+	ui.set_uni(rect, "use_bg", true)
+
+
+func set_not_screenshotting():
+	ui.set_uni(rect, "use_bg", true)
+	#glob.inst_uniform(rect, "use_bg", true)
+
 @export var z_space: int = 2
 @export var is_input: bool = false
 @export var is_head: bool = false
@@ -1395,6 +1404,7 @@ func _process(delta: float) -> void:
 	var unp_inside = is_mouse_inside(0)
 	#print( glob.get_occupied(&"menu"))
 	#print(glob.is_occupied(self, &"dropout_inside"))
+	#print(glob.get_occupied("menu"))
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not ui.topr_inside and 

@@ -47,7 +47,7 @@ func ws_ds_frames(train_input_origin: Graph, initial: Dictionary, ws: SocketConn
 	for col in outputs:
 		block_hashes["outputs"].append(col.get("hashes", []))
 
-	initial["session"] = "neriqward"
+	initial["session"] = cookies.user()
 	initial["header"] = header
 	initial["header"]["name"] = ds_name
 	initial["block_hashes"] = block_hashes

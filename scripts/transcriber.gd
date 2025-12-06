@@ -1,3 +1,4 @@
+
 extends WebAPI
 class_name Transcriber
 
@@ -27,6 +28,7 @@ func _ready() -> void:
 	begin_recording()
 	await get_tree().process_frame
 	end_recording()
+	mic_player.play()
 
 
 
@@ -50,7 +52,6 @@ func begin_recording(thres: float = 0, on_end = null) -> void:
 	t_record = 0.0
 	_on_end = on_end
 	
-	mic_player.play() 
 	record_effect.set_recording_active(true)
 	#print(" Recording started...")
 
@@ -64,7 +65,6 @@ func end_recording() -> void:
 	recording = false
 
 	record_effect.set_recording_active(false)
-	mic_player.stop() # stop mic input stream, no listening
 
 	var wav: AudioStreamWAV = record_effect.get_recording()
 	buf = wav_to_buffer(wav)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://coifi5ok0t7lo"]
+[gd_scene load_steps=27 format=3 uid="uid://coifi5ok0t7lo"]
 
 [ext_resource type="Script" uid="uid://cvwlkwi2gv6rf" path="res://scripts/input_1d.gd" id="1_gbdyi"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_7nifx"]
@@ -7,6 +7,7 @@
 [ext_resource type="Material" uid="uid://blkv556akjllh" path="res://resources/panel.tres" id="6_pm2c6"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="7_0td0h"]
 [ext_resource type="Theme" uid="uid://6b4rxqrmq3yb" path="res://resources/theme_no_aa.tres" id="8_6ybxu"]
+[ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="9_pm2c6"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="9_tpmcl"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="10_m57n5"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="11_273vt"]
@@ -279,10 +280,14 @@ z_index = 1
 layout_mode = 0
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 276.66238
+offset_right = 338.77704
 offset_bottom = 55.0
 scale = Vector2(0.37028307, 0.37028307)
 theme = ExtResource("3_pxsba")
+script = ExtResource("9_pm2c6")
+simple = true
+simple_letters = 9
+metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="Label2" type="Label" parent="connection"]
 modulate = Color(0.73, 0.73, 0.73, 1)

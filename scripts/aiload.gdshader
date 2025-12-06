@@ -128,5 +128,5 @@ void fragment(){
 	float bloom_alpha = bloom_mask * bloom_intensity;
 
 	COLOR.rgb = col;
-	COLOR.a = clamp(mask + bloom_alpha * (1.0 - mask), 0.0, 1.0) * alpha_power;
+	COLOR.a *= clamp(mask + bloom_alpha * (1.0 - mask), 0.0, 1.0) * alpha_power;
 }

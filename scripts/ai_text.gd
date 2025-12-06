@@ -84,8 +84,9 @@ func _render_now() -> void:
 	display = strip_unclosed_fences(display)
 	#print("====")
 	#print(display)
-	# Show one, non-duplicated overlay while thinking.
 	if thinking:
+		display += "\n[color=gray]Thinking...[/color]"
+	if building:
 		display += "\n[color=gray]Building...[/color]"
 
 	# Convert once, then normalize & trim, then assign once.
@@ -109,6 +110,13 @@ func set_thinking(yes: bool) -> void:
 	if thinking == yes:
 		return
 	thinking = yes
+	_render_now()
+
+var building: bool = false
+func set_building(yes: bool) -> void:
+	if building == yes:
+		return
+	building = yes
 	_render_now()
 
 func set_txt(full: String) -> void:

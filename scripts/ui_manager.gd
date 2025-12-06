@@ -3,7 +3,44 @@ extends Control
 func is_focus(control: Control):
 	if control is HSlider: return (control.get_global_rect().has_point(get_global_mouse_position()))
 	return control and get_viewport().gui_get_focus_owner() == control
-	
+
+func graph_shot(rect: Rect2, path: String) -> void:
+	#print("ff")
+	for i in graphs._graphs.values():
+		i.set_screenshotting()
+	var bg = glob.bg_trect
+	bg.visible = false
+	bg.set_screenshotting()
+	await get_tree().process_frame
+
+	var img := get_viewport().get_texture().get_image().get_region(rect)
+	img.save_png(path)
+
+	bg.visible = true
+	#DisplayServer.clipboard_set(img)
+	for i in graphs._graphs.values():
+		i.set_not_screenshotting()
+	bg.set_not_screenshotting()
+
+var mist: ColorRect
+var is_ai_building: bool = false
+func set_ai_building():
+	is_ai_building = true
+	axon_donut.target_visible()
+	mist.target_visible()
+
+func set_uni(who, what, val):
+	who.material.set_shader_parameter(what, val)
+func get_uni(who, what):
+	return who.material.get_shader_parameter(what)
+
+func stop_ai_building():
+	is_ai_building = false
+	axon_donut.target_invisible()
+	mist.target_invisible()
+
+
+
 func get_focus():
 	return get_viewport().gui_get_focus_owner()
 
@@ -91,7 +128,14 @@ func reg_button(b: BlockComponent):
 func unreg_button(b: BlockComponent):
 	pass
 
+var axon_donut: Control
+
 func _process(delta: float):
+	#if glob.space_just_pressed:
+		#if is_ai_building:
+			#stop_ai_building()
+		#else:
+			#set_ai_building()
 	var ct: int = 0
 	for i in splashed.keys():
 		if not is_instance_valid(i): splashed.erase(i); continue

@@ -23,7 +23,19 @@ var last_pos: Vector2
 var velocity_noise_seed = randf() * 1000.0
 var hold_timer = 0.0
 
+var tg_visible: bool = false
+func target_visible():
+	global_position = glob.cam.get_screen_center_position() - size / 2
+	#print(global_position)
+	tg_visible = true
+	show()
+
+func target_invisible():
+	tg_visible = false
+
 func _ready() -> void:
+	target_invisible()
+	ui.axon_donut = self
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
 	noise.frequency = 0.6
 	current_target = position
@@ -31,7 +43,14 @@ func _ready() -> void:
 	move_timer = MOVE_INTERVAL * randf()
 
 func _process(delta: float) -> void:
-	
+	if not visible:
+		return
+	if tg_visible:
+		self_modulate.a = lerpf(self_modulate.a, 1.0, delta * 10.0)
+	else:
+		self_modulate.a = lerpf(self_modulate.a, 0.0, delta * 10.0)
+		if is_zero_approx(self_modulate.a):
+			hide()
 	var rect_world: Rect2 = glob.get_world_visible_rect()
 
 	var donut_size: Vector2 = size

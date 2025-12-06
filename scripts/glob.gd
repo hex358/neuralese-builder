@@ -5,6 +5,8 @@ const DEBUG: bool = true
 var default_spline = preload("res://scenes/default_spline.tscn")
 var scroll_container = preload("res://scenes/vbox.tscn")
 
+var bg_trect: CanvasLayer
+
 var undo_redo = UndoRedo.new()
 
 var hide_menus: bool = false
@@ -627,6 +629,8 @@ func reset_logged_in(pers: bool = false):
 func logged_in() -> bool:
 	return _logged_in.size() > 0
 
+var f2_just_pressed: bool = false
+var f2_pressed: bool = false
 func _process(delta: float) -> void:
 	#if space_just_pressed:
 	#print(graphs.get_llm_summary())
@@ -644,6 +648,10 @@ func _process(delta: float) -> void:
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
+	f2_just_pressed = Input.is_action_just_pressed("f2")
+	f2_pressed = Input.is_action_pressed("f2")
+	if glob.get_occupied("menu") and !glob.get_occupied("menu").is_visible_in_tree():
+		glob.un_occupy(glob.get_occupied("menu"), "menu")
 	#if _menu_type_occupator and _menu_type_occupator is Connection:
 	#	print(_menu_type_occupator.parent_graph.process_mode == Node.PROCESS_MODE_DISABLED)
 	
@@ -787,8 +795,9 @@ func message_chunk_received(data, sock: SocketConnection):
 	#if clean_text.is_empty():
 	#	return
 	sock.cache.get_or_add("message", [""])[0] += clean_text
+	#print(sock.cache.actions)
 	if text_update.is_valid():
-		text_update.call([clean_text, text != clean_text])
+		text_update.call([clean_text, sock.cache.actions])
 
 
 var message_sockets: Dictionary[int, SocketConnection] = {}
@@ -1139,12 +1148,10 @@ func update_message_stream(
 		"summary_hash": summary_hash  # only hash first
 	}
 
-	# DO NOT include summary yet
 	sock.send_json(payload)
 
 	var sent_full = false
 
-	# --- 3. handle server response / stream ---
 	sock.packet.connect(func(pkt):
 		var s = pkt.get_string_from_utf8()
 		var j = JSON.parse_string(s)
@@ -1291,6 +1298,7 @@ func _project_header_dict() -> Dictionary:
 	return {
 		"version": 1,
 		"project": base,
+		"name": fg.get_scene_name(),
 		# Optional: embed env_dump if you want to lock the export to current env texts
 		"env": env_dump
 	}
@@ -1316,8 +1324,8 @@ func get_packed_ds(name: String) -> Dictionary:
 	return ds_pack_cache.get(name, {})
 
 func _read_packed_ds_from_disk(name: String) -> Dictionary:
-	var fname := "datasets/%s.ds" % sha1(name)
-	var fa := cookies.open_or_create(fname)
+	var fname = "datasets/%s.ds" % sha1(name)
+	var fa = FileAccess.open("user://" + fname, FileAccess.READ)
 	if not fa:
 		push_warning("Missing dataset file: %s" % fname)
 		return {}
@@ -1407,8 +1415,121 @@ func preprocess_import_project(bytes: PackedByteArray) -> Dictionary:
 	return result
 
 
+func import_project(bytes: PackedByteArray) -> bool:
+	# === 1. Parse the binary container ===
+	var parsed = preprocess_import_project(bytes)
+	print(parsed)
+	if not parsed.ok:
+		push_error("Import failed: " + ", ".join(parsed.errors))
+		return false
+
+	var header: Dictionary = parsed.header
+	var datasets: Array = parsed.datasets
+	if not header.has("project"):
+		push_error("Invalid project container (no 'project' field).")
+		return false
+
+	# === 2. Extract main sections ===
+	var project_meta: Dictionary = header.project
+	var lua_env: Dictionary = header.get("env", {})
+	var version: int = int(header.get("version", 1))
+	project_id = random_project_id()
+
+	# === 3. Full runtime clear (identical to load_scene) ===
+	cached_chats.clear()
+	clear_chats()
+	clear_all()
+	last_summary_hash = -1
+	loaded_project_once = true
+	fg.go_into_graph()
+	for i in 10:
+		await get_tree().process_frame
+	await graphs.delete_all()
+	tree_windows["env"].reset()
+
+	for i in 10:
+		await get_tree().process_frame
+	# === 4. Write datasets ===
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var ds_dir = cookies.dir_or_create("datasets")
+	for ds in datasets:
+		var name: String = ds.get("name", "")
+		if name.is_empty():
+			continue
+
+		var len: int = ds.get("len", 0)
+		var bytes_zstd: PackedByteArray = ds.get("bytes", PackedByteArray())
+
+		# Persist compressed dataset to disk (same format as save_godot_dataset)
+		var spb = StreamPeerBuffer.new()
+		spb.put_var(len)
+		spb.put_var(bytes_zstd)
+		var file_path = "datasets/%s.ds" % sha1(name)
+		var f = cookies.open_or_create(file_path)
+		f.store_buffer(spb.data_array)
+		f.close()
+
+		# Decompress + restore in memory
+		var decomp = bytes_zstd.decompress(len, FileAccess.COMPRESSION_ZSTD)
+		if decomp.is_empty():
+			continue
+		var ds_dict = bytes_to_var_with_objects(decomp)
+		if not ds_dict:
+			continue
+
+		ds_dict["name"] = name
+		dataset_datas[name] = ds_dict
+		virtualt.cached_once[name] = true
+		ds_pack_cache[name] = {"len": len, "bytes": bytes_zstd, "mtime": Time.get_ticks_msec()}
+		cache_rle_compress(name, null, "thread")
+
+	# === 5. Load environment and graphs ===
+	env_dump = lua_env
+	tree_windows["env"].request_texts()
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	var graphs_data = project_meta.get("graphs", {})
+	var subgraphs = project_meta.get("registry", {}).get("subgraph_registry", {})
+
+	fg.set_scene_name(header.name)
+	open_action_batch(true)
+	var ok_graph = await graphs.load_graph(graphs_data, subgraphs)
+	close_action_batch()
+	await get_tree().process_frame
+
+	if not ok_graph:
+		push_warning("Graphs failed to load from imported project.")
+
+	# === 6. Restore camera ===
+	if project_meta.has("camera"):
+		var camv: Vector3 = project_meta.camera
+		if camv:
+			main_cam.target_zoom = camv.z
+			main_cam.target_position = Vector2(camv.x, camv.y)
+
+	# === 7. UI and state sync ===
+	for i in 15:
+		await get_tree().process_frame
+	if ai_help_menu:
+		ai_help_menu.re_recv()
+
+	set_var("last_id", project_id)
+	await glob.wait(0.5)
+
+	push_warning("Project import completed successfully.")
+	return true
 
 
+func import_project_from_file(path: String):
+	var opened = FileAccess.open(path, FileAccess.READ)
+	import_project(opened.get_buffer(opened.get_length()))
+	await wait(0.1)
+	ui.hourglass_on()
+	await glob.save(str(glob.get_project_id()))
+	ui.hourglass_off()
 
 
 func export_project(include_contexts: bool = false) -> PackedByteArray:

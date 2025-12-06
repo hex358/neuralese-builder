@@ -9,7 +9,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_axe6h"]
 shader = ExtResource("5_2nacm")
-shader_parameter/corner_radius = 1.5000000712500001
+shader_parameter/corner_radius = 1.50000007125
 
 [sub_resource type="Image" id="Image_2nacm"]
 data = {
@@ -44,7 +44,7 @@ offset_top = -7.0
 offset_right = -38.0
 offset_bottom = 10.0
 color = Color(0.4627451, 0.4509804, 0.8509804, 1)
-_accepted_datatypes = "layer2d layer1d"
+_accepted_datatypes = "layer1d"
 server_name = &"layer_in"
 connection_type = 0
 area_paddings = Vector4(10, 10, 10, 10)

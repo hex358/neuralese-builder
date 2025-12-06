@@ -35,9 +35,12 @@ func _process(delta: float) -> void:
 				i.resize(Vector2(41, i.base_size.y))
 			buts[1]._wrapped_in.position = buts[2]._wrapped_in.position - Vector2(48,0)
 			buts[0]._wrapped_in.position = buts[1]._wrapped_in.position - Vector2(48,0)
+			buts[0].get_node("i").position.x = 20.921
 		in_small_mode = true
 	else:
 		if in_small_mode:
+			buts[0].get_node("i").position.x = 22.921
+
 			for i in len(buts):
 				#i.resize_after = 20
 				buts[i].text = b_texts[i]

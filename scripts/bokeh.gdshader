@@ -89,5 +89,5 @@ void fragment(){
 	vec4 col_trans = vec4(blurred, 0.0);
 	vec4 final_col = mix(col_trans, col_edge, mask);
 
-	COLOR = final_col * intensity;
+	COLOR *= final_col * intensity;
 }

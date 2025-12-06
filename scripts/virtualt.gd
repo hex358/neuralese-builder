@@ -1012,7 +1012,7 @@ func to_query(row: int, mp: Vector2):
 				next_query = [row if row != -1 else 0, mp]
 		elif a.hint == "insert":
 			if row != -1:
-				print("dd")
+				#print("dd")
 				row += 1
 			#add_row(get_default_row(), row)
 			add_row(get_default_row(), row)

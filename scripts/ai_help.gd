@@ -106,7 +106,18 @@ func _ready() -> void:
 var last_recv = null
 func text_receive(arr):
 	if not get_last_message(): return
-	if arr[1]:
+	if arr[1].get("change_nodes", ""):
+		ui.set_ai_building()
+		get_last_message().object.set_thinking(false)
+		if not get_last_message().get("marked_building", false):
+			get_last_message().object.set_building(true)
+		get_last_message()["marked_building"] = true
+	else:
+		ui.stop_ai_building()
+		get_last_message().object.set_building(false)
+		get_last_message()["marked_building"] = false
+
+	if arr[1].get("thinking", ""):
 		if not get_last_message().get("marked_thinking", false):
 			get_last_message().object.set_thinking(true)
 		get_last_message()["marked_thinking"] = true
@@ -139,10 +150,13 @@ func send_message(text: String):
 	$ColorRect/Label2._clear_text_and_reset()
 	if sock:
 		await sock.kill
+	get_last_message().object.set_thinking(false)
+	get_last_message().object.set_building(false)
 	get_last_message().erase("_pending")
 	
 	get_last_message().object.actual_text = ""
 	get_last_message().object.push_text(get_last_message().text)
+	ui.stop_ai_building()
 	first_line.grab_focus()
 	first_line.grab_click_focus()
 	trect.texture = mic_texture
@@ -269,11 +283,11 @@ func on_send(txt: String) -> void:
 					$ColorRect/Label2.text = "Сөйле..."
 				_:
 					$ColorRect/Label2.text = "Speak..."
-			web.transcriber.begin_recording(60.0, func(): trect.texture = mic_texture)
+			web.transcriber.begin_recording(40.0, func(): trect.texture = mic_texture)
 		else:
 			web.transcriber.end_recording()
 			trect.texture = mic_texture
-			if web.transcriber.t_record > 0.5:
+			if web.transcriber.t_record > 1:
 				var handle = await web.transcriber.send_recording().completed
 				if handle and handle.body and "text" in handle.body:
 					(func():
@@ -282,6 +296,7 @@ func on_send(txt: String) -> void:
 						
 						).call_deferred()
 			$ColorRect/Label2.enable()
+			$ColorRect/Label2.text = ""
 			rec = false
 			#print(len(web.transcriber.buf))
 			

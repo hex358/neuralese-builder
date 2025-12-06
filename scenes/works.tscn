@@ -366,4 +366,5 @@ script = ExtResource("8_cmq6o")
 [connection signal="scroll_changed" from="ColorRect/list" to="." method="_on_list_scroll_changed"]
 [connection signal="released" from="ColorRect/train" to="." method="_on_logout"]
 [connection signal="released" from="ColorRect/train2" to="." method="_on_add"]
+[connection signal="released" from="ColorRect/import" to="." method="_on_import_released"]
 [connection signal="released" from="ColorRect/lang" to="." method="_on_lang_released"]

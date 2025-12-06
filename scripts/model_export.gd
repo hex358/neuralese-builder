@@ -164,7 +164,11 @@ func _on_saveall_released() -> void:
 			saved_txt = "  Сақт.!"
 	var bytes = await glob.export_project()
 	
-	cookies.open_or_create(OS.SY)
+	var f = cookies.open_or_create("save_%s.nls"%glob.fg.get_scene_name(), \
+	cookies.downloads_dir)
+	#print(f)
+	f.store_buffer(bytes)
+	f.close()
 	saveall.text = saved_txt
 	#print(export_but.text)
 	#await glob.wait(1.0)

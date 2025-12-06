@@ -599,6 +599,14 @@ func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
 						txt = "1D және 2D кірістерді араластыруға болмайды"
 					_:
 						txt = "1D and 2D mix in inputs is prohibited"
+			"preprocess_txt":
+				match lang:
+					"ru":
+						txt = "Необходимо провести препроцессинг текстовых полей (токенизация)"
+					"kz":
+						txt = "Мәтін өрістерін алдын ала өңдеу қажет (токенизация)"
+					_:
+						txt = "Tokenization is required before using text datasets"
 			"bad_img":
 				match lang:
 					"ru":

@@ -61,6 +61,16 @@ func _resultate(data: Dictionary):
 		#queue_free()
 		ui.splash_and_get_result("dataset_create", splashed_from, emitter, true, 
 		{"txt": passed_data.get("txt", ""), "path": data["path"]})
+	elif "from_proj" in passed_data:
+		glob.import_project_from_file(data["path"])
+		emitter.res.emit(data)
+		#glob.env_dump[data["text"]] = glob.get_default_script(data["text"])
+		#glob.tree_windows["env"].reload_scenes()
+		go_away()
+		await quitting
+		pass
+		hide()
+		ui.blur.self_modulate.a = 0.0
 	else:
 		emitter.res.emit(data)
 		#glob.env_dump[data["text"]] = glob.get_default_script(data["text"])
@@ -81,6 +91,12 @@ func _quit_request():
 		hide()
 		ui.splash("dataset_create", splashed_from, emitter, true, 
 		{"txt": passed_data.get("txt", "")})
+	elif "from_proj" in passed_data:
+		can_go = false
+		await quitting
+		#queue_free()
+		hide()
+		ui.splash("works", passed_data["from_proj"], emitter, true)
 	else:
 		can_go = true
 		await quitting
@@ -131,6 +147,7 @@ func quit(data: Dictionary = {}):
 	quitting.emit()
 	#print(grid.current_dir)
 	old_dir = grid.current_dir
+	hide()
 	if can_go:
 		hide()
 		ui.blur.self_modulate.a = 0

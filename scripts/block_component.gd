@@ -605,6 +605,9 @@ func is_mouse_inside() -> bool:
 		#print(last_mouse_pos)
 	return bounds.has_point(last_mouse_pos)
 
+var has_mouse: bool = false
+
+
 signal children_revealed
 
 func _align_label() -> void:
@@ -721,7 +724,8 @@ func _process_block_button(delta: float) -> void:
 	blocked = blocked or (ui.active_splashed() and not in_splash) or ui.topr_inside
 	blocked = blocked or (!base_in_splash and ui.splashed_in)
 	blocked = blocked or (graph and graph is Graph and graph.dragging)
-	
+	#if is_contained:
+	#	print(still_hover_in_block)
 	#if _wrapped_in.get_parent().name == "Control2":
 	#	print(ui.splashed_in.keys()[0].menu_name)#if name == "run" and _wrapped_in.get_parent() is Label:
 	#	print(in_splash)
@@ -729,6 +733,7 @@ func _process_block_button(delta: float) -> void:
 	#	print(parent.is_blocking)
 	if not frozen:
 		inside = is_mouse_inside() and not (blocked and (not still_hover_in_block or ins or (is_contained and is_contained.scrolling)))
+		inside = inside and (not is_contained or is_contained.has_mouse)
 		mouse_pressed = glob.mouse_pressed and not blocked
 	if (not blocked or still_hover_in_block) and (not mouse_pressed or (inside and mouse_pressed)):
 		last_mouse_pos = get_global_mouse_position()
@@ -1120,6 +1125,7 @@ func _process_context_menu(delta: float) -> void:
 		
 	var i_occupied: bool = false
 	var inside: bool = is_mouse_inside()
+	has_mouse = inside
 	
 	if scroll and visible and (max_size and max_size < expanded_size):
 		scroll.size.x = base_size.x - scrollbar_padding

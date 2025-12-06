@@ -51,6 +51,8 @@ static func get_preview(dataset_obj: Dictionary, validate_cols: bool = false) ->
 	var to_validate = -1
 	for i in range(0, max(1, outputs_from)):
 		var dt = col_dtypes[i]
+		if dt == "text":
+			return {"fail": "preprocess_txt"}
 		if dt == "image":
 			if inputs["datatype"]:
 				return {"fail": "mix_2d"}
@@ -434,6 +436,7 @@ static func compress_blocks(ds: Dictionary) -> Dictionary:
 # Incremental recompression (fast)
 # =========================
 static func recompress_changed_blocks(ds: Dictionary, changed_rows: Array) -> Dictionary:
+#	print("rec...")
 	var name = ds.get("name", "unnamed")
 	var prev = glob.rle_cache.get(name, {})
 	if prev.is_empty() or not prev.has("header"):

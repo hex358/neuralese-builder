@@ -22,7 +22,7 @@ var select_origin_world: Vector2
 var prev_cam_pos: Vector2
 
 
-
+var to_screen: bool = false
 var q: bool = false
 func _process(delta: float) -> void:
 
@@ -40,7 +40,7 @@ func _process(delta: float) -> void:
 	if glob.curr_window != "graph":
 		hide()
 		graphs.unselect_all()
-	if q and not ui.active_splashed() and glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
+	if not ui.topr_inside and q and not ui.active_splashed() and glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
 	and not graphs.dragged and not graphs.conning() and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y \
 	and not glob.is_occupied(self, "graph_buffer"):
 		select_origin = get_global_mouse_position()
@@ -51,9 +51,19 @@ func _process(delta: float) -> void:
 		show()
 		position = select_origin
 		size = Vector2.ZERO
-
+		if glob.f2_pressed:
+			to_screen = true
+		else:
+			to_screen = false
+	
+	
 	if selecting:
 		if not glob.mouse_pressed:
+			if glob.f2_pressed:
+				hide()
+				graphs.unselect_all()
+				await ui.graph_shot(Rect2(position, size), cookies.downloads_dir + "/screen_%s.png"%randi_range(0,9999))
+				show()
 			selecting = false
 			hide()
 			ui.selecting_box = false
@@ -102,7 +112,7 @@ func _process(delta: float) -> void:
 			else:
 				graphs._graphs[g].unselect()
 
-	if selecting and visible and (size.x > 20 or size.y > 20):
+	if selecting and visible and (size.x > 20 or size.y > 20) and !glob.f2_pressed:
 		var vp_rect = get_viewport_rect()
 		var mouse = get_viewport().get_mouse_position()
 		var edge_margin = 80.0  # pixels from edge where panning starts

@@ -287,6 +287,62 @@ func model_changes_apply(actions: Dictionary, txt: String):
 	var to_map = {}
 	# --- create or reuse nodes
 	glob.open_action_batch(true)
+
+
+
+	
+	await get_tree().process_frame
+	for pack in actions["disconnect_ports"]:
+		for connection in pack:
+			var from_graph = glob.tags_1d.get(connection.from.tag, creating.get(connection.from.tag))
+			var to_graph = glob.tags_1d.get(connection.to.tag,  creating.get(connection.to.tag))
+			if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
+				continue
+
+			var out_ports = from_graph.output_keys
+			var in_ports  = to_graph.input_keys
+			if len(out_ports) == 1:
+				connection.from.port = out_ports.keys()[0]
+			if len(in_ports) == 1:
+				connection.to.port = in_ports.keys()[0]
+
+			var from_port = int(connection.from.port)
+			var to_port = int(connection.to.port)
+			var valid_from = out_ports.has(from_port)
+			var valid_to = in_ports.has(to_port)
+
+			if not valid_from and valid_to:
+				var tmp = connection.from
+				connection.from = connection.to
+				connection.to = tmp
+				from_graph = glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
+				to_graph =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
+				out_ports = from_graph.output_keys
+				in_ports = to_graph.input_keys
+				from_port = int(connection.from.port)
+				to_port = int(connection.to.port)
+				valid_from = out_ports.has(from_port)
+				valid_to = in_ports.has(to_port)
+
+			if not (valid_from and valid_to):
+				continue
+			
+			out_ports[from_port].disconnect_from(in_ports[to_port])
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	
+	
+	await get_tree().process_frame
+	for pack in actions["delete_nodes"]:
+		for i in pack:
+			if glob.tags_1d.has(i):
+				glob.tags_1d[i].delete()
+
+	await get_tree().process_frame
+
+
 	if actions["change_nodes"]:
 
 		for pack in actions["change_nodes"]:
@@ -320,6 +376,8 @@ func model_changes_apply(actions: Dictionary, txt: String):
 	await get_tree().process_frame
 	var to_rearrange = []
 	var deferred_train_links: Array = []
+
+
 	for pack: Array in actions["connect_ports"]:
 		var front: Array = []
 		var back: Array = []
@@ -397,51 +455,8 @@ func model_changes_apply(actions: Dictionary, txt: String):
 		var anc = graphs.get_input_graph_by_name(to_graph.name_graph)
 		var ok = from_graph.output_keys[int(c.from.port)].connect_to(to_graph.input_keys[int(c.to.port)])
 
-	
-	await get_tree().process_frame
-	for pack in actions["disconnect_ports"]:
-		for connection in pack:
-			var from_graph = glob.tags_1d.get(connection.from.tag, creating.get(connection.from.tag))
-			var to_graph = glob.tags_1d.get(connection.to.tag,  creating.get(connection.to.tag))
-			if not is_instance_valid(from_graph) or not is_instance_valid(to_graph):
-				continue
 
-			var out_ports = from_graph.output_keys
-			var in_ports  = to_graph.input_keys
-			if len(out_ports) == 1:
-				connection.from.port = out_ports.keys()[0]
-			if len(in_ports) == 1:
-				connection.to.port = in_ports.keys()[0]
 
-			var from_port = int(connection.from.port)
-			var to_port = int(connection.to.port)
-			var valid_from = out_ports.has(from_port)
-			var valid_to = in_ports.has(to_port)
-
-			if not valid_from and valid_to:
-				var tmp = connection.from
-				connection.from = connection.to
-				connection.to = tmp
-				from_graph = glob.tags_1d.get(connection.from.tag,  glob.tags_1d.get(connection.from.tag))
-				to_graph =  glob.tags_1d.get(connection.to.tag,    glob.tags_1d.get(connection.to.tag))
-				out_ports = from_graph.output_keys
-				in_ports = to_graph.input_keys
-				from_port = int(connection.from.port)
-				to_port = int(connection.to.port)
-				valid_from = out_ports.has(from_port)
-				valid_to = in_ports.has(to_port)
-
-			if not (valid_from and valid_to):
-				continue
-			
-			out_ports[from_port].disconnect_from(in_ports[to_port])
-	
-	
-	await get_tree().process_frame
-	for pack in actions["delete_nodes"]:
-		for i in pack:
-			if glob.tags_1d.has(i):
-				glob.tags_1d[i].delete()
 
 	for tag in creating.keys():
 	#	var real_node: Graph = creating[tag]

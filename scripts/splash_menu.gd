@@ -75,7 +75,6 @@ func _resultate(data: Dictionary):
 			else:
 				ui.error("Username or password is wrong. :(")
 		else:
-			print(answer)
 			ui.error("Either your internet or the server itself is down. Sorry!")
 		
 		ui.hourglass_off()
