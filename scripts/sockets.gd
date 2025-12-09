@@ -1,7 +1,8 @@
 extends Node
 
 var _conns: Dictionary = {}	# { SocketConnection: true }
-const connection_prefix: String = "ws://localhost:8000/"
+#"wss://localhost:8000/"
+var connection_prefix: String = glob.get_root_ws()#"wss://neriqward.360hub.ru/api/"
 
 func _process(_dt: float) -> void:
 	var to_del: Array = []

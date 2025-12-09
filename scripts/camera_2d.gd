@@ -7,16 +7,16 @@ class_name GraphViewport
 @export var drag_speed: float = 1.0
 @export var zoom_interpolation_speed: float = 10.0
 
-var paused := false
-var dragging := false
+var paused = false
+var dragging = false
 var target_zoom: float = zoom.x
-var target_position := Vector2()
-var acc := false
-var move_intensity := 1.0
-var zoom_move_vec := Vector2()
-var drag_move_vec := Vector2()
+var target_position = Vector2()
+var acc = false
+var move_intensity = 1.0
+var zoom_move_vec = Vector2()
+var drag_move_vec = Vector2()
 
-var _last_disp := Vector2.ZERO
+var _last_disp = Vector2.ZERO
 
 func _enter_tree() -> void:
 	if main:
@@ -34,11 +34,31 @@ func reset():
 	drag_move_vec = Vector2()
 	move_intensity = 1.0
 
-func _on_selector_pan(direction: Vector2):
+@export var reference_size: float = 746496
+
+func _on_selector_pan(direction: Vector2) -> void:
 	if paused or ui.active_splashed():
 		return
-	var pan_speed := 200.0 * get_process_delta_time() / zoom.x
-	target_position += direction * pan_speed
+#	print(get_viewport_rect().get_area())
+	var dt = get_process_delta_time()
+
+	# How many screen pixels to move this frame at full intensity:
+	var vp_size = get_viewport_rect().size
+	#print(get_viewport_rect().get_area() / (reference_size ) *0.6)
+	var short_side_px = min(vp_size.x, vp_size.y)
+	var pixels_this_frame = edge_pan_rate * short_side_px * dt * clamp(get_viewport_rect().get_area() / (reference_size ) * 0.5, 0, 5)
+
+	# Build a pixel delta in screen space from the intensity vector:
+	var px_delta = direction * pixels_this_frame  # pixels (screen space)
+
+	# Map screen pixels -> world using the *current* canvas transform:
+	var CT = get_viewport().get_canvas_transform()
+	var center_screen = CT * (target_position)        # camera center in screen coords
+	center_screen += px_delta                              # move by pixels on screen
+	target_position = CT.affine_inverse() * (center_screen)  # back to world
+
+
+
 
 
 
@@ -55,10 +75,10 @@ func resume():
 	paused = false
 
 func _handle_mouse_wrap(pos: Vector2) -> void:
-	var begin := glob.space_begin
-	var end := glob.space_end
-	var new_pos := pos
-	var wrapped := false
+	var begin = glob.space_begin
+	var end = glob.space_end
+	var new_pos = pos
+	var wrapped = false
 
 	if pos.x <= begin.x:
 		new_pos.x = end.x - 2; wrapped = true
@@ -92,11 +112,11 @@ func _input(event: InputEvent) -> void:
 
 
 func _toroidal_delta(prev: Vector2, curr: Vector2) -> Vector2:
-	var begin := glob.space_begin
-	var end := glob.space_end
-	var size := Vector2(end.x - begin.x, end.y - begin.y)
+	var begin = glob.space_begin
+	var end = glob.space_end
+	var size = Vector2(end.x - begin.x, end.y - begin.y)
 
-	var d := curr - prev
+	var d = curr - prev
 	if d.x > 0.5 * size.x:
 		d.x -= size.x
 	elif d.x < -0.5 * size.x:
@@ -125,14 +145,16 @@ func change_cam(zoom, center):
 	target_position = center
 	target_zoom = zoom
 
-var rise_mult := 0.0
+@export var edge_pan_rate: float = 0.6
+
+var rise_mult = 0.0
 func _process(delta: float) -> void:
 	#if not glob.is_scroll_possible():
 	#	target_zoom = zoom.x
 	if glob.mouse_middle_just_pressed and not paused:
 		acc = glob.get_display_mouse_position().x < glob.space_end.x
 
-	var mouse := get_global_mouse_position()
+	var mouse = get_global_mouse_position()
 	if not ui.active_splashed():
 		RenderingServer.global_shader_parameter_set("_view_scale", pow(zoom.x, 0.25))
 
@@ -152,7 +174,9 @@ func _process(delta: float) -> void:
 		if dragging and not glob.mouse_pressed and acc and not ui.active_splashed():
 			var d = _toroidal_delta(_last_disp, display_mouse)
 			if d != Vector2.ZERO:
-				target_position -= d * drag_speed / zoom
+				# normalize delta to world units per screen pixel
+				var pixel_to_world = 1.0 / zoom.x        # 1 screen pixel = this many world units
+				target_position -= d * pixel_to_world * drag_speed
 			#glob.hide_all_menus()
 			_handle_mouse_wrap(display_mouse)
 			_last_disp = glob.get_display_mouse_position()

@@ -23,9 +23,19 @@ var last_pos: Vector2
 var velocity_noise_seed = randf() * 1000.0
 var hold_timer = 0.0
 
+var is_stopped: bool = false
+
+func stop():
+	hide()
+	is_stopped = true
+
+func resume():
+	show()
+	is_stopped = false
+
 var tg_visible: bool = false
 func target_visible():
-	global_position = glob.cam.get_screen_center_position() - size / 2
+	#global_position += (glob.cam.get_screen_center_position() - size / 2 - global_position) / 2.0
 	#print(global_position)
 	tg_visible = true
 	show()
@@ -34,6 +44,9 @@ func target_invisible():
 	tg_visible = false
 
 func _ready() -> void:
+	self_modulate.a = 0.0
+	hide()
+	tg_visible = false
 	target_invisible()
 	ui.axon_donut = self
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
@@ -43,6 +56,7 @@ func _ready() -> void:
 	move_timer = MOVE_INTERVAL * randf()
 
 func _process(delta: float) -> void:
+	if is_stopped: return
 	if not visible:
 		return
 	if tg_visible:

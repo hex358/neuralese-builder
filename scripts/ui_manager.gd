@@ -76,6 +76,15 @@ func line_unblock(line: LineEdit):
 	line.selecting_enabled = true
 	line.mouse_filter = MOUSE_FILTER_STOP
 
+func window_changed(who):
+	if is_ai_building:
+		if who == "graph":
+			axon_donut.resume()
+			mist.show()
+		else:
+			axon_donut.stop()
+			mist.hide()
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index in wheel_buttons:

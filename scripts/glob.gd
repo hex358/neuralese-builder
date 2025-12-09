@@ -1,6 +1,7 @@
 @tool
 extends Node2D
 const DEBUG: bool = true
+const LOCALHOSTED: bool = true
 
 var default_spline = preload("res://scenes/default_spline.tscn")
 var scroll_container = preload("res://scenes/vbox.tscn")
@@ -107,8 +108,11 @@ var fg: ColorRect = null
 var tree_windows: Dictionary[String, TabWindow] = {}
 @onready var _load_window_scenes = {}
 var curr_window = ""
+
+
 func go_window(window_name: String):
 	if curr_window == window_name: return
+	ui.window_changed(window_name)
 	if curr_window in tree_windows:
 		tree_windows[curr_window].window_hide()
 	if window_name in tree_windows:
@@ -778,7 +782,23 @@ func def(...args) -> void:
 	pass
 
 
+"https://neriqward.360hub.ru/api/"
+"http://localhost:8000/"
 
+#"ws://localhost:8000/"
+#var connection_prefix: String = glob.get_root_ws()#"wss://neriqward.360hub.ru/api/"
+
+func get_root_ws():
+	if LOCALHOSTED:
+		return "ws://127.0.0.1:8000/"
+	else:
+		return "wss://neriqward.360hub.ru/api/"
+
+func get_root_http():
+	if LOCALHOSTED:
+		return "http://127.0.0.1:8000/"
+	else:
+		return "https://neriqward.360hub.ru/api/"
 
 
 func message_chunk_received(data, sock: SocketConnection):

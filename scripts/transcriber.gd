@@ -29,6 +29,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	end_recording()
 	mic_player.play()
+	
 
 
 
@@ -41,6 +42,7 @@ func _process(delta: float) -> void:
 		#print("a")
 		if t_record > t_max and t_max > 0.01:
 			end_recording()
+	#print(record_effect.is_recording_active())
 
 
 var _on_end = null
@@ -51,7 +53,7 @@ func begin_recording(thres: float = 0, on_end = null) -> void:
 	t_max = thres
 	t_record = 0.0
 	_on_end = on_end
-	
+	#print("dkdk")
 	record_effect.set_recording_active(true)
 	#print(" Recording started...")
 
@@ -68,6 +70,19 @@ func end_recording() -> void:
 
 	var wav: AudioStreamWAV = record_effect.get_recording()
 	buf = wav_to_buffer(wav)
+
+	#if 1 and buf and buf.size() > 0:
+		#var DEBUG_SAVE_PATH = "c:/users/mike/desktop"
+		#var timestamp := Time.get_datetime_string_from_system().replace(":", "-")
+		#var file_path := "%s/recording_%s.wav" % [DEBUG_SAVE_PATH, timestamp]
+		#var f := FileAccess.open(file_path, FileAccess.WRITE)
+		#if f:
+			#f.store_buffer(buf)
+			#f.close()
+			##print(t_record)
+			##print("[DEBUG] Saved recording to: ", file_path)
+		#else:
+			#push_warning("Failed to open " + file_path)
 
 	#var f := FileAccess.open(DEBUG_WAV, FileAccess.WRITE)
 	#f.store_buffer(wav_to_buffer(wav))

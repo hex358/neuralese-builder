@@ -1,7 +1,8 @@
 extends Node
 class_name WebAPI
-
-const api_url: String = "http://localhost:8000/"
+"https://neriqward.360hub.ru/api/"
+"http://localhost:8000/"
+var api_url: String = glob.get_root_http()
 const _READ_CHUNK: int = 64 * 1024
 const _CONNECT_TIMEOUT_S: float = 3.0
 const _IO_YIELD_US: int = 500

@@ -150,12 +150,13 @@ func send_message(text: String):
 	$ColorRect/Label2._clear_text_and_reset()
 	if sock:
 		await sock.kill
-	get_last_message().object.set_thinking(false)
-	get_last_message().object.set_building(false)
-	get_last_message().erase("_pending")
-	
-	get_last_message().object.actual_text = ""
-	get_last_message().object.push_text(get_last_message().text)
+	if get_last_message() and not get_last_message().user:
+		get_last_message().object.set_thinking(false)
+		get_last_message().object.set_building(false)
+		get_last_message().erase("_pending")
+		
+		get_last_message().object.actual_text = ""
+		get_last_message().object.push_text(get_last_message().text)
 	ui.stop_ai_building()
 	first_line.grab_focus()
 	first_line.grab_click_focus()
@@ -287,8 +288,9 @@ func on_send(txt: String) -> void:
 		else:
 			web.transcriber.end_recording()
 			trect.texture = mic_texture
-			if web.transcriber.t_record > 1:
+			if web.transcriber.t_record > 0.1:
 				var handle = await web.transcriber.send_recording().completed
+				print(handle.body)
 				if handle and handle.body and "text" in handle.body:
 					(func():
 						$ColorRect/Label2.text = handle.body.text

@@ -640,22 +640,63 @@ func enq_open_model(node: Graph, name: String) -> void:
 		infer_job.call_deferred(name, node, useful, job)
 
 
-func lua_open_model(name: String):
+func async_lua_open_model(name: String) -> LuaFuture:
+	var f := LuaFuture.new()
+	_open_model_task(name, f)
+	return f
+
+func _open_model_task(name: String, fut: LuaFuture) -> void:
 	var node = graphs.get_input_graph_by_name(name)
-	if node == null: return {"_error":"no_node"}
-	if not cookies.get_auth_header(): return {"_error":"no_login", "type": -1, "repr": ""}
+	if node == null:
+		fut._complete({"ok": false, "_error":"no_node"})
+		return
 
-	# ensure queue
-	if not (name in model_qs):
-		model_qs[name] = [node, null, false, false, null]
+	# ensure q-shape [node, slot, has_unread, in_flight, pending, ready]
+	var q = model_qs.get(name, null)
+	if q == null:
+		q = [node, null, false, false, null, false]
 	else:
-		model_qs[name][0] = node
+		q[0] = node
+		while q.size() < 6: q.append(false) # index 5 = ready
+	model_qs[name] = q
 
-	# open if not yet open
-	if not nn.is_infer_channel(node):
-		enq_open_model.call_deferred(node, name)
+	# Already open & valid? Mark ready and return
+	if nn.is_infer_channel(node) and nn.validate_infer_channel(node):
+		q[5] = true
+		model_qs[name] = q
+		fut._complete({"ok": true})
+		return
 
-	return {}
+	# Open the channel and WAIT for ack so ordering is guaranteed
+	var open_res = await nn.open_infer_channel(node, node.close_runner)
+	if not open_res:
+		fut._complete({"ok": false, "_error":"invalid_graph"})
+		return
+
+	await open_res.ack
+
+	# Small grace to avoid race on slow links (optional but robust)
+	await glob.wait(0.1)
+
+	q = model_qs.get(name, q)
+	while q.size() < 6: q.append(false)
+	q[5] = true  # ready
+	model_qs[name] = q
+
+	# If caller pushed something prematurely, do one ordered flush now
+	if q[4] != null and not q[3]:
+		var useful = q[0].useful_properties()
+		useful["raw_values"] = q[4]
+		q[4] = null
+		var job := InferJob.new()
+		q[1] = job
+		q[2] = false
+		q[3] = true
+		model_qs[name] = q
+		infer_job.call_deferred(name, q[0], useful, job)
+
+	fut._complete({"ok": true})
+
 
 		#var open_res = await nn.open_infer_channel(node, node.close_runner)
 
@@ -680,15 +721,13 @@ func lua_push_model(name: String, input: Array):
 	if node == null: return {"_error":"no_node"}
 	if not cookies.get_auth_header(): return {"_error":"no_login", "type": -1, "repr": ""}
 
-	# not validated yet → schedule open and coalesce latest input
 	if not nn.validate_infer_channel(node):
 		if not nn.is_infer_channel(node):
 			enq_open_model.call_deferred(node, name)
-		q[4] = input          # pending
+		q[4] = input
 		model_qs[name] = q
 		return {}
 
-	# already have a job running → coalesce latest and return
 	if q[3]:
 		q[4] = input
 		model_qs[name] = q

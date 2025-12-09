@@ -178,15 +178,17 @@ shader_parameter/use_bg = false
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tsth1"]
 shader = ExtResource("21_3pl03")
-shader_parameter/intensity = 0.73600003496
-shader_parameter/border_width = 0.030000001425
-shader_parameter/softness = 0.14100000599898
-shader_parameter/flow_speed = 0.514000024415
-shader_parameter/flow_scale = 1.850000064125
-shader_parameter/warp_strength = 0.4890000232275
-shader_parameter/bokeh_variance = 0.5050000239875
-shader_parameter/blur_amount = 1.5070000715825
-shader_parameter/blur_speed = 0.4
+shader_parameter/intensity = 0.870000041325
+shader_parameter/border_width = -0.12400000123186
+shader_parameter/softness = 0.29700001340897997
+shader_parameter/flow_speed = 0.4990000237025
+shader_parameter/flow_scale = 1.96000006935
+shader_parameter/warp_strength = 0.77600003686
+shader_parameter/bokeh_variance = 0.5570000264575
+shader_parameter/blur_amount = 4.242000201495
+shader_parameter/blur_speed = 0.6800000323
+shader_parameter/seam_smooth_px = 35.414001682165
+shader_parameter/seam_blend_px = 41.4850019705375
 shader_parameter/color_a = Color(0.8004167, 0.5525, 0.85, 1)
 shader_parameter/color_b = Color(0.85, 0.39950004, 0.7599001, 1)
 
@@ -706,10 +708,6 @@ material = SubResource("ShaderMaterial_tsth1")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -145.0
-offset_top = -57.0
-offset_right = 144.0
-offset_bottom = 70.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
