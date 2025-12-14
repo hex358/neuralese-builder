@@ -856,6 +856,7 @@ func _reindex_for_buttons():
 		var title = type.get_meta("title")
 		if i == "classifier":
 			title = "LabelGroup"
+
 		#print(type.get_meta("mat"))
 		#print(title)
 		graph_buttons.append({"name": i, 

@@ -83,14 +83,20 @@ func _ready():
 
 		var dup: BlockComponent = base.duplicate()
 		var title = i.title
-		match title:
-			"Model": title = "ModelName"
-			"Dataset": title = "LoadDataset"
-			"Dense": title = "DenseLayer"
-			"Conv2D": title = "Conv2DLayer"
-			"Flatten": title = "Flatten1D"
-			"RLEnv": title = "RLEnviron"
-
+		#print(i.name, " ", title)
+		var pr = title
+		match i.name:
+			"model_name": title = "ModelName"
+			"neuron": title = "Activation"
+			"softmax": title = "Softmax"
+			"layer": title = "DenseLayer"
+			"conv2d": title = "Conv2DLayer"
+			"flatten": title = "Flatten1D"
+			"lua_env": title = "RLEnviron"
+			"train_input": title = "TrainStep"
+			"input": title = "Input2D"
+		if title != pr:
+			print(i.name, " ", title)
 		dup.hint = i.name
 		dup.text = title
 		var outline_color: Color = _lift_color(i.outline_color, 0.65)

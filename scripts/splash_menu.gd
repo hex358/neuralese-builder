@@ -73,6 +73,7 @@ func _resultate(data: Dictionary):
 				go_away()
 
 			else:
+				print(parsed.answer)
 				ui.error("Username or password is wrong. :(")
 		else:
 			ui.error("Either your internet or the server itself is down. Sorry!")

@@ -124,6 +124,8 @@ func push_meta(who: Graph, data: Dictionary, force: bool = false):
 	meta_owner = who
 	#print_stack()
 	#await get_tree().process_frame
+	if not data:
+		return
 	if not who or data.name == "":
 		$ColorRect/root/Label.position.y = 9
 		set_pellets([])
