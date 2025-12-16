@@ -17,7 +17,8 @@ func _useful_properties() -> Dictionary:
 		var who = i.orig.get_parent().get_meta("points_to").get_ancestor().graph_id
 		branch_maps[who] = i.got_label
 	return {
-		"config": {"branch_losses": body, "branch_maps": branch_maps}
+		"config": {"branch_losses": body, "branch_maps": branch_maps, 
+		"forward_mode": "fused"}
 	}
 
 func get_mapped(targets: bool = true, origins: bool = false) -> Array:
