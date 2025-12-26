@@ -59,7 +59,7 @@ offset_top = -36.0
 offset_right = -19.0
 offset_bottom = -17.0
 color = Color(0.297, 0.9, 0.72915, 1)
-_accepted_datatypes = "layer1d"
+_accepted_datatypes = "layer1d input1d"
 hint = 1
 server_name = &"layer_in"
 connection_type = 0
@@ -158,6 +158,7 @@ min_value = 0.0
 max_value = 2048.0
 allow_float = false
 decimal_places = 2
+empty_on_min = true
 resize_after = 4
 change_always_accepted = false
 

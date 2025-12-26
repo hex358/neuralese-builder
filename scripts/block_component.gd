@@ -104,6 +104,7 @@ var _scroll_original: String = ""
 
 @export_group("Context Menu")
 @export var static_mode: bool = false
+@export var closed_by_rm: bool = false
 @export var left_activate: bool = false
 @export var size_add: float = 0.0
 @export var _scroll_container = null:
@@ -587,6 +588,11 @@ func _process(delta: float) -> void:
 
 func is_mouse_inside() -> bool:
 	var graph = graph if graph and graph is Graph else graph_root
+	if is_contained and is_contained.static_mode and is_contained.get_global_mouse_position().y > is_contained.tb.y:
+	#	if text == "we":
+		#	print(get_global_mouse_position().y)
+		#print(is_contained.tb.y)
+		return false
 	if graph:
 		var cons = glob.get_consumed("mouse")
 		#print(cons)
@@ -722,6 +728,8 @@ func _process_block_button(delta: float) -> void:
 	or ins
 	var frozen = is_contained and parent.is_frozen or is_frozen
 	blocked = blocked or (ui.active_splashed() and not in_splash) or ui.topr_inside
+	#if not Engine.is_editor_hint() and text == "we":
+#		print(is_mouse_inside())
 	blocked = blocked or (!base_in_splash and ui.splashed_in)
 	blocked = blocked or (graph and graph is Graph and graph.dragging)
 	#if is_contained:
@@ -840,7 +848,11 @@ var bar: VScrollBar
 var _last_extents: Vector4 = Vector4.ZERO
 var _last_has_shrink: bool = false
 
+func get_tb():
+	tb = Vector2(scroll.global_position.y, scroll.global_position.y + scroll.size.y * scroll.scale.y * mult.y)
+	return tb
 
+var tb: Vector2 = Vector2()
 func update_children_reveal() -> void:
 	if _contained.is_empty():
 		_reveal_dirty = false
@@ -864,8 +876,9 @@ func update_children_reveal() -> void:
 	if has_shrink:
 		var top_edge = s_glob_y if (bar_value > 10.0) else -20.0
 		var bottom_edge = (s_glob_y + scroll.size.y * scroll.scale.y * mul_y) if (bar_value < (bar_max - bar_page)) else 0.0
+		get_tb()
 		extents = Vector4(top_edge, bottom_edge, 0.0, 0.0)
-
+	#print(tb)
 	var n = _contained.size()
 	var stay_hot = false
 	var changed_extents = has_shrink != _last_has_shrink or extents != _last_extents
@@ -1068,7 +1081,7 @@ func unroll():
 			glob.occupy(self, "menu_inside")
 		else:
 			glob.un_occupy(self, "menu_inside")
-
+# 
 signal scroll_changed
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
@@ -1097,6 +1110,9 @@ func _process_context_menu(delta: float) -> void:
 	
 	var non_splashed = in_splash or !ui.active_splashed()
 	non_splashed = non_splashed and (in_splash or !ui.splashed_in)
+	#if name == "list":
+	#	print(is_blocking)
+	#	print(is_mouse_inside())
 	#if name == 
 	#print(ui.splashed_in)
 	left_click = left_click and non_splashed
@@ -1115,7 +1131,8 @@ func _process_context_menu(delta: float) -> void:
 		last_mouse_pos = get_global_mouse_position()
 	#if name == "delete_project":
 	#	print(still_hover_in_block)
-
+	#if name == "list" and not Engine.is_editor_hint():
+	#	print(is_blocking)
 
 
 	if res:
@@ -1125,6 +1142,10 @@ func _process_context_menu(delta: float) -> void:
 		
 	var i_occupied: bool = false
 	var inside: bool = is_mouse_inside()
+	if inside:
+		
+		get_tb()
+		#print(tb)
 	has_mouse = inside
 	
 	if scroll and visible and (max_size and max_size < expanded_size):
@@ -1182,16 +1203,19 @@ func _process_context_menu(delta: float) -> void:
 		state.holding = false
 	if show_request or right_click or left_click or is_instance_valid(timer) or do_reset:
 		var inside_self_click = glob.mouse_pressed and inside and state.expanding and not state.tween_hide
+		var rm_closure = (right_click and closed_by_rm) and not state.tween_hide and visible
 		if inside_self_click and visible and not state.tween_hide:
 			i_occupied = true
 			glob.occupy(self, &"menu")
-		if not state.holding and (not visible or not inside_self_click):
+		#print(rm_closure)
+		if not state.holding and (not visible or 
+		(not inside_self_click or rm_closure)) :
 			# small delay before opening
-			if scale_anim and (show_request or right_click):
+			if scale_anim and (show_request or right_click) and not rm_closure:
 				timer = glob.timer(0.065)
 			# clamp menu position to viewport
 			var pos = pos_clamp(last_mouse_pos)
-			if (show_request or right_click) and not do_reset and not left_click:
+			if (show_request or right_click) and not do_reset and not left_click and not rm_closure:
 				scrolling = false
 				menu_show(pos)
 			elif visible and !static_mode and not secondary:

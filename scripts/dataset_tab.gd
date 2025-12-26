@@ -546,7 +546,7 @@ func _on_run_released() -> void:
 
 #no_outputs no_1d_outs mix_2d bad_img
 func _on_code_edit_preview_refreshed(pr: Dictionary) -> void:
-	if not $Control/CodeEdit.dataset_obj: 
+	if not $Control/CodeEdit.dataset_obj or not $Control/CodeEdit.dataset_obj.has('name'): 
 		$Control/view/warn.text = ""
 		return
 	#print("AAAAAAAAAAAAAAH")

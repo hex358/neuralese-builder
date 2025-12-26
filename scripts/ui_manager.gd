@@ -25,6 +25,9 @@ func graph_shot(rect: Rect2, path: String) -> void:
 var mist: ColorRect
 var is_ai_building: bool = false
 func set_ai_building():
+	return
+	# TODO: make it look good
+	
 	is_ai_building = true
 	axon_donut.target_visible()
 	mist.target_visible()
@@ -35,6 +38,8 @@ func get_uni(who, what):
 	return who.material.get_shader_parameter(what)
 
 func stop_ai_building():
+	return
+	
 	is_ai_building = false
 	axon_donut.target_invisible()
 	mist.target_invisible()
@@ -155,6 +160,7 @@ func _process(delta: float):
 		if not is_instance_valid(i): splashed_in.erase(i); continue
 		if not i.visible: splashed_in.erase(i); continue
 	_active_splashed = len(splashed) != ct
+	#print(_active_splashed)
 #	print(get_viewport().gui_get_focus_owner())
 			
 
@@ -166,6 +172,9 @@ var splash_menus = {
 	"scene_create": preload("res://scenes/scene_create.tscn"),
 	"dataset_create": preload("res://scenes/dataset_create.tscn"),
 	"works": preload("res://scenes/works.tscn"),
+	"workslist": preload("res://scenes/workslist.tscn"),
+	"lessonslist": preload("res://scenes/lessonlist.tscn"),
+	"settings": preload("res://scenes/settings.tscn"),
 	"project_create": preload("res://scenes/project_create.tscn"),
 	"ai_help": preload("res://scenes/ai_help.tscn"),
 	"select_dataset": preload("res://scenes/select_dataset.tscn"),
@@ -227,9 +236,20 @@ func force_layout_update(node: Control):
 	node.propagate_call("update")
 	node.propagate_call("notification", [NOTIFICATION_LAYOUT_DIRECTION_CHANGED])
 
+func close_top_level_splashes(except_typename: String = "") -> void:
+	for s in splashed.keys():
+		if not is_instance_valid(s): continue
+		if s.inner: continue
+		if s.persistent: continue # optional: keep persistent ones
+		if except_typename != "" and s.typename == except_typename: continue
+		s.can_go = true
+		s.go_away()
 
 func splash(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> SplashMenu:
 	hourglass.off(true)
+	#print(menu)
+	#print_stack()
+#	close_top_level_splashes(menu)
 	if splashed_from:
 		if !is_splashed(menu):
 			splashed_from.in_splash = true
@@ -254,6 +274,8 @@ func splash(menu: String, splashed_from = null, emitter_ = null, inner = false, 
 	m.splashed_from = splashed_from
 	var emitter = ResultEmitter.new() if !emitter_ else emitter_
 	m.emitter = emitter
+	if splashed_from:
+		emitter.res.connect(func(...args): splashed_from.in_splash = false)
 	m.tree_exited.connect(func(): already_splashed.erase(menu))
 	return m
 
@@ -267,6 +289,10 @@ var already_splashed: Dictionary = {}
 signal result_emit(data: Dictionary)
 func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> Dictionary:
 	#print_stack()
+	#if glob.DUMMY_LOGIN and menu == "login":
+	#	return {"user": "n", "pass": "1"}
+	#close_top_level_splashes(menu)
+	
 	hourglass.off(true)
 	if splashed_from:
 		if !is_splashed(menu):
@@ -292,10 +318,16 @@ func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, 
 	m.splashed_from = splashed_from
 	var emitter = ResultEmitter.new() if !emitter_ else emitter_
 	m.emitter = emitter
+	if splashed_from:
+		emitter.res.connect(func(...args): splashed_from.in_splash = false)
 	m.tree_exited.connect(func(): already_splashed.erase(menu))
 	var a = await emitter.res
 	return a
 
+
+
+func profile(field: String):
+	return glob.remote_config.get(field)
 
 func configure_richtext_theme_auto(theme: Theme, base_font: FontFile, monospaced_font: FontFile) -> void:
 	if theme == null or base_font == null:

@@ -10,6 +10,12 @@ var rec_bus_idx: int = -1
 
 
 func _ready() -> void:
+	if !glob.NO_TRANSCRIBER_WARMUP:
+		warm_init()
+	
+var warmed: bool = false
+func warm_init():
+	warmed = true
 	rec_bus_idx = AudioServer.bus_count
 	AudioServer.add_bus()
 	AudioServer.set_bus_name(rec_bus_idx, "RecordBus")
@@ -49,6 +55,8 @@ var _on_end = null
 func begin_recording(thres: float = 0, on_end = null) -> void:
 	if recording:
 		return
+	if not warmed:
+		await warm_init()
 	recording = true
 	t_max = thres
 	t_record = 0.0

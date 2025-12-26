@@ -9,7 +9,7 @@ func _ready() -> void:
 		$ColorRect/Label.set_line(passed_data["txt"])
 		$ColorRect/Label.update_valid()
 	if passed_data.has("path"):
-		$ColorRect.size.y = 175
+		target_size.y = 175
 		$ColorRect/Label/LabelAutoResize.text = passed_data["path"]
 		$ColorRect/Label/LabelAutoResize.resize()
 		$ColorRect/Label/LabelAutoResize.show()

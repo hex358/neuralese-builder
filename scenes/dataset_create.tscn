@@ -105,6 +105,7 @@ scale = Vector2(0.9918337, 0.9918337)
 theme = ExtResource("8_eb5j3")
 text = "fffffffffffff"
 script = ExtResource("9_7yuwm")
+min_scale = 0.01
 simple = true
 simple_letters = 13
 metadata/_custom_type_script = "uid://bjncugq5805ty"

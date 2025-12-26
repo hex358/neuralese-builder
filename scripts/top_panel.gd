@@ -19,6 +19,16 @@ func _ready() -> void:
 	$Control3/dsbg.hide()
 	$Control3/graphsbg.hide()
 	$Control3/minigamesbg.show()
+	name_resize()
+
+
+func name_resize():
+	$Label.size.x = clamp((glob.window_size.x - 700) * 0.6, 100, 189) / $Label.scale.x
+	#savebut.global_position.x = $Label.get_global_rect().end.x + 10
+	$Label.resize_after = $Label.size.x
+	$Label._resize_label()
+
+
 
 func _process(delta: float) -> void:
 	if size.x != glob.window_size.x-position.x*2:
@@ -26,8 +36,10 @@ func _process(delta: float) -> void:
 		for m in menus:
 			var menu = menus[m]
 			menu.attachement_x = size.x - menu.size.x + 30
-		#if glob.window_size.x < 50:
+			#if glob.window_size.x < 50:
+		name_resize()
 	if (glob.window_size.x) < 899:
+		#print(1300-glob.window_size.x)
 		if not in_small_mode:
 			var idx: int = -1
 			for i in buts:
@@ -47,12 +59,19 @@ func _process(delta: float) -> void:
 				buts[i].resize(b_szs[i])
 				buts[i]._wrapped_in.position = b_poss[i]
 		in_small_mode = false
-	$Control3.position.x = max(size.x / 2, 430)
-		
+	var rect = get_global_rect()
+	var k = 0.47 if glob.window_size.x < 1000 else 0.5
+	if in_small_mode:
+		k = 0.5
+	$Control3.global_position.x = lerp(rect.position.x, rect.end.x, k)
+	if in_small_mode:
+		$Control3.global_position.x -= 22
+	$Control3.global_position.x = max($Label.get_global_rect().end.x + 140, $Control3.global_position.x)
 	#if Input.is_action_just_pressed("ui_accept"):
 		#menus["a"].expand()
 	#elif Input.is_action_just_pressed("down"):
 		#menus["a"].close()
+	#print(glob.window_size.x)
 var in_small_mode: bool = false
 @onready var buts: Array[BlockComponent] = [$Control/ai, $Control/export, $Control/login]
 @onready var b_texts = [buts[0].text, buts[1].text, buts[2].text]
@@ -109,13 +128,13 @@ func _on_login_released() -> void:
 		if a:
 			pass
 			set_login_state("Works")
-			ui.splash("works", login_btn)
+			ui.splash("settings", login_btn)
 		else:
 			set_login_state("")
 		#if !glob.loaded_project_once:
 		#	glob.open_last_project()
 	else:
-		ui.splash("works", login_btn)
+		ui.splash("settings", login_btn)
 	#else:
 	#	login_btn.in_splash = false
 	#	ui.get_splash("login").go_away()
@@ -180,3 +199,19 @@ func _on_export_released() -> void:
 		res = await ui.splash_and_get_result("login", export)
 	if res:
 		var a = await ui.splash_and_get_result("model_export", export)
+
+@onready var workslist_but = $works
+func _on_workslist() -> void:
+	
+	if !glob.logged_in():
+		var a = await ui.splash_and_get_result("login", workslist_but)
+		if a:
+			pass
+			set_login_state("Works")
+			ui.splash("workslist", workslist_but)
+		else:
+			set_login_state("")
+		#if !glob.loaded_project_once:
+		#	glob.open_last_project()
+	else:
+		ui.splash("workslist", workslist_but)

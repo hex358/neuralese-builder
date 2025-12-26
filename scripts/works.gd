@@ -65,9 +65,11 @@ func _on_list_scroll_changed() -> void:
 
 @onready var lang_button = $ColorRect/lang
 func _on_lang_released() -> void:
-	glob.switch_lang()
+	resultate({"go_setts": true})
+	#ui.splash("settings", lang_button)
+	#glob.switch_lang()
 	#print(glob.get_lang())
-	update_lang()
+	#update_lang()
 
 func update_lang():
 	match glob.get_lang():
@@ -87,6 +89,12 @@ func _resultate(data: Dictionary):
 		queue_free()
 		ui.splash_and_get_result("path_open", splashed_from, emitter, true, 
 		{"filter": ["nls"], "from_proj": splashed_from})
+	elif "go_setts" in data:
+		can_go = false
+		go_away()
+		await quitting
+		queue_free()
+		ui.splash("settings", lang_button, emitter, true, {"from_but": splashed_from})
 	else:
 		#var rand_dataset_id: int = randi_range(0,999999)
 		emitter.res.emit(data)
@@ -113,5 +121,6 @@ func _resultate(data: Dictionary):
 
 
 func _on_import_released() -> void:
+	
 	resultate({"go_path": true})
 	pass # Replace with function body.

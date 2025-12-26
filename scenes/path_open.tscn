@@ -61,7 +61,6 @@ metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Node2D" type="Control"]
 process_mode = 3
-visible = false
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_jdhll")

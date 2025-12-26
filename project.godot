@@ -33,6 +33,7 @@ nn="*res://scripts/run_manager.gd"
 luas="*res://scripts/lua_envs.gd"
 parser="*res://scripts/graph_script_parser.gd"
 dsreader="*res://scripts/dataset_helpers.gd"
+learner="*res://scripts/learner.gd"
 
 [display]
 

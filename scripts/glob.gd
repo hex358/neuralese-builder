@@ -2,6 +2,9 @@
 extends Node2D
 const DEBUG: bool = true
 const LOCALHOSTED: bool = true
+const DUMMY_LOGIN: bool = true
+const DUMMY_PROJECTS: bool = true
+const NO_TRANSCRIBER_WARMUP: bool = true
 
 var default_spline = preload("res://scenes/default_spline.tscn")
 var scroll_container = preload("res://scenes/vbox.tscn")
@@ -294,6 +297,12 @@ func create_empty_project(name: String) -> int:
 	return id
 
 func request_projects():
+	if DUMMY_PROJECTS:
+		var ddict = {}
+		for i in range(10):
+			ddict[hash(i)] = {"name": "Project %s" % i}
+		#print(ddict)
+		return ddict
 	var a = await web.POST("project_list", {
 	"user": cookies.user(), 
 	"pass": cookies.pwd()
@@ -605,6 +614,9 @@ var enter_just_pressed: bool = false
 var _logged_in: Dictionary = {}
 func try_auto_login():
 	var got = get_var("credentials")
+	if DUMMY_LOGIN: 
+		dummy_login()
+		return true
 	if got:
 		var answer = await login_req(got["user"], got["pass"])
 		if answer.ok:
@@ -620,6 +632,10 @@ func try_auto_login():
 
 func login_req(user: String, passw: String):
 	return await web.POST("login", {"user": user, "pass": passw})
+
+func dummy_login():
+	var data = {"user": "n", "pass": "1"}
+	set_logged_in(data["user"], data["pass"])
 
 func set_logged_in(user: String, passw: String):
 	_logged_in = {"user": user, "pass": passw}
@@ -652,6 +668,7 @@ func _process(delta: float) -> void:
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
+	#print(window_size)
 	f2_just_pressed = Input.is_action_just_pressed("f2")
 	f2_pressed = Input.is_action_pressed("f2")
 	if glob.get_occupied("menu") and !glob.get_occupied("menu").is_visible_in_tree():
@@ -659,6 +676,8 @@ func _process(delta: float) -> void:
 	#if _menu_type_occupator and _menu_type_occupator is Connection:
 	#	print(_menu_type_occupator.parent_graph.process_mode == Node.PROCESS_MODE_DISABLED)
 	
+	#if space_just_pressed:
+	#	await save(str(get_project_id()))
 	#if space_just_pressed:
 	#	save_datasets()
 	if curr_window == "graph" and not get_viewport().gui_get_focus_owner() is LineEdit:
@@ -1378,7 +1397,6 @@ func _read_packed_ds_from_disk(name: String) -> Dictionary:
 	return {"len": length_val, "bytes": compressed_val}
 
 
-
 func preprocess_import_project(bytes: PackedByteArray) -> Dictionary:
 	var result = {
 		"ok": false,
@@ -1391,15 +1409,10 @@ func preprocess_import_project(bytes: PackedByteArray) -> Dictionary:
 		result.errors.append("Empty input buffer")
 		return result
 
-	var peer = StreamPeerBuffer.new()
-	peer.data_array = bytes
-	#peer.set_position(0)
+	var peer := StreamPeerBuffer.new()
+	peer.data_array = bytes  # this resets cursor in StreamPeerBuffer :contentReference[oaicite:1]{index=1}
 
-	var header = {}
-	if not peer.get_available_bytes() > 0:
-		result.errors.append("Corrupted container: no header")
-		return result
-	header = peer.get_var()
+	var header = peer.get_var()
 	if typeof(header) != TYPE_DICTIONARY:
 		result.errors.append("Invalid header section")
 		return result
@@ -1413,19 +1426,26 @@ func preprocess_import_project(bytes: PackedByteArray) -> Dictionary:
 		result.errors.append("Invalid dataset index section")
 		return result
 
-	var datasets = []
+	var datasets: Array = []
 	for i in index_arr.size():
 		if peer.get_available_bytes() < 4:
 			result.errors.append("Truncated dataset payload before entry %d" % i)
 			break
 
-		var blob_len = peer.get_u32()
+		var blob_len: int = peer.get_u32()
 		if blob_len <= 0 or peer.get_available_bytes() < blob_len:
 			result.errors.append("Invalid length for dataset %d" % i)
 			break
 
-		var blob_bytes = peer.get_data(blob_len)
-		var meta = index_arr[i].duplicate(true)
+		var got := peer.get_data(blob_len) # [err, PackedByteArray] :contentReference[oaicite:2]{index=2}
+		var err: int = got[0]
+		if err != OK:
+			result.errors.append("Failed reading dataset %d bytes (err=%d)" % [i, err])
+			break
+
+		var blob_bytes: PackedByteArray = got[1]
+
+		var meta: Dictionary = index_arr[i].duplicate(true)
 		meta["bytes"] = blob_bytes
 		datasets.append(meta)
 
@@ -1435,10 +1455,14 @@ func preprocess_import_project(bytes: PackedByteArray) -> Dictionary:
 	return result
 
 
+
+
+
+
 func import_project(bytes: PackedByteArray) -> bool:
 	# === 1. Parse the binary container ===
 	var parsed = preprocess_import_project(bytes)
-	print(parsed)
+	#print(parsed)
 	if not parsed.ok:
 		push_error("Import failed: " + ", ".join(parsed.errors))
 		return false
@@ -1476,6 +1500,7 @@ func import_project(bytes: PackedByteArray) -> bool:
 	var ds_dir = cookies.dir_or_create("datasets")
 	for ds in datasets:
 		var name: String = ds.get("name", "")
+		print("ds ", name)
 		if name.is_empty():
 			continue
 
@@ -1494,6 +1519,7 @@ func import_project(bytes: PackedByteArray) -> bool:
 		# Decompress + restore in memory
 		var decomp = bytes_zstd.decompress(len, FileAccess.COMPRESSION_ZSTD)
 		if decomp.is_empty():
+			print("skip...")
 			continue
 		var ds_dict = bytes_to_var_with_objects(decomp)
 		if not ds_dict:
@@ -1504,6 +1530,7 @@ func import_project(bytes: PackedByteArray) -> bool:
 		virtualt.cached_once[name] = true
 		ds_pack_cache[name] = {"len": len, "bytes": bytes_zstd, "mtime": Time.get_ticks_msec()}
 		cache_rle_compress(name, null, "thread")
+		print("Decompred!!!")
 
 	# === 5. Load environment and graphs ===
 	env_dump = lua_env
@@ -1601,7 +1628,77 @@ func get_world_visible_rect() -> Rect2:
 	return Rect2(top_left, rect_size)
 
 
+var remote_config = {}
+var default_cfg_dict = {"teacher": false}
+func set_remote_config(cfg):
+	remote_config = default_cfg_dict.duplicate(true)
+	remote_config.merge(cfg)
 
+func rem_cfg(field: String):
+	return remote_config.get(field)
+
+func login(user: String, passw: String) -> Dictionary:
+	var res := {
+		"ok": false,
+		"error": ""
+	}
+
+	var answer = await web.POST("login", {
+		"user": user,
+		"pass": passw
+	})
+
+	if not answer.ok:
+		res.error = "network"
+		return res
+
+	var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
+	if parsed == null or not parsed.has("answer"):
+		res.error = "protocol"
+		return res
+	set_remote_config(parsed.get("config", {}))
+
+	match parsed.answer:
+		"ok":
+			set_logged_in(user, passw)
+			res.ok = true
+		_:
+			res.error = "auth"
+
+	return res
+
+func create_account(user: String, passw: String, cfg: Dictionary) -> Dictionary:
+	var res := {
+		"ok": false,
+		"error": ""
+	}
+
+	var answer = await web.POST("create_user", {
+		"user": user,
+		"pass": passw,
+		"config": cfg
+	})
+	set_remote_config(cfg)
+
+	if not answer.ok:
+		res.error = "network"
+		return res
+
+	var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
+	if parsed == null or not parsed.has("answer"):
+		res.error = "protocol"
+		return res
+
+	match parsed.answer:
+		"ok":
+			set_logged_in(user, passw)
+			res.ok = true
+		"exists":
+			res.error = "exists"
+		_:
+			res.error = "unknown"
+
+	return res
 
 
 func clear_chat(chat_id: int, req=true):
@@ -1838,8 +1935,10 @@ func load_datasets():
 			#ds.erase("rle_cached")
 			ds_dump[ds["name"]] = create_dataset(randi_range(0,999999999), ds["name"])
 			dataset_datas[ds["name"]] = ds
-		virtualt.cached_once[ds["name"]] = true
-		cache_rle_compress(ds["name"], null, "thread")
+			virtualt.cached_once[ds["name"]] = true
+			cache_rle_compress(ds["name"], null, "thread")
+		else:
+			print("jfjf")
 	
 func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
 	# ds_obj is the dataset Dictionary (not bytes)
@@ -2139,6 +2238,10 @@ var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
 	if Engine.is_editor_hint(): return
+	set_remote_config({})
+	DisplayServer.window_set_min_size(Vector2(660,360))
+	if DUMMY_LOGIN:
+		dummy_login()
 	
 	graphs.spline_connected.connect(connect_action)
 	#graphs.spline_disconnected.connect(disconnect_action)

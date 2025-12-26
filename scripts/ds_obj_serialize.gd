@@ -42,6 +42,8 @@ static func get_preview(dataset_obj: Dictionary, validate_cols: bool = false) ->
 	for i in range(outputs_from, cols):
 		if i >= col_dtypes.size() or col_dtypes[i] == "image":
 			return {"fail": "no_1d_outs"}
+		if col_dtypes[i] == "text":
+			return {"fail": "preprocess_txt"}
 		cur_out["label_names"].append(col_names[i].split(":")[0])
 		cur_out["x"] = cols-outputs_from
 	res["outputs"] = [cur_out]

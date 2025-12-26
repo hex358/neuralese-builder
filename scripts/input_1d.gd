@@ -214,7 +214,13 @@ func _config_field(field: StringName, value: Variant):
 	#if not upd and field == "title":
 	#	$ColorRect/root/Label.set_line(value)
 	#	ch()
+func _just_connected(who: Connection, to: Connection):
+	pass
+	#if to.parent_graph.server_typename == "NeuronLayer":
+	graphs.push_1d(len(to_tensor()), self)
 
+func get_x():
+	return len(to_tensor())
 
 func something_focus() -> bool:
 	if ui.is_focus($input/tabs/int/min): return true
@@ -283,6 +289,7 @@ func push_values(values: Array, percent: bool = false):
 		update_config({"input_features": res})
 		close_undo_redo()
 		manually = false
+		graphs.push_1d(len(to_tensor()), self)
 
 
 

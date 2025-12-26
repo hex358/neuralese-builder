@@ -96,7 +96,7 @@ func _quit_request():
 		await quitting
 		#queue_free()
 		hide()
-		ui.splash("works", passed_data["from_proj"], emitter, true)
+		ui.splash("workslist", passed_data["from_proj"], emitter, true)
 	else:
 		can_go = true
 		await quitting
@@ -109,7 +109,9 @@ func _on_trainn_released() -> void:
 	
 func ress():
 	$ColorRect/Label.update_valid()
+	print($ColorRect/Label.text)
 	if $ColorRect/Label.is_valid and $ColorRect/Label.text:
+		print("AA")
 		resultate({"path": grid.selected_path})
 
 @onready var grid = $ColorRect/ScrollContainer/GridContainer

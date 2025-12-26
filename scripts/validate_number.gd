@@ -4,6 +4,7 @@ class_name ValidNumber
 @export var max_value: float = 2**16
 @export var allow_float: bool = false  # New: toggle float support
 @export var decimal_places: int = 2    # New: precision for floats
+@export var empty_on_min: bool = true
 
 var prev: float = min_value
 @onready var bef = text
@@ -20,6 +21,12 @@ func _revalidate_limits() -> void:
 	text = _format_number(v)
 	update_valid()
 
+signal backspace_attempt
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_pressed():
+		if event.keycode == KEY_BACKSPACE:
+			backspace_attempt.emit()
+#	print(OS.get_keycode_string(event.keycode))
 
 func _can_change_to(emit: bool) -> String:
 	var before = prev
@@ -31,8 +38,8 @@ func _can_change_to(emit: bool) -> String:
 		o = _format_number(min_value)
 		prev = min_value
 	
-	#if min_value == 0 and o == _format_number(min_value) and !allow_float:
-		#o = ""
+	if empty_on_min and min_value == 0 and o == _format_number(min_value) and !allow_float:
+		o = ""
 	
 	if prev < min_value or prev > max_value:
 		set_text_color(Color(1.0, 0.5, 0.5, 1.0))

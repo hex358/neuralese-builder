@@ -14,6 +14,8 @@ var target_mod: float = 0.0
 var from_scale: Vector2
 var to_scale: Vector2
 
+
+
 func _ready() -> void:
 	if show_on_ready:
 		readys()
@@ -63,22 +65,25 @@ func _resultate(data: Dictionary):
 		ui.splash_and_get_result("signup", splashed_from, emitter, true)
 	else:
 		ui.hourglass_on()
-		var answer = await glob.login_req(data["user"], data["pass"])
-		if answer.ok:
-			var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
-			if parsed.answer == "ok":
-				var prev = glob.logged_in()
-				glob.set_logged_in(data["user"], data["pass"])
-				emitter.res.emit(data)
-				go_away()
-
-			else:
-				print(parsed.answer)
-				ui.error("Username or password is wrong. :(")
-		else:
-			ui.error("Either your internet or the server itself is down. Sorry!")
-		
+		var result = await glob.login(data["user"], data["pass"])
 		ui.hourglass_off()
+
+		if result.ok:
+			emitter.res.emit(data)
+			go_away()
+		else:
+			match result.error:
+				"auth":
+					ui.error("Username or password is wrong. :(")
+				"network":
+					ui.error("Either your internet or the server itself is down. Sorry!")
+				_:
+					ui.error("Unexpected server error.")
+
+
+func set_base_size(sz: Vector2):
+	target_size = sz
+	$ColorRect.size = sz
 
 func tick():
 	$ColorRect.position = glob.window_size / 2.0 - ($ColorRect.size * $ColorRect.scale) / 2.0
@@ -93,7 +98,7 @@ func _notification(what: int) -> void:
 
 var inner: bool = false
 func _process(delta: float) -> void:
-	
+	$ColorRect.size = $ColorRect.size.lerp(target_size, delta * 20.0)
 	var has = $ColorRect.get_global_rect().has_point(get_global_mouse_position())
 	if has and visible:
 		ui.splashed_in[self] = true
@@ -105,7 +110,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_enter"):
 		if accept:
 			accept.press(0.02)
-	elif splashed and glob.mouse_just_pressed and \
+	elif splashed and (glob.mouse_just_pressed or glob.mouse_alt_just_pressed) and \
 	!has and\
 	!glob.is_occupied(self, "block_button_inside"):
 		go_away()
@@ -131,7 +136,7 @@ func _process(delta: float) -> void:
 		# Scale animation via spring
 		t += delta * 2.0  if splashed else delta * 6.0# time factor for spring curve
 		if t < 0.5:
-			var spring_scale: Vector2 = (glob.spring(from_scale, to_scale, clamp(t, 0.0, 1.0), 2, 5.0, 1.0) 
+			var spring_scale: Vector2 = (glob.spring(from_scale, to_scale, clamp(t, 0.0, 1.0), 2, 5.0, 0.7) 
 			if splashed else lerp(from_scale, to_scale, t))
 			$ColorRect.scale = lerp(spring_scale, Vector2.ONE, 0.8)
 		elif not ticked and splashed:
@@ -145,6 +150,8 @@ func _process(delta: float) -> void:
 	tick()
 var ticked: bool = false
 signal stable
+
+@onready var target_size: Vector2 = $ColorRect.size
 
 func _just_splash():
 	ui.blur.set_tuning(ui.blur.base_tuning)

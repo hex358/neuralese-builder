@@ -11,7 +11,7 @@ func _ready() -> void:
 
 func _menu_handle_hovering(button: BlockComponent):
 	glob.set_menu_type(self, &"delete_project")
-	if glob.mouse_alt_just_pressed:
+	if glob.mouse_alt_just_pressed and not hint == "no_ctx":
 		pass
 		#print("FJFJ")
 		glob.menus[&"delete_project"].show_up(button.text, 
@@ -23,6 +23,8 @@ func _menu_handle_hovering(button: BlockComponent):
 func _process(delta: float) -> void:
 	super(delta)
 	glob.reset_menu_type(self, &"delete_project")
+	#if not Engine.is_editor_hint():
+	#	(_contained[-1].show())
 
 func show_up(iter, node=null):
 	#if visible: return=

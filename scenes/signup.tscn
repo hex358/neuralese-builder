@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://dsg7ev0kvghnj"]
+[gd_scene load_steps=14 format=3 uid="uid://dsg7ev0kvghnj"]
 
 [ext_resource type="Script" uid="uid://ddhiggea75olg" path="res://scripts/signup.gd" id="1_gxvn0"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_7cl1p"]
@@ -26,6 +26,18 @@ animation_decay = 6.0
 animation_duration = 1.359
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
+[sub_resource type="Resource" id="Resource_7cl1p"]
+script = ExtResource("9_87yak")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.101
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.96
+animation_speed = 1.951
+animation_decay = 4.564
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
 [node name="Node2D" type="Control" node_paths=PackedStringArray("accept", "first_line")]
 process_mode = 3
 layout_mode = 3
@@ -42,10 +54,10 @@ instance_shader_parameters/corner_radius_width_add = Vector2(9.365, 1)
 instance_shader_parameters/outline_color = Color(0.85, 0.85, 0.85, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.7529412)
 layout_mode = 0
-offset_left = 365.0
-offset_top = 146.0
-offset_right = 644.0
-offset_bottom = 407.0
+offset_left = 370.0
+offset_top = 164.0
+offset_right = 649.0
+offset_bottom = 463.0
 
 [node name="root" type="Control" parent="ColorRect"]
 layout_mode = 1
@@ -197,7 +209,7 @@ offset_bottom = -18.999985
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(0.954273, 0.954273)
-pivot_offset = Vector2(39.288773, 12.5)
+pivot_offset = Vector2(39.288773, 12.499992)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 0)
 button_type = 1
@@ -206,7 +218,7 @@ hint = &"login"
 base_scale_x = 0.45
 resize_after = 9
 text = "Login"
-base_size = Vector2(78.577545, 25)
+base_size = Vector2(78.577545, 24.999985)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -240,7 +252,7 @@ grow_horizontal = 2
 scale = Vector2(0.92970926, 0.92970926)
 theme = ExtResource("5_8bdyc")
 theme_override_fonts/font = ExtResource("6_p0ln1")
-placeholder_text = "repeat pass"
+placeholder_text = "pass x2"
 max_length = 32
 expand_to_text_length = true
 script = ExtResource("7_ertm5")
@@ -253,10 +265,58 @@ metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 script = ExtResource("8_7cl1p")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"repeat pass": "повт. пароль"
+"repeat pass": "пароль х2"
 })
 localizations_kz = Dictionary[String, String]({
-"_": "қайта енгізу"
+"_": "құпиясөз х2"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
+[node name="switch" parent="ColorRect" node_paths=PackedStringArray("graph") instance=ExtResource("8_n4qn0")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 27.000015
+offset_top = 218.00003
+offset_right = 47.000015
+offset_bottom = 238.00003
+scale = Vector2(1.4227637, 1.4227637)
+pivot_offset = Vector2(10, 10)
+mouse_filter = 1
+color = Color(0.6039216, 0.92941177, 0.6313726, 1)
+button_type = 1
+top = true
+base_scale_x = 0.45
+resize_after = 6
+text = "I"
+base_size = Vector2(20, 20)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_7cl1p")
+graph = NodePath("")
+in_splash = true
+
+[node name="Label4" type="Label" parent="ColorRect"]
+modulate = Color(0.4117647, 0.4117647, 0.4117647, 1)
+z_index = 1
+layout_mode = 0
+offset_left = 58.0
+offset_top = 214.0
+offset_right = 347.0
+offset_bottom = 257.0
+scale = Vector2(0.68098223, 0.68098223)
+theme = ExtResource("4_j6mp4")
+text = "Teacher account"
+
+[node name="Loc" type="Node" parent="ColorRect/Label4"]
+script = ExtResource("8_7cl1p")
+auto = true
+localizations_kz = Dictionary[String, String]({
+"_": "Мен мұғаліммін"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -266,3 +326,4 @@ script = ExtResource("10_o15mk")
 [connection signal="text_changed" from="ColorRect/Label2" to="." method="_on_label_2_text_changed"]
 [connection signal="released" from="ColorRect/train" to="." method="_on_train_releasedd"]
 [connection signal="released" from="ColorRect/train2" to="." method="_on_train_2_releaseda"]
+[connection signal="released" from="ColorRect/switch" to="." method="_on_switch_released"]

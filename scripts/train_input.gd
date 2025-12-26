@@ -24,7 +24,7 @@ func _after_ready():
 		n.hide()
 		_fade_targets[n] = 0.0
 	select_optimizer(current_optimizer)
-	set_weight_dec(true)
+	set_weight_dec(false)
 	is_training = true
 	_target_size_y = base_size + tab_size_adds.get(current_optimizer, 0.0)
 

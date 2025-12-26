@@ -64,11 +64,12 @@ func _menu_handle_release(button: BlockComponent):
 	#unfreeze_input()
 
 @export var name_groups: Array[PackedStringArray] = []
+@export var skip: Array[String] = []
 
 func _ready():
 	if Engine.is_editor_hint():
 		return
-
+	
 	var base: BlockComponent = $"5".duplicate()
 	for child in get_children():
 		if child is BlockComponent:
@@ -79,6 +80,8 @@ func _ready():
 
 	for i in graphs.graph_buttons:
 		if not i.name in glob.base_node.importance_chain:
+			continue
+		if i.name in skip:
 			continue
 
 		var dup: BlockComponent = base.duplicate()
@@ -95,10 +98,9 @@ func _ready():
 			"lua_env": title = "RLEnviron"
 			"train_input": title = "TrainStep"
 			"input": title = "Input2D"
-		if title != pr:
-			print(i.name, " ", title)
 		dup.hint = i.name
 		dup.text = title
+		#print(title)
 		var outline_color: Color = _lift_color(i.outline_color, 0.65)
 		var tuning_color: Color = _lift_color(i.tuning, 0.65)
 		tuning_color.a = 0.7

@@ -97,7 +97,7 @@ show_on_ready = false
 z_index = 8
 material = ExtResource("2_o277e")
 instance_shader_parameters/corner_radius_width_add = Vector2(9.365, 1)
-instance_shader_parameters/outline_color = Color(0.85, 0.85, 0.85, 1)
+instance_shader_parameters/outline_color = Color(0.7527, 0.6162, 0.78, 1)
 instance_shader_parameters/tuning = Color(0.42, 0.42, 0.42, 1)
 layout_mode = 0
 offset_left = 342.0
@@ -176,12 +176,13 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="i" type="Sprite2D" parent="ColorRect/root"]
-position = Vector2(23.000015, 21)
+self_modulate = Color(0.83955, 0.6873, 0.87, 1)
+position = Vector2(24.000015, 22.999998)
 scale = Vector2(0.9496938, 0.9496938)
 texture = ExtResource("5_h3ok5")
 
 [node name="Label" type="Label" parent="ColorRect/root"]
-modulate = Color(0.41, 0.41, 0.41, 1)
+modulate = Color(0.4982, 0.37099996, 0.53, 1)
 z_index = 1
 layout_mode = 0
 offset_left = 36.0

@@ -193,7 +193,7 @@ offset_top = -32.0
 offset_right = 72.0
 offset_bottom = -11.0
 color = Color(1, 0.988235, 0.6, 1)
-_accepted_datatypes = "layer1d"
+_accepted_datatypes = "input1d"
 server_name = &"input_out"
 connection_type = 1
 area_paddings = Vector4(20, 20, 20, 20)
@@ -214,7 +214,6 @@ offset_left = -87.0
 offset_top = -65.0
 offset_right = 63.0
 offset_bottom = 30.0
-mouse_filter = 2
 
 [node name="root" type="Control" parent="ColorRect"]
 anchors_preset = 0
@@ -272,6 +271,7 @@ min_value = -1000000.0
 max_value = 1000000.0
 allow_float = false
 decimal_places = 2
+empty_on_min = true
 resize_after = 6
 change_always_accepted = false
 
@@ -613,6 +613,7 @@ min_value = -10000.0
 max_value = 10000.0
 allow_float = false
 decimal_places = 2
+empty_on_min = true
 resize_after = 3
 change_always_accepted = false
 
@@ -634,6 +635,7 @@ min_value = -10000.0
 max_value = 10000.0
 allow_float = false
 decimal_places = 2
+empty_on_min = true
 resize_after = 3
 change_always_accepted = false
 

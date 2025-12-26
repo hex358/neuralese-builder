@@ -1,38 +1,58 @@
 extends Node
 class_name WebAPI
-"https://neriqward.360hub.ru/api/"
-"http://localhost:8000/"
+
+# "https://neriqward.360hub.ru/api/"
+# "http://localhost:8000/"
 var api_url: String = glob.get_root_http()
+
 const _READ_CHUNK: int = 64 * 1024
 const _CONNECT_TIMEOUT_S: float = 3.0
 const _IO_YIELD_US: int = 500
 
 var transcriber: Transcriber
+
 func _ready() -> void:
 	transcriber = Transcriber.new()
 	add_child(transcriber)
 
+
 class RequestHandle:
 	extends RefCounted
+
 	signal completed(result: Dictionary)
 	signal on_chunk(chunk: PackedByteArray)
-	var id: StringName = ""
+	signal on_sse(event: Dictionary)
 
-# ───────────────────────────────────────────────
-# Public API (identical to old)
-# ───────────────────────────────────────────────
+	var id: StringName = ""
+	var is_sse: bool = false
+	var cancelled: bool = false
+
+	# Internal SSE buffer (string framing)
+	var _sse_buffer: String = ""
+
+	func cancel() -> void:
+		cancelled = true
+
+
+# Public API (keeps old behavior)
 func POST(page: String, data, bytes: bool = false, obj: bool = false):
-	return _request(api_url + page, data, HTTPClient.METHOD_POST, bytes, obj)
+	return _request(api_url + page, data, HTTPClient.METHOD_POST, bytes, obj, false)
 
 func GET(page: String, args: Dictionary = {}, obj: bool = false):
 	var full_url = api_url + page
 	if not args.is_empty():
 		full_url += "?" + _encode_query(args)
-	return _request(full_url, {}, HTTPClient.METHOD_GET, false, obj)
+	return _request(full_url, {}, HTTPClient.METHOD_GET, false, obj, false)
 
-# ───────────────────────────────────────────────
+# Returns the handle so you can connect to on_sse (and optionally cancel).
+func GET_SSE(page: String, args: Dictionary = {}) -> RequestHandle:
+	var full_url = api_url + page
+	if not args.is_empty():
+		full_url += "?" + _encode_query(args)
+	return _request(full_url, {}, HTTPClient.METHOD_GET, false, true, true)
+
+
 # Headers
-# ───────────────────────────────────────────────
 func get_headers() -> PackedStringArray:
 	var os_name = OS.get_name()
 	var os_version = OS.get_version()
@@ -57,9 +77,7 @@ func get_headers() -> PackedStringArray:
 
 	return headers
 
-# ───────────────────────────────────────────────
-# Internal
-# ───────────────────────────────────────────────
+
 func _encode_query(params: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	for k in params.keys():
@@ -68,20 +86,29 @@ func _encode_query(params: Dictionary) -> String:
 		parts.append("%s=%s" % [key, val])
 	return "&".join(parts)
 
-func _request(address: String, request_body, method: int, bytes: bool = false, obj: bool = false):
-	var handle := RequestHandle.new()
+func _request(
+	address: String,
+	request_body,
+	method: int,
+	bytes: bool = false,
+	obj: bool = false,
+	sse: bool = false
+):
+	var handle = RequestHandle.new()
 	handle.id = "req_%s" % str(Time.get_ticks_usec())
+	handle.is_sse = sse
 
-	var thread := Thread.new()
+	var thread = Thread.new()
 	_threads.append(thread)
 
-	var payload := {
+	var payload = {
 		"address": address,
 		"method": method,
 		"body": request_body,
 		"bytes": bytes,
 		"headers": get_headers(),
 		"handle": handle,
+		"sse": sse,
 	}
 	thread.start(Callable(self, "_http_thread").bind(payload, thread))
 
@@ -90,8 +117,8 @@ func _request(address: String, request_body, method: int, bytes: bool = false, o
 	return handle.completed
 
 static func _split_url(url: String) -> Dictionary:
-	var ssl := false
-	var rest := url
+	var ssl = false
+	var rest = url
 	if rest.begins_with("https://"):
 		ssl = true
 		rest = rest.substr(8)
@@ -99,20 +126,26 @@ static func _split_url(url: String) -> Dictionary:
 		ssl = false
 		rest = rest.substr(7)
 
-	var slash := rest.find("/")
-	var host_port := rest if slash == -1 else rest.substr(0, slash)
-	var path := "/" if slash == -1 else rest.substr(slash)
-	var host := host_port
-	var port := 443 if ssl else 80
-	var colon := host_port.find(":")
+	var slash = rest.find("/")
+	var host_port = rest if slash == -1 else rest.substr(0, slash)
+	var path = "/" if slash == -1 else rest.substr(slash)
+	var host = host_port
+	var port = 443 if ssl else 80
+	var colon = host_port.find(":")
 	if colon != -1:
 		host = host_port.substr(0, colon)
 		port = int(host_port.substr(colon + 1))
 	return {"ssl": ssl, "host": host, "port": port, "path": path}
 
-# ───────────────────────────────────────────────
-# Background thread using HTTPClient
-# ───────────────────────────────────────────────
+func _headers_without_content_type(hdrs: PackedStringArray) -> PackedStringArray:
+	var out = PackedStringArray()
+	for h in hdrs:
+		if h.to_lower().begins_with("content-type:"):
+			continue
+		out.append(h)
+	return out
+
+
 var _threads: Array[Thread] = []
 
 func _http_thread(p: Dictionary, thread: Thread) -> void:
@@ -122,12 +155,14 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 	var req_body = p.body
 	var send_bytes: bool = p.bytes
 	var hdrs: PackedStringArray = p.headers
+	var is_sse: bool = p.sse
 
-	var url := _split_url(address)
-	var client := HTTPClient.new()
+	var url = _split_url(address)
+	var client = HTTPClient.new()
 	client.blocking_mode_enabled = false
 
-	var has_host := false
+	# Ensure Host header
+	var has_host = false
 	for h in hdrs:
 		if h.to_lower().begins_with("host:"):
 			has_host = true
@@ -135,21 +170,25 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 	if not has_host:
 		hdrs.append("Host: %s" % url.host)
 
+	# SSE-specific headers (and remove JSON Content-Type)
+	if is_sse:
+		hdrs = _headers_without_content_type(hdrs)
+		hdrs.append("Accept: text/event-stream")
+		hdrs.append("Cache-Control: no-cache")
+		hdrs.append("Connection: keep-alive")
+
 	var body_data: PackedByteArray = PackedByteArray()
 	if send_bytes:
 		body_data = req_body
 	else:
 		body_data = (JSON.stringify(req_body, "", true, true)).to_utf8_buffer()
 
-	var start := Time.get_ticks_msec()
+	var start = Time.get_ticks_msec()
 	var tls_opts: TLSOptions = null
 	if url.ssl:
-		tls_opts = TLSOptions.client()  # standard client TLS options
+		tls_opts = TLSOptions.client()
 
-	var err := client.connect_to_host(url.host, url.port, tls_opts)
-
-
-
+	var err = client.connect_to_host(url.host, url.port, tls_opts)
 	if err != OK:
 		call_deferred("_emit_http_done", handle, {
 			"ok": false, "error": err, "code": 0, "body": PackedByteArray(),
@@ -168,12 +207,15 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 			call_deferred("_cleanup_thread", thread)
 			return
 		OS.delay_usec(_IO_YIELD_US)
-	
-	var is_get = p.method == HTTPClient.METHOD_GET
+
+	var is_get = method == HTTPClient.METHOD_GET
+
+	# SSE is GET-only (no body). We still keep your GET-body suppression logic.
 	if send_bytes:
 		err = client.request_raw(method, url.path, hdrs, body_data if not is_get else PackedByteArray())
 	else:
 		err = client.request(method, url.path, hdrs, body_data.get_string_from_utf8() if not is_get else "")
+
 	if err != OK:
 		call_deferred("_emit_http_done", handle, {
 			"ok": false, "error": err, "code": 0, "body": PackedByteArray(),
@@ -186,17 +228,68 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 		client.poll()
 		OS.delay_usec(_IO_YIELD_US)
 
-	var response_code := client.get_response_code()
+	var response_code = client.get_response_code()
 	var resp_headers: PackedStringArray = client.get_response_headers()
 	call_deferred("_cookies_from_headers", resp_headers)
 
-	var accum := PackedByteArray()
+	# If SSE endpoint rejected us, finish like normal.
+	if is_sse and not (response_code >= 200 and response_code < 300):
+		call_deferred("_emit_http_done", handle, {
+			"ok": false,
+			"result": OK,
+			"code": response_code,
+			"headers": resp_headers,
+			"body": PackedByteArray(),
+			"address": address,
+			"id": handle.id
+		})
+		call_deferred("_cleanup_thread", thread)
+		return
+
+	if is_sse:
+		while true:
+			if handle.cancelled:
+				client.close()
+				break
+
+			client.poll()
+			var st = client.get_status()
+
+			if st == HTTPClient.STATUS_BODY:
+				var chunk = client.read_response_body_chunk()
+				if chunk.size() > 0:
+					# Optional raw chunks for debugging/metrics
+					call_deferred("_emit_http_chunk", handle, chunk)
+					call_deferred("_emit_sse_chunk", handle, chunk)
+				else:
+					OS.delay_usec(_IO_YIELD_US)
+			elif st in [HTTPClient.STATUS_CONNECTED, HTTPClient.STATUS_REQUESTING, HTTPClient.STATUS_CONNECTING, HTTPClient.STATUS_RESOLVING]:
+				OS.delay_usec(_IO_YIELD_US)
+			else:
+				# disconnected / error / closed by server
+				break
+
+		# Signal completion when the stream ends (or is cancelled)
+		call_deferred("_emit_http_done", handle, {
+			"ok": handle.cancelled,
+			"result": OK,
+			"code": response_code,
+			"headers": resp_headers,
+			"body": PackedByteArray(),
+			"address": address,
+			"id": handle.id,
+			"cancelled": handle.cancelled
+		})
+		call_deferred("_cleanup_thread", thread)
+		return
+
+	var accum = PackedByteArray()
 	while client.get_status() == HTTPClient.STATUS_BODY:
 		client.poll()
-		var chunk := client.read_response_body_chunk()
-		if chunk.size() > 0:
-			call_deferred("_emit_http_chunk", handle, chunk)
-			accum.append_array(chunk)
+		var chunk2 = client.read_response_body_chunk()
+		if chunk2.size() > 0:
+			call_deferred("_emit_http_chunk", handle, chunk2)
+			accum.append_array(chunk2)
 		else:
 			OS.delay_usec(_IO_YIELD_US)
 
@@ -211,23 +304,67 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 	})
 	call_deferred("_cleanup_thread", thread)
 
-# ───────────────────────────────────────────────
+
 # Main-thread emitters and cleanup
-# ───────────────────────────────────────────────
 func _emit_http_chunk(handle: RequestHandle, chunk: PackedByteArray) -> void:
 	handle.emit_signal("on_chunk", chunk)
 
 func _emit_http_done(handle: RequestHandle, payload: Dictionary) -> void:
 	handle.emit_signal("completed", payload)
-	var dyn = "http_done_%s" % handle.id
-	#semit_signal(dyn, payload)
+
+func _emit_sse_chunk(handle: RequestHandle, chunk: PackedByteArray) -> void:
+	# Decode as UTF-8 text and normalize line endings.
+	var text = chunk.get_string_from_utf8()
+	if text.find("\r\n") != -1:
+		text = text.replace("\r\n", "\n")
+	if text.find("\r") != -1:
+		text = text.replace("\r", "\n")
+
+	handle._sse_buffer += text
+
+	while true:
+		# SSE frames end with a blank line
+		var sep = handle._sse_buffer.find("\n\n")
+		if sep == -1:
+			break
+
+		var raw = handle._sse_buffer.substr(0, sep)
+		handle._sse_buffer = handle._sse_buffer.substr(sep + 2)
+
+		if raw.strip_edges() == "":
+			continue
+
+		var evt = {
+			"event": "message",
+			"data": "",
+			"id": ""
+		}
+
+		var data_lines: PackedStringArray = []
+		for line in raw.split("\n", false):
+			line = line.strip_edges()
+			if line == "":
+				continue
+			if line.begins_with(":"):
+				continue
+
+			if line.begins_with("event:"):
+				evt.event = line.substr(6).strip_edges()
+			elif line.begins_with("data:"):
+				data_lines.append(line.substr(5).strip_edges())
+			elif line.begins_with("id:"):
+				evt.id = line.substr(3).strip_edges()
+
+		evt.data = "\n".join(data_lines).strip_edges()
+		handle.emit_signal("on_sse", evt)
 
 func _cookies_from_headers(headers: PackedStringArray) -> void:
 	cookies.update_from_headers(headers)
+
 func _cleanup_thread(thread: Thread) -> void:
 	if thread == null:
 		return
-	# This function is always called via call_deferred() → main thread.
+	# Always called via call_deferred() → main thread.
 	if thread.is_started():
 		thread.wait_to_finish()
 	_threads.erase(thread)
