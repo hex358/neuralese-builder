@@ -44,7 +44,8 @@ func quit(data: Dictionary = {}):
 	quitting.emit()
 	if can_go:
 		hide()
-		ui.blur.self_modulate.a = 0
+		if can_tween_zero:
+			ui.blur.self_modulate.a = 0
 		emitter.res.emit(data)
 		queue_free()
 
@@ -124,10 +125,14 @@ func _process(delta: float) -> void:
 	else:
 		show()
 		var k = 1.0 if ui.blur.self_modulate.a < target_mod else 2
+		#if target_mod < 0.01:
+		#	print(splashed)
 		$ColorRect.modulate.a = lerp($ColorRect.modulate.a, target_mod, delta * 20.0*k)
 		if can_go:
 			if not inner or !splashed:
-				ui.blur.self_modulate.a = lerp(ui.blur.self_modulate.a, target_mod, delta * 20.0)
+				#print(can_tween_zero)
+				if can_tween_zero:
+					ui.blur.self_modulate.a = lerp(ui.blur.self_modulate.a, target_mod, delta * 20.0)
 			else:
 				ui.blur.self_modulate.a = 1.0
 		else:
@@ -181,10 +186,12 @@ func splash() -> void:
 	glob.tree_windows["env"].get_node("Control").process_mode = Node.PROCESS_MODE_DISABLED
 	_just_splash()
 
-func go_away() -> void:
+var can_tween_zero: bool = true
+func go_away(mod_zero: bool = true) -> void:
 	from_scale = $ColorRect.scale
 	to_scale = Vector2.ZERO
 	t = 0.0
+	
 	target_mod = 0.0
 	splashed = false
 	ui.rem_splashed(self)

@@ -18,38 +18,110 @@ func usr_update():
 	$ColorRect/Control/Label.text = prefix + cookies.user()
 
 
-func set_teacher_layout():
-	set_base_size(Vector2(518,472.0))
-	$ColorRect/studentjoin.hide()
-	$ColorRect/studentyes.hide()
-	$ColorRect/classroomstatus.show()
-	$ColorRect/buts.position = Vector2(345.0, 45)
-	$ColorRect/Account.hide()
-	unroll_do()
+func _exit_tree() -> void:
+	if stream:
+		stream.cancel()
 
-func set_student_layout():
-	set_base_size(Vector2(462.0,259))
-	$ColorRect/studentjoin.show()
-	$ColorRect/studentyes.hide()
-	$ColorRect/classroomstatus.hide()
-	$ColorRect/buts.position = Vector2(32, 96)
-	$ColorRect/Account.show()
+var stream = null
 
-var parsed = {}
-func _ready() -> void:
-	if 0:#!ui.profile("teacher"):
-		set_student_layout()
+
+func open_lesson(idx: int):
+	var list = learner.lesson_list()
+	if idx < len(list) and idx >= 0:
+		lesson_index = idx
+		curr_lesson = learner.get_classroom_frontend().lessons[list.keys()[idx]]
+		if last_snapshot:
+			snapshot_receive(last_snapshot)
+		$ColorRect/classroomstatus/Control2/Label.text = str(idx+1) + ". " + curr_lesson.lesson_title
+		
+			
+var curr_lesson = null
+
+var lesson_index: int = 0
+var last_snapshot = null
+func snapshot_receive(evt: Dictionary):
+	if evt.get("event", "") != "snapshot": return
+	last_snapshot = evt
+	evt = JSON.parse_string(evt.data)
+	var students = {}
+	var ct: int = 0
+	var unequal: int = 0
+	for i in evt.students:
+		if int(evt.students[i].get("on_lesson", -1)) != int(lesson_index):
+			unequal += 1 
+			students[i] = {"data": evt.students[i], "name": i, "other": true}
+			continue
+		if evt.students[i].awaiting:
+			ct += 1
+		students[i] = {"data": evt.students[i], "name": i, "other": false}
+	reload_user_state(students)
+
+	
+	$ColorRect/classroomstatus/num.text = str(ct) + "/" + str(len(evt.students))
+	if unequal == len(evt.students):
+		$ColorRect/classroomstatus/num.show()
+		$ColorRect/classroomstatus/num.self_modulate = Color(0.6,0.6,0.6,1)
 	else:
-		set_teacher_layout()
-	usr_update()
-	glob.language_changed.connect(usr_update)
-	$ColorRect/Control/Label.resize()
-	update_lang()
-	super() 
-	if ui.profile("teacher"):
-		$ColorRect/Control/Label2.text = "Teacher"
+		$ColorRect/classroomstatus/num.show()
+		$ColorRect/classroomstatus/num.self_modulate = Color.WHITE
+	if ct == len(evt.students) and ct:
+		$ColorRect/classroomstatus/num.hide()
+		cont.show()
 	else:
-		$ColorRect/Control/Label2.text = "Student"
+		$ColorRect/classroomstatus/num.show()
+		cont.hide()
+
+@onready var cont = $ColorRect/classroomstatus/cont
+
+var user_state = {}
+func reload_user_state(usr: Dictionary):
+	user_state = usr.duplicate()
+	await unroll_do()
+
+func increment_user_state(usr: Dictionary):
+	user_state = usr.duplicate()
+	for i in user_state:
+		user_state[i].name = i
+		update_single(links[i], user_state[i])
+			
+
+func update_single(who: BlockComponent, dict: Dictionary):
+	
+	var waiting = dict.data.get("awaiting", false)
+	var user = dict.name
+	if len(user) > 13:
+		user = user.substr(0,13)
+		user += ".."
+	var footer = ""
+	if dict.get("other", false):
+		var on = int(dict.data.on_lesson)
+		footer = "[__] Not In Lesson" if on == -1 or on >= len(learner.lesson_list()) else "[--] In Lesson %s" % (on+1)
+		match glob.curr_lang:
+			"kz":
+				footer = "[__] Сабақта емес" if on == -1 else "[--] %s-сабақта" % (on+1)
+			"ru":
+				footer = "[__] Не в уроке" if on == -1 else "[--] На уроке %s" % (on+1)
+	else:
+		
+		footer = "(::) Working" if !waiting else "[**] Waiting"
+		match glob.curr_lang:
+			"kz":
+				footer = "(::) Салады" if !waiting else "[**] Күтеді"
+			"ru":
+				footer = "(::) Работает" if !waiting else "[**] Ожидает"
+	var total_letters: int = (list_unroll.size.x - list_unroll.arrangement_padding.x * 2) / 12.7
+	who.text = user + " ".repeat(total_letters - len(user) - len(footer) - 1) + footer
+	if dict.get("other", false):
+		who.modulate = Color(0.9,0.9,0.9,0.6)
+	else:
+		if waiting:
+			who.self_modulate = Color(1.2,1.2,1.2,2)
+		else:
+			who.self_modulate = Color(1,1,1,0.8)
+	who.hint = dict.name
+	links[dict.name] = who
+
+var links = {}
 
 func unroll_do():
 	$ColorRect/classroomstatus/list/ProceduralNodes.unroll()
@@ -57,6 +129,122 @@ func unroll_do():
 	list_unroll.menu_show(list_unroll.position)
 	list_unroll.state.holding = false
 	list_unroll.unblock_input()
+
+
+
+func unroll(dup, args, kwargs):
+	var output: Array[Node] = []
+	var arr_state = []
+	for i in user_state:
+		arr_state.append(user_state[i])
+		user_state[i]["name"] = i
+	arr_state.sort_custom(func(a, b):
+		return a["name"].to_lower() < b["name"].to_lower()
+	)
+	for i in arr_state:
+		var new: BlockComponent = dup.duplicate()
+		new.placeholder = false
+		new.show()
+		i.hint = i.name
+		new.self_modulate.a = 0.5
+		update_single(new, i)
+		output.append(new)
+	#print(output)
+	return output
+
+
+func set_teacher_layout(base: bool = true):
+	if cookies.profile("my_classroom"):
+		if base:
+			set_base_size(Vector2(518,472.0))
+		$ColorRect/studentjoin.hide()
+		$ColorRect/studentyes.hide()
+		$ColorRect/classroomstatus.show()
+		$ColorRect/classroomcr.hide()
+		var id: String = cookies.profile("my_classroom")
+		$ColorRect/classroomstatus/Label2.text = id.substr(0,3) + "-" + id.substr(3,-1)
+		unroll_do()
+		$ColorRect/buts.position = Vector2(345.0, 45)
+		$ColorRect/Account.hide()
+		if learner.classroom_data:
+			$ColorRect/classroomstatus/Control/name.text = learner.classroom_data["name"]
+			$ColorRect/classroomstatus/Control/name.resize()
+		stream = learner.classroom_stream()
+		stream.on_sse.connect(snapshot_receive)
+		glob.language_changed.connect(func(): reload_user_state(user_state))
+		open_lesson(0)
+		#if cookies.profile("teacher"):
+		#	print("teach!", evt)
+	
+	else:
+		$ColorRect/studentjoin.hide()
+		$ColorRect/studentyes.hide()
+		$ColorRect/classroomstatus.hide()
+		$ColorRect/classroomcr.show()
+
+@export var loader: AnimSpin
+func set_student_layout(base: bool = true):
+	if cookies.profile("my_classroom"):
+		if base:
+			set_base_size(Vector2(462,230.0))
+		$ColorRect/studentjoin.hide()
+		$ColorRect/studentyes.show()
+		$ColorRect/classroomstatus.hide()
+		$ColorRect/classroomcr.hide()
+		$ColorRect/buts.position = Vector2(32, 96)
+		$ColorRect/Account.show()
+		if learner.classroom_data:
+			$ColorRect/studentyes/Control/name.text = learner.classroom_data["name"]
+			$ColorRect/studentyes/Control/name.resize()
+		glob.language_just_changed.connect(func(): 
+			await get_tree().process_frame
+			$ColorRect/studentyes/Control/name.global_position.x = \
+			$ColorRect/studentyes/Control/Label.get_global_rect().end.x + 3)
+		$ColorRect/studentyes/Control/name.global_position.x = \
+			$ColorRect/studentyes/Control/Label.get_global_rect().end.x + 3
+	else:
+		if base:
+			set_base_size(Vector2(462.0,259))
+		$ColorRect/studentjoin.show()
+		$ColorRect/studentyes.hide()
+		$ColorRect/classroomstatus.hide()
+		$ColorRect/classroomcr.hide()
+		$ColorRect/buts.position = Vector2(32, 96)
+		$ColorRect/Account.show()
+
+var parsed = {}
+@onready var up = $ColorRect/classroomstatus/upload
+@onready var base_texture = up.get_node("TextureRect").texture
+var good = preload("res://game_assets/icons/good.png")
+func _ready() -> void:
+	#print("hey vey")
+	if passed_data.has("path"):
+		pass
+		var compiled = YAMLComp.new().compile_bundle(cookies.open_or_create(passed_data["path"], "").get_as_text())
+		print(compiled)
+		if compiled:
+			learner.upload_classroom_meta(compiled)
+	if !cookies.profile("teacher"):
+		set_student_layout()
+
+	else:
+		set_teacher_layout()
+	usr_update()
+	glob.language_changed.connect(usr_update)
+	$ColorRect/Control/Label.resize()
+	update_lang()
+	super() 
+	if cookies.profile("teacher"):
+		$ColorRect/Control/Label2.text = "Teacher"
+	else:
+		$ColorRect/Control/Label2.text = "Student"
+	#await get_tree().process_frame
+	$ColorRect/Control/Label2/Loc.translate()
+	if learner.classroom_data.get("lessons", {}):
+		up.get_node("TextureRect").texture = good
+	else:
+		up.get_node("TextureRect").texture = base_texture
+
 	#list.tune()
 
 @onready var list_unroll = $ColorRect/classroomstatus/list
@@ -73,6 +261,7 @@ func _on_logout() -> void:
 
 func _on_list_scroll_changed() -> void:
 	glob.hide_all_menus()
+
 
 @onready var lang_button = $ColorRect/buts/lang
 func _on_lang_released() -> void:
@@ -98,8 +287,10 @@ func quit(data: Dictionary = {}):
 	hide()
 	if can_go:
 		hide()
-		ui.blur.self_modulate.a = 0
+		if can_tween_zero:
+			ui.blur.self_modulate.a = 0
 		emitter.res.emit(data)
+		queue_free()
 
 
 func _quit_request():
@@ -124,23 +315,7 @@ func _resultate(data: Dictionary):
 	pass
 	go_away()
 
-func unroll(dup, args, kwargs):
-	var output: Array[Node] = []
-	for i in 8:
-		var new: BlockComponent = dup.duplicate()
-		new.placeholder = false
-		new.show()
-		var user = "miu"
-		if len(user) > 13:
-			user = user.substr(0,13)
-			user += ".."
-		var footer = "1/2 | Building" if i % 2 == 0 else "1/2 | Awaiting"
-		# 12.7
-		var total_letters: int = (list_unroll.size.x - list_unroll.arrangement_padding.x * 2) / 12.7
-		new.text = user + " ".repeat(total_letters - len(user) - len(footer) - 2) + footer
-		output.append(new)
-	#print(output)
-	return output
+
 
 #
 #func _on_trainn_released() -> void:
@@ -161,15 +336,66 @@ func unroll(dup, args, kwargs):
 # 518.0.0 472.0
 func _on_confirm_valid(input: String) -> void:
 	
-	target_size = Vector2(462,230.0)
-	$ColorRect/studentjoin.hide()
-	$ColorRect/studentyes.show()
-	print("valid! ", input)
+	#target_size = Vector2(462,230.0)
+	#$ColorRect/studentjoin.hide()
+	#$ColorRect/studentyes.show()
+	loader.play()
+	var a = await learner.join_classroom(input)
+	#print(cookies.profile("my_classroom"))
+	if cookies.profile("my_classroom"):
+		set_student_layout(false)
+		target_size = Vector2(462,230.0)
+
+
+
 
 
 func classroom_create() -> void:
-	target_size = Vector2(518,432.0)
-	$ColorRect/classroomcr.hide()
-	$ColorRect/classroomstatus.show()
-	await glob.wait(0.2)
-	unroll_do()
+	can_go = false
+	go_away()
+	await quitting
+	queue_free()
+	ui.splash("classroom_create", splashed_from, emitter, true)
+	#ui.splash("classroom_create", splashed_from, emitter, )
+	#var id: String = await learner.create_classroom()
+	#if id:
+		#target_size = Vector2(518,472.0)
+		#set_teacher_layout(false)
+
+
+func leave_press() -> void:
+	var a: bool = await learner.leave_classroom()
+	#if a:
+	target_size = Vector2(462.0,259)
+	set_student_layout(false)
+
+
+func _on_right_released() -> void:
+	open_lesson(lesson_index + 1)
+
+
+func _on_left_released() -> void:
+	open_lesson((lesson_index - 1))
+
+
+func _on_upload_released() -> void:
+	can_go = false
+	go_away()
+	await quitting
+	queue_free()
+	ui.splash_and_get_result("path_open", splashed_from, emitter, true, 
+	{"filter": ["yaml"], "goto_splash": "settings"})
+	
+	#learner.upload_classroom_meta()
+
+
+func _on_continue_released() -> void:
+	learner.mark_explanation_made(lesson_index)
+
+
+func _on_llist_released() -> void:
+	inner = true
+	go_away(false)
+	can_tween_zero = false
+	await quitting
+	ui.splash("lessonslist", splashed_from, emitter, true)

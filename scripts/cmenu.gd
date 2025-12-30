@@ -55,8 +55,8 @@ func _menu_handle_release(button: BlockComponent):
 			#type = "dropout"
 		#"concat":
 			#type = "concat"
-
 	var graph = graphs.get_graph(type, Graph.Flags.NEW)
+
 	var world_pos = graphs.get_global_mouse_position()
 	graph.global_position = world_pos - graph.rect.position - graph.rect.size / 2
 	#await glob.wait(0.1)

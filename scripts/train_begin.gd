@@ -48,7 +48,10 @@ func set_dataset_meta(meta: Dictionary):
 		#{"label": "bbox", "length": 5, "dtype": "1d"}, {"label": "bbox", "length": 5, "dtype": "1d"}
 	#]})
 
+var scrolling = false
+@onready var vbar = $ColorRect2/Control/ScrollContainer.get_v_scroll_bar()
 func _ready() -> void:
+	#vbar.value_changed.connect(func(): scrolling = true)
 	super()
 	#set_dataset_meta({"name": "mnist", "outputs": [
 	#	{"label": "bbox", "length": 5, "dtype": "1d"}, {"label": "bbox", "length": 5, "dtype": "1d"}
@@ -131,7 +134,11 @@ func train_stop(force: bool = false, send: bool = true):
 			$YY.set_line("")
 
 func vbox_focus():
+	#print($ColorRect2/Control/ScrollContainer.get_v_scroll_bar().get_global_rect().has_point(get_global_mouse_position()))
+	#if scrolling:
+	#	return true
 	return vbox_vis() and glob.mouse_pressed and $ColorRect2/Control/ScrollContainer.get_v_scroll_bar().get_global_rect().has_point(get_global_mouse_position())
+
 func vbox_vis():
 	return $ColorRect2/Control/ScrollContainer.get_v_scroll_bar().visible
 
@@ -149,6 +156,7 @@ func _process(delta: float) -> void:
 		glob.set_scroll_impossible(self)
 	else:
 		glob.set_scroll_possible(self)
+	#(func(): scrolling = false).call_deferred()
 		
 
 func _proceed_hold() -> bool:

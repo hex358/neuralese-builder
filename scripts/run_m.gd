@@ -197,7 +197,8 @@ func _process(delta: float) -> void:
 		#print(_useful_properties())
 
 func _just_deattached(other_conn: Connection, my_conn: Connection):
-	input_keys[0].disconnect_all()
+	if input_keys.has(0):
+		input_keys[0].disconnect_all()
 
 func _just_attached(other_conn: Connection, my_conn: Connection):
 	if get_descendant():

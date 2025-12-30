@@ -134,6 +134,15 @@ func move_mouse(pos: Vector2) -> void:
 
 
 var topr_inside: bool = false
+
+var topr_state = {}
+func upd_topr_inside(who: Object, val: bool):
+	if val:
+		topr_state[who] = true
+	else:
+		topr_state.erase(who)
+	topr_inside = len(topr_state) > 0
+
 #var _parent_graphs = {}
 func reg_button(b: BlockComponent):
 	pass
@@ -180,8 +189,10 @@ var splash_menus = {
 	"select_dataset": preload("res://scenes/select_dataset.tscn"),
 	"model_export": preload("res://scenes/model_export.tscn"),
 	"path_open": preload("res://scenes/path_open.tscn"),
+	"classroom_create": preload("res://scenes/classroom_create.tscn"),
 }
 
+var quest: Control = null
 
 var cl = CanvasLayer.new()
 var hg = preload("res://scenes/hourglass.tscn")
@@ -325,9 +336,7 @@ func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, 
 	return a
 
 
-
-func profile(field: String):
-	return glob.remote_config.get(field)
+var lesson_bar: ColorRect = null
 
 func configure_richtext_theme_auto(theme: Theme, base_font: FontFile, monospaced_font: FontFile) -> void:
 	if theme == null or base_font == null:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://b4eyheq367smq"]
+[gd_scene load_steps=13 format=3 uid="uid://b4eyheq367smq"]
 
 [ext_resource type="Script" uid="uid://b3h1ee18h6jpt" path="res://scripts/project_create.gd" id="2_3b2pe"]
 [ext_resource type="Material" uid="uid://crjr13k12egng" path="res://scenes/splash.tres" id="2_ea6d4"]
@@ -7,6 +7,7 @@
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="5_s3ovv"]
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="6_72skt"]
 [ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="7_jgeb6"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="8_8p67l"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_rf1so"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="9_oor6q"]
 [ext_resource type="Script" uid="uid://cink4uduoxu4b" path="res://scripts/end.gd" id="10_7uyvc"]
@@ -91,6 +92,17 @@ auto_red = true
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
+[node name="Loc" type="Node" parent="ColorRect/Label"]
+script = ExtResource("8_8p67l")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "название проекта"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "жоба атауы"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="train" parent="ColorRect" instance=ExtResource("8_rf1so")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -109,7 +121,7 @@ grow_vertical = 0
 scale = Vector2(1.1770253, 1.1770253)
 pivot_offset = Vector2(29.52449, 12.5)
 mouse_filter = 1
-color = Color(0.6045, 0.93, 0.631625, 1)
+color = Color(0.43137255, 0.5882353, 0.9019608, 1)
 button_type = 1
 top = true
 hint = &"Add"
@@ -125,6 +137,17 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_3idxy")
 in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/train"]
+script = ExtResource("8_8p67l")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "+Доб."
+})
+localizations_kz = Dictionary[String, String]({
+"_": "+Қос."
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Node" type="Node" parent="."]
 script = ExtResource("10_7uyvc")

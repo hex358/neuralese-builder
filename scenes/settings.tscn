@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://co81wbc7nvnue"]
+[gd_scene load_steps=29 format=3 uid="uid://co81wbc7nvnue"]
 
 [ext_resource type="Script" uid="uid://bahiwylqyse57" path="res://scripts/settings.gd" id="1_4ppmf"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_oe2nd"]
@@ -19,9 +19,7 @@
 [ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://resources/context_menu.tres" id="16_g5y2q"]
 [ext_resource type="Script" uid="uid://dqpr2y7tbsc13" path="res://scripts/works_list.gd" id="17_k00b3"]
 [ext_resource type="Script" uid="uid://3iluo5wg2wdh" path="res://scripts/works_unroll.gd" id="18_aisiw"]
-[ext_resource type="FontFile" uid="uid://cgdpqvf45jw1j" path="res://game_assets/fonts/JetBrainsSans[wght]-VF.ttf" id="19_aisiw"]
-[ext_resource type="Script" uid="uid://dog0wpjftm7uk" path="res://scripts/validate_line.gd" id="19_k00b3"]
-[ext_resource type="Script" uid="uid://cqec8tr633itj" path="res://scripts/locoffset.gd" id="21_f1e71"]
+[ext_resource type="Texture2D" uid="uid://d01lsypo4hh53" path="res://game_assets/icons/upload.png" id="20_aisiw"]
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="22_gcetw"]
 
 [sub_resource type="Resource" id="Resource_5kbvu"]
@@ -33,6 +31,20 @@ _hover_scale = 1.05
 press_color = Color(0.72, 0.72, 0.72, 1)
 _press_scale = 0.98
 animation_scale = 19.697
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
+
+[sub_resource type="Resource" id="Resource_aisiw"]
+script = ExtResource("5_6dbjw")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.05
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_scale = 1.0
 animation_speed = 3.473
 animation_decay = 6.0
 animation_duration = 1.359
@@ -91,23 +103,32 @@ script = ExtResource("5_6dbjw")
 hover_color = Color(1.300188, 1.300188, 1.300188, 1)
 hover_mult = 1.15
 _hover_scale = 1.01
-press_color = Color(1.1, 0.9, 0.9, 1)
-_press_scale = 0.97
+press_color = Color(0.9, 0.9, 0.9, 1)
+_press_scale = 0.99
 animation_speed = 1.951
 animation_decay = 4.564
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f1e71"]
+[sub_resource type="Resource" id="Resource_k00b3"]
+script = ExtResource("5_6dbjw")
+as_mult = true
+hover_color = Color(1.1, 1.1, 1.1, 1)
+hover_mult = 1.3
+_hover_scale = 1.02
+press_color = Color(0.72, 0.72, 0.72, 1)
+_press_scale = 0.98
+animation_scale = 1.0
+animation_speed = 3.473
+animation_decay = 6.0
+animation_duration = 1.359
+metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gcetw"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_i24gk"]
-
-[node name="Node2D" type="Control"]
+[node name="Node2D" type="Control" node_paths=PackedStringArray("loader")]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_4ppmf")
+loader = NodePath("ColorRect/studentjoin/Question/Node")
 typename = "settings"
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -119,8 +140,8 @@ instance_shader_parameters/tuning = Color(0, 0, 0, 0.7529412)
 layout_mode = 0
 offset_left = 326.0
 offset_top = 99.0
-offset_right = 844.0
-offset_bottom = 571.0
+offset_right = 788.0
+offset_bottom = 358.0
 
 [node name="Account" type="Sprite2D" parent="ColorRect"]
 self_modulate = Color(0.64, 0.64, 0.64, 1)
@@ -139,7 +160,7 @@ offset_bottom = 79.0
 layout_mode = 0
 offset_right = 143.0
 offset_bottom = 37.0
-scale = Vector2(0.9675611, 0.9675611)
+scale = Vector2(0.96432805, 0.96432805)
 pivot_offset = Vector2(0, 18.5)
 theme = ExtResource("12_3gwh8")
 text = "Username"
@@ -267,7 +288,7 @@ arrangement_padding = Vector2(5, 5)
 mouse_open = false
 menu_name = &"g"
 max_size = 170
-config = SubResource("Resource_5kbvu")
+config = SubResource("Resource_aisiw")
 in_splash = true
 
 [node name="studentjoin" type="Control" parent="ColorRect"]
@@ -496,29 +517,6 @@ anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="Control" type="Control" parent="ColorRect/studentyes"]
-anchors_preset = 0
-offset_left = 36.0
-offset_top = 135.0
-offset_right = 348.0
-offset_bottom = 175.0
-
-[node name="Label" type="Label" parent="ColorRect/studentyes/Control"]
-self_modulate = Color(1, 0.8745098, 0.5019608, 1)
-layout_mode = 0
-offset_top = -5.0
-offset_right = 300.0
-offset_bottom = 32.0
-scale = Vector2(0.9731769, 0.9731769)
-pivot_offset = Vector2(0, 18.5)
-theme = ExtResource("12_3gwh8")
-text = "Class: Math 10A"
-script = ExtResource("7_oe2nd")
-auto_get_base_size = true
-base_size = Vector2(300, 37)
-pivoting = true
-metadata/_custom_type_script = "uid://bjncugq5805ty"
-
 [node name="train" parent="ColorRect/studentyes" instance=ExtResource("2_oe2nd")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
@@ -559,7 +557,7 @@ in_splash = true
 script = ExtResource("10_gcetw")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "Покинуть"
+"_": "-  Уйти"
 })
 localizations_kz = Dictionary[String, String]({
 "_": "-  Шығу"
@@ -585,6 +583,7 @@ grow_vertical = 0
 scale = Vector2(1.4018645, 1.4018645)
 pivot_offset = Vector2(56.132664, 11.929329)
 mouse_filter = 1
+color = Color(0.5848, 0.86, 0.6857067, 1)
 button_type = 1
 top = true
 hint = &"Add"
@@ -609,6 +608,55 @@ localizations_ru = Dictionary[String, String]({
 })
 localizations_kz = Dictionary[String, String]({
 "_": "Сабақтар"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
+[node name="Control" type="Control" parent="ColorRect/studentyes"]
+anchors_preset = 0
+offset_left = 33.0
+offset_top = 171.0
+offset_right = 317.0
+offset_bottom = 211.0
+
+[node name="name" type="Label" parent="ColorRect/studentyes/Control"]
+modulate = Color(0.5019608, 1, 0.68235296, 1)
+layout_mode = 1
+offset_left = 113.99999
+offset_top = -44.0
+offset_right = 337.632
+offset_bottom = -7.0
+scale = Vector2(0.9927022, 0.9927022)
+theme = ExtResource("12_3gwh8")
+text = "Class: ffffff"
+script = ExtResource("7_oe2nd")
+auto_get_base_size = true
+base_size = Vector2(223.63199, 37)
+metadata/_custom_type_script = "uid://bjncugq5805ty"
+
+[node name="Label" type="Label" parent="ColorRect/studentyes/Control"]
+modulate = Color(0.5, 1, 0.6833333, 1)
+layout_mode = 0
+offset_top = -44.162907
+offset_right = 85.0
+offset_bottom = -7.1629066
+scale = Vector2(0.993, 0.993)
+pivot_offset = Vector2(0, 18.5)
+theme = ExtResource("12_3gwh8")
+text = "Class: "
+script = ExtResource("7_oe2nd")
+auto_get_base_size = true
+base_size = Vector2(94, 37)
+pivoting = true
+metadata/_custom_type_script = "uid://bjncugq5805ty"
+
+[node name="Loc" type="Node" parent="ColorRect/studentyes/Control/Label"]
+script = ExtResource("10_gcetw")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Класс: "
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Сынып: "
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -647,8 +695,8 @@ in_splash = true
 z_index = 5
 instance_shader_parameters/corner_radius_width_add = Vector2(-4, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(0.83, 0.78227496, 0.63909996, 1)
-instance_shader_parameters/tuning = Color(0.59, 0.573775, 0.5251, 0.6509804)
+instance_shader_parameters/outline_color = Color(0.63909996, 0.83, 0.7090966, 1)
+instance_shader_parameters/tuning = Color(0.5251, 0.59, 0.5488966, 0.6509804)
 layout_mode = 0
 offset_left = 200.0
 offset_top = 221.333
@@ -679,69 +727,23 @@ metadata/_custom_type_script = "uid://cppqde4187p8n"
 anchors_preset = 0
 offset_left = 33.0
 offset_top = 135.0
-offset_right = 317.0
+offset_right = 277.0
 offset_bottom = 175.0
 
-[node name="Label" type="Label" parent="ColorRect/classroomstatus/Control"]
-modulate = Color(1, 0.875, 0.5, 1)
-layout_mode = 0
-offset_top = -44.162907
-offset_right = 92.48062
-offset_bottom = -7.1629066
-scale = Vector2(0.993, 0.993)
-pivot_offset = Vector2(0, 18.5)
+[node name="name" type="Label" parent="ColorRect/classroomstatus/Control"]
+modulate = Color(0.5019608, 1, 0.68235296, 1)
+layout_mode = 1
+offset_left = 43.0
+offset_top = -41.0
+offset_right = 266.632
+offset_bottom = -4.0
+scale = Vector2(0.9927022, 0.9927022)
 theme = ExtResource("12_3gwh8")
-text = "Class:"
+text = "Class: ffffff"
 script = ExtResource("7_oe2nd")
 auto_get_base_size = true
-base_size = Vector2(92.48062, 37)
-pivoting = true
+base_size = Vector2(94, 37)
 metadata/_custom_type_script = "uid://bjncugq5805ty"
-
-[node name="Loc" type="Node" parent="ColorRect/classroomstatus/Control/Label"]
-script = ExtResource("10_gcetw")
-auto = true
-localizations_ru = Dictionary[String, String]({
-"_": "Класс:"
-})
-localizations_kz = Dictionary[String, String]({
-"_": "Сынып: "
-})
-metadata/_custom_type_script = "uid://dtwj74o465brs"
-
-[node name="Label2" type="LineEdit" parent="ColorRect/classroomstatus/Control"]
-layout_mode = 0
-offset_left = 86.999985
-offset_top = -50.162903
-offset_right = 274.27106
-offset_bottom = -2.1629028
-scale = Vector2(0.9932127, 0.9932127)
-pivot_offset = Vector2(0, 24)
-theme = ExtResource("8_aisiw")
-theme_override_colors/font_color = Color(1, 0.8745098, 0.5019608, 1)
-theme_override_colors/font_placeholder_color = Color(0.63, 0.57645, 0.41579998, 1)
-theme_override_fonts/font = ExtResource("19_aisiw")
-theme_override_font_sizes/font_size = 31
-theme_override_styles/normal = SubResource("StyleBoxEmpty_f1e71")
-theme_override_styles/read_only = SubResource("StyleBoxEmpty_gcetw")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_i24gk")
-placeholder_text = "Untitled"
-max_length = 25
-expand_to_text_length = true
-script = ExtResource("19_k00b3")
-resize_after = 10
-metadata/_custom_type_script = "uid://dog0wpjftm7uk"
-
-[node name="Loc" type="Node" parent="ColorRect/classroomstatus/Control/Label2"]
-script = ExtResource("21_f1e71")
-auto = true
-localizations_ru = Dictionary[String, String]({
-"_": "Безымянный"
-})
-localizations_kz = Dictionary[String, String]({
-"_": "Атаусыз"
-})
-metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="Label2" type="Label" parent="ColorRect/classroomstatus"]
 modulate = Color(0.62, 0.62, 0.62, 1)
@@ -755,7 +757,7 @@ theme = ExtResource("12_3gwh8")
 theme_override_fonts/font = ExtResource("22_gcetw")
 text = "535-616"
 
-[node name="train" parent="ColorRect/classroomstatus" instance=ExtResource("2_oe2nd")]
+[node name="left" parent="ColorRect/classroomstatus" instance=ExtResource("2_oe2nd")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-10, -0.3)
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.78039217)
@@ -765,42 +767,67 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 382.00006
-offset_top = 93.83705
-offset_right = 435.60052
-offset_bottom = 113.40622
+offset_left = 390.0
+offset_top = 94.0
+offset_right = 410.23773
+offset_bottom = 113.56917
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(1.4018645, 1.4018645)
-pivot_offset = Vector2(26.800232, 9.784584)
+pivot_offset = Vector2(10.118866, 9.784584)
 mouse_filter = 1
-color = Color(0.95, 0.83125, 0.475, 0.22745098)
+color = Color(0.475, 0.95, 0.6491666, 0.22745098)
 button_type = 1
 top = true
 hint = &"Add"
 base_scale_x = 0.45
 resize_after = 15
-text = "Next"
-base_size = Vector2(53.600464, 19.569168)
+text = "<"
+base_size = Vector2(20.237732, 19.569168)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
 mouse_open = false
 menu_name = &"g"
 max_size = 170
-config = SubResource("Resource_7kvyq")
+config = SubResource("Resource_k00b3")
 in_splash = true
 
-[node name="Loc" type="Node" parent="ColorRect/classroomstatus/train"]
-script = ExtResource("10_gcetw")
-auto = true
-localizations_ru = Dictionary[String, String]({
-"_": "След."
-})
-localizations_kz = Dictionary[String, String]({
-"_": "Кел."
-})
-metadata/_custom_type_script = "uid://dtwj74o465brs"
+[node name="right" parent="ColorRect/classroomstatus" instance=ExtResource("2_oe2nd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-10, -0.3)
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.78039217)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 422.99994
+offset_top = 93.83705
+offset_right = 443.23767
+offset_bottom = 113.40622
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.4018645, 1.4018645)
+pivot_offset = Vector2(10.118866, 9.784584)
+mouse_filter = 1
+color = Color(0.475, 0.95, 0.6491666, 0.22745098)
+button_type = 1
+top = true
+hint = &"Add"
+base_scale_x = 0.45
+resize_after = 15
+text = ">"
+base_size = Vector2(20.237732, 19.569168)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_k00b3")
+in_splash = true
 
 [node name="Control2" type="Control" parent="ColorRect/classroomstatus"]
 anchors_preset = 0
@@ -810,62 +837,40 @@ offset_right = 345.0
 offset_bottom = 209.0
 
 [node name="Label" type="Label" parent="ColorRect/classroomstatus/Control2"]
-modulate = Color(0.9607843, 0.8392157, 0.48235294, 1)
+modulate = Color(0.48, 0.96, 0.65599996, 1)
 layout_mode = 0
-offset_top = -44.162907
-offset_right = 280.0
-offset_bottom = -7.1629066
+offset_left = 3.0
+offset_top = -44.162903
+offset_right = 283.0
+offset_bottom = -7.162903
 scale = Vector2(0.993, 0.993)
 pivot_offset = Vector2(0, 18.5)
 theme = ExtResource("12_3gwh8")
-text = "1. Attention Basics"
+text = "1. (...)"
 script = ExtResource("7_oe2nd")
 auto_get_base_size = true
 base_size = Vector2(280, 37)
 pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
-[node name="Label" type="Label" parent="ColorRect/classroomstatus"]
-visible = false
-modulate = Color(0.56, 0.56, 0.56, 1)
-layout_mode = 0
-offset_left = 168.0
-offset_top = 157.00002
-offset_right = 337.0
-offset_bottom = 194.00002
-scale = Vector2(0.7984117, 0.7984117)
-pivot_offset = Vector2(0, 18.5)
-theme = ExtResource("12_3gwh8")
-theme_override_fonts/font = ExtResource("22_gcetw")
-text = "Progressing"
-
-[node name="Loc" type="Node" parent="ColorRect/classroomstatus/Label"]
-script = ExtResource("10_gcetw")
-auto = true
-localizations_ru = Dictionary[String, String]({
-"_": "В процессе"
-})
-localizations_kz = Dictionary[String, String]({
-"_": "Орындалуда"
-})
-metadata/_custom_type_script = "uid://dtwj74o465brs"
-
-[node name="num" type="Label" parent="ColorRect/classroomstatus/Label"]
+[node name="num" type="Label" parent="ColorRect/classroomstatus"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = 11.358063
-offset_top = 1.2524719
-offset_right = 84.00229
-offset_bottom = 38.252472
+offset_left = 214.0
+offset_top = 158.0
+offset_right = 286.64423
+offset_bottom = 198.0
 grow_horizontal = 0
+scale = Vector2(0.7833585, 0.7833585)
 pivot_offset = Vector2(0, 18.5)
 theme = ExtResource("12_3gwh8")
 theme_override_fonts/font = ExtResource("22_gcetw")
-text = "0/10"
+text = "0/0"
 
 [node name="cont" parent="ColorRect/classroomstatus" instance=ExtResource("2_oe2nd")]
+visible = false
 instance_shader_parameters/corner_radius_width_add = Vector2(-10, -0.3)
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/tuning = Color(1, 1, 1, 0.6)
@@ -884,7 +889,7 @@ grow_vertical = 0
 scale = Vector2(1.4018645, 1.4018645)
 pivot_offset = Vector2(58.097107, 10.878792)
 mouse_filter = 1
-color = Color(0.95, 0.83125, 0.475, 1)
+color = Color(0.83599997, 0.95, 0.8777999, 1)
 button_type = 1
 top = true
 hint = &"Add"
@@ -912,9 +917,105 @@ localizations_kz = Dictionary[String, String]({
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
+[node name="upload" parent="ColorRect/classroomstatus" instance=ExtResource("2_oe2nd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+layout_mode = 0
+offset_left = 36.00006
+offset_top = 99.99999
+offset_right = 65.8808
+offset_bottom = 125.00001
+scale = Vector2(1.1770253, 1.1770253)
+pivot_offset = Vector2(14.940369, 12.500008)
+mouse_filter = 1
+color = Color(0.5369, 0.59, 0.55636996, 1)
+button_type = 1
+top = true
+hint = &"login"
+base_scale_x = 0.45
+resize_after = 6
+base_size = Vector2(29.880737, 25.000015)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_5kbvu")
+in_splash = true
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/classroomstatus/upload"]
+layout_mode = 0
+offset_left = 3.5431519
+offset_top = 1.0303955
+offset_right = 43.54315
+offset_bottom = 41.030396
+scale = Vector2(0.5542652, 0.5542652)
+texture = ExtResource("20_aisiw")
+
+[node name="classroomcr" type="Control" parent="ColorRect"]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="train2" parent="ColorRect/classroomcr" instance=ExtResource("2_oe2nd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.7764706)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 117.999985
+offset_top = 123.793976
+offset_right = 289.7876
+offset_bottom = 152.0796
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.4018645, 1.4018645)
+pivot_offset = Vector2(85.89381, 14.142815)
+mouse_filter = 1
+color = Color(0, 1, 0.36666656, 1)
+button_type = 1
+top = true
+hint = &"Add"
+base_scale_x = 0.45
+resize_after = 18
+text = "+ Create Classroom"
+base_size = Vector2(171.78761, 28.28563)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_7kvyq")
+in_splash = true
+
+[node name="Loc" type="Node" parent="ColorRect/classroomcr/train2"]
+script = ExtResource("10_gcetw")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "+ Создать класс"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "+ Класс құру"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Node" type="Node" parent="."]
 script = ExtResource("14_w3ind")
 
 [connection signal="released" from="ColorRect/buts/train" to="." method="_on_logout"]
 [connection signal="released" from="ColorRect/buts/lang" to="." method="_on_lang_released"]
 [connection signal="valid" from="ColorRect/studentjoin/confirm" to="." method="_on_confirm_valid"]
+[connection signal="released" from="ColorRect/studentyes/train" to="." method="leave_press"]
+[connection signal="released" from="ColorRect/studentyes/train2" to="." method="_on_llist_released"]
+[connection signal="released" from="ColorRect/classroomstatus/left" to="." method="_on_left_released"]
+[connection signal="released" from="ColorRect/classroomstatus/right" to="." method="_on_right_released"]
+[connection signal="released" from="ColorRect/classroomstatus/cont" to="." method="_on_continue_released"]
+[connection signal="released" from="ColorRect/classroomstatus/upload" to="." method="_on_upload_released"]
+[connection signal="released" from="ColorRect/classroomcr/train2" to="." method="classroom_create"]

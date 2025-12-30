@@ -10,6 +10,13 @@ func _ready() -> void:
 func get_auth_header() -> Dictionary:
 	return glob._logged_in
 
+func set_profile(field: String, val):
+	glob.remote_config[field] = val
+
+func profile(field: String):
+	#if field == "my_classroom": return "111111"
+	return glob.remote_config.get(field)
+
 var downloads_dir = OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
 
 func get_username() -> String:
@@ -32,7 +39,7 @@ func open_or_create(path: String, path_from: String = "user://") -> FileAccess:
 	#print(full_path)
 
 	var dir := DirAccess.open(path_from)
-	if not dir.dir_exists(dir_path):
+	if dir and not dir.dir_exists(dir_path):
 		var err = dir.make_dir_recursive(dir_path)
 		if err != OK:
 			push_error("Failed to create directory: %s" % dir_path)

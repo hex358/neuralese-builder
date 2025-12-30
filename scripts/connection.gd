@@ -468,7 +468,7 @@ func _process(delta: float) -> void:
 		glob.reset_menu_type(self, "detatch")
 	var hover_target: Connection = graphs.chosen_conn("hover")
 
-	if chosen_activate:
+	if chosen_activate and not parent_graph.is_blocked and not ui.topr_inside:
 		var base_cond = connection_type == INPUT and inside and not occ and !graphs.conning()
 		var aux_cond = (not glob.is_occupied(self, "menu_inside") or glob.get_occupied(&"menu_inside").hint == "detatch")
 		

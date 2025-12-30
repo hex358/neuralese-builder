@@ -24,7 +24,7 @@ size_add_vec = Vector2(47.6, 74.6)
 label_offset = 33.0
 max_size = Vector2(100, 0)
 outline_padding = 0.0
-max_displayed = 20
+max_displayed = 15
 layer_name = "MaxPool2D"
 unit = NodePath("unit")
 padding = 5.0
@@ -137,6 +137,7 @@ offset_top = -4.0
 offset_right = 41.0
 offset_bottom = 36.0
 script = ExtResource("6_bncok")
+max_displayed = 15
 
 [node name="YY" parent="." instance=ExtResource("6_jq4kv")]
 layout_mode = 0
@@ -156,6 +157,7 @@ min_value = 2
 max_value = 8
 allow_float = false
 decimal_places = 2
+empty_on_min = true
 resize_after = 4
 change_always_accepted = false
 

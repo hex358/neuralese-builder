@@ -1,6 +1,6 @@
 [gd_scene load_steps=15 format=3 uid="uid://dpmuagvcdif1x"]
 
-[ext_resource type="Script" uid="uid://ctq7nyimmhsjd" path="res://scripts/workslist.gd" id="1_nr426"]
+[ext_resource type="Script" uid="uid://cyqygd4rcpd4b" path="res://scripts/lessonlist.gd" id="1_op03n"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_2ae81"]
 [ext_resource type="Material" uid="uid://jm8oyahk342s" path="res://resources/context_menu.tres" id="3_a3qcg"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="5_my415"]
@@ -42,8 +42,7 @@ metadata/_custom_type_script = "uid://dx40hpbce8w60"
 process_mode = 3
 layout_mode = 3
 anchors_preset = 0
-script = ExtResource("1_nr426")
-typename = "workslist"
+script = ExtResource("1_op03n")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 z_index = 8
@@ -107,8 +106,8 @@ in_splash = true
 [node name="name" parent="ColorRect/list" instance=ExtResource("2_2ae81")]
 z_index = 5
 instance_shader_parameters/extents = Vector2(0, 0)
-instance_shader_parameters/outline_color = Color(1, 0.73333335, 0, 1)
-instance_shader_parameters/tuning = Color(0.71, 0.52066666, 0, 0.7019608)
+instance_shader_parameters/outline_color = Color(0.3, 1, 0.5566666, 1)
+instance_shader_parameters/tuning = Color(0.192, 0.6, 0.34159997, 0.7254902)
 layout_mode = 0
 offset_left = 200.0
 offset_top = 221.333
@@ -157,10 +156,10 @@ text = "Your lessons"
 script = ExtResource("10_ep2gh")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"project list": "Список проектов"
+"_": "Список уроков"
 })
 localizations_kz = Dictionary[String, String]({
-"project list": "Жобалар тізімі"
+"_": "Сабақтар тізімі"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
@@ -196,10 +195,10 @@ in_splash = true
 script = ExtResource("10_ep2gh")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "Уроки"
+"_": "Проекты"
 })
 localizations_kz = Dictionary[String, String]({
-"_": "Сабақтар"
+"_": "Жобалар"
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 

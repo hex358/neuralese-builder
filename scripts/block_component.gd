@@ -588,6 +588,8 @@ func _process(delta: float) -> void:
 
 func is_mouse_inside() -> bool:
 	var graph = graph if graph and graph is Graph else graph_root
+	if graph and graph.is_blocked:
+		return false
 	if is_contained and is_contained.static_mode and is_contained.get_global_mouse_position().y > is_contained.tb.y:
 	#	if text == "we":
 		#	print(get_global_mouse_position().y)
@@ -727,7 +729,7 @@ func _process_block_button(delta: float) -> void:
 	var blocked = (is_contained and (parent.is_blocking or parent.state.tween_hide or parent.scrolling)) or is_blocking \
 	or ins
 	var frozen = is_contained and parent.is_frozen or is_frozen
-	blocked = blocked or (ui.active_splashed() and not in_splash) or ui.topr_inside
+	blocked = blocked or (ui.active_splashed() and not in_splash) or (ui.topr_inside and not in_splash)
 	#if not Engine.is_editor_hint() and text == "we":
 #		print(is_mouse_inside())
 	blocked = blocked or (!base_in_splash and ui.splashed_in)

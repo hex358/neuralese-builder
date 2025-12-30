@@ -2,8 +2,8 @@
 extends Node2D
 const DEBUG: bool = true
 const LOCALHOSTED: bool = true
-const DUMMY_LOGIN: bool = true
-const DUMMY_PROJECTS: bool = true
+const DUMMY_LOGIN: bool = false
+const DUMMY_PROJECTS: bool = false
 const NO_TRANSCRIBER_WARMUP: bool = true
 
 var default_spline = preload("res://scenes/default_spline.tscn")
@@ -253,17 +253,17 @@ func wait(wait_time: float, frames: bool = false):
 func get_project_id() -> int:
 	return project_id
 
-func set_var(n: String, val: Variant):
-	var got = get_stored()
+func set_var(n: String, val: Variant, space = "memory.bin"):
+	var got = get_stored(space)
 	got[n] = val
-	var op = cookies.open_or_create("memory.bin")
+	var op = cookies.open_or_create(space)
 	op.store_var(got)
 
-func get_var(n: String, deft = null) -> Variant:
-	return get_stored().get(n, deft)
+func get_var(n: String, deft = null, space = "memory.bin") -> Variant:
+	return get_stored(space).get(n, deft)
 
-func get_stored() -> Dictionary:
-	var op = cookies.open_or_create("memory.bin")
+func get_stored(space = "memory.bin") -> Dictionary:
+	var op = cookies.open_or_create(space)
 	if not op: return {}
 	var res = op.get_var()
 	return res if res else {}
@@ -281,26 +281,27 @@ func open_last_project():
 		if a:
 			load_scene(a.keys()[0])
 		else:
-			var i = await create_empty_project("")
+			var i = await create_empty_project("", false)
 			load_empty_scene(i, "")
 	return 0
 
 
 var parsed_projects = {}
 
-func create_empty_project(name: String) -> int:
+func create_empty_project(name: String, save: bool = true) -> int:
 	var id: int = random_project_id()
 	parsed_projects[str(id)] = {"name": name}
 	ui.hourglass_on()
-	var res = await save_empty(str(id), name)
+	if save:
+		var res = await save_empty(str(id), name)
 	ui.hourglass_off()
 	return id
 
-func request_projects():
+func request_projects(lessons: bool = false):
 	if DUMMY_PROJECTS:
 		var ddict = {}
 		for i in range(10):
-			ddict[hash(i)] = {"name": "Project %s" % i}
+			ddict[hash(i)] = {"name": "Project %s" % i} if !lessons else {"name": "Lesson %s" % i}
 		#print(ddict)
 		return ddict
 	var a = await web.POST("project_list", {
@@ -397,8 +398,12 @@ func compact(n: int) -> String:
 var iterables: Dictionary[int, bool] = arrays.merged({
 TYPE_DICTIONARY:true,})
 
-func to_set(arr) -> Dictionary:
+func to_set(arr, ...args) -> Dictionary:
 	var a: Dictionary = {}
+	if args != []:
+		var old = arr
+		arr = args
+		arr.append(old)
 	for i in arr:
 		a[i] = true
 	return a
@@ -613,19 +618,20 @@ var enter_just_pressed: bool = false
 
 var _logged_in: Dictionary = {}
 func try_auto_login():
+		
 	var got = get_var("credentials")
+	if OS.get_cmdline_args().has("teacher"):
+		got = {"user": "teacher", "pass": "1"}
+	else:
+		got = {"user": "n", "pass": "1"}
 	if DUMMY_LOGIN: 
 		dummy_login()
 		return true
 	if got:
-		var answer = await login_req(got["user"], got["pass"])
-		if answer.ok:
-			var parsed = JSON.parse_string(answer.body.get_string_from_utf8())
-			if parsed.answer == "ok":
-				#emitter.res.emit(data)
-				set_logged_in(got["user"], got["pass"])
-			else:
-				reset_logged_in(true)
+		var a = await login(got["user"], got["pass"])
+		
+		if a.get("ok", false):
+			set_logged_in(got["user"], got["pass"])
 		else:
 			reset_logged_in(true)
 	return true
@@ -643,6 +649,7 @@ func set_logged_in(user: String, passw: String):
 
 func reset_logged_in(pers: bool = false):
 	_logged_in = {}
+	learner.classroom_data = {}
 	nn.close_all()
 	set_var("credentials", {})
 
@@ -668,6 +675,9 @@ func _process(delta: float) -> void:
 	time += delta
 	ticks += 1
 	if Engine.is_editor_hint(): return
+	
+	if Input.is_action_just_pressed("ctrl_s"):
+		await save(str(get_project_id()))
 	#print(window_size)
 	f2_just_pressed = Input.is_action_just_pressed("f2")
 	f2_pressed = Input.is_action_pressed("f2")
@@ -761,6 +771,8 @@ func in_out_quad(t: float) -> float:
 	t = clamp(t, 0.0, 1.0)
 	return 2.0 * t * t if t < 0.5 else 1.0 - pow(-2.0 * t + 2.0, 2.0) / 2.0
 
+func lerp_quad(a: float, b: float, k: float) -> float:
+	return lerp(a, b, in_out_quad(k))
 
 func get_project_data(empty: bool = false) -> Dictionary:
 	var data = {"graphs": {}, "lua": {}, "registry": {}}
@@ -934,7 +946,9 @@ func change_lang(lang: String):
 	curr_lang = lang
 	set_var("lang", lang)
 	language_changed.emit()
+	language_just_changed.emit()
 
+signal language_just_changed
 func get_lang():
 	return curr_lang
 
@@ -1208,7 +1222,6 @@ func update_message_stream(
 				var resend = payload.duplicate(true)
 				resend["summary"] = summary
 				resend["summary_hash"] = summary_hash
-				print("dd")
 				sock.send_json(resend)
 				sent_full = true
 				last_summary_hash = summary_hash
@@ -1269,8 +1282,9 @@ func world_to_canvas(p: Vector2) -> Vector2:
 var main_cam: GraphViewport
 var env_dump = {}
 var cached_projects = {}
-func load_scene(from: String):
-
+func load_scene(from: String, clear_lesson: bool = false):
+	if clear_lesson:
+		learner.push_classroom_event({"on_lesson": -1})
 	project_id = int(from)
 	cached_chats.clear()
 	last_summary_hash = -1
@@ -1500,7 +1514,6 @@ func import_project(bytes: PackedByteArray) -> bool:
 	var ds_dir = cookies.dir_or_create("datasets")
 	for ds in datasets:
 		var name: String = ds.get("name", "")
-		print("ds ", name)
 		if name.is_empty():
 			continue
 
@@ -1519,7 +1532,6 @@ func import_project(bytes: PackedByteArray) -> bool:
 		# Decompress + restore in memory
 		var decomp = bytes_zstd.decompress(len, FileAccess.COMPRESSION_ZSTD)
 		if decomp.is_empty():
-			print("skip...")
 			continue
 		var ds_dict = bytes_to_var_with_objects(decomp)
 		if not ds_dict:
@@ -1530,7 +1542,6 @@ func import_project(bytes: PackedByteArray) -> bool:
 		virtualt.cached_once[name] = true
 		ds_pack_cache[name] = {"len": len, "bytes": bytes_zstd, "mtime": Time.get_ticks_msec()}
 		cache_rle_compress(name, null, "thread")
-		print("Decompred!!!")
 
 	# === 5. Load environment and graphs ===
 	env_dump = lua_env
@@ -1629,10 +1640,10 @@ func get_world_visible_rect() -> Rect2:
 
 
 var remote_config = {}
-var default_cfg_dict = {"teacher": false}
+var default_cfg_dict = {"teacher": false, "my_classroom": ""}
 func set_remote_config(cfg):
 	remote_config = default_cfg_dict.duplicate(true)
-	remote_config.merge(cfg)
+	remote_config.merge(cfg, true)
 
 func rem_cfg(field: String):
 	return remote_config.get(field)
@@ -1657,14 +1668,19 @@ func login(user: String, passw: String) -> Dictionary:
 		res.error = "protocol"
 		return res
 	set_remote_config(parsed.get("config", {}))
-
+	if parsed.get("classroom_data", {}):
+		learner.load_classroom_data(parsed["classroom_data"])
+	#print(learner.classroom_data)
+	
 	match parsed.answer:
 		"ok":
 			set_logged_in(user, passw)
 			res.ok = true
 		_:
 			res.error = "auth"
-
+	
+	if cookies.profile("my_classroom"):
+		learner.push_classroom_event({"on_lesson": -1})
 	return res
 
 func create_account(user: String, passw: String, cfg: Dictionary) -> Dictionary:
@@ -1937,8 +1953,6 @@ func load_datasets():
 			dataset_datas[ds["name"]] = ds
 			virtualt.cached_once[ds["name"]] = true
 			cache_rle_compress(ds["name"], null, "thread")
-		else:
-			print("jfjf")
 	
 func _save_worker(path: String, ds_obj, pre_bytes: bool = false):
 	# ds_obj is the dataset Dictionary (not bytes)
@@ -2234,12 +2248,24 @@ func disconnect_action(from: Connection, to: Connection):
 					f.output_keys[from_port].disconnect_from(t.input_keys[to_port], true)
 	)
 
+
+func reset_mouse():
+	mouse_alt_just_pressed = false
+	mouse_alt_just_released = false
+	#mouse_alt_pressed = false
+	mouse_just_pressed = false
+	mouse_just_released = false
+	#mouse_pressed = false
+
+
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 func _ready() -> void:
 	if Engine.is_editor_hint(): return
+	
+	
 	set_remote_config({})
-	DisplayServer.window_set_min_size(Vector2(660,360))
+	DisplayServer.window_set_min_size(Vector2(670,360))
 	if DUMMY_LOGIN:
 		dummy_login()
 	
@@ -2262,6 +2288,7 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
+	
 	await try_auto_login()
 	#if _logged_in:
 
@@ -2273,6 +2300,8 @@ func _ready() -> void:
 	#await wait(1)
 	#test_place()
 	ui.splash("ai_help", null, null, false, {"away": true})
+	
+	
 
 func disconnect_all(from_signal: Signal):
 	for i in from_signal.get_connections():

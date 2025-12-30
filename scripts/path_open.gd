@@ -53,7 +53,15 @@ func _process(delta: float) -> void:
 
 func _resultate(data: Dictionary):
 	old_dir = grid.current_dir
-	if "from" in passed_data:
+	if "goto_splash" in passed_data:
+		can_go = false
+		go_away()
+		await quitting
+		hide()
+		#queue_free()
+		ui.splash_and_get_result(passed_data["goto_splash"], splashed_from, emitter, true, 
+		{ "path": data["path"]})
+	elif "from" in passed_data:
 		can_go = false
 		go_away()
 		await quitting
@@ -84,7 +92,15 @@ func _resultate(data: Dictionary):
 
 func _quit_request():
 	grid._clear_selection()
-	if "from" in passed_data:
+	if "goto_splash" in passed_data:
+		can_go = false
+		go_away()
+		await quitting
+		hide()
+		#queue_free()
+		ui.splash_and_get_result(passed_data["goto_splash"], splashed_from, emitter, true, 
+		{ })
+	elif "from" in passed_data:
 		can_go = false
 		await quitting
 		#queue_free()
@@ -109,9 +125,7 @@ func _on_trainn_released() -> void:
 	
 func ress():
 	$ColorRect/Label.update_valid()
-	print($ColorRect/Label.text)
 	if $ColorRect/Label.is_valid and $ColorRect/Label.text:
-		print("AA")
 		resultate({"path": grid.selected_path})
 
 @onready var grid = $ColorRect/ScrollContainer/GridContainer
@@ -151,6 +165,7 @@ func quit(data: Dictionary = {}):
 	old_dir = grid.current_dir
 	hide()
 	if can_go:
+		glob.mouse_just_pressed = false
 		hide()
 		ui.blur.self_modulate.a = 0
 		emitter.res.emit(data)

@@ -5,7 +5,7 @@ signal execution_finished
 signal error_splashed
 
 var lua: LuaAPI = null
-var debug_printer: Callable = print
+var debug_printer: Callable = func(x): print(" ".join(x))
 
 var time: float = 0.0
 var delta: float = 0.0
@@ -91,8 +91,6 @@ func stop() -> void:
 
 	execution_finished.emit()
 
-	if auto_queue_free:
-		call_deferred("_safe_free")
 
 
 func _safe_free() -> void:
@@ -145,6 +143,7 @@ func _tick(dt: float) -> void:
 
 
 func _on_lua_error(msg: String) -> void:
+	print_rich(msg)
 	if debug_printer.is_valid():
 		debug_printer.call(["[color=coral]" + msg + "[/color]"])
 	error_splashed.emit()
@@ -222,29 +221,45 @@ end
 		_on_lua_error("Prelude error: " + err.message)
 		return
 
-	lua.set_registry_value("__gd_call_bridge", func(reg_key: String, args: Array) -> Variant:
+	lua.set_registry_value("__gd_call_bridge",
+	func(reg_key: String, args: Variant) -> Variant:
 		var cb: Callable = lua.get_registry_value(reg_key)
 		if cb == null or not cb.is_valid():
-			return {"_error":"bad_callable"}
+			push_error("call_gd: bad callable for " + reg_key)
+			return null
 
-		var out = cb.callv(args)
+		var argv: Array = []
 
-		var guard: int = 0
+		if args is Array:
+			argv = args
+		elif args is Dictionary:
+			# Lua {...} comes as Dictionary — preserve order by numeric keys
+			var keys = args.keys()
+			keys.sort()
+			for k in keys:
+				argv.append(args[k])
+		elif args != null:
+			argv = [args]
+
+		var out = cb.callv(argv)
+
+		var guard := 0
 		while typeof(out) == TYPE_CALLABLE and guard < 8:
 			if not out.is_valid():
-				return {"_error":"nested_callable_invalid"}
+				return null
 			out = out.call()
 			guard += 1
-		if typeof(out) == TYPE_CALLABLE:
-			return {"_error":"callable_after_guard"}
+
 		return out
-	)
+)
+
 
 	var bridge_callable = lua.get_registry_value("__gd_call_bridge")
 	lua.push_variant("__gd_call_bridge", bridge_callable)
 
 	var err_bridge = lua.do_string("""
 	function call_gd(reg_key, args)
+
 		return __gd_call_bridge(reg_key, args)
 	end
 	""")

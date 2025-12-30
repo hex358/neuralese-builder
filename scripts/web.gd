@@ -34,9 +34,14 @@ class RequestHandle:
 		cancelled = true
 
 
-# Public API (keeps old behavior)
 func POST(page: String, data, bytes: bool = false, obj: bool = false):
 	return _request(api_url + page, data, HTTPClient.METHOD_POST, bytes, obj, false)
+
+func JPOST(page: String, data: Dictionary):
+	var req = await _request(api_url + page, data, HTTPClient.METHOD_POST, false, false, false)
+	if req and req.body:
+		return JSON.parse_string(req.body.get_string_from_utf8())
+	return {}
 
 func GET(page: String, args: Dictionary = {}, obj: bool = false):
 	var full_url = api_url + page
@@ -44,12 +49,25 @@ func GET(page: String, args: Dictionary = {}, obj: bool = false):
 		full_url += "?" + _encode_query(args)
 	return _request(full_url, {}, HTTPClient.METHOD_GET, false, obj, false)
 
-# Returns the handle so you can connect to on_sse (and optionally cancel).
-func GET_SSE(page: String, args: Dictionary = {}) -> RequestHandle:
+func GET_SSE(
+	page: String,
+	args: Dictionary = {},
+	headers: Dictionary = {}
+) -> RequestHandle:
 	var full_url = api_url + page
 	if not args.is_empty():
 		full_url += "?" + _encode_query(args)
-	return _request(full_url, {}, HTTPClient.METHOD_GET, false, true, true)
+
+	return _request(
+		full_url,
+		{},
+		HTTPClient.METHOD_GET,
+		false,
+		true,
+		true,
+		headers
+	)
+
 
 
 # Headers
@@ -92,8 +110,10 @@ func _request(
 	method: int,
 	bytes: bool = false,
 	obj: bool = false,
-	sse: bool = false
+	sse: bool = false,
+	extra_headers: Dictionary = {}
 ):
+
 	var handle = RequestHandle.new()
 	handle.id = "req_%s" % str(Time.get_ticks_usec())
 	handle.is_sse = sse
@@ -101,20 +121,35 @@ func _request(
 	var thread = Thread.new()
 	_threads.append(thread)
 
+	var base_headers = get_headers()
+	var merged_headers = _merge_headers(base_headers, extra_headers)
+
 	var payload = {
 		"address": address,
 		"method": method,
 		"body": request_body,
 		"bytes": bytes,
-		"headers": get_headers(),
+		"headers": merged_headers,
 		"handle": handle,
 		"sse": sse,
 	}
-	thread.start(Callable(self, "_http_thread").bind(payload, thread))
+
+	thread.start(_http_thread.bind(payload, thread))
 
 	if obj:
 		return handle
 	return handle.completed
+
+
+func _merge_headers(base: PackedStringArray, extra: Dictionary) -> PackedStringArray:
+	var out = PackedStringArray()
+	out.append_array(base)
+
+	for k in extra.keys():
+		out.append("%s: %s" % [String(k), String(extra[k])])
+
+	return out
+
 
 static func _split_url(url: String) -> Dictionary:
 	var ssl = false
@@ -170,7 +205,6 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 	if not has_host:
 		hdrs.append("Host: %s" % url.host)
 
-	# SSE-specific headers (and remove JSON Content-Type)
 	if is_sse:
 		hdrs = _headers_without_content_type(hdrs)
 		hdrs.append("Accept: text/event-stream")
@@ -210,7 +244,6 @@ func _http_thread(p: Dictionary, thread: Thread) -> void:
 
 	var is_get = method == HTTPClient.METHOD_GET
 
-	# SSE is GET-only (no body). We still keep your GET-body suppression logic.
 	if send_bytes:
 		err = client.request_raw(method, url.path, hdrs, body_data if not is_get else PackedByteArray())
 	else:

@@ -4,6 +4,7 @@ class_name Loc
 @export var auto: bool = false
 var lang: String = "en"
 
+
 @export var localizations_ru: Dictionary[String, String] = {}
 @export var localizations_kz: Dictionary[String, String] = {}
 
@@ -86,6 +87,12 @@ func _set_text(t: String) -> void:
 	else:
 		_handle_custom(_parent)
 
+func translate():
+	(func():
+		var new = _translate_to(_get_text(), glob.curr_lang)
+		_last_display = new
+		_set_text(new)).call_deferred()
+
 func _translate_now() -> void:
 	if not _parent:
 		return
@@ -103,6 +110,8 @@ func _translate_to(text: String, lang: String) -> String:
 
 	if auto:
 		var key := sanitize(text)
+		#if key == "teacher":
+		#	print(localizations_ru)
 		if lang == "kz":
 			if key in localizations_kz:
 				return localizations_kz[key]

@@ -25,8 +25,8 @@ func _ready() -> void:
 func name_resize():
 	$Label.size.x = clamp((glob.window_size.x - 700) * 0.6, 100, 189) / $Label.scale.x
 	#savebut.global_position.x = $Label.get_global_rect().end.x + 10
-	$Label.resize_after = $Label.size.x
-	$Label._resize_label()
+	$Label.resize_after = $Label.size.x - 10
+	$Label._resize_label.call_deferred()
 
 
 
@@ -66,7 +66,7 @@ func _process(delta: float) -> void:
 	$Control3.global_position.x = lerp(rect.position.x, rect.end.x, k)
 	if in_small_mode:
 		$Control3.global_position.x -= 22
-	$Control3.global_position.x = max($Label.get_global_rect().end.x + 140, $Control3.global_position.x)
+	$Control3.global_position.x = max($Label.get_global_rect().end.x + 160, $Control3.global_position.x)
 	#if Input.is_action_just_pressed("ui_accept"):
 		#menus["a"].expand()
 	#elif Input.is_action_just_pressed("down"):

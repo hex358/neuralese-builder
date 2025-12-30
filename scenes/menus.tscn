@@ -594,7 +594,7 @@ metadata/_custom_type_script = "uid://dtwj74o465brs"
 script = ExtResource("6_rgbxd")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "Изменить   *"
+"_": "Изменить    *"
 })
 localizations_kz = Dictionary[String, String]({
 "_": "Өзгерту     *"

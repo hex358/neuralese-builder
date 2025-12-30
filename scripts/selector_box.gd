@@ -40,6 +40,8 @@ func _process(delta: float) -> void:
 	if glob.curr_window != "graph":
 		hide()
 		graphs.unselect_all()
+	#if glob.mouse_just_pressed:
+	#	print(ui.topr_inside)
 	if not ui.topr_inside and q and not ui.active_splashed() and glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
 	and not graphs.dragged and not graphs.conning() and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y \
 	and not glob.is_occupied(self, "graph_buffer"):

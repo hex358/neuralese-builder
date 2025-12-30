@@ -101,6 +101,7 @@ func close_undo_redo():
 @onready var base_outline = rect.get_instance_shader_parameter("outline_color")
 var selected: bool = false
 func select():
+	if is_blocked: return
 	selected = true
 	graphs.set_selected(self)
 	rect.set_instance_shader_parameter("outline_color", Color.YELLOW)
@@ -122,6 +123,7 @@ func update_config(update: Dictionary):
 
 		_pending_undo_update.merge(update.duplicate(true), true)
 		_undo_timer = undo_delay
+		learner.notify_update()
 		if right_away:
 
 			_undo_timer = 0
@@ -151,6 +153,8 @@ func update_config_subfield(update: Dictionary):
 					if not i in erasure: erasure[i] = {}
 					erasure[i][subfield] = true; continue
 				reversion[i][subfield] = cfg[i][subfield]
+		
+		learner.notify_update()
 		glob.add_action(
 			(func(): 
 				for i in erasure:
@@ -743,7 +747,31 @@ func _useful_properties() -> Dictionary:
 
 var invoked_with: Callable
 
+var is_blocked: bool = false
+var input_cache = {}
+func block(): 
+	is_blocked = true
+	modulate = Color(0.7,0.7,0.7,1)
+	for i in glob.rget_children(self):
+		if i is LineEdit or i is BlockComponent:
+			input_cache[i] = i.mouse_filter
+			i.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if i is BlockComponent:
+			i.block_input()
+	
+func unblock(): 
+	is_blocked = false
+	modulate = Color.WHITE
+	for i in input_cache:
+		if not is_instance_valid(i): continue
+		i.mouse_filter = input_cache[i]
+		if i is BlockComponent:
+			i.unblock_input()
+	input_cache.clear()
+
+
 func _ready() -> void:
+	#block()
 	#print(graph_flags)
 	#print(invoked_with.get_bound_arguments())
 	glob.add_action(delete, invoked_with)
@@ -1346,6 +1374,9 @@ var beginned_at: Vector2 = Vector2()
 func _process(delta: float) -> void:
 #	print(group_dragging)
 	if Engine.is_editor_hint(): return
+	#if glob.space_just_pressed:
+	#	unblock()
+	
 	var follower_in_group := group_dragging and group_drag_leader != null and group_drag_leader != self
 	exist_ticks += 1
 	if _undo_timer > 0.0:
@@ -1367,7 +1398,9 @@ func _process(delta: float) -> void:
 		#graphs.collider(rect)
 	exist_time += delta
 	
+	
 	inside = is_mouse_inside()
+		
 	var conn_free = (not glob.hovered_connection or glob.hovered_connection.connection_type == 0 or z_index >= glob.hovered_connection.parent_graph.z_index)
 	
 	if inside and conn_free:
@@ -1405,6 +1438,8 @@ func _process(delta: float) -> void:
 	#print( glob.get_occupied(&"menu"))
 	#print(glob.is_occupied(self, &"dropout_inside"))
 	#print(glob.get_occupied("menu"))
+	if inside and is_blocked:
+		glob.reset_mouse()
 	if inside and glob.mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not ui.topr_inside and 

@@ -1,7 +1,8 @@
-[gd_scene load_steps=38 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=40 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
+[ext_resource type="Script" uid="uid://dijo5i8266pd" path="res://scripts/lesson_header.gd" id="3_64w7c"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="3_xwiyo"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="4_5k5he"]
 [ext_resource type="Script" uid="uid://b8ehbcul6kgbc" path="res://scripts/submenu_neuron.gd" id="5_m4erh"]
@@ -22,6 +23,7 @@
 [ext_resource type="Shader" uid="uid://dnc61n20cut58" path="res://scripts/bokeh.gdshader" id="21_3pl03"]
 [ext_resource type="Script" uid="uid://b35tw21ej2pfd" path="res://scripts/mist.gd" id="22_tsth1"]
 [ext_resource type="Script" uid="uid://m5db3dqdt1jc" path="res://scripts/lua_procedure.gd" id="23_64w7c"]
+[ext_resource type="PackedScene" uid="uid://cid477464f0eh" path="res://scenes/quest.tscn" id="24_o28vt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x67tc"]
 shader = ExtResource("1_5k5he")
@@ -185,7 +187,7 @@ layer = 126
 [node name="ColorRect" type="ColorRect" parent="." node_paths=PackedStringArray("menus")]
 material = SubResource("ShaderMaterial_x67tc")
 instance_shader_parameters/outline_color = Color(0.47, 0.47, 0.47, 0.521569)
-instance_shader_parameters/tuning = Color(0.3, 0.3, 0.3, 0.64705884)
+instance_shader_parameters/tuning = Color(0.3019608, 0.3019608, 0.3019608, 0.64705884)
 offset_left = -1.0
 offset_top = -3.0
 offset_right = 1155.0
@@ -194,6 +196,62 @@ script = ExtResource("2_1j68c")
 menus = {
 &"a": NodePath("../submenu")
 }
+
+[node name="ColorRect" type="ColorRect" parent="ColorRect"]
+visible = false
+material = SubResource("ShaderMaterial_x67tc")
+instance_shader_parameters/outline_color = Color(0.47058824, 0.47058824, 0.47058824, 0.52156866)
+instance_shader_parameters/tuning = Color(0.3019608, 0.3019608, 0.3019608, 0.64705884)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -1.0
+offset_bottom = 29.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0.73, 0.73, 0.73, 1)
+script = ExtResource("3_64w7c")
+
+[node name="Label" type="Label" parent="ColorRect/ColorRect"]
+layout_mode = 0
+offset_left = 9.999999
+offset_top = 4.0
+offset_right = 10.999999
+offset_bottom = 41.0
+scale = Vector2(0.5919286, 0.5919286)
+theme = ExtResource("3_xwiyo")
+
+[node name="backline" type="Line2D" parent="ColorRect/ColorRect"]
+z_index = 1
+position = Vector2(0, 15)
+points = PackedVector2Array(-14, 0, 113, 0)
+default_color = Color(0.31764707, 0.36078432, 0.33333334, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="actual" type="Line2D" parent="ColorRect/ColorRect"]
+z_index = 1
+position = Vector2(0, 15)
+points = PackedVector2Array(-14, 0, 50, 0)
+default_color = Color(0.2, 1, 0.49411765, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="Label2" type="Label" parent="ColorRect/ColorRect"]
+layout_mode = 0
+offset_left = 1144.1436
+offset_top = 4.0
+offset_right = 1145.1436
+offset_bottom = 41.0
+scale = Vector2(0.5919286, 0.5919286)
+theme = ExtResource("3_xwiyo")
+horizontal_alignment = 2
 
 [node name="TextureRect" type="TextureRect" parent="ColorRect"]
 visible = false
@@ -355,11 +413,12 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -304.0
-offset_top = 59.0
-offset_right = -264.0
-offset_bottom = 99.0
+offset_left = -388.00006
+offset_top = 61.0
+offset_right = -348.00006
+offset_bottom = 101.0
 grow_horizontal = 0
+scale = Vector2(1.2717904, 1.2717904)
 
 [node name="Control3" type="Control" parent="ColorRect"]
 anchors_preset = 0
@@ -376,12 +435,12 @@ offset_bottom = 54.0
 color = Color(0.37, 0.37, 0.37, 0.20784314)
 
 [node name="graphsbg" type="TextureRect" parent="ColorRect/Control3"]
-visible = false
 self_modulate = Color(0.37, 0.37, 0.37, 0.22745098)
 layout_mode = 0
 offset_left = -174.0
 offset_right = -33.0
 offset_bottom = 54.0
+mouse_filter = 2
 texture = SubResource("GradientTexture2D_v7s1j")
 
 [node name="dsbg" type="TextureRect" parent="ColorRect/Control3"]
@@ -449,12 +508,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 59.629517
 offset_top = -32.93629
-offset_right = 160.82654
+offset_right = 148.02905
 offset_bottom = 8.82753
 grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(1.2450968, 1.2450968)
-pivot_offset = Vector2(50.59851, 20.88191)
+pivot_offset = Vector2(44.199768, 20.88191)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 0)
 button_type = 1
@@ -463,7 +522,8 @@ hint = &"login"
 base_scale_x = 0.45
 resize_after = 9
 text = "Datasets"
-base_size = Vector2(101.19702, 41.76382)
+text_offset = Vector2(5, 0)
+base_size = Vector2(88.399536, 41.76382)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -686,6 +746,12 @@ script = ExtResource("22_tsth1")
 [node name="LuaProcRunner" type="Node" parent="."]
 script = ExtResource("23_64w7c")
 metadata/_custom_type_script = "uid://m5db3dqdt1jc"
+
+[node name="Control2" parent="." instance=ExtResource("24_o28vt")]
+offset_left = 442.0
+offset_top = 76.0
+offset_right = 482.0
+offset_bottom = 116.0
 
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
 [connection signal="released" from="ColorRect/Control/export" to="ColorRect" method="_on_export_released"]

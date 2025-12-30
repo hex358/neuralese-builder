@@ -15,9 +15,10 @@ func _ready() -> void:
 	await get_tree().process_frame
 	#$ColorRect/Label.text = cookies.get_username()
 	ui.hourglass_on()
-	if !glob.loaded_project_once and not glob.DUMMY_LOGIN:
-		glob.loaded_project_once = true
-		await glob.save_empty(str(glob.project_id), glob.fg.get_scene_name())
+	#if !glob.loaded_project_once and not glob.DUMMY_LOGIN:
+		#glob.loaded_project_once = true
+		#print("save")
+		#await glob.save_empty(str(glob.project_id), glob.fg.get_scene_name())
 	var a = await glob.request_projects()
 	ui.hourglass_off()
 	quitting.connect(
@@ -38,7 +39,7 @@ func _on_list_child_button_release(button: BlockComponent) -> void:
 	and (!glob.menus["delete_project"].visible or not glob.menus["delete_project"].state.tween_hide):
 		if button.metadata["project_id"] != glob.get_project_id():
 			ui.hourglass_on()
-			var a = await glob.load_scene(str(button.metadata["project_id"]))
+			var a = await glob.load_scene(str(button.metadata["project_id"]), true)
 			ui.hourglass_off()
 		go_away()
 
@@ -118,6 +119,8 @@ func _on_import_released() -> void:
 
 
 func _on_lessons_released() -> void:
-	go_away()
+	inner = true
+	go_away(false)
+	can_tween_zero = false
 	await quitting
-	ui.splash("lessonslist", splashed_from, emitter)
+	ui.splash("lessonslist", splashed_from, emitter, true)

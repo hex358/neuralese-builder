@@ -223,7 +223,8 @@ func get_by_id(graph_id: int) -> Graph:
 	return _graphs.get(graph_id)
 
 func attach_edge(from_conn: Connection, to_conn: Connection):
-	pass
+	learner.notify_update()
+
 
 func remove_edge(from_conn: Connection, to_conn: Connection):
 	pass
@@ -907,8 +908,12 @@ func get_graph(typename = "base", flags = Graph.Flags.NONE, id: int = 0, tag: St
 	new.invoked_with = get_graph.bind(typename, flags, id, tag)
 	storage.add_child(new)
 	add(new)
+	if flags == Graph.Flags.NEW:
+		node_added.emit(new)
+		learner.notify_update()
 	#storage.move_child(new, -1)
 	return new
+signal node_added(who: Graph)
 
 var graph_layers: Dictionary[int, CanvasLayer] = {}
 func _ready():

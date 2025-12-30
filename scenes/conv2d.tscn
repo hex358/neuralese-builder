@@ -22,7 +22,7 @@ max_size = Vector2(109, 0)
 outline_padding = 0.0
 kernel_size = Vector2i(2, 2)
 stride = 1
-max_displayed = 20
+max_displayed = 15
 layer_name = "Conv2D"
 unit = NodePath("unit")
 padding = 5.0
@@ -263,6 +263,7 @@ min_value = 16
 max_value = 128
 allow_float = false
 decimal_places = 2
+empty_on_min = true
 resize_after = 4
 change_always_accepted = false
 
