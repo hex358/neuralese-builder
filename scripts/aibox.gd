@@ -8,7 +8,7 @@ func _process(delta: float) -> void:
 		
 		ui.upd_topr_inside(self, false); return
 	var o = global_position.y+10
-	var i = global_position.y+$txt.size.y*scale.y+5
+	var i = global_position.y+$txt.size.y*scale.y - 20
 	var maxval = $txt.get_v_scroll_bar().max_value - $txt.get_v_scroll_bar().page - 5
 	glob.inst_uniform($txt, "extents", 
 	Vector4(o if $txt.get_v_scroll_bar().value > 5 else 0, 

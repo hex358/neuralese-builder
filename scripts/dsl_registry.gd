@@ -28,11 +28,23 @@ var require = {
 		"compile": _compile_req_wait,
 		"runtime": _check_wait,
 	},
+	"ask": {
+		"type": "ask",
+		"compile": _compile_req_ask,
+		"runtime": _check_ask,
+	},
+	"teacher_lock": {
+		"type": "teacher_lock",
+		"compile": _compile_req_lock,
+		"runtime": _check_lock,
+	},
+	
 }
 
 var step_directives = {
 	"create": { "compile": _step_apply_create },
 	"require": { "compile": _step_apply_require },
+	"explain": { "compile": _step_apply_explain }
 }
 
 
@@ -53,26 +65,84 @@ func _step_apply_create(out_step: Dictionary, create_val) -> bool:
 	out_step["bind_on_create"] = boc
 	return true
 
+func _step_apply_explain(out_step: Dictionary, explain_val) -> bool:
+	# Support either string or dictionary
+	if typeof(explain_val) == TYPE_STRING:
+		out_step["explain"] = {
+			"before": explain_val,
+			"after": "",
+			"_phase": "before",
+			"_acknowledged": false
+		}
+		return true
+
+	elif typeof(explain_val) == TYPE_DICTIONARY:
+		out_step["explain"] = {
+			"before": str(explain_val.get("before", "")),
+			"after": str(explain_val.get("after", "")),
+			"_phase": "before",
+			"_acknowledged": false
+		}
+		return true
+
+	push_error("YAML: invalid 'explain' value")
+	return false
+
+func _show_explain_before(exp: Dictionary) -> void:
+	print(exp["before"])
+	await glob.wait(1.0)
+
+
+func _show_explain_after(exp: Dictionary) -> void:
+	print(exp["after"])
+	await glob.wait(10.0)
+
+
 
 func _step_apply_require(out_step: Dictionary, req_val) -> bool:
-	if typeof(req_val) != TYPE_DICTIONARY:
-		push_error("YAML: 'require' must be a mapping")
+	var req_map: Dictionary = {}
+
+	if typeof(req_val) == TYPE_STRING:
+		# require: teacher_lock
+		req_map[str(req_val)] = {}
+
+	elif typeof(req_val) == TYPE_ARRAY:
+		# require: [teacher_lock, node: x]
+		for item in req_val:
+			if typeof(item) == TYPE_STRING:
+				req_map[str(item)] = {}
+			elif typeof(item) == TYPE_DICTIONARY:
+				for k in item.keys():
+					req_map[str(k)] = item[k]
+			else:
+				push_error("YAML: invalid item in 'require' list")
+				return false
+
+	elif typeof(req_val) == TYPE_DICTIONARY:
+		# require: { node: x }
+		req_map = req_val
+
+	else:
+		push_error("YAML: 'require' must be string, list, or mapping")
 		return false
 
+	# ----------------------------
+	# compile requirements
+	# ----------------------------
 	var out: Array = []
 
-	for k in req_val.keys():
-		var yaml_key = str(k)
-		var v = req_val[k]
+	for yaml_key in req_map.keys():
+		var key = str(yaml_key)
+		var v = req_map[yaml_key]
 
-		if not require.has(yaml_key):
-			push_error("YAML: unknown require type '%s'" % yaml_key)
+		if not require.has(key):
+			push_error("YAML: unknown require type '%s'" % key)
 			return false
 
-		var spec = require[yaml_key]
+		var spec = require[key]
 		var fn_name = spec.get("compile", null)
 		if fn_name == null:
-			push_error("YAML: require missing compile fn for '%s'" % yaml_key)
+			push_error("YAML: require '%s' missing compile fn" % key)
 			return false
 
 		var compiled = fn_name.call(v)
@@ -81,13 +151,14 @@ func _step_apply_require(out_step: Dictionary, req_val) -> bool:
 		if compiled.is_empty():
 			return false
 
-		# sanity: enforce canonical type
+		# enforce canonical type
 		var expected_type = str(spec.get("type", ""))
 		if expected_type != "":
 			if str(compiled.get("type", "")) != expected_type:
-				push_error("YAML: '%s' compiled to '%s', expected '%s'" % [
-					yaml_key, str(compiled.get("type", "")), expected_type
-				])
+				push_error(
+					"YAML: '%s' compiled to '%s', expected '%s'" %
+					[key, str(compiled.get("type", "")), expected_type]
+				)
 				return false
 
 		out.append(compiled)
@@ -96,6 +167,7 @@ func _step_apply_require(out_step: Dictionary, req_val) -> bool:
 		out_step["requires"] = out
 
 	return true
+
 
 
 # ============================================================
@@ -119,6 +191,36 @@ func _compile_req_wait(v) -> Dictionary:
 		"type": "wait",
 		"time": t
 	}
+
+
+func _compile_req_ask(v) -> Dictionary:
+	# ask:
+	#   head: ""
+	#   options: []
+	#   correct: []
+	#   show: optional bool
+	if typeof(v) != TYPE_DICTIONARY:
+		return {}
+
+	if not (v.get("head") is String) or not (v.get("options") is Array) or not (v.get("correct") is Array):
+		return {}
+	var dis = v.get("show", false)
+	if not (dis is bool): return {}
+	
+	for i in len(v.correct):
+		v.correct[i] = int(v.correct[i])
+	return {
+		"type": "ask",
+		"options": v["options"],
+		"correct": v["correct"],
+		"show": dis,
+		"head": v.head
+	}
+
+func _compile_req_lock(v) -> Dictionary:
+	# lock
+	print(v)
+	return {"type": "teacher_lock"}
 
 func _compile_req_node(v) -> Dictionary:
 	# node: x   OR node: { bind: x } OR advanced mapping
@@ -246,7 +348,7 @@ func _check_connection(req: Dictionary,node_bindings: Dictionary) -> bool:
 
 	for a in from_ids:
 		for b in to_ids:
-			if _graph_has_connection(a, b, out_port, in_port, graphs):
+			if _graph_has_connection(a, b, out_port, in_port):
 				return true
 
 	return false
@@ -270,14 +372,15 @@ func _check_topology_graph(req: Dictionary,  node_bindings: Dictionary) -> bool:
 	var roots = _resolve_node_ids(req["root"],  node_bindings)
 	if roots.is_empty():
 		return false
-
+	
 	for root_id in roots:
 		var root = graphs._graphs.get(root_id)
 		if root == null:
 			continue
 
-		var scene = _collect_reachable(root, graphs)
-		if _match_graph(scene, req, graphs):
+		var scene = _collect_reachable(root)
+		#print(scene)
+		if _match_graph(scene, req):
 			return true
 
 	return false
@@ -289,6 +392,32 @@ func _check_wait(req: Dictionary, node_bindings: Dictionary) -> bool:
 		return true
 
 	await glob.wait(t)
+	return true
+
+func _check_ask(req: Dictionary, node_bindings: Dictionary) -> bool:
+	if req.get("_asked", false):
+		return false
+
+	req["_asked"] = true
+	for i in len(req.correct):
+		req.correct[i] = int(req.correct[i])
+	
+	await ui.quest.ask(
+		req.head,
+		req.options,
+		req.correct,
+		req.show
+	)
+	return true
+
+func _check_lock(req: Dictionary, node_bindings: Dictionary) -> bool:
+	if req.get("_locked", false):
+		return false
+
+	req["_locked"] = true
+	print("await!!")
+	await learner.push_classroom_event({"awaiting": true})
+	await learner.wait_unblock()
 	return true
 
 
@@ -333,7 +462,7 @@ func _eval_cfg_expressions(cfg: Dictionary, exprs: Dictionary) -> bool:
 	return true
 
 
-func _graph_has_connection(from_id, to_id, out_port: int, in_port: int, graphs) -> bool:
+func _graph_has_connection(from_id, to_id, out_port: int, in_port: int) -> bool:
 	var from = graphs._graphs.get(from_id)
 	var to = graphs._graphs.get(to_id)
 	if from == null or to == null:
@@ -363,7 +492,7 @@ func _graph_has_connection(from_id, to_id, out_port: int, in_port: int, graphs) 
 	return false
 
 
-func _collect_reachable(root, graphs) -> Dictionary:
+func _collect_reachable(root) -> Dictionary:
 	var nodes := {}
 	var edges := []
 
@@ -380,7 +509,7 @@ func _collect_reachable(root, graphs) -> Dictionary:
 	return { "nodes": nodes, "edges": edges }
 
 
-func _match_graph(scene: Dictionary, tpl: Dictionary, graphs) -> bool:
+func _match_graph(scene: Dictionary, tpl: Dictionary) -> bool:
 	var tpl_nodes = tpl["nodes"]
 	var tpl_edges = tpl["edges"]
 	var candidates := {}
@@ -400,33 +529,33 @@ func _match_graph(scene: Dictionary, tpl: Dictionary, graphs) -> bool:
 		if candidates[name].is_empty():
 			return false
 
-	return _assign_nodes(tpl_nodes.keys(), candidates, {}, tpl_edges, graphs)
+	return _assign_nodes(tpl_nodes.keys(), candidates, {}, tpl_edges)
 
 
-func _assign_nodes(names: Array, cand: Dictionary, assigned: Dictionary, edges: Array, graphs) -> bool:
+func _assign_nodes(names: Array, cand: Dictionary, assigned: Dictionary, edges: Array) -> bool:
 	if assigned.size() == names.size():
-		return _check_edges(assigned, edges, graphs)
+		return _check_edges(assigned, edges)
 
 	var name = names[assigned.size()]
 	for id in cand[name]:
 		if id in assigned.values():
 			continue
 		assigned[name] = id
-		if _assign_nodes(names, cand, assigned, edges, graphs):
+		if _assign_nodes(names, cand, assigned, edges):
 			return true
 		assigned.erase(name)
 
 	return false
 
 
-func _check_edges(map: Dictionary, edges: Array, graphs) -> bool:
+func _check_edges(map: Dictionary, edges: Array) -> bool:
 	for e in edges:
-		if not _graph_has_any_connection(map[e[0]], map[e[1]], graphs):
+		if not _graph_has_any_connection(map[e[0]], map[e[1]]):
 			return false
 	return true
 
 
-func _graph_has_any_connection(from_id, to_id, graphs) -> bool:
+func _graph_has_any_connection(from_id, to_id) -> bool:
 	var from = graphs._graphs.get(from_id)
 	if from == null:
 		return false

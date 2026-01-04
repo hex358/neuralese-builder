@@ -277,7 +277,7 @@ theme = ExtResource("3_xwiyo")
 placeholder_text = "Untitled"
 max_length = 25
 script = ExtResource("7_x5ox8")
-resize_after = 120
+resize_after = 5
 monospaced = false
 metadata/_custom_type_script = "uid://dog0wpjftm7uk"
 
@@ -625,7 +625,7 @@ offset_right = 48.240234
 offset_bottom = 46.0
 scale = Vector2(0.8889408, 0.8889408)
 pivot_offset = Vector2(20.620117, 18)
-color = Color(0.49019608, 0.627451, 0.83137256, 1)
+color = Color(0.49, 0.627, 0.831, 1)
 button_type = 1
 top = true
 hint = &"layer"
@@ -748,10 +748,10 @@ script = ExtResource("23_64w7c")
 metadata/_custom_type_script = "uid://m5db3dqdt1jc"
 
 [node name="Control2" parent="." instance=ExtResource("24_o28vt")]
-offset_left = 442.0
-offset_top = 76.0
-offset_right = 482.0
-offset_bottom = 116.0
+offset_left = 367.0
+offset_top = 81.0
+offset_right = 407.0
+offset_bottom = 121.0
 
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
 [connection signal="released" from="ColorRect/Control/export" to="ColorRect" method="_on_export_released"]

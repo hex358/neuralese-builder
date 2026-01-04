@@ -2,12 +2,18 @@
 extends Node2D
 const DEBUG: bool = true
 const LOCALHOSTED: bool = true
-const DUMMY_LOGIN: bool = false
-const DUMMY_PROJECTS: bool = false
+const DUMMY_LOGIN: bool = 0
+const DUMMY_PROJECTS: bool = 0
+const WINDOW_DBG: bool = 1
+const IMPORT_LESSON_DIRS: bool = 1
 const NO_TRANSCRIBER_WARMUP: bool = true
 
 var default_spline = preload("res://scenes/default_spline.tscn")
 var scroll_container = preload("res://scenes/vbox.tscn")
+
+var dummy_string: String = """Lorem ipsum dolor sit amet, consectetur adipiscing elit."""
+
+var dummy_string_long: String = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."""
 
 var bg_trect: CanvasLayer
 
@@ -620,10 +626,11 @@ var _logged_in: Dictionary = {}
 func try_auto_login():
 		
 	var got = get_var("credentials")
-	if OS.get_cmdline_args().has("teacher"):
-		got = {"user": "teacher", "pass": "1"}
-	else:
-		got = {"user": "n", "pass": "1"}
+	if WINDOW_DBG:
+		if OS.get_cmdline_args().has("teacher"):
+			got = {"user": "teacher", "pass": "1"}
+		else:
+			got = {"user": "n", "pass": "1"}
 	if DUMMY_LOGIN: 
 		dummy_login()
 		return true
@@ -685,6 +692,11 @@ func _process(delta: float) -> void:
 		glob.un_occupy(glob.get_occupied("menu"), "menu")
 	#if _menu_type_occupator and _menu_type_occupator is Connection:
 	#	print(_menu_type_occupator.parent_graph.process_mode == Node.PROCESS_MODE_DISABLED)
+	
+	for i in tweens.keys():
+		i.poll(delta)
+		if i.is_finished:
+			tweens.erase(i)
 	
 	#if space_just_pressed:
 	#	await save(str(get_project_id()))
@@ -773,6 +785,15 @@ func in_out_quad(t: float) -> float:
 
 func lerp_quad(a: float, b: float, k: float) -> float:
 	return lerp(a, b, in_out_quad(k))
+
+func in_expo(t: float) -> float: t = clamp(t, 0.0, 1.0); return 0.0 if t == 0.0 else pow(2.0, 10.0 * t - 10.0)
+func lerp_expo_in(a: float, b: float, k: float) -> float: return lerp(a, b, in_expo(k))
+
+func out_expo(t: float) -> float: t = clamp(t, 0.0, 1.0); return 1.0 if t == 1.0 else 1.0 - pow(2.0, -10.0 * t)
+func lerp_expo_out(a: float, b: float, k: float) -> float: return lerp(a, b, out_expo(k))
+
+func in_out_expo(t: float) -> float: t = clamp(t, 0.0, 1.0); return 0.0 if t == 0.0 else (1.0 if t == 1.0 else (pow(2.0, 20.0 * t - 10.0) / 2.0 if t < 0.5 else (2.0 - pow(2.0, -20.0 * t + 10.0)) / 2.0))
+func lerp_expo(a: float, b: float, k: float) -> float: return lerp(a, b, in_out_expo(k))
 
 func get_project_data(empty: bool = false) -> Dictionary:
 	var data = {"graphs": {}, "lua": {}, "registry": {}}
@@ -1169,6 +1190,49 @@ func _sha256_text(s: String) -> String:
 	h.update(s.to_utf8_buffer())
 	return h.finish().hex_encode()
 
+
+func unzip_to_temp_dir(zip_path: String) -> DirAccess:
+	var reader := ZIPReader.new()
+	var err := reader.open(zip_path)
+	if err != OK:
+		print("Failed to open ZIP: %s" % zip_path)
+		return null
+
+	# Create unique temp directory
+	var temp_root := "user://tmp_zip_%d" % Time.get_unix_time_from_system()
+	DirAccess.make_dir_recursive_absolute(temp_root)
+
+	var dir := DirAccess.open(temp_root)
+	if dir == null:
+		reader.close()
+		print("Failed to open temp dir: %s" % temp_root)
+		return null
+
+	# Extract files
+	for file_path in reader.get_files():
+		if file_path.ends_with("/"):
+			dir.make_dir_recursive(file_path)
+			continue
+
+		var abs_path := temp_root.path_join(file_path)
+		dir.make_dir_recursive(abs_path.get_base_dir())
+
+		var file := FileAccess.open(abs_path, FileAccess.WRITE)
+		if file == null:
+			reader.close()
+			print("Failed to write file: %s" % abs_path)
+			return null
+		
+		#print(reader.read_file(file_path).get_string_from_utf8())
+		file.store_buffer(reader.read_file(file_path))
+
+	reader.close()
+	return dir
+
+
+
+
+
 func update_message_stream(
 	input_text: String,
 	chat_id: int,
@@ -1240,6 +1304,27 @@ func update_message_stream(
 
 
 
+var cbox = preload("res://scenes/cbox.tscn")
+
+
+func ask_once(input_text: String) -> String:
+	var payload = {
+		"user": cookies.user(),
+		"pass": cookies.pwd(),
+		"text": input_text
+	}
+	
+	# Using your web singleton for the POST request
+	var resp = await web.JPOST("ask_once", payload)
+	
+	if resp and resp.get("answer") == "ok":
+		return resp.get("text", "")
+		
+	push_error("AI Request failed: " + str(resp))
+	return ""
+
+
+
 func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 	if chat_id in message_sockets:
 		var got = message_sockets[chat_id]
@@ -1254,6 +1339,9 @@ func clear_all():
 	for i in ui.splashed:
 		if i.typename == "ai_help":
 			i.clear_all()
+	for i: SocketConnection in sockets._conns.keys():
+		i.close()
+		sockets._conns.erase(i)
 	#tag_types.clear()
 	#tags_1d.clear()
 	#cached_chats.clear()
@@ -1300,6 +1388,7 @@ func load_scene(from: String, clear_lesson: bool = false):
 	var dat = bytes_to_var(Marshalls.base64_to_raw(a["scene"]))
 	if dat == null: return
 	loaded_project_once = true
+	learner.stop_lesson()
 	fg.go_into_graph()
 	await graphs.delete_all()
 	tree_windows["env"].reset()
@@ -1328,6 +1417,22 @@ func load_scene(from: String, clear_lesson: bool = false):
 	
 	close_action_batch()
 	return true
+
+
+
+func load_lesson(from: String):
+	#project_id = int(from)
+	cached_chats.clear()
+	last_summary_hash = -1
+	clear_chats()
+	clear_all()
+
+	loaded_project_once = true
+	fg.go_into_graph()
+	await graphs.delete_all()
+	learner.enter_lesson(from)
+
+
 
 
 var cached_chats = {}
@@ -1771,6 +1876,9 @@ func load_empty_scene(pr_id: int, name: String):
 	#
 
 func save(from: String):
+	if learner.active():
+		return
+	from = str(glob.get_project_id())
 	save_datasets()
 	nn.request_save()
 	var bytes = var_to_bytes(get_project_data())
@@ -1922,6 +2030,52 @@ func cache_rle_compress(who: String, changed_rows: Variant = null, mode: Variant
 	
 
 	#rle_cache[who] = DsObjRLE.compress_and_send(dataset_datas[who])
+
+var tweens = {}
+
+class TweenSimple:
+	signal finished
+	var who: Object; var prop: String; var from; var to; var t; var total
+	var is_finished: bool = false
+	func poll(delta: float):
+		t += delta
+		if t > total - 0.008 or q_finish:
+			is_finished = true
+			finished.emit()
+		who.set(prop, lerp(from, to, t / total))
+	func _init(_who: Object, _prop: String, _from, _to, _t: float):
+		who = _who; prop = _prop
+		from = _from; to = _to; total = _t; t = 0.0
+	var q_finish = false
+	func finish():
+		q_finish = true
+
+class TweenCall:
+	signal finished
+	var callb: Callable; var data: Dictionary
+	var is_finished: bool = false
+	var q_finish = false
+	func poll(delta: float):
+		if q_finish or callb.call(data, delta):
+			is_finished = true; finished.emit()
+	func _init(dt: Dictionary, cb : Callable):
+		data = dt; callb = cb
+	func finish():
+		q_finish = true
+
+func tween(who: Object, prop: String, from: Variant, to: Variant, t: float) -> bool:
+	var obj = TweenSimple.new(who, prop, from, to, t)
+	tweens[obj] = true
+	await obj.finished
+	return true
+
+func tween_call(data: Dictionary, callb: Callable) -> bool:
+	var obj = TweenCall.new(data, callb)
+	if "write_into" in data:
+		data.write_into[0] = obj
+	tweens[obj] = true
+	await obj.finished
+	return true
 
 func join_ds_processing():
 	await join_ds_save()
@@ -2250,8 +2404,6 @@ func disconnect_action(from: Connection, to: Connection):
 
 
 func reset_mouse():
-	mouse_alt_just_pressed = false
-	mouse_alt_just_released = false
 	#mouse_alt_pressed = false
 	mouse_just_pressed = false
 	mouse_just_released = false

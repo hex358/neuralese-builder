@@ -148,6 +148,7 @@ func _resize_label():
 	if w <= limit_px:
 		add_theme_font_size_override("font_size", base_font_size)
 		return
+	#print(resize_after)
 	var ratio = clamp(limit_px / max(1.0, w), 0.05, 1.0)
 	var new_fs = int(floor(base_font_size * ratio))
 	add_theme_font_size_override("font_size", max(6, new_fs))

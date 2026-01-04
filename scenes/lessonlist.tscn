@@ -107,7 +107,7 @@ in_splash = true
 z_index = 5
 instance_shader_parameters/extents = Vector2(0, 0)
 instance_shader_parameters/outline_color = Color(0.3, 1, 0.5566666, 1)
-instance_shader_parameters/tuning = Color(0.192, 0.6, 0.34159997, 0.7254902)
+instance_shader_parameters/tuning = Color(0.2688, 0.84, 0.47823992, 0.8980392)
 layout_mode = 0
 offset_left = 200.0
 offset_top = 221.333
@@ -138,9 +138,12 @@ localizations_kz = Dictionary[String, String]({
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
-[node name="ProceduralNodes" type="Node" parent="ColorRect/list" node_paths=PackedStringArray("instance")]
+[node name="ProceduralNodes" type="Node" parent="ColorRect/list" node_paths=PackedStringArray("instance", "parent_easy")]
 script = ExtResource("11_801vn")
+easy = true
 instance = NodePath("../name")
+parent_call = "unroll"
+parent_easy = NodePath("../../..")
 metadata/_custom_type_script = "uid://cppqde4187p8n"
 
 [node name="Label" type="Label" parent="ColorRect"]

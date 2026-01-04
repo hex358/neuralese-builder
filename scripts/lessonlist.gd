@@ -18,7 +18,7 @@ func _ready() -> void:
 	#if !glob.loaded_project_once and not glob.DUMMY_LOGIN:
 	#	glob.loaded_project_once = true
 	#	await glob.save_empty(str(glob.project_id), glob.fg.get_scene_name())
-	var a = learner.lesson_list()
+	
 	#ui.hourglass_off()
 	#quitting.connect(
 	#glob.reset_menu_type.bind($ColorRect/list, &"delete_project"))
@@ -28,13 +28,47 @@ func _ready() -> void:
 	#})
 	#if a.body:
 		#parsed = JSON.parse_string(a.body.get_string_from_utf8())["list"]
-	list.show_up(a)
+	
+	#list.show_up(a)
 	await get_tree().process_frame
+	unroll_do()
+	await learner.cache_classroom_data()
+	unroll_do()
+
+@onready var list_unroll = $ColorRect/list
+
+func unroll_do():
+	$ColorRect/list/ProceduralNodes.unroll()
+	await get_tree().process_frame
+	list_unroll.menu_show(list_unroll.position)
+	list_unroll.state.holding = false
+	list_unroll.unblock_input()
 
 
+
+func unroll(dup, args, kwargs):
+	var output: Array[Node] = []
+	var a = learner.lesson_list()
+	for i in a:
+		var new: BlockComponent = dup.duplicate()
+		new.placeholder = false
+		new.show()
+		new.hint = i
+		new.text = a[i].name
+		#print(learner.classroom_data.lesson_customs)
+		if learner.is_lesson_open(new.hint):
+			new.self_modulate.a = 1
+		else:
+			new.self_modulate.a = 0.4
+			new.freeze_input()
+			
+		output.append(new)
+		
+	#print(output)
+	return output
 
 func _on_list_child_button_release(button: BlockComponent) -> void:
-	learner.enter_lesson(button.hint)
+	glob.load_lesson(button.hint)
 	go_away()
 
 

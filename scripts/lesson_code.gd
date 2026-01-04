@@ -17,6 +17,17 @@ var node_bindings: Dictionary = {}
 var pending_node_binds: Array = []
 var active_invariants: Array[Callable] = []
 
+func stop() -> void:
+	current_step_index = -1
+	node_bindings.clear()
+	pending_node_binds.clear()
+	active_invariants.clear()
+	
+	for step in steps:
+		step["_completed"] = false
+		for req in step.get("requires", []):
+			req.erase("_resolved")
+
 func load_steps(step_defs: Array) -> void:
 	steps.clear()
 	node_bindings.clear()
@@ -36,6 +47,12 @@ func start() -> void:
 func on_graph_changed() -> void:
 	_check_invariants()
 	_evaluate_current_step()
+
+func load_state():
+	pass # load stuff
+
+func get_state():
+	return {}
 
 func on_node_created(node: Graph) -> void:
 	for bind_spec in pending_node_binds:
@@ -66,8 +83,27 @@ func _evaluate_current_step() -> void:
 		return
 
 	var step = steps[current_step_index]
-	if await _step_satisfied(step):
+	var exp = step.get("explain")
+	
+	if exp:
+		if not exp.has("_phase"): exp["_phase"] = "before"
+		if exp["_phase"] == "before" and not exp.get("_shown_before", false):
+			exp["_shown_before"] = true
+			await dsl_reg._show_explain_before(exp)
+
+	var requires_ok = await _step_satisfied(step)
+	if not requires_ok:
+		return
+
+	if exp:
+		if exp["_phase"] == "before": exp["_phase"] = "after"
+		if exp["_phase"] == "after" and not exp.get("_shown_after", false):
+			exp["_shown_after"] = true
+			await dsl_reg._show_explain_after(exp)
+			_complete_step(step)
+	else:
 		_complete_step(step)
+
 
 func _complete_step(step: Dictionary) -> void:
 	if step["_completed"]:
@@ -84,9 +120,13 @@ func _complete_step(step: Dictionary) -> void:
 
 func _step_satisfied(step: Dictionary) -> bool:
 	for req in step.get("requires", []):
-		if not await _compile_requirement(req).call():
-			return false
+		if not req.has("_resolved"):
+			var ok = await _compile_requirement(req).call()
+			if not ok:
+				return false
+			req["_resolved"] = true
 	return true
+
 
 func _compile_requirement(req: Dictionary) -> Callable:
 	var t = str(req.get("type", ""))

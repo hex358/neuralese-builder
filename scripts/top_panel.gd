@@ -25,7 +25,7 @@ func _ready() -> void:
 func name_resize():
 	$Label.size.x = clamp((glob.window_size.x - 700) * 0.6, 100, 189) / $Label.scale.x
 	#savebut.global_position.x = $Label.get_global_rect().end.x + 10
-	$Label.resize_after = $Label.size.x - 10
+	$Label.resize_after = $Label.size.x - 30
 	$Label._resize_label.call_deferred()
 
 
@@ -208,10 +208,13 @@ func _on_workslist() -> void:
 		if a:
 			pass
 			set_login_state("Works")
-			ui.splash("workslist", workslist_but)
+			ui.splash("workslist" if !learner.active() else "lessonslist", workslist_but)
 		else:
 			set_login_state("")
 		#if !glob.loaded_project_once:
 		#	glob.open_last_project()
 	else:
-		ui.splash("workslist", workslist_but)
+		if ui.active_splashed(): 
+			ui.hide_splash()
+			return
+		ui.splash("workslist"if !learner.active() else "lessonslist", workslist_but)

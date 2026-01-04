@@ -1,6 +1,10 @@
-[gd_resource type="Theme" load_steps=8 format=3 uid="uid://cxe1714v2p0a1"]
+[gd_resource type="Theme" load_steps=12 format=3 uid="uid://cxe1714v2p0a1"]
 
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="1_e1x85"]
+[ext_resource type="Texture2D" uid="uid://lfypr47ijmf8" path="res://game_assets/icons/check_on.png" id="1_owntx"]
+[ext_resource type="Texture2D" uid="uid://bekuojji4sdsy" path="res://game_assets/icons/radio_on.png" id="2_aaf3v"]
+[ext_resource type="Texture2D" uid="uid://bo6cqjgcnsf5j" path="res://game_assets/icons/radio_off.png" id="3_yp2uj"]
+[ext_resource type="Texture2D" uid="uid://gyuvons1rgm7" path="res://game_assets/icons/ch.png" id="4_owntx"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vj6dk"]
 bg_color = Color(0.3, 0.3, 0.3, 1)
@@ -70,6 +74,10 @@ corner_radius_bottom_left = 8
 
 [resource]
 default_font = ExtResource("1_e1x85")
+CheckBox/icons/checked = ExtResource("1_owntx")
+CheckBox/icons/radio_checked = ExtResource("2_aaf3v")
+CheckBox/icons/radio_unchecked = ExtResource("3_yp2uj")
+CheckBox/icons/unchecked = ExtResource("4_owntx")
 Label/font_sizes/font_size = 32
 Label/fonts/font = ExtResource("1_e1x85")
 LineEdit/colors/font_color = Color(1, 1, 1, 1)

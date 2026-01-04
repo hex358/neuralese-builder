@@ -247,33 +247,33 @@ func _on_dcol_command(_data: Dictionary):
 	if col_idx < -table.cols or col_idx >= table.cols:
 		debug_print("[color=coral]Invalid column index %d.[/color]" % col_idx)
 		return
-	table.dirtify()
+	
 	if col_idx < 0:
 		col_idx += table.cols
-	#print(col_idx)
-	# Remove from dataset
-	for row in dataset:
-		if col_idx < row.size():
-			row.remove_at(col_idx)
+
+	# 1. Mark dirty FIRST
+	table.dirtify()
 	
-	table.dataset_obj["col_args"].remove_at(col_idx)
-	table.set_column_arg_packs(table.dataset_obj["col_args"])
-	# Update table metadata
+	# 2. Call DsObjRLE.remove_column to properly handle RLE cache
+	DsObjRLE.remove_column(table.dataset_obj, table.dataset_obj["name"], col_idx)
+	
+	# 3. Update table metadata (DsObjRLE already updated dataset arrays)
 	var col_names: Array = table.dataset_obj.get("col_names", [])
-	table.destroy_column_cache(col_idx)
-	#print(table._dataset_cache)
-	if col_idx < col_names.size():
-		col_names.remove_at(col_idx)
-	table.dataset_obj["col_names"] = col_names
-	#print(col_names)
 	
+	# 4. Destroy and update cache
+	table.destroy_column_cache(col_idx)
+	
+	# 5. Update column names in table
 	table.set_column_names(col_names)
-	dataset_updated()
+	
+	dataset_updated(true)
+	
 	await get_tree().process_frame
 	
 	table.re_uni()
-
 	table.refresh_preview()
+	
+	debug_print("Removed column %d" % col_idx)
 
 func _on_outs_command(_data: Dictionary):
 	var parts = text.strip_edges().split(" ", false)

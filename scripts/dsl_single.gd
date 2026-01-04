@@ -6,6 +6,7 @@ static var active_lesson: LessonCode = null
 static func register_lesson(lesson: LessonCode) -> void:
 	active_lesson = lesson
 
+
 static func unregister_lesson(lesson: LessonCode) -> void:
 	if active_lesson == lesson:
 		active_lesson = null

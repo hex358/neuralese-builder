@@ -182,6 +182,7 @@ func start_train(train_input: Graph, additional_call: Callable = glob.def, run_b
 		"scene_id": str(glob.get_project_id()),
 		"context": str(execute_input_origin.context_id),
 	}.merged(tdata))
+	print(compressed)
 	#print(compressed)
 				#var tdata = graph.get_training_data()
 			#var a = await sockets.connect_to("ws/ds_load", func(a): null, cookies.get_auth_header())

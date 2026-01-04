@@ -16,7 +16,16 @@ var _translation_fn: Callable
 
 var prev_txt = null
 
+@export var defer_translate: bool = false
+
+var readied_once: bool = false
 func _ready() -> void:
+	if readied_once: return
+	if get_parent() is BlockComponent and get_parent().placeholder:
+		return
+	
+	readied_once = true
+	await get_tree().process_frame
 	lang = glob.get_lang()
 	_parent = get_parent()
 	if not _parent:

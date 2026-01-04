@@ -306,6 +306,42 @@ static func _build_block_text(arr: Array, col: int, s: int, e: int) -> PackedByt
 		raw.append_array(s0.to_utf8_buffer()); raw.append(0)
 	var o := PackedByteArray(); o.append(0); o.append_array(raw); return o
 
+static func remove_column(ds: Dictionary, name: String, col_idx: int) -> void:
+	var arr: Array = ds["arr"]
+	if arr.is_empty():
+		return
+	
+	var cols: int = arr[0].size()
+	if col_idx < 0 or col_idx >= cols:
+		return
+	
+	# 1. Remove from raw dataset
+	for row in arr:
+		row.remove_at(col_idx)
+	
+	# 2. Update metadata
+	if ds.has("col_names") and col_idx < ds["col_names"].size():
+		ds["col_names"].remove_at(col_idx)
+	if ds.has("col_dtypes") and col_idx < ds["col_dtypes"].size():
+		ds["col_dtypes"].remove_at(col_idx)
+	if ds.has("col_args") and col_idx < ds["col_args"].size():
+		ds["col_args"].remove_at(col_idx)
+	
+	# 3. Adjust outputs_from
+	var outputs_from: int = ds.get("outputs_from", 0)
+	if col_idx < outputs_from:
+		ds["outputs_from"] = outputs_from - 1
+	
+	# 4. Remove from cache
+	if ds.has("cache") and ds["cache"].has("cols"):
+		var cache_cols: Array = ds["cache"]["cols"]
+		if col_idx < cache_cols.size():
+			cache_cols.remove_at(col_idx)
+	
+	glob.rle_cache.erase(name)
+	# Next compress_blocks() or recompress_changed_blocks() will rebuild from scratch
+
+
 static func _build_block_image(arr: Array, col: int, s: int, e: int) -> PackedByteArray:
 	var raw := PackedByteArray()
 	for r in range(s, e):

@@ -15,14 +15,14 @@ func _enter_tree() -> void:
 	
 	cache()
 
+func active() -> bool: 
+	return lesson_list().keys().find(current_lesson_key) != -1
+
 func _ready() -> void:
 	#print(dsl_reg)
 	#print(
-		#JSON.stringify(
-		#YAMLComp.new().compile_bundle(FileAccess.\
-		#get_file_as_string("c:/users/mike/downloads/class.yaml")), "\t"))
-	
-	await glob.wait(1)
+	#	JSON.stringify(
+	#	YAMLComp.new().compile_bundle("C:
 
 	lesson = LessonCode.new()
 	add_child(lesson)
@@ -34,6 +34,10 @@ func _ready() -> void:
 	
 	LessonRouter.register_lesson(lesson)
 
+func stop_lesson():
+	if lesson:
+		lesson.stop()
+		ui.lesson_bar.dissapear()
 
 
 func join_classroom(id: String) -> Dictionary:
@@ -48,7 +52,8 @@ func join_classroom(id: String) -> Dictionary:
 
 func cache_classroom_data():
 	var resp = await web.JPOST("classroom/meta", {
-		"user": cookies.user(), "pass": cookies.pwd()})
+		"user": cookies.user(), "pass": cookies.pwd(), "classroom_id": cookies.profile("my_classroom") })
+	#print(resp.data)
 	if resp and resp.get("ok", false):
 		load_classroom_data(resp.data)
 
@@ -62,7 +67,10 @@ func leave_classroom() -> bool:
 
 
 
-
+func is_lesson_open(who):
+	#print(lesson_list().keys().find(who))
+	#print(classroom_data["lesson_customs"].get((lesson_list().keys().find(who)), {}))
+	return classroom_data and classroom_data["lesson_customs"].get((lesson_list().keys().find(who)), {}).get("opened", false)
 
 func create_classroom(name: String = "Untitled") -> String:
 	var resp = await web.JPOST("classroom/create", {
@@ -96,9 +104,12 @@ func wait_unblock():
 	var h = classroom_stream()
 	var end = EndSignal.new()
 	var x = func(evt):
-		if evt.get("event", "") != "event": return
+		#print(JSON.stringify(evt, "\t"))
+		if evt.get("event", "") != "snapshot": return
 		evt = JSON.parse_string(evt.data)
-		if evt["end"]: end.end_signal.emit()
+		if not evt.students.get(cookies.user(), {}).get("awaiting", false):
+			end.end_signal.emit()
+		#if evt["end"]: end.end_signal.emit()
 	h.on_sse.connect(x)
 	await end.end_signal
 	h.cancel()
@@ -129,6 +140,10 @@ func load_classroom_data(data: Dictionary):
 	if "classroom_data" in data:
 		data = data.classroom_data
 	#	print(data)
+	var customs = {}
+	for i in data.get("lesson_customs", {}):
+		customs[int(i)] = data["lesson_customs"][i]
+	data["lesson_customs"] = customs
 	
 	#	print_stack()
 	classroom_data = data
@@ -151,19 +166,25 @@ func enter_lesson(lesson_key):
 	lesson.load_steps(orch.code.steps)
 	lesson.start()
 	ui.lesson_bar.appear()
-	push_classroom_event({"on_lesson": get_classroom_frontend().lesson_order.find(lesson_key)})
+	push_classroom_event({"on_lesson": get_classroom_frontend().lesson_order.find(lesson_key), "awaiting": false})
 	
 var current_code = {}
 
-func push_classroom_event(event: Dictionary):
+func push_classroom_event(event: Dictionary, target = null):
 
-	var resp = await web.JPOST("classroom/update_state", {
+	var resp = await web.JPOST("classroom/update_state", {"target": target if target != null else cookies.user(),
 	"user": cookies.user(), "pass": cookies.pwd(), "payload": event, "classroom_id": cookies.profile("my_classroom")})
 
 func upload_classroom_meta(meta: Dictionary):
 	load_classroom_data(meta)
 	var resp = await web.JPOST("classroom/update_meta", {
 	"user": cookies.user(), "pass": cookies.pwd(), "payload": meta, "classroom_id": cookies.profile("my_classroom")})
+
+
+func upload_lesson_customs(lesson_id: int, meta: Dictionary):
+	classroom_data.get_or_add("lesson_customs", {})[lesson_id] = meta
+	var resp = await web.JPOST("classroom/update_lessons", {
+	"user": cookies.user(), "pass": cookies.pwd(), "payload": {lesson_id: meta}, "classroom_id": cookies.profile("my_classroom")})
 
 
 func mark_explanation_made(idx: int = -1):

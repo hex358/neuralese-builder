@@ -104,12 +104,15 @@ func select():
 	if is_blocked: return
 	selected = true
 	graphs.set_selected(self)
-	rect.set_instance_shader_parameter("outline_color", Color.YELLOW)
+	select_effect(Color.YELLOW)
+
+func select_effect(color: Color):
+	rect.set_instance_shader_parameter("outline_color", color)
 
 func unselect():
 	selected = false
 	graphs.unselect(self)
-	rect.set_instance_shader_parameter("outline_color", base_outline)
+	select_effect(base_outline)
 
 
 @onready var cfg: Dictionary[StringName, Variant] = base_config.duplicate()
@@ -749,9 +752,12 @@ var invoked_with: Callable
 
 var is_blocked: bool = false
 var input_cache = {}
-func block(): 
+var allow_drag: bool = true
+func block(darken: bool = true, _drag: bool  = false): 
 	is_blocked = true
-	modulate = Color(0.7,0.7,0.7,1)
+	allow_drag = _drag
+	if darken:
+		modulate = Color(0.7,0.7,0.7,1)
 	for i in glob.rget_children(self):
 		if i is LineEdit or i is BlockComponent:
 			input_cache[i] = i.mouse_filter
@@ -761,6 +767,7 @@ func block():
 	
 func unblock(): 
 	is_blocked = false
+	allow_drag = true
 	modulate = Color.WHITE
 	for i in input_cache:
 		if not is_instance_valid(i): continue
@@ -769,10 +776,57 @@ func unblock():
 			i.unblock_input()
 	input_cache.clear()
 
+var cbox: CheckBox
+func enter_selection_mode():
+	block(false, true)
+	outl = graphs.shadow_rect.instantiate()
+	add_child(outl)
+	outl.position = rect.position
+	outl.outline = true
+	outl.extents = rect.size
+	outl.color = Color.WHITE
+	outl.color.a = 0.3
+	outl.modulate.a = 1.0
+	move_child(outl, 0)
+
+var outl = null
+var chosen: bool = false
+
+func choose():
+	chosen = true
+	outl.z_index = 2
+	outl.color = Color.GREEN
+	select_effect(Color.GREEN)
+	outl.color.a = 0.35
+	ui.mark_chosen(self)
+
+
+func choose_progress():
+	if hold_t > 0.3:
+		outl.z_index = 2
+		outl.color = Color(1,1,1,0.3).lerp(Color(0,1,0,0.35), (hold_t - 0.3) / 0.2)
+
+func unchoose():
+	chosen = false
+	outl.z_index = 0
+	outl.color = Color.WHITE
+	select_effect(base_outline)
+	outl.color.a = 0.3
+	ui.unmark_chosen(self)
+
+func exit_selection_mode():
+	outl.queue_free()
+	select_effect(base_outline)
+	unblock()
+	
+
 
 func _ready() -> void:
 	#block()
 	#print(graph_flags)
+	if ui.nodes_choosing:
+		enter_selection_mode()
+		print("aa")
 	#print(invoked_with.get_bound_arguments())
 	glob.add_action(delete, invoked_with)
 	#glob.open_action(self, "create_graph")
@@ -1050,6 +1104,8 @@ func drag_start():
 	shadow.outline = true
 	shadow.extents = rect.size
 	shadow.modulate.a = 0.0
+	if ui.nodes_choosing:
+		shadow.hide()
 	move_child(shadow, 0)
 
 	var sel = graphs.selected_nodes
@@ -1371,6 +1427,7 @@ func copy():
 var low = {"detatch": true}
 var first_drag: bool = false
 var beginned_at: Vector2 = Vector2()
+var hold_t: float = 0
 func _process(delta: float) -> void:
 #	print(group_dragging)
 	if Engine.is_editor_hint(): return
@@ -1438,9 +1495,36 @@ func _process(delta: float) -> void:
 	#print( glob.get_occupied(&"menu"))
 	#print(glob.is_occupied(self, &"dropout_inside"))
 	#print(glob.get_occupied("menu"))
+	var mouse_just_pressed = glob.mouse_just_pressed
+	var mouse_pressed = glob.mouse_pressed
+	if not allow_drag:
+		mouse_just_pressed = false
+		mouse_pressed = false
 	if inside and is_blocked:
 		glob.reset_mouse()
-	if inside and glob.mouse_just_pressed and _can_drag() and (
+	#print(inside and mouse_just_pressed)
+	if ui.nodes_choosing:
+		if hold_t > 0 and inside:
+			if mouse_pressed:hold_t += delta
+		if inside and mouse_just_pressed and chosen:
+			unchoose()
+			mouse_just_pressed = false
+		if mouse_just_pressed and !chosen and inside: 
+			hold_t = 0.001
+			select_effect(Color(0.8,1,0.8))
+		if hold_t and !chosen:
+			if hold_t >0.5:
+				choose()
+				hold_t = 0
+			else:
+				if hold_t > 0.3:
+					select_effect(Color.GREEN)
+				choose_progress()
+				if not mouse_pressed:
+					unchoose()
+					hold_t = 0
+
+	if inside and mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 
 		not ui.topr_inside and 
 		not glob.is_occupied(self, &"graph") and 
@@ -1457,7 +1541,7 @@ func _process(delta: float) -> void:
 	
 	if dragging:
 		hold_for_frame()
-		if not glob.mouse_pressed or (not unp_inside and glob.splines_active):
+		if not mouse_pressed or (not unp_inside and glob.splines_active):
 			dragging = false
 			# use combined undo for group (handled in drag_ended); for single, keep existing
 			if group_dragging and group_drag_leader == self:

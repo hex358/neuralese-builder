@@ -1,11 +1,15 @@
 extends ColorRect
 
+# Color(0.49, 0.627, 0.831)
+# Color(0.49, 0.83, 0.614)
 
 func appear():
 	show()
+	get_parent().workslist_but.color = Color(0.49, 0.83, 0.614)
 	glob.space_begin.y = get_parent().size.y + get_parent().position.y + size.y - 1
 
 func dissapear():
+	get_parent().workslist_but.color = Color(0.49, 0.627, 0.831)
 	glob.space_begin.y = get_parent().size.y + get_parent().position.y
 	hide()
 

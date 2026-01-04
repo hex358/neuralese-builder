@@ -143,6 +143,14 @@ func upd_topr_inside(who: Object, val: bool):
 		topr_state.erase(who)
 	topr_inside = len(topr_state) > 0
 
+
+
+
+func ask(packet: Dictionary):
+	pass
+
+
+
 #var _parent_graphs = {}
 func reg_button(b: BlockComponent):
 	pass
@@ -154,11 +162,11 @@ func unreg_button(b: BlockComponent):
 var axon_donut: Control
 
 func _process(delta: float):
-	#if glob.space_just_pressed:
-		#if is_ai_building:
-			#stop_ai_building()
-		#else:
-			#set_ai_building()
+	if glob.space_just_pressed:
+		if nodes_choosing:
+			print(lock_chosen())
+		else:
+			nodes_choosing_on()
 	var ct: int = 0
 	for i in splashed.keys():
 		if not is_instance_valid(i): splashed.erase(i); continue
@@ -192,7 +200,7 @@ var splash_menus = {
 	"classroom_create": preload("res://scenes/classroom_create.tscn"),
 }
 
-var quest: Control = null
+var quest: Quest = null
 
 var cl = CanvasLayer.new()
 var hg = preload("res://scenes/hourglass.tscn")
@@ -204,7 +212,12 @@ func hourglass_on():
 func hourglass_off():
 	hourglass.off()
 
+var chosen = {}
+
+
+
 func _ready():
+	
 	cl.layer = 128
 	add_child(cl)
 	blur.self_modulate.a = 0
@@ -255,6 +268,35 @@ func close_top_level_splashes(except_typename: String = "") -> void:
 		if except_typename != "" and s.typename == except_typename: continue
 		s.can_go = true
 		s.go_away()
+
+var nodes_choosing: bool = false
+
+func nodes_choosing_on():
+	nodes_choosing = true
+	for graph: Graph in graphs._graphs.values():
+		graph.enter_selection_mode()
+		print(graph.outl)
+
+func mark_chosen(who):
+	chosen[who] = true
+
+func unmark_chosen(who):
+	chosen.erase(who)
+
+
+func lock_chosen():
+	for graph: Graph in graphs._graphs.values():
+		graph.exit_selection_mode()
+	nodes_choosing = false
+	var old_chosen = chosen
+	chosen = {}
+	return old_chosen
+
+func highlight_node(move_viewport: bool = false):
+	pass
+
+func hide_splash():
+	close_top_level_splashes()
 
 func splash(menu: String, splashed_from = null, emitter_ = null, inner = false, passed_data = null) -> SplashMenu:
 	hourglass.off(true)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://co81wbc7nvnue"]
+[gd_scene load_steps=30 format=3 uid="uid://co81wbc7nvnue"]
 
 [ext_resource type="Script" uid="uid://bahiwylqyse57" path="res://scripts/settings.gd" id="1_4ppmf"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_oe2nd"]
@@ -20,6 +20,7 @@
 [ext_resource type="Script" uid="uid://dqpr2y7tbsc13" path="res://scripts/works_list.gd" id="17_k00b3"]
 [ext_resource type="Script" uid="uid://3iluo5wg2wdh" path="res://scripts/works_unroll.gd" id="18_aisiw"]
 [ext_resource type="Texture2D" uid="uid://d01lsypo4hh53" path="res://game_assets/icons/upload.png" id="20_aisiw"]
+[ext_resource type="Texture2D" uid="uid://dyts034lekboy" path="res://game_assets/icons/lock.png" id="20_f1e71"]
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="22_gcetw"]
 
 [sub_resource type="Resource" id="Resource_5kbvu"]
@@ -512,7 +513,6 @@ localizations_kz = Dictionary[String, String]({
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="studentyes" type="Control" parent="ColorRect"]
-visible = false
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -615,22 +615,24 @@ metadata/_custom_type_script = "uid://dtwj74o465brs"
 anchors_preset = 0
 offset_left = 33.0
 offset_top = 171.0
-offset_right = 317.0
+offset_right = 404.0
 offset_bottom = 211.0
 
 [node name="name" type="Label" parent="ColorRect/studentyes/Control"]
 modulate = Color(0.5019608, 1, 0.68235296, 1)
 layout_mode = 1
-offset_left = 113.99999
+offset_left = 107.0
 offset_top = -44.0
-offset_right = 337.632
+offset_right = 330.632
 offset_bottom = -7.0
 scale = Vector2(0.9927022, 0.9927022)
+pivot_offset = Vector2(0, 18.5)
 theme = ExtResource("12_3gwh8")
 text = "Class: ffffff"
 script = ExtResource("7_oe2nd")
 auto_get_base_size = true
 base_size = Vector2(223.63199, 37)
+pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="Label" type="Label" parent="ColorRect/studentyes/Control"]
@@ -661,6 +663,7 @@ localizations_kz = Dictionary[String, String]({
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="classroomstatus" type="Control" parent="ColorRect"]
+visible = false
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -727,7 +730,7 @@ metadata/_custom_type_script = "uid://cppqde4187p8n"
 anchors_preset = 0
 offset_left = 33.0
 offset_top = 135.0
-offset_right = 277.0
+offset_right = 365.0
 offset_bottom = 175.0
 
 [node name="name" type="Label" parent="ColorRect/classroomstatus/Control"]
@@ -738,11 +741,13 @@ offset_top = -41.0
 offset_right = 266.632
 offset_bottom = -4.0
 scale = Vector2(0.9927022, 0.9927022)
+pivot_offset = Vector2(0, 18.5)
 theme = ExtResource("12_3gwh8")
 text = "Class: ffffff"
 script = ExtResource("7_oe2nd")
 auto_get_base_size = true
-base_size = Vector2(94, 37)
+base_size = Vector2(223.63199, 37)
+pivoting = true
 metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="Label2" type="Label" parent="ColorRect/classroomstatus"]
@@ -767,9 +772,9 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 390.0
+offset_left = 359.0
 offset_top = 94.0
-offset_right = 410.23773
+offset_right = 379.23773
 offset_bottom = 113.56917
 grow_horizontal = 0
 grow_vertical = 0
@@ -792,6 +797,50 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_k00b3")
 in_splash = true
+
+[node name="lock" parent="ColorRect/classroomstatus" instance=ExtResource("2_oe2nd")]
+instance_shader_parameters/corner_radius_width_add = Vector2(-10, -0.3)
+instance_shader_parameters/extents = Vector2(0, 0)
+instance_shader_parameters/tuning = Color(0, 0, 0, 0.78039217)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 391.0
+offset_top = 94.0
+offset_right = 411.23773
+offset_bottom = 113.56917
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.4018645, 1.4018645)
+pivot_offset = Vector2(10.118866, 9.784584)
+mouse_filter = 1
+color = Color(0.475, 0.95, 0.6491666, 0.22745098)
+button_type = 1
+top = true
+hint = &"Add"
+base_scale_x = 0.45
+resize_after = 15
+base_size = Vector2(20.237732, 19.569168)
+alignment = Vector2(0.5, 0.5)
+expanded_size = 98
+arrangement_padding = Vector2(5, 5)
+mouse_open = false
+menu_name = &"g"
+max_size = 170
+config = SubResource("Resource_k00b3")
+in_splash = true
+
+[node name="t" type="TextureRect" parent="ColorRect/classroomstatus/lock"]
+layout_mode = 0
+offset_left = 3.6140137
+offset_top = 3.518219
+offset_right = 43.614014
+offset_bottom = 43.51822
+scale = Vector2(0.31402862, 0.31402862)
+texture = ExtResource("20_f1e71")
 
 [node name="right" parent="ColorRect/classroomstatus" instance=ExtResource("2_oe2nd")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-10, -0.3)
@@ -833,7 +882,7 @@ in_splash = true
 anchors_preset = 0
 offset_left = 33.0
 offset_top = 169.0
-offset_right = 345.0
+offset_right = 379.0
 offset_bottom = 209.0
 
 [node name="Label" type="Label" parent="ColorRect/classroomstatus/Control2"]
@@ -1014,7 +1063,9 @@ script = ExtResource("14_w3ind")
 [connection signal="valid" from="ColorRect/studentjoin/confirm" to="." method="_on_confirm_valid"]
 [connection signal="released" from="ColorRect/studentyes/train" to="." method="leave_press"]
 [connection signal="released" from="ColorRect/studentyes/train2" to="." method="_on_llist_released"]
+[connection signal="child_button_release" from="ColorRect/classroomstatus/list" to="." method="_on_list_child_button_release"]
 [connection signal="released" from="ColorRect/classroomstatus/left" to="." method="_on_left_released"]
+[connection signal="released" from="ColorRect/classroomstatus/lock" to="." method="_on_lock_released"]
 [connection signal="released" from="ColorRect/classroomstatus/right" to="." method="_on_right_released"]
 [connection signal="released" from="ColorRect/classroomstatus/cont" to="." method="_on_continue_released"]
 [connection signal="released" from="ColorRect/classroomstatus/upload" to="." method="_on_upload_released"]

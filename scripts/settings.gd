@@ -24,10 +24,16 @@ func _exit_tree() -> void:
 
 var stream = null
 
-
+@onready var lock_button = $ColorRect/classroomstatus/lock
+@onready var base_text = lock_button.get_node("t").texture
+var open_text = preload("res://game_assets/icons/lock_open.png")
 func open_lesson(idx: int):
 	var list = learner.lesson_list()
 	if idx < len(list) and idx >= 0:
+		if learner.classroom_data.get("lesson_customs", {}):
+			var me = learner.classroom_data.lesson_customs.get(idx, {})
+			if !me.get("opened", false): lock_button.get_node("t").texture = base_text
+			else: lock_button.get_node("t").texture = open_text
 		lesson_index = idx
 		curr_lesson = learner.get_classroom_frontend().lessons[list.keys()[idx]]
 		if last_snapshot:
@@ -93,8 +99,11 @@ func update_single(who: BlockComponent, dict: Dictionary):
 		user = user.substr(0,13)
 		user += ".."
 	var footer = ""
+	who.metadata["awaiting"] = waiting
+	
 	if dict.get("other", false):
 		var on = int(dict.data.on_lesson)
+		who.freeze_input()
 		footer = "[__] Not In Lesson" if on == -1 or on >= len(learner.lesson_list()) else "[--] In Lesson %s" % (on+1)
 		match glob.curr_lang:
 			"kz":
@@ -218,10 +227,12 @@ var parsed = {}
 var good = preload("res://game_assets/icons/good.png")
 func _ready() -> void:
 	#print("hey vey")
+#	print(learner.classroom_data)
 	if passed_data.has("path"):
-		pass
-		var compiled = YAMLComp.new().compile_bundle(cookies.open_or_create(passed_data["path"], "").get_as_text())
-		print(compiled)
+		var path: String = passed_data["path"]
+		var compiled = YAMLComp.new().compile_bundle(path, !glob.IMPORT_LESSON_DIRS)
+		print(JSON.stringify(compiled, "\t"))
+		#print(compiled)
 		if compiled:
 			learner.upload_classroom_meta(compiled)
 	if !cookies.profile("teacher"):
@@ -384,7 +395,7 @@ func _on_upload_released() -> void:
 	await quitting
 	queue_free()
 	ui.splash_and_get_result("path_open", splashed_from, emitter, true, 
-	{"filter": ["yaml"], "goto_splash": "settings"})
+	{"filter": ["zip"], "goto_splash": "settings", "dirs": glob.IMPORT_LESSON_DIRS})
 	
 	#learner.upload_classroom_meta()
 
@@ -399,3 +410,18 @@ func _on_llist_released() -> void:
 	can_tween_zero = false
 	await quitting
 	ui.splash("lessonslist", splashed_from, emitter, true)
+
+
+func _on_lock_released() -> void:
+	await learner.upload_lesson_customs(lesson_index, {"opened": 
+		not learner.classroom_data.get("lesson_customs", {}).get(lesson_index, {}).get("opened", false)})
+	open_lesson(lesson_index)
+
+
+func _on_list_child_button_release(button: BlockComponent) -> void:
+#	print(button.metadata.get("awaiting", false))
+	if button.metadata.get("awaiting", false):
+		learner.push_classroom_event({"awaiting": false}, button.hint)
+	else:
+		learner.push_classroom_event({"awaiting": true}, button.hint)
+		
