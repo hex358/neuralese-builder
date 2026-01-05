@@ -1,62 +1,45 @@
 class_name DSLRegistry
 extends Node
 
-
 var require = {
-	"node": {
-		"type": "node",
-		"compile": _compile_req_node,
-		"runtime": _check_node,
-	},
-	"connection": {
-		"type": "connection",
-		"compile": _compile_req_connection,
-		"runtime": _check_connection,
-	},
-	"config": {
-		"type": "config",
-		"compile": _compile_req_config,
-		"runtime": _check_config,
-	},
-	"topology": {
-		"type": "topology_graph",
-		"compile": _compile_req_topology,
-		"runtime": _check_topology_graph,
-	},
-	"wait": {
-		"type": "wait",
-		"compile": _compile_req_wait,
-		"runtime": _check_wait,
-	},
-	"ask": {
-		"type": "ask",
-		"compile": _compile_req_ask,
-		"runtime": _check_ask,
-	},
-	"teacher_lock": {
-		"type": "teacher_lock",
-		"compile": _compile_req_lock,
-		"runtime": _check_lock,
-	},
-	
+	"node": {"type": "node", "compile": _compile_req_node, "runtime": _check_node},
+	"connection": {"type": "connection", "compile": _compile_req_connection, "runtime": _check_connection},
+	"config": {"type": "config", "compile": _compile_req_config, "runtime": _check_config},
+	"topology": {"type": "topology_graph", "compile": _compile_req_topology, "runtime": _check_topology_graph},
+	"wait": {"type": "wait", "compile": _compile_req_wait, "runtime": _check_wait},
+	"ask": {"type": "ask", "compile": _compile_req_ask, "runtime": _check_ask},
+	"teacher_lock": {"type": "teacher_lock", "compile": _compile_req_lock, "runtime": _check_lock},
 }
 
 var step_directives = {
 	"create": { "compile": _step_apply_create },
 	"require": { "compile": _step_apply_require },
-	"explain": { "compile": _step_apply_explain }
+	"explain": { "compile": _step_apply_explain }, # legacy
+	"actions": { "compile": _step_apply_actions },  # NEW
+}
+
+var action = {
+	"explain": {
+		"compile": _compile_action_explain,
+		"runtime": _run_action_explain,
+	},
+	"require": {
+		"compile": _compile_action_require,
+		"runtime": _run_action_require,
+	},
+	"create": {
+		"compile": _compile_action_create,
+		"runtime": _run_action_create,
+	},
 }
 
 
 func build_runtime_map_by_type() -> Dictionary:
-	# canonical req.type -> DSLRegistry runtime method name
 	var out: Dictionary = {}
 	for yaml_key in require.keys():
 		var spec = require[yaml_key]
 		out[str(spec["type"])] = spec["runtime"]
 	return out
-
-
 
 func _step_apply_create(out_step: Dictionary, create_val) -> bool:
 	var boc = _compile_create(create_val)
@@ -65,8 +48,10 @@ func _step_apply_create(out_step: Dictionary, create_val) -> bool:
 	out_step["bind_on_create"] = boc
 	return true
 
+# -------------------------
+# Legacy explain (unchanged)
+# -------------------------
 func _step_apply_explain(out_step: Dictionary, explain_val) -> bool:
-	# Support either string or dictionary
 	if typeof(explain_val) == TYPE_STRING:
 		out_step["explain"] = {
 			"before": explain_val,
@@ -75,7 +60,6 @@ func _step_apply_explain(out_step: Dictionary, explain_val) -> bool:
 			"_acknowledged": false
 		}
 		return true
-
 	elif typeof(explain_val) == TYPE_DICTIONARY:
 		out_step["explain"] = {
 			"before": str(explain_val.get("before", "")),
@@ -88,26 +72,149 @@ func _step_apply_explain(out_step: Dictionary, explain_val) -> bool:
 	push_error("YAML: invalid 'explain' value")
 	return false
 
+func _run_action_explain(act: Dictionary, lesson: LessonCode) -> bool:
+	var text = act["text"]
+	var wait_mode = act.get("wait", "none")
+	var t = float(act.get("time", 1.0))
+
+	lesson.explain_requested.emit(text, wait_mode)
+
+	if wait_mode == "none":
+		return true
+	if wait_mode == "time":
+		await glob.wait(t)
+		return true
+
+	# wait == "next"
+	await lesson.explain_next_ack
+	return true
+
+func _compile_action_create(v) -> Dictionary:
+	var boc = _compile_create(v)
+	if boc.is_empty():
+		return {}
+	return {
+		"type": "create",
+		"bind_on_create": boc
+	}
+
+func _run_action_create(act: Dictionary, lesson: LessonCode) -> bool:
+	var boc = act["bind_on_create"]
+
+	if not boc.has("_registered"):
+		boc["_registered"] = true
+		lesson.pending_node_binds.append(boc)
+
+	return lesson.node_bindings.has(boc["bind"])
+
+func _run_action_require(act: Dictionary, lesson: LessonCode) -> bool:
+	var reqs: Array = act["requires"]
+
+	for req in reqs:
+		if not req.has("_resolved"):
+			var ok = await lesson._compile_requirement(req).call()
+			if not ok:
+				return false
+			req["_resolved"] = true
+
+	return true
+
+
+
+
 func _show_explain_before(exp: Dictionary) -> void:
-	print(exp["before"])
 	await glob.wait(1.0)
 
-
 func _show_explain_after(exp: Dictionary) -> void:
-	print(exp["after"])
 	await glob.wait(10.0)
 
+func _step_apply_actions(out_step: Dictionary, actions_val) -> bool:
+	if typeof(actions_val) != TYPE_ARRAY:
+		push_error("YAML: 'actions' must be a list")
+		return false
+
+	var out_actions: Array = []
+
+	for item in actions_val:
+		var act: Dictionary
+
+		if typeof(item) == TYPE_STRING:
+			act = action["explain"]["compile"].call(item)
+		elif typeof(item) == TYPE_DICTIONARY and item.size() == 1:
+			var k = str(item.keys()[0])
+			var v = item.values()[0]
+
+			if not action.has(k):
+				push_error("YAML: unknown action '%s'" % k)
+				return false
+
+			act = action[k]["compile"].call(v)
+		else:
+			push_error("YAML: invalid action format")
+			return false
+
+		if act.is_empty():
+			return false
+
+		out_actions.append(act)
+
+	out_step["actions"] = out_actions
+	return true
 
 
-func _step_apply_require(out_step: Dictionary, req_val) -> bool:
+
+
+func _compile_action_explain(v) -> Dictionary:
+	# explain: "text"
+	# explain: { text: "...", wait: "next|time|none", time: 1.0 }
+	if typeof(v) == TYPE_STRING:
+		return { "type": "explain", "text": str(v), "wait": "next" }
+
+	if typeof(v) == TYPE_DICTIONARY:
+		var text = str(v.get("text", "")).strip_edges()
+		if text == "":
+			push_error("YAML: explain.text is required")
+			return {}
+
+		var wait_mode = str(v.get("wait", "next")).strip_edges()
+		if wait_mode == "":
+			wait_mode = "next"
+
+		var t = float(v.get("time", 1.0))
+
+		# Normalize
+		if wait_mode != "next" and wait_mode != "time" and wait_mode != "none":
+			push_error("YAML: explain.wait must be 'next', 'time', or 'none'")
+			return {}
+
+		return {
+			"type": "explain",
+			"text": text,
+			"wait": wait_mode,
+			"time": t
+		}
+
+	push_error("YAML: explain must be string or mapping")
+	return {}
+
+
+func _compile_action_require(req_val) -> Dictionary:
+	var compiled_reqs = _compile_require_list(req_val)
+	if compiled_reqs.is_empty():
+		return {}
+	return { "type": "require", "requires": compiled_reqs }
+
+
+# ============================================================
+# Refactor: compile require list once, reuse everywhere
+# ============================================================
+
+func _compile_require_list(req_val) -> Array:
 	var req_map: Dictionary = {}
 
 	if typeof(req_val) == TYPE_STRING:
-		# require: teacher_lock
 		req_map[str(req_val)] = {}
-
 	elif typeof(req_val) == TYPE_ARRAY:
-		# require: [teacher_lock, node: x]
 		for item in req_val:
 			if typeof(item) == TYPE_STRING:
 				req_map[str(item)] = {}
@@ -116,57 +223,52 @@ func _step_apply_require(out_step: Dictionary, req_val) -> bool:
 					req_map[str(k)] = item[k]
 			else:
 				push_error("YAML: invalid item in 'require' list")
-				return false
-
+				return []
 	elif typeof(req_val) == TYPE_DICTIONARY:
-		# require: { node: x }
 		req_map = req_val
-
 	else:
 		push_error("YAML: 'require' must be string, list, or mapping")
-		return false
+		return []
 
-	# ----------------------------
-	# compile requirements
-	# ----------------------------
 	var out: Array = []
-
 	for yaml_key in req_map.keys():
 		var key = str(yaml_key)
 		var v = req_map[yaml_key]
 
 		if not require.has(key):
 			push_error("YAML: unknown require type '%s'" % key)
-			return false
+			return []
 
 		var spec = require[key]
 		var fn_name = spec.get("compile", null)
 		if fn_name == null:
 			push_error("YAML: require '%s' missing compile fn" % key)
-			return false
+			return []
 
 		var compiled = fn_name.call(v)
-		if typeof(compiled) != TYPE_DICTIONARY:
-			return false
-		if compiled.is_empty():
-			return false
+		if typeof(compiled) != TYPE_DICTIONARY or compiled.is_empty():
+			return []
 
-		# enforce canonical type
 		var expected_type = str(spec.get("type", ""))
-		if expected_type != "":
-			if str(compiled.get("type", "")) != expected_type:
-				push_error(
-					"YAML: '%s' compiled to '%s', expected '%s'" %
-					[key, str(compiled.get("type", "")), expected_type]
-				)
-				return false
+		if expected_type != "" and str(compiled.get("type", "")) != expected_type:
+			push_error("YAML: '%s' compiled to '%s', expected '%s'" % [
+				key, str(compiled.get("type", "")), expected_type
+			])
+			return []
 
 		out.append(compiled)
 
-	if out.size() > 0:
-		out_step["requires"] = out
+	return out
 
+
+func _step_apply_require(out_step: Dictionary, req_val) -> bool:
+	var out = _compile_require_list(req_val)
+	if out.is_empty():
+		return false
+	out_step["requires"] = out
 	return true
+
+
 
 
 
@@ -219,7 +321,6 @@ func _compile_req_ask(v) -> Dictionary:
 
 func _compile_req_lock(v) -> Dictionary:
 	# lock
-	print(v)
 	return {"type": "teacher_lock"}
 
 func _compile_req_node(v) -> Dictionary:
@@ -415,7 +516,6 @@ func _check_lock(req: Dictionary, node_bindings: Dictionary) -> bool:
 		return false
 
 	req["_locked"] = true
-	print("await!!")
 	await learner.push_classroom_event({"awaiting": true})
 	await learner.wait_unblock()
 	return true

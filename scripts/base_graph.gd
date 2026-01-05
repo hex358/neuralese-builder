@@ -826,7 +826,6 @@ func _ready() -> void:
 	#print(graph_flags)
 	if ui.nodes_choosing:
 		enter_selection_mode()
-		print("aa")
 	#print(invoked_with.get_bound_arguments())
 	glob.add_action(delete, invoked_with)
 	#glob.open_action(self, "create_graph")

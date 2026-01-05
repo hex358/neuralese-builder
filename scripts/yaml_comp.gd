@@ -13,7 +13,6 @@ static func compile_bundle(zip_path: String, zip: bool = false) -> Dictionary:
 			dir.change_dir("lesson_bundle")
 	else:
 		dir = DirAccess.open(zip_path)
-		print(dir.get_directories())
 
 	if not dir.file_exists("bundle.yaml"):
 		push_error("ZIP: missing bundle.yaml")

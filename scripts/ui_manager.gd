@@ -162,11 +162,11 @@ func unreg_button(b: BlockComponent):
 var axon_donut: Control
 
 func _process(delta: float):
-	if glob.space_just_pressed:
-		if nodes_choosing:
-			print(lock_chosen())
-		else:
-			nodes_choosing_on()
+	#if glob.space_just_pressed:
+		#if nodes_choosing:4
+			#print(lock_chosen())
+		#else:
+			#nodes_choosing_on()
 	var ct: int = 0
 	for i in splashed.keys():
 		if not is_instance_valid(i): splashed.erase(i); continue
