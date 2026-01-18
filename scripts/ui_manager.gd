@@ -161,12 +161,20 @@ func unreg_button(b: BlockComponent):
 
 var axon_donut: Control
 
+func conf_screen():
+	for i in 10:
+		await glob.wait(randf_range(0.1,0.4))
+		confetti((Vector2(randi_range(0, glob.window_size.x), randi_range(0, glob.window_size.y))), true)
+	#confetti((Vector2(glob.window_size.x - 50, 100)), true)
+	#confetti((Vector2(glob.window_size.x/2, glob.window_size.y/2)), true)
+	#confetti((Vector2(50, glob.window_size.y -50)), true)
+
+func a():
+	await confetti(get_global_mouse_position())
+
 func _process(delta: float):
-	#if glob.space_just_pressed:
-		#if nodes_choosing:4
-			#print(lock_chosen())
-		#else:
-			#nodes_choosing_on()
+	if glob.space_just_pressed:
+		a()
 	var ct: int = 0
 	for i in splashed.keys():
 		if not is_instance_valid(i): splashed.erase(i); continue
@@ -201,6 +209,26 @@ var splash_menus = {
 }
 
 var quest: Quest = null
+
+func confetti(at: Vector2, screen: bool = false):
+	var conf = ConfettiSplash.new()
+	if screen:
+		conf.position = at / 2
+		glob.scale_fg.add_child(conf)
+	else:
+		conf.position = at
+		add_child(conf)
+	await conf.die
+
+var conf_config = preload("res://resources/confetti.tres")
+var quest_scene = preload("res://scenes/quest.tscn")
+func recreate_quest():
+	var old_pos = quest.position
+	var p = quest.get_parent()
+	quest.queue_free()
+	var q = (quest_scene.instantiate())
+	p.add_child(q)
+	q.position = old_pos
 
 var cl = CanvasLayer.new()
 var hg = preload("res://scenes/hourglass.tscn")
@@ -275,7 +303,6 @@ func nodes_choosing_on():
 	nodes_choosing = true
 	for graph: Graph in graphs._graphs.values():
 		graph.enter_selection_mode()
-		print(graph.outl)
 
 func mark_chosen(who):
 	chosen[who] = true
@@ -283,11 +310,30 @@ func mark_chosen(who):
 func unmark_chosen(who):
 	chosen.erase(who)
 
+func choose():
+	print("CHOOSING STUFF...")
+	nodes_choosing_on()
+	await choosing_finished
+	return lock_chosen()
+
+signal choosing_finished
+
+
+func emphasize_nodes(nodes):
+	glob.cam.emp_node(nodes if nodes is Array else [nodes])
+	for i in nodes:
+		if i is Graph:
+			i.blink()
+		else:
+			graphs._graphs[i].blink()
+
 
 func lock_chosen():
+	nodes_choosing = false
 	for graph: Graph in graphs._graphs.values():
 		graph.exit_selection_mode()
-	nodes_choosing = false
+	for graph: Graph in graphs._graphs.values():
+		graph.exit_selection_mode()
 	var old_chosen = chosen
 	chosen = {}
 	return old_chosen

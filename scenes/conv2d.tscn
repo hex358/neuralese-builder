@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://70bqejl8x5np"]
+[gd_scene load_steps=9 format=3 uid="uid://70bqejl8x5np"]
 
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_aplfx"]
 [ext_resource type="Script" uid="uid://cppor4y4glxd6" path="res://scripts/conv_2d.gd" id="2_l5edn"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_cc8xm"]
 [ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_aplfx"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="5_cc8xm"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="6_51xl4"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="6_aplfx"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="7_cc8xm"]
@@ -128,6 +129,17 @@ scale = Vector2(0.374766, 0.374766)
 theme = ExtResource("6_51xl4")
 text = "Conv2D"
 
+[node name="Loc" type="Node" parent="ColorRect/root/Label"]
+script = ExtResource("5_cc8xm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Свёрт2D"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Свёрт2D"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="unit" type="Control" parent="."]
 anchors_preset = 0
 offset_left = -48.0
@@ -209,6 +221,17 @@ scale = Vector2(0.9, 0.9)
 theme = ExtResource("6_51xl4")
 text = "1"
 
+[node name="Loc" type="Node" parent="Label"]
+script = ExtResource("5_cc8xm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Кернел"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Кернел"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Label2" type="Label" parent="."]
 self_modulate = Color(0.811765, 0.811765, 0.811765, 1)
 layout_mode = 0
@@ -245,6 +268,17 @@ scale = Vector2(0.9, 0.9)
 theme = ExtResource("6_51xl4")
 text = "1"
 
+[node name="Loc" type="Node" parent="Label2"]
+script = ExtResource("5_cc8xm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Прыжок"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Қадам"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Y" parent="." instance=ExtResource("6_aplfx")]
 layout_mode = 0
 offset_left = 19.000002
@@ -278,6 +312,17 @@ scale = Vector2(0.339, 0.339)
 theme = ExtResource("6_51xl4")
 theme_override_font_sizes/font_size = 27
 text = "Filters"
+
+[node name="Loc" type="Node" parent="Label3"]
+script = ExtResource("5_cc8xm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Фильтры"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Сүзгі"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [connection signal="value_changed" from="Label/HSlider" to="." method="_on_h_slider_value_changed"]
 [connection signal="value_changed" from="Label2/HSlider2" to="." method="_on_h_slider_2_value_changed"]

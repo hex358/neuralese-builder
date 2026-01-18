@@ -97,6 +97,8 @@ func delete(disconn: bool = true):
 	reg_actions = true
 
 func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
+	if parent_graph.rect.get_global_rect().grow(-2).has_point(get_global_mouse_position()):
+		return false
 	var pd = padding
 	if padding == -Vector4.ONE:
 		pd = Vector4.ONE * 20 * pow(glob.cam.zoom.x, -0.5)

@@ -43,6 +43,7 @@ func unroll_do():
 	list_unroll.menu_show(list_unroll.position)
 	list_unroll.state.holding = false
 	list_unroll.unblock_input()
+	list_unroll.tune()
 
 
 
@@ -56,6 +57,8 @@ func unroll(dup, args, kwargs):
 		new.hint = i
 		new.text = a[i].name
 		#print(learner.classroom_data.lesson_customs)
+		#print(learner.current_lesson_key)
+		new.metadata["project_id"] = -1 if learner.current_lesson_key == i else 0
 		if learner.is_lesson_open(new.hint):
 			new.self_modulate.a = 1
 		else:

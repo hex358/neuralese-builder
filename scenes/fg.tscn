@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://tjiw5jmnnrgh"]
+[gd_scene load_steps=41 format=3 uid="uid://tjiw5jmnnrgh"]
 
 [ext_resource type="Shader" uid="uid://q0g5c44a6f7r" path="res://shaders/block.gdshader" id="1_5k5he"]
 [ext_resource type="Script" uid="uid://cy42ej4d3hwf0" path="res://scripts/top_panel.gd" id="2_1j68c"]
@@ -24,6 +24,7 @@
 [ext_resource type="Script" uid="uid://b35tw21ej2pfd" path="res://scripts/mist.gd" id="22_tsth1"]
 [ext_resource type="Script" uid="uid://m5db3dqdt1jc" path="res://scripts/lua_procedure.gd" id="23_64w7c"]
 [ext_resource type="PackedScene" uid="uid://cid477464f0eh" path="res://scenes/quest.tscn" id="24_o28vt"]
+[ext_resource type="Script" uid="uid://dw3rrt5nla3y7" path="res://scripts/scalefg.gd" id="25_kgi7h"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x67tc"]
 shader = ExtResource("1_5k5he")
@@ -748,10 +749,16 @@ script = ExtResource("23_64w7c")
 metadata/_custom_type_script = "uid://m5db3dqdt1jc"
 
 [node name="Control2" parent="." instance=ExtResource("24_o28vt")]
-offset_left = 367.0
-offset_top = 81.0
-offset_right = 407.0
-offset_bottom = 121.0
+offset_left = 37.0
+offset_top = 113.0
+offset_right = 77.0
+offset_bottom = 153.0
+
+[node name="scale" type="CanvasLayer" parent="."]
+layer = 126
+scale = Vector2(2, 2)
+transform = Transform2D(2, 0, 0, 2, 0, 0)
+script = ExtResource("25_kgi7h")
 
 [connection signal="released" from="ColorRect/Control/login" to="ColorRect" method="_on_login_released"]
 [connection signal="released" from="ColorRect/Control/export" to="ColorRect" method="_on_export_released"]

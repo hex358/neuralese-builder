@@ -78,6 +78,17 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_pa8wt")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_n00y3")
 text = "LayerConcat"
 
+[node name="Loc" type="Node" parent="ColorRect/root/Label"]
+script = ExtResource("10_ldvu6")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Склейка"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Біріктіру"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="connection" type="Control" parent="."]
 anchors_preset = 0
 offset_left = -85.0

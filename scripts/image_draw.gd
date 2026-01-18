@@ -129,6 +129,7 @@ func _process(delta: float) -> void:
 	if graphs.dragged: return
 	if graphs.conning(): return
 	if ui.selecting_box: return
+	if ui.topr_inside: return
 	
 	var local = get_local_mouse_position()
 	var img_pos = _local_to_img_coords(local)

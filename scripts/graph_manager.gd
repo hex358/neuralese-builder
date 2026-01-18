@@ -223,7 +223,7 @@ func get_by_id(graph_id: int) -> Graph:
 	return _graphs.get(graph_id)
 
 func attach_edge(from_conn: Connection, to_conn: Connection):
-	learner.notify_update()
+	learner.notify_update.call_deferred()
 
 
 func remove_edge(from_conn: Connection, to_conn: Connection):
@@ -778,18 +778,31 @@ func gload(sp: String):
 	var outline_color: Color = Color.WHITE
 	var tuning: Color = Color(0.0, 0.0, 0.0, 0.639)
 	var title: String = ""
+	var title_ru: String = ""
+	var title_kz: String = ""
 	var mat: ShaderMaterial = null
 	var modulate: Color = Color.WHITE
 	for i in range(node_count):
 		var path = str(state.get_node_path(i))
 		var to_break: bool = false
 		var is_lab: bool = (path) == "./ColorRect/root/Label" or (path) == "./ColorRect/root/Label2"
-		if not (path) == "./ColorRect" and not is_lab:
+		var is_loc: bool = (path) == "./ColorRect/root/Label/Loc" or (path) == "./ColorRect/root/Label2/Loc"
+
+		if not (path) == "./ColorRect" and not is_lab and not is_loc:
 			continue
+		
 		#print("=========")
 		var property_count = state.get_node_property_count(i)
 		for j in range(property_count):
 			var prop_name = state.get_node_property_name(i, j)
+			if is_loc:
+				if prop_name == "localizations_ru":
+					var vals = state.get_node_property_value(i, j).values()
+					title_ru = vals[0] if vals else ""
+				if prop_name == "localizations_kz":
+					var vals = state.get_node_property_value(i, j).values()
+					title_kz = vals[0] if vals else ""
+				continue
 			if prop_name == "material" and not is_lab:
 				mat = state.get_node_property_value(i, j)
 			#print(prop_name)
@@ -807,10 +820,17 @@ func gload(sp: String):
 			if prop_name == "self_modulate" and not is_lab:
 				modulate = state.get_node_property_value(i, j)
 				break
-		if is_lab:
-			break
+	if glob.DEBUG:
+		if not title_ru:
+			print("WARN: NO LOC FOR ", title)
+	if not title_ru: 
+		title_ru = title
+	if not title_kz: 
+		title_kz = title_ru
 	loaded.set_meta("_loaded_with", sp)
 	loaded.set_meta("title", title)
+	loaded.set_meta("title_ru", title_ru)
+	loaded.set_meta("title_kz", title_kz)
 	loaded.set_meta("outline_color", outline_color)
 	loaded.set_meta("tuning", tuning)
 	loaded.set_meta("mat", mat)
@@ -862,6 +882,8 @@ func _reindex_for_buttons():
 		#print(title)
 		graph_buttons.append({"name": i, 
 		"title": title, 
+		"title_ru": type.get_meta("title_ru"),
+		"title_kz": type.get_meta("title_kz"),
 		"outline_color": type.get_meta("outline_color"),
 		"mod": type.get_meta("mod"),
 		"material": type.get_meta("mat"),

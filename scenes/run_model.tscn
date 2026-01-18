@@ -1,10 +1,11 @@
-[gd_scene load_steps=14 format=3 uid="uid://bajnadkdpiu3h"]
+[gd_scene load_steps=15 format=3 uid="uid://bajnadkdpiu3h"]
 
 [ext_resource type="Script" uid="uid://delar2xa8xe6x" path="res://scripts/run_m.gd" id="2_20d1g"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="2_cs7cw"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="3_4mecg"]
 [ext_resource type="Script" uid="uid://dth7a328aa7op" path="res://scripts/conn.gd" id="5_sbclw"]
 [ext_resource type="Material" uid="uid://blkv556akjllh" path="res://resources/panel.tres" id="5_udj8x"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="6_4mecg"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="7_2rdp7"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="7_cs7cw"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="8_fwn3v"]
@@ -135,13 +136,25 @@ metadata/_custom_type_script = "uid://bjncugq5805ty"
 
 [node name="Label" type="Label" parent="ColorRect/root"]
 layout_mode = 0
-offset_left = 24.0
+offset_left = 2.000002
 offset_top = 3.0
-offset_right = 217.0
+offset_right = 276.27783
 offset_bottom = 46.0
 scale = Vector2(0.37917754, 0.37917754)
 theme = ExtResource("3_4mecg")
 text = "RunModel"
+horizontal_alignment = 1
+
+[node name="Loc" type="Node" parent="ColorRect/root/Label"]
+script = ExtResource("6_4mecg")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "ЗапускМодели"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "МодельОрын"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="connection" type="Control" parent="."]
 anchors_preset = 0

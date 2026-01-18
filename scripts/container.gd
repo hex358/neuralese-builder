@@ -74,7 +74,7 @@ func rect_change():
 		$CheckBox.position.y = size.y / 2 - $CheckBox.size.y * $CheckBox.scale.y / 2
 		$text.size.x = (size.x) / $text.scale.x - 70
 	elif unit_type == UnitType.Next:
-		next._wrapped_in.position.x = lerp(0.0, size.x, 0.73)
+		next._wrapped_in.position.x = lerp(0.0, size.x, 0.83)
 	else:
 		$text.size.x = (size.x) / $text.scale.x
 

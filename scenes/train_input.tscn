@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://cl5yhw1xp0afw"]
+[gd_scene load_steps=13 format=3 uid="uid://cl5yhw1xp0afw"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_h6r10"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_41i7g"]
 [ext_resource type="Script" uid="uid://cl0mjh40xjip4" path="res://scripts/train_input.gd" id="2_gdpv5"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="4_d1efk"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="5_10eqb"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="5_dq5jb"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="6_s3o4y"]
 [ext_resource type="Resource" uid="uid://dpcfcsr4yvw5j" path="res://resources/activ.tres" id="7_dq5jb"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="8_10eqb"]
@@ -66,6 +67,17 @@ scale = Vector2(0.311419, 0.311419)
 theme = ExtResource("8_10eqb")
 text = "Optimizer"
 
+[node name="Loc" type="Node" parent="labels/Label" index="0"]
+script = ExtResource("5_dq5jb")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Оптимизат"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Оптимизат"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Label3" type="Label" parent="labels" index="1"]
 self_modulate = Color(0.65, 0.65, 0.65, 1)
 z_index = 1
@@ -78,6 +90,17 @@ scale = Vector2(0.311, 0.311)
 theme = ExtResource("8_10eqb")
 text = "LearnRate "
 
+[node name="Loc" type="Node" parent="labels/Label3" index="0"]
+script = ExtResource("5_dq5jb")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "РазмерШаг"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "ҚадамӨлш"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="Label4" type="Label" parent="labels" index="2"]
 self_modulate = Color(0.65, 0.65, 0.65, 1)
 z_index = 1
@@ -89,6 +112,17 @@ offset_bottom = 66.33764
 scale = Vector2(0.311, 0.311)
 theme = ExtResource("8_10eqb")
 text = "WeightDec"
+
+[node name="Loc" type="Node" parent="labels/Label4" index="0"]
+script = ExtResource("5_dq5jb")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "УменьшВес"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "АзайтСалм"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="i" parent="." index="1" node_paths=PackedStringArray("parent_graph") instance=ExtResource("2_41i7g")]
 layout_mode = 0
@@ -123,6 +157,17 @@ offset_right = 202.0
 offset_bottom = 49.0
 scale = Vector2(0.463877, 0.463877)
 text = "TrainStep"
+
+[node name="Loc" type="Node" parent="ColorRect/root/Label" index="0"]
+script = ExtResource("5_dq5jb")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "ШагОбучения"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "ОқытуҚадам"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="optimizer" parent="." index="3" node_paths=PackedStringArray("graph") instance=ExtResource("4_d1efk")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-7, 0)
@@ -370,6 +415,17 @@ scale = Vector2(2, 2)
 focus_mode = 1
 mouse_force_pass_scroll_events = false
 step = 10.0
+
+[node name="Loc" type="Node" parent="sgd_tab/Label4" index="1"]
+script = ExtResource("5_dq5jb")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Моментум"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Моментум"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="name" type="Label" parent="sgd_tab" index="1"]
 z_index = 1

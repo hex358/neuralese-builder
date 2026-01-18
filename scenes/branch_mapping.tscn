@@ -1,9 +1,10 @@
-[gd_scene load_steps=14 format=3 uid="uid://tl4ael3dfb7d"]
+[gd_scene load_steps=15 format=3 uid="uid://tl4ael3dfb7d"]
 
 [ext_resource type="Script" uid="uid://dcp87ll4cimhr" path="res://scripts/branches.gd" id="1_iqntl"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_4wq7h"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_ciq7p"]
 [ext_resource type="Theme" uid="uid://cx365ld2mgjne" path="res://resources/theme_base.tres" id="4_pvfsu"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="5_4wq7h"]
 [ext_resource type="Script" uid="uid://dth7a328aa7op" path="res://scripts/conn.gd" id="5_tsqeh"]
 [ext_resource type="Material" uid="uid://blkv556akjllh" path="res://resources/panel.tres" id="6_04h24"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="7_i50fk"]
@@ -91,13 +92,25 @@ offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="ColorRect/root"]
 layout_mode = 0
-offset_left = 21.0
+offset_left = 6.0
 offset_top = 3.0000012
-offset_right = 214.0
+offset_right = 261.81683
 offset_bottom = 46.0
 scale = Vector2(0.37917754, 0.37917754)
 theme = ExtResource("4_pvfsu")
 text = "OutputMap"
+horizontal_alignment = 1
+
+[node name="Loc" type="Node" parent="ColorRect/root/Label"]
+script = ExtResource("5_4wq7h")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "КартаВывода"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "ШығысКартасы"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="dataset" type="Label" parent="ColorRect/root"]
 self_modulate = Color(0.86, 0.86, 0.86, 1)

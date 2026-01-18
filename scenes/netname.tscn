@@ -69,6 +69,17 @@ theme = ExtResource("3_3yi81")
 text = "Model"
 horizontal_alignment = 1
 
+[node name="Loc" type="Node" parent="ColorRect/root/Label"]
+script = ExtResource("6_uarpl")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "ИмяМодели"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "МодельАтауы"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="LineEdit" parent="." instance=ExtResource("5_x05q1")]
 layout_mode = 0
 offset_left = -48.000004

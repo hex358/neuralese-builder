@@ -232,6 +232,17 @@ theme = ExtResource("3_pxsba")
 theme_override_colors/font_color = Color(1, 0.986667, 0.6, 1)
 text = "Input1D"
 
+[node name="Loc" type="Node" parent="ColorRect/root/Label2"]
+script = ExtResource("15_nsvjh")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Ввод1D"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Кіріс1D"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="connection" type="Control" parent="."]
 anchors_preset = 0
 offset_left = -85.0

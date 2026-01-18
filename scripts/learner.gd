@@ -2,6 +2,8 @@ extends Node
 
 var lesson: LessonCode
 
+
+
 func cache():
 	lesson_cache = glob.get_var("lesson_cache", {}, "classrooms.bin")
 	for i in lesson_cache.keys():
@@ -11,19 +13,39 @@ func cache():
 			lesson_cache.erase(i)
 	glob.set_var("lesson_cache", lesson_cache, "classrooms.bin")
 
+func ack_explain_next():
+	if lesson:
+		lesson.ack_explain_next()
+
 func _enter_tree() -> void:
 	
 	cache()
+	#print(lesson_cache)
 
 func active() -> bool: 
 	return lesson_list().keys().find(current_lesson_key) != -1
 
+func try_load_cached():
+	var got = glob.get_var("lesson_cache", {}, "classroom.bin")
+	lesson_cache = got
+
+func dbg_load_lesson(path:String):
+	var compiled = YAMLComp.new().compile_bundle(path, false)
+	print(JSON.stringify(compiled, "\t"))
+	#print(compiled)
+	if compiled:
+		load_classroom_data(compiled)
+
 func _ready() -> void:
 	#print(dsl_reg)
-	#print(
-	#	JSON.stringify(
-	#	YAMLComp.new().compile_bundle("C:
+	
+	lesson_re_reg()
 
+func lesson_re_reg():
+	if lesson:
+		lesson.queue_free()
+		lesson = null
+	await get_tree().process_frame
 	lesson = LessonCode.new()
 	add_child(lesson)
 
@@ -34,10 +56,16 @@ func _ready() -> void:
 	
 	LessonRouter.register_lesson(lesson)
 
+
 func stop_lesson():
 	if lesson:
+		ui.quest.reset()
+		ui.recreate_quest()
+		current_lesson_key = null
 		lesson.stop()
 		ui.lesson_bar.dissapear()
+		await get_tree().process_frame
+		lesson_re_reg()
 
 
 func join_classroom(id: String) -> Dictionary:
@@ -86,6 +114,7 @@ func create_classroom(name: String = "Untitled") -> String:
 
 
 func classroom_stream():
+	if not cookies.user(): return
 	var h = web.GET_SSE(
 		"classroom/events",
 		{"classroom_id": cookies.profile("my_classroom")},
@@ -101,6 +130,8 @@ class EndSignal:
 	signal end_signal
 
 func wait_unblock():
+	if glob.DEBUG_RELOAD_LESSONS:
+		return true
 	var h = classroom_stream()
 	var end = EndSignal.new()
 	var x = func(evt):
@@ -149,7 +180,7 @@ func load_classroom_data(data: Dictionary):
 	classroom_data = data
 	lesson_cache[cookies.profile("my_classroom")] = classroom_data
 	glob.set_var("lesson_cache", lesson_cache, "classroom.bin")
-
+	#print(data)
 
 func get_classroom_frontend():
 	return lesson_cache.get(cookies.profile("my_classroom"), {})
@@ -158,12 +189,17 @@ var current_lesson = {}; var current_lesson_key = null
 func enter_lesson(lesson_key):
 	#print(lesson_cache.get(cookies.profile("my_classroom"), {}).\
 	#get("lessons", {}))
+	ui.quest.reset()
+	ui.recreate_quest()
+	lesson.stop()
+	await lesson_re_reg()
 	var orch = lesson_cache.get(cookies.profile("my_classroom"), {}).\
 	get("lessons", {}).get(lesson_key, {})
 	if not orch: printerr("Lesson doesn't exist"); return
 	current_lesson = orch; current_lesson_key = lesson_key
 	current_code = orch.code
-	lesson.load_steps(orch.code.steps)
+	#print(JSON.stringify(current_code, "\t"))
+	lesson.load_code(orch.code)
 	lesson.start()
 	ui.lesson_bar.appear()
 	push_classroom_event({"on_lesson": get_classroom_frontend().lesson_order.find(lesson_key), "awaiting": false})
@@ -171,7 +207,7 @@ func enter_lesson(lesson_key):
 var current_code = {}
 
 func push_classroom_event(event: Dictionary, target = null):
-
+	if not cookies.user(): return
 	var resp = await web.JPOST("classroom/update_state", {"target": target if target != null else cookies.user(),
 	"user": cookies.user(), "pass": cookies.pwd(), "payload": event, "classroom_id": cookies.profile("my_classroom")})
 
@@ -199,15 +235,54 @@ func _exit_tree() -> void:
 
 
 func _on_step_started(idx: int, step: Dictionary) -> void:
-	print("STEP START:", step.get("title", step.get("id")))
+	#print(current_code.keys())
+	#print(current_code.steps)
+	print("STEP START:", step.get("title", step.get("id")), " ", idx)
 	push_classroom_event({"step": idx+1})
 	await get_tree().process_frame
 	ui.lesson_bar.update_data({
-	classroom_name = classroom_data["name"], 
-	step_index = idx+1, step_shorthand = step.get("title", ""),
-	lesson_index = get_classroom_frontend().lesson_order.find(current_lesson_key)+1, lesson_name = current_lesson.lesson_title, total_steps = int(current_code.total_steps)}, idx == 0)
+	classroom_name = classroom_data["name"],
+	step_index = lesson.get_main_step_index() + 1,
+	step_shorthand = step.get("title", ""),
+	lesson_index = get_classroom_frontend().lesson_order.find(current_lesson_key) + 1,
+	lesson_name = current_lesson.lesson_title,
+	total_steps = lesson.get_main_total_steps()
+}, idx == 0, idx != 0)
 
 
+func estimate_read_time(text: String) -> float:
+	# --- Base reading speed ---
+	var WPM := 160.0
+	var words := text.split(" ", false)
+	var base_time := (words.size() / WPM) * 60.0
+
+	# --- Punctuation pauses ---
+	var punctuation_time := 0.0
+
+	punctuation_time += text.count(",") * 0.15
+	punctuation_time += text.count(".") * 0.35
+	punctuation_time += text.count("?") * 0.45
+	punctuation_time += text.count("!") * 0.45
+	punctuation_time += (text.count(":") + text.count(";")) * 0.30
+	punctuation_time += text.count("\n") * 0.50
+
+	# --- Long word penalty ---
+	var long_word_time := 0.0
+	for word in words:
+		if word.length() > 8:
+			long_word_time += 0.04
+
+	# --- Numbers slow reading ---
+	var number_time := 0.0
+	for c in text:
+		if c.is_valid_int():
+			number_time += 0.20
+
+	# --- Final time ---
+	var total_time := base_time + punctuation_time + long_word_time + number_time
+
+	# Clamp to avoid absurd values
+	return max(total_time, 0.5)
 
 
 func _on_step_completed(idx: int, step: Dictionary) -> void:

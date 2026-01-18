@@ -102,6 +102,7 @@ func close_undo_redo():
 var selected: bool = false
 func select():
 	if is_blocked: return
+	if ui.nodes_choosing: return
 	selected = true
 	graphs.set_selected(self)
 	select_effect(Color.YELLOW)
@@ -110,6 +111,7 @@ func select_effect(color: Color):
 	rect.set_instance_shader_parameter("outline_color", color)
 
 func unselect():
+	if ui.nodes_choosing: return
 	selected = false
 	graphs.unselect(self)
 	select_effect(base_outline)
@@ -779,6 +781,7 @@ func unblock():
 var cbox: CheckBox
 func enter_selection_mode():
 	block(false, true)
+	if is_instance_valid(outl): outl.queue_free()
 	outl = graphs.shadow_rect.instantiate()
 	add_child(outl)
 	outl.position = rect.position
@@ -792,8 +795,9 @@ func enter_selection_mode():
 var outl = null
 var chosen: bool = false
 
-func choose():
-	chosen = true
+func choose(effect: bool = false):
+	if !effect:
+		chosen = true
 	outl.z_index = 2
 	outl.color = Color.GREEN
 	select_effect(Color.GREEN)
@@ -806,8 +810,9 @@ func choose_progress():
 		outl.z_index = 2
 		outl.color = Color(1,1,1,0.3).lerp(Color(0,1,0,0.35), (hold_t - 0.3) / 0.2)
 
-func unchoose():
-	chosen = false
+func unchoose(effect: bool = false):
+	if !effect:
+		chosen = false
 	outl.z_index = 0
 	outl.color = Color.WHITE
 	select_effect(base_outline)
@@ -818,8 +823,71 @@ func exit_selection_mode():
 	outl.queue_free()
 	select_effect(base_outline)
 	unblock()
-	
 
+var deletion_allowed: bool = true
+func prohibit_deletion():
+	deletion_allowed = false
+
+func allow_deletion():
+	deletion_allowed = true
+
+
+var blinking = false
+func blink_tween(data: Dictionary, delta: float):
+	if ui.nodes_choosing: 
+		blinking = false
+		return true
+	var q_del = false
+	if not is_instance_valid(outl):
+		q_del = true
+	data.t += delta
+	var prog: float = data.t / data.flow[0]
+	var ending = data.t > (data.flow[0] + data.flow[1]) if data.double else blink_end_req
+	ending = ending or data.has("mark")
+	var ended = false
+	if ending: 
+		if not data.has("mark"): data["mark"] = true; data.t = 0
+		prog = 1.0 - (data.t / data.flow[2])
+		if prog < glob.eps:
+			ended = true
+	else:
+		if data.t > data.flow[0]:
+			prog = 1.0
+	if q_del: ended = true; prog = 0.0
+	if is_nan(prog):
+		prog = 0.0
+	modulate = Color.WHITE.lerp(Color.WHITE*1.3, prog)
+	if is_instance_valid(outl):
+		outl.modulate.a = lerpf(0, 1, prog)
+	if ended: 
+		if is_instance_valid(outl):
+			outl.queue_free()
+		blinking = false
+		return true
+var blink_end_req: bool = false
+
+func blink_end():
+	blink_end_req = true
+
+var tweener = null
+func blink(with_end: bool = true):
+	if ui.nodes_choosing: return
+	if blinking:
+		if outl:
+			outl.queue_free() 
+		await get_tree().process_frame
+	blink_end_req = false
+	blinking = true
+	outl = graphs.shadow_rect.instantiate()
+	add_child(outl)
+	outl.position = rect.position
+	outl.outline = true
+	outl.extents = rect.size
+	outl.color = Color.WHEAT
+	outl.color.a = 0.3
+	outl.modulate.a = 0.0
+	move_child(outl, 0)
+	tweener = glob.tween_call_obj({"t": 0, "flow": [0.2, 3, 0.6], "double": with_end}, blink_tween)
 
 func _ready() -> void:
 	#block()
@@ -1415,7 +1483,7 @@ func delete_call():
 
 
 var deleting: bool = false
-
+var hold_committed: bool = false
 func copy():
 	request_save()
 	var a = graphs.get_graph(get_meta("created_with"), Graph.Flags.NEW)
@@ -1464,7 +1532,10 @@ func _process(delta: float) -> void:
 		glob.set_menu_type(self, &"edit_graph")
 		if glob.mouse_alt_just_pressed and not dragging:
 			glob.menus["edit_graph"].menu_call = func():
-				delete_call()
+				if deletion_allowed:
+					delete_call()
+				else:
+					ui.error("Cannot delete this node - it is a part of a lesson!")
 			glob.menus["edit_graph"].menu_call_alt = func():
 				copy()
 				
@@ -1503,25 +1574,60 @@ func _process(delta: float) -> void:
 		glob.reset_mouse()
 	#print(inside and mouse_just_pressed)
 	if ui.nodes_choosing:
-		if hold_t > 0 and inside:
-			if mouse_pressed:hold_t += delta
-		if inside and mouse_just_pressed and chosen:
-			unchoose()
-			mouse_just_pressed = false
-		if mouse_just_pressed and !chosen and inside: 
+		# detect invalidation (release or drag)
+		var drag_cancel := dragging and beginned_at.distance_squared_to(position) > 200
+		var holding := mouse_pressed and inside and not drag_cancel
+
+		# start hold
+		if mouse_just_pressed and inside:
 			hold_t = 0.001
-			select_effect(Color(0.8,1,0.8))
-		if hold_t and !chosen:
-			if hold_t >0.5:
-				choose()
+			hold_committed = false
+			if not chosen:
+				select_effect(Color(0.8, 1, 0.8))
+
+		# accumulate hold
+		if holding:
+			hold_t += delta
+		else:
+			# cancel hold → restore visual state
+			if hold_t > 0:
+				hold_committed = false 
 				hold_t = 0
+
+				if chosen:
+					outl.z_index = 2
+					outl.color = Color.GREEN
+					outl.color.a = 0.35
+					select_effect(Color.GREEN)
+				else:
+					outl.z_index = 0
+					outl.color = Color.WHITE
+					outl.color.a = 0.3
+					select_effect(base_outline)
+
+		# preview animation
+		if hold_t > 0 and not hold_committed:
+			#hold_committed = false
+			if chosen:
+				# unchoose preview (reverse feel, fade out)
+				outl.color = Color(0, 1, 0, 0.35).lerp(
+					Color(1, 1, 1, 0.3),
+					min(hold_t / 0.5, 1.0)
+				)
 			else:
+				# choose preview (existing behavior)
 				if hold_t > 0.3:
 					select_effect(Color.GREEN)
 				choose_progress()
-				if not mouse_pressed:
-					unchoose()
-					hold_t = 0
+
+		# commit transition
+		if hold_t > 0.5 and not hold_committed:
+			hold_committed = true
+			if chosen:
+				unchoose()
+			else:
+				choose()
+			hold_t = 0
 
 	if inside and mouse_just_pressed and _can_drag() and (
 		not glob.is_occupied(self, &"menu") and 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://cid477464f0eh"]
+[gd_scene load_steps=20 format=3 uid="uid://cid477464f0eh"]
 
 [ext_resource type="Script" uid="uid://lsq3qjd8hp47" path="res://scripts/quest.gd" id="1_kj15b"]
 [ext_resource type="Theme" uid="uid://74kwx22ikciq" path="res://resources/theme_headers.tres" id="3_qqhq5"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="8_eym80"]
 [ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="10_62uld"]
 [ext_resource type="Script" uid="uid://b7b5fhplecv3t" path="res://scripts/container.gd" id="10_qqhq5"]
+[ext_resource type="Texture2D" uid="uid://b7g2yyenljs56" path="res://game_assets/icons/arr.png" id="11_62uld"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ih3n3"]
 shader = ExtResource("5_k76xp")
@@ -212,19 +213,18 @@ instance_shader_parameters/tuning = Color(1, 1, 1, 1)
 layout_mode = 0
 offset_left = 165.00002
 offset_top = 9.999997
-offset_right = 224.17743
-offset_bottom = 32.630684
+offset_right = 210.50427
+offset_bottom = 35.366684
 scale = Vector2(1.6464939, 1.6464939)
-pivot_offset = Vector2(29.588707, 11.315344)
+pivot_offset = Vector2(22.752129, 12.683344)
 mouse_filter = 1
 color = Color(0.6045, 0.93, 0.631625, 1)
 button_type = 1
 placeholder = true
 base_scale_x = 0.44
-text = "Next >"
 text_alignment = Vector2(-0.5, 0)
 text_offset = Vector2(3, 0)
-base_size = Vector2(59.177414, 22.630688)
+base_size = Vector2(45.504257, 25.366688)
 alignment = Vector2(0.5, 0.5)
 expanded_size = 98
 arrangement_padding = Vector2(5, 5)
@@ -233,19 +233,27 @@ menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_k76xp")
 auto_ready = false
-expand_to_text_length = true
 in_splash = true
 
 [node name="Loc" type="Node" parent="ColorRect/ScrollContainer/c/next/next"]
 script = ExtResource("10_62uld")
 auto = true
 localizations_ru = Dictionary[String, String]({
-"_": "Дальше >"
+"_": ""
 })
 localizations_kz = Dictionary[String, String]({
-"_": "Келесі >"
+"_": ""
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
+
+[node name="TextureRect" type="TextureRect" parent="ColorRect/ScrollContainer/c/next/next"]
+layout_mode = 0
+offset_left = 10.773822
+offset_top = 2.4982622
+offset_right = 50.773823
+offset_bottom = 42.49826
+scale = Vector2(0.5436975, 0.5436975)
+texture = ExtResource("11_62uld")
 
 [node name="radio" type="Control" parent="ColorRect/ScrollContainer/c"]
 anchors_preset = 0

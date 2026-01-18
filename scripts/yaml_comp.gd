@@ -81,27 +81,111 @@ static func _compile_single_lesson(yaml_text: String, fallback_title: String) ->
 	if root == null:
 		return {}
 
+	# ------------------------------------------------
+	# Main flow (required)
+	# ------------------------------------------------
 	var flow = root.get("flow", null)
 	if typeof(flow) != TYPE_ARRAY:
 		push_error("lesson '%s': missing/invalid 'flow'" % fallback_title)
 		return {}
 
-	var steps_out = []
-	for item in flow:
-		var step_def = _compile_flow_item(item)
-		if step_def.is_empty():
-			push_error("lesson '%s': step compilation failed" % fallback_title)
+	var flows_out: Dictionary = {}
+	var main_steps = _compile_steps_array(flow, fallback_title)
+	if main_steps.is_empty():
+		return {}
+
+	flows_out["flow"] = main_steps
+
+	# ------------------------------------------------
+	# Branches (optional)
+	# ------------------------------------------------
+	if root.has("branches"):
+		var branches = root.get("branches")
+		if typeof(branches) != TYPE_DICTIONARY:
+			push_error("lesson '%s': 'branches' must be a mapping" % fallback_title)
 			return {}
-		steps_out.append(step_def)
+
+		for bname in branches.keys():
+			var branch_name = str(bname).strip_edges()
+			if branch_name == "":
+				push_error("lesson '%s': empty branch name" % fallback_title)
+				return {}
+
+			if branch_name == "flow":
+				push_error("lesson '%s': branch name 'flow' is reserved" % fallback_title)
+				return {}
+
+			var branch_body = branches[bname]
+			if typeof(branch_body) != TYPE_ARRAY:
+				push_error("lesson '%s': branch '%s' must be a list of steps" % [fallback_title, branch_name])
+				return {}
+
+			var branch_steps = _compile_steps_array(branch_body, fallback_title)
+			if branch_steps.is_empty():
+				return {}
+
+			flows_out[branch_name] = branch_steps
+
+	# ------------------------------------------------
+	# Validate ask → goto targets
+	# ------------------------------------------------
+	if not _validate_branch_gotos(flows_out):
+		return {}
 
 	return {
 		"lesson_title": str(root.get("lesson_title", fallback_title)),
 		"code": {
-			"step_index": 0,
-			"total_steps": steps_out.size(),
-			"steps": steps_out
+			"entry": "flow",
+			"flows": flows_out
 		}
 	}
+
+static func _compile_steps_array(src: Array, fallback_title: String) -> Array:
+	var out: Array = []
+
+	for item in src:
+		var step_def = _compile_flow_item(item)
+		if step_def.is_empty():
+			push_error("lesson '%s': step compilation failed" % fallback_title)
+			return []
+		out.append(step_def)
+
+	return out
+
+static func _validate_branch_gotos(flows: Dictionary) -> bool:
+	for flow_name in flows.keys():
+		var steps: Array = flows[flow_name]
+
+		for step in steps:
+			var actions: Array = step.get("actions", [])
+			for act in actions:
+				if typeof(act) != TYPE_DICTIONARY:
+					continue
+
+				if str(act.get("type", "")) != "ask":
+					continue
+
+				var on_answer = act.get("on_answer", {})
+				for idx in on_answer.keys():
+					var target = on_answer[idx]
+					if str(target.get("op", "")) != "goto":
+						continue
+
+					var branch = str(target.get("target", "")).strip_edges()
+					if not flows.has(branch):
+						push_error("ask.goto references unknown branch '%s'" % branch)
+						return false
+
+				if act.has("default"):
+					var def = act["default"]
+					if str(def.get("op", "")) == "goto":
+						var branch2 = str(def.get("target", "")).strip_edges()
+						if not flows.has(branch2):
+							push_error("ask.default.goto references unknown branch '%s'" % branch2)
+							return false
+
+	return true
+
 
 
 
@@ -124,7 +208,10 @@ static func compile_bundle_json(yaml_text: String, indent: String = "\t") -> Str
 
 
 static func _parse_yaml(yaml_text: String):
-	var data = YAML.parse(yaml_text).get_document()
+	var data = YAML.parse(yaml_text)
+	if data.has_error():
+		print(data.get_error())
+	data = data.get_document()
 	if data == null:
 		push_error("YAML: parse failed")
 		return null
@@ -158,28 +245,78 @@ static func _compile_flow_item(item) -> Dictionary:
 	if bool(body.get("persistent", false)):
 		out_step["persistent"] = true
 
-	# Apply directives from registry
+	var has_actions = body.has("actions")
+
+	# ----------------------------
+	# Case A: explicit actions:
+	# ----------------------------
+	if has_actions:
+		# allow other metadata keys to pass through
+		for k in body.keys():
+			var kk = str(k)
+			if kk == "title" or kk == "persistent":
+				continue
+
+			if dsl_reg.step_directives.has(kk):
+				var fn = dsl_reg.step_directives[kk].get("compile", null)
+				if fn == null:
+					push_error("STEP_DIRECTIVES missing compile fn for '%s'" % kk)
+					return {}
+				var ok = fn.call(out_step, body[kk])
+				if ok != true:
+					return {}
+			else:
+				out_step[kk] = body[kk]
+
+		return out_step
+
+	# ----------------------------
+	# Case B: sugar (no actions:)
+	# Compile keys into actions in YAML order
+	# ----------------------------
+	var acts: Array = []
+
 	for k in body.keys():
 		var kk = str(k)
 
 		if kk == "title" or kk == "persistent":
 			continue
 
+		# If this key is a runtime action type — compile into action
+		if dsl_reg.action.has(kk):
+			var act_compile = dsl_reg.action[kk].get("compile", null)
+			if act_compile == null:
+				push_error("ACTION missing compile fn for '%s'" % kk)
+				return {}
+
+			var act = act_compile.call(body[kk])
+			if typeof(act) != TYPE_DICTIONARY or act.is_empty():
+				return {}
+
+			acts.append(act)
+			continue
+
+		# Otherwise, if it's a step directive (compile-time transform) — apply it
 		if dsl_reg.step_directives.has(kk):
-			var spec = dsl_reg.step_directives[kk]
-			var fn_name = spec.get("compile", null)
-			if fn_name == null:
-				push_error("YAML: STEP_DIRECTIVES missing compile fn for '%s'" % kk)
+			var fn2 = dsl_reg.step_directives[kk].get("compile", null)
+			if fn2 == null:
+				push_error("STEP_DIRECTIVES missing compile fn for '%s'" % kk)
 				return {}
-			
-			var ok = fn_name.call(out_step, body[kk])
-			if ok != true:
+			var ok2 = fn2.call(out_step, body[kk])
+			if ok2 != true:
 				return {}
-		else:
-			# pass-through unknown step keys (future metadata)
-			out_step[kk] = body[kk]
+			continue
+
+		# Unknown keys pass-through
+		out_step[kk] = body[kk]
+
+	if acts.size() > 0:
+		out_step["actions"] = acts
 
 	return out_step
+
+
+
 
 
 static func _parse_step_key(key: String) -> String:

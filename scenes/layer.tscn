@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://dk05hn4etkckc"]
+[gd_scene load_steps=11 format=3 uid="uid://dk05hn4etkckc"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_oobeh"]
 [ext_resource type="Script" uid="uid://deim3p78fm0d5" path="res://scripts/neuron_layer.gd" id="2_2eb8h"]
 [ext_resource type="Script" uid="uid://7nab6wgidrl1" path="res://scripts/neuron_unit.gd" id="3_gemti"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="3_j0ma4"]
 [ext_resource type="Material" uid="uid://bvlhwv585y83q" path="res://resources/neuron_graph.tres" id="4_3b4h0"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="4_h0si1"]
 [ext_resource type="PackedScene" uid="uid://cbe74hclhjp0e" path="res://scenes/validate.tscn" id="5_3b4h0"]
 [ext_resource type="Script" uid="uid://b0wh6bvd6pdc5" path="res://scripts/validate_number.gd" id="6_j0ma4"]
 [ext_resource type="Material" uid="uid://b32bkwpidhiyp" path="res://resources/font_alphamult.tres" id="6_jkrlx"]
@@ -109,6 +110,17 @@ offset_right = 201.0
 offset_bottom = 48.0
 scale = Vector2(0.427587, 0.427587)
 text = "Dense"
+
+[node name="Loc" type="Node" parent="ColorRect/root/Label" index="0"]
+script = ExtResource("4_h0si1")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Плотн"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Тығыз"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="unit" type="Control" parent="." index="4"]
 anchors_preset = 0

@@ -1,10 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://dkx7jmpcdb0sw"]
+[gd_scene load_steps=10 format=3 uid="uid://dkx7jmpcdb0sw"]
 
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_14mbi"]
 [ext_resource type="Script" uid="uid://ckswduxqerno3" path="res://scripts/dataset_node.gd" id="2_jap0d"]
 [ext_resource type="Material" uid="uid://c556teg3qs0aw" path="res://resources/graph.tres" id="3_0wvvd"]
 [ext_resource type="Theme" uid="uid://cxe1714v2p0a1" path="res://resources/theme.tres" id="4_yjs75"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="5_0wvvd"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="5_7c80c"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="6_yjs75"]
 [ext_resource type="Script" uid="uid://bjncugq5805ty" path="res://scripts/label_auto_resize.gd" id="7_yjs75"]
 
@@ -83,6 +84,17 @@ offset_bottom = 47.0
 scale = Vector2(0.419329, 0.419329)
 theme = ExtResource("4_yjs75")
 text = "Dataset"
+
+[node name="Loc" type="Node" parent="ColorRect/root/Label"]
+script = ExtResource("5_7c80c")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Датасет"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Датасет"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
 
 [node name="run" parent="." node_paths=PackedStringArray("graph") instance=ExtResource("5_0wvvd")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)

@@ -39,10 +39,12 @@ func show_up(iter, node=null):
 	unblock_input()
 	tune()
 
+@export var tune_mult = 2.2
+
 func tune():
 
 	for i in _contained:
 		if i.metadata["project_id"] == glob.get_project_id():
-			i.set_tuning(i.base_tuning * 2.2)
+			i.set_tuning(i.base_tuning * tune_mult)
 	
 	#menu_expand()

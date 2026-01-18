@@ -57,8 +57,6 @@ func _process(delta: float) -> void:
 			to_screen = true
 		else:
 			to_screen = false
-	
-	
 	if selecting:
 		if not glob.mouse_pressed:
 			if glob.f2_pressed:

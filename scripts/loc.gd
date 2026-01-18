@@ -23,6 +23,7 @@ func _ready() -> void:
 	if readied_once: return
 	if get_parent() is BlockComponent and get_parent().placeholder:
 		return
+#	if get_parent().text == ""
 	
 	readied_once = true
 	await get_tree().process_frame

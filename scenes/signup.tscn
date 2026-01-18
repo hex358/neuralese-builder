@@ -272,7 +272,7 @@ localizations_kz = Dictionary[String, String]({
 })
 metadata/_custom_type_script = "uid://dtwj74o465brs"
 
-[node name="switch" parent="ColorRect" node_paths=PackedStringArray("graph") instance=ExtResource("8_n4qn0")]
+[node name="switch" parent="ColorRect" instance=ExtResource("8_n4qn0")]
 instance_shader_parameters/corner_radius_width_add = Vector2(-9, 0)
 instance_shader_parameters/extents = Vector2(0, 0)
 layout_mode = 0
@@ -297,7 +297,6 @@ mouse_open = false
 menu_name = &"g"
 max_size = 170
 config = SubResource("Resource_7cl1p")
-graph = NodePath("")
 in_splash = true
 
 [node name="Label4" type="Label" parent="ColorRect"]
@@ -315,6 +314,9 @@ text = "Teacher account"
 [node name="Loc" type="Node" parent="ColorRect/Label4"]
 script = ExtResource("8_7cl1p")
 auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Я - учитель"
+})
 localizations_kz = Dictionary[String, String]({
 "_": "Мен мұғаліммін"
 })

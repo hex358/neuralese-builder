@@ -93,6 +93,7 @@ offset_bottom = 85.00001
 scale = Vector2(0.9, 0.9)
 color = Color(1, 1, 1, 0)
 script = ExtResource("9_t4awa")
+tune_mult = 1.5
 top = true
 base_size = Vector2(535.5556, 0)
 static_mode = true

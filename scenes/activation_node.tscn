@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://ca6p5f7voeq2"]
+[gd_scene load_steps=8 format=3 uid="uid://ca6p5f7voeq2"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_0jgoj"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_bbamu"]
 [ext_resource type="PackedScene" uid="uid://wd63efdi6bdn" path="res://scenes/BaseBComponent.tscn" id="2_uvpah"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="3_b0ppm"]
 [ext_resource type="Material" uid="uid://bubmhjvmjccip" path="res://resources/button_mat.tres" id="3_bbamu"]
 [ext_resource type="Script" uid="uid://dx40hpbce8w60" path="res://scripts/button_config.gd" id="4_b0ppm"]
 
@@ -13,10 +14,8 @@ hover_mult = 1.4
 _hover_scale = 1.037
 press_color = Color(0.9, 0.9, 0.9, 1)
 _press_scale = 0.97
-animation_scale = 0.0
 animation_speed = 1.951
 animation_decay = 4.564
-animation_duration = 1.0
 metadata/_custom_type_script = "uid://dx40hpbce8w60"
 
 [node name="Base" instance=ExtResource("1_0jgoj")]
@@ -58,7 +57,6 @@ parent_graph = NodePath("..")
 gradient_color = Color(0, 1, 0.882353, 1)
 
 [node name="ColorRect" parent="." index="2"]
-instance_shader_parameters/corner_radius_add = -3.0
 offset_left = -37.0
 offset_top = -23.0
 offset_right = 34.0
@@ -72,8 +70,18 @@ offset_bottom = 47.0
 scale = Vector2(0.296124, 0.296124)
 text = "Activation"
 
+[node name="Loc" type="Node" parent="ColorRect/root/Label" index="0"]
+script = ExtResource("3_b0ppm")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Активация"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Активация"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"
+
 [node name="ColorRect2" parent="." index="3" node_paths=PackedStringArray("graph") instance=ExtResource("2_uvpah")]
-instance_shader_parameters/corner_radius_add = -7.0
 layout_mode = 0
 offset_left = -29.0
 offset_top = -5.0
@@ -96,8 +104,6 @@ graph = NodePath("..")
 [node name="ColorRect2" parent="ColorRect2" index="1" instance=ExtResource("2_uvpah")]
 visible = false
 material = ExtResource("3_bbamu")
-instance_shader_parameters/corner_radius_add = -1.0
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -117,8 +123,6 @@ config = SubResource("Resource_b8f4u")
 [node name="ColorRect3" parent="ColorRect2" index="2" instance=ExtResource("2_uvpah")]
 visible = false
 material = ExtResource("3_bbamu")
-instance_shader_parameters/corner_radius_add = -1.0
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -138,8 +142,6 @@ config = SubResource("Resource_b8f4u")
 [node name="ColorRect4" parent="ColorRect2" index="3" instance=ExtResource("2_uvpah")]
 visible = false
 material = ExtResource("3_bbamu")
-instance_shader_parameters/corner_radius_add = -1.0
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0
@@ -160,8 +162,6 @@ config = SubResource("Resource_b8f4u")
 [node name="ColorRect5" parent="ColorRect2" index="4" instance=ExtResource("2_uvpah")]
 visible = false
 material = ExtResource("3_bbamu")
-instance_shader_parameters/corner_radius_add = -1.0
-instance_shader_parameters/corner_width_add = 0.3
 instance_shader_parameters/outline_color = Color(0.78, 0.78, 0.78, 1)
 instance_shader_parameters/tuning = Color(0, 0, 0, 0.635294)
 layout_mode = 0

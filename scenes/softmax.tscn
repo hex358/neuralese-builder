@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://bb1li7gs5rtsc"]
+[gd_scene load_steps=5 format=3 uid="uid://bb1li7gs5rtsc"]
 
 [ext_resource type="PackedScene" uid="uid://dvy7srp0sk1qm" path="res://scenes/base_graph.tscn" id="1_q72yv"]
 [ext_resource type="PackedScene" uid="uid://cyyhr5tmi4ljw" path="res://scenes/Connection.tscn" id="2_kcfqd"]
 [ext_resource type="Script" uid="uid://dqkl4p7v8bw0c" path="res://scripts/softmax_node.gd" id="2_rnb4f"]
+[ext_resource type="Script" uid="uid://dtwj74o465brs" path="res://scripts/loc.gd" id="4_5bduk"]
 
 [node name="Base" instance=ExtResource("1_q72yv")]
 script = ExtResource("2_rnb4f")
@@ -55,9 +56,21 @@ offset_bottom = 18.0
 
 [node name="Label" parent="ColorRect/root" index="0"]
 self_modulate = Color(1, 0.890196, 0.588235, 1)
-offset_left = 15.000008
+offset_left = 2.0000029
 offset_top = 12.0
-offset_right = 150.0
+offset_right = 193.48596
 offset_bottom = 55.0
 scale = Vector2(0.464786, 0.464786)
 text = "Softmax"
+horizontal_alignment = 1
+
+[node name="Loc" type="Node" parent="ColorRect/root/Label" index="0"]
+script = ExtResource("4_5bduk")
+auto = true
+localizations_ru = Dictionary[String, String]({
+"_": "Софтмакс"
+})
+localizations_kz = Dictionary[String, String]({
+"_": "Софтмакс"
+})
+metadata/_custom_type_script = "uid://dtwj74o465brs"

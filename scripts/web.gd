@@ -43,6 +43,16 @@ func JPOST(page: String, data: Dictionary):
 		return JSON.parse_string(req.body.get_string_from_utf8())
 	return {}
 
+func HEALTH(page: String = "health"):
+#	print(await GET("health"))
+	var full_url = page
+	var a = await _request(full_url, {}, HTTPClient.METHOD_GET, false, false, false)
+#	print(a)
+	print(a)
+	if str(a.get("code", "")) == "200":
+		return true
+	return false
+
 func GET(page: String, args: Dictionary = {}, obj: bool = false):
 	var full_url = api_url + page
 	if not args.is_empty():

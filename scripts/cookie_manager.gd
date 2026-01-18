@@ -26,7 +26,7 @@ func get_pass() -> String:
 	return glob._logged_in.pass
 
 func user() -> String:
-	return glob._logged_in.user
+	return glob._logged_in.user if glob._logged_in else ""
 
 func pwd() -> String:
 	return glob._logged_in.pass

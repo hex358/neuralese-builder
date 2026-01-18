@@ -176,7 +176,8 @@ var state = {
 	"tween_progress": 0.0,
 	"pressing": false,
 	"hovering": false,
-	"expanded": false
+	"expanded": false,
+	"expand_t": 0.0
 }
 var last_mouse_pos: Vector2 = Vector2()
 var anchor_position: Vector2 = Vector2()  # For upward expansion
@@ -238,17 +239,24 @@ var add_to_size: bool = false
 @export var scrollbar_padding: int = 21
 @export var bar_scale_x: float = 1.2
 
+
+
 func initialize() -> void:
 	if Engine.is_editor_hint(): return
 	
 	if button_type == ButtonType.CONTEXT_MENU or button_type == ButtonType.DROPOUT_MENU:
+	
+		indexed_children.clear()
+		for child in get_children():
+			if not child is BlockComponent and child is Control and not child is Container and child != label:
+				indexed_children.append(child)
 		if not scroll:
 			default_scroll()
 		bar = scroll.get_v_scroll_bar()
 		bar.scrolling.connect(update_children_reveal)
 		bar.scale.x = bar_scale_x
 		bar.z_index = 2
-
+		set_albedo_indexed(0)
 		if expanded_size == 0 and !dynamic_size:
 			expanded_size = base_size.y
 			add_to_size = true
@@ -379,7 +387,10 @@ func resize(_size: Vector2, set_base_size: bool = true, set_pos: bool = true) ->
 
 var wrapped: bool = false
 
+signal menu_hiding
+
 @export var arrange_offset: float = 0
+@export var margin_y: int = 0
 func arrange():
 	#print(glob.curr_window)
 	#if glob.curr_window == "ds":
@@ -387,16 +398,20 @@ func arrange():
 	#print_stack()
 	# Arrange children above or below based on expand_upwards
 	#arrangement_padding.x *= 0
+	#$ScrollContainer/MarginContainer.add_theme_constant_override(
+	#"margin_top", margin_y
+	#)
 	vbox.add_theme_constant_override("separation", arrangement_padding.y)
 	var maxsize: int = 0
 	
 	var y = base_size.y * 0.9 if !expand_upwards else expanded_size / 2 - base_size.y * 1.45
 	var add = 0
+	scroll.size.y -= margin_y
 	#if max_size < _unclamped_expanded_size:
 	#	add = arrange_offset / 2 - 2
 	y += add
 	scroll.position = Vector2( arrangement_padding.x, 
-	y)
+	y+ margin_y) 
 	var is_shrinked: bool = max_size < expanded_size and max_size
 	var b_size = base_size.x - 2.2 * arrangement_padding.x
 	for node:BlockComponent in _contained:
@@ -521,6 +536,7 @@ func _ready() -> void:
 		if scroll:
 			scroll.get_v_scroll_bar().value_changed.connect(func(x): 
 				scroll_changed.emit())
+		
 
 
 	
@@ -608,11 +624,13 @@ func is_mouse_inside() -> bool:
 	var graph = graph if graph and graph is Graph else graph_root
 	if graph and graph.is_blocked:
 		return false
-	if is_contained and is_contained.static_mode and is_contained.get_global_mouse_position().y > is_contained.tb.y:
+	if is_contained and (is_contained.get_global_mouse_position().y > is_contained.tb.y or is_contained.get_global_mouse_position().y < is_contained.tb.x ):
 	#	if text == "we":
 		#	print(get_global_mouse_position().y)
 		#print(is_contained.tb.y)
+		#print(text)
 		return false
+	
 	if graph:
 		var cons = glob.get_consumed("mouse")
 		#print(cons)
@@ -894,8 +912,14 @@ func get_tb():
 	tb = Vector2(scroll.global_position.y, scroll.global_position.y + scroll.size.y * scroll.scale.y * mult.y)
 	return tb
 
+
+func _menu_hiding():
+	pass
+
+
 var tb: Vector2 = Vector2()
 func update_children_reveal() -> void:
+	
 	if _contained.is_empty():
 		_reveal_dirty = false
 		return
@@ -913,7 +937,7 @@ func update_children_reveal() -> void:
 	var bar_max: float = bar.max_value
 	var bar_page: float = bar.page
 	var mul_y: float = mult.y
-
+	
 	var extents = Vector4.ZERO
 	if has_shrink:
 		var top_edge = s_glob_y if (bar_value > 10.0) else -20.0
@@ -987,8 +1011,13 @@ func ask_and_wait(at_position: Vector2, hide: bool = true, show: bool = true):
 	#await child_button_release
 	#await get_tree().process_frame
 	
+func _showing():
+	pass
 
 func menu_show(at_position: Vector2) -> void:
+	_showing()
+	last_moda = 0.0
+	state.expand_t = 0
 	if static_mode:
 		unroll()
 		await get_tree().process_frame
@@ -1028,7 +1057,7 @@ func menu_show(at_position: Vector2) -> void:
 	#print(get_parent().visible)
 
 func menu_hide() -> void:
-	
+
 	if static_mode:
 		return
 	fin_trigger.emit(null)
@@ -1124,6 +1153,21 @@ func unroll():
 		else:
 			glob.un_occupy(self, "menu_inside")
 # 
+
+var indexed_children = []
+
+func set_albedo_indexed(albedo: float, lrp = false):
+	if lrp:
+		
+		last_moda = lerpf(last_moda, 1.0, get_process_delta_time()*8.0)
+		if state.get("expand_t", 0) < 0.0:
+			last_moda = 0
+	else:
+		last_moda = albedo
+	for i in indexed_children:
+		i.modulate.a = albedo
+
+var last_moda := -1.0
 signal scroll_changed
 @onready var viewport_rect = get_viewport_rect()
 func _process_context_menu(delta: float) -> void:
@@ -1168,14 +1212,19 @@ func _process_context_menu(delta: float) -> void:
 	if not mouse_open and not reset_menu:
 		right_pressed = false
 		right_click = false
-
+	if state.expanding:
+		state.expand_t += delta
+	else:
+		if not visible:
+			state.expand_t = 0
 	if left_click or right_click or ((mouse_open or static_mode or still_hover_in_block) and not left_pressed and not right_pressed):
 		last_mouse_pos = get_global_mouse_position()
 	#if name == "delete_project":
 	#	print(still_hover_in_block)
 	#if name == "list" and not Engine.is_editor_hint():
 	#	print(is_blocking)
-
+	if indexed_children:
+		set_albedo_indexed(last_moda, true)
 
 	if res:
 		left_pressed = false; right_pressed = false
@@ -1298,6 +1347,9 @@ func _process_context_menu(delta: float) -> void:
 		if state.tween_progress > 0.8 or (button_type == ButtonType.DROPOUT_MENU and state.tween_progress > 0.6):
 			if button_type == ButtonType.CONTEXT_MENU:
 				hide()
+				_menu_hiding()
+				
+				set_albedo_indexed(0.0)
 			else:
 				reparent_hide()
 				current_type = ButtonType.BLOCK_BUTTON

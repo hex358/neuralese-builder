@@ -1,10 +1,12 @@
 @tool
 extends Node2D
 const DEBUG: bool = true
-const LOCALHOSTED: bool = true
+enum NetMode {Localhost, Remote, LAN}
+var NET_MODE = NetMode.Localhost
 const DUMMY_LOGIN: bool = 0
 const DUMMY_PROJECTS: bool = 0
 const WINDOW_DBG: bool = 1
+const DEBUG_RELOAD_LESSONS: bool = 0
 const IMPORT_LESSON_DIRS: bool = 1
 const NO_TRANSCRIBER_WARMUP: bool = true
 
@@ -229,7 +231,7 @@ func spring(from, to, t: float,
 			frequency: float = 4.5,
 			damping: float = 4.0,
 			amplitude: float = 2.0
-) -> Vector2:
+):
 	var w = frequency * PI * 2.0
 	var decay = exp(-damping * t)
 	var osc = cos(w * t) + (damping / w) * sin(w * t)
@@ -247,13 +249,15 @@ class _Timer extends Object:
 
 var timers: Dictionary[_Timer, bool] = {}
 
-func timer(wait_time: float, frames: bool = false):
+func timer(wait_time: float, frames: bool = false) -> _Timer:
 	var timer = _Timer.new(wait_time, frames)
 	timers[timer] = true; return timer
 
-func wait(wait_time: float, frames: bool = false):
+func wait(wait_time: float, frames: bool = false) -> Signal:
 	var timer = _Timer.new(wait_time, frames)
 	timers[timer] = true; return timer.timeout
+
+
 
 
 func get_project_id() -> int:
@@ -840,17 +844,24 @@ func def(...args) -> void:
 #"ws://localhost:8000/"
 #var connection_prefix: String = glob.get_root_ws()#"wss://neriqward.360hub.ru/api/"
 
+var base_lan_ip: String = ""
 func get_root_ws():
-	if LOCALHOSTED:
+	if NET_MODE == NetMode.Localhost:
 		return "ws://127.0.0.1:8000/"
 	else:
-		return "wss://neriqward.360hub.ru/api/"
+		if NET_MODE == NetMode.Remote:
+			return "wss://neriqward.360hub.ru/api/"
+		else:
+			return "ws://" + base_lan_ip + ":8000/"
 
 func get_root_http():
-	if LOCALHOSTED:
+	if NET_MODE == NetMode.Localhost:
 		return "http://127.0.0.1:8000/"
 	else:
-		return "https://neriqward.360hub.ru/api/"
+		if NET_MODE == NetMode.Remote:
+			return "https://neriqward.360hub.ru/api/"
+		else:
+			return "http://" + base_lan_ip + ":8000/"
 
 
 func message_chunk_received(data, sock: SocketConnection):
@@ -1426,7 +1437,7 @@ func load_lesson(from: String):
 	last_summary_hash = -1
 	clear_chats()
 	clear_all()
-
+	project_id = -1
 	loaded_project_once = true
 	fg.go_into_graph()
 	await graphs.delete_all()
@@ -2050,13 +2061,15 @@ class TweenSimple:
 	func finish():
 		q_finish = true
 
+const eps: float = 0.008
+
 class TweenCall:
 	signal finished
 	var callb: Callable; var data: Dictionary
 	var is_finished: bool = false
 	var q_finish = false
 	func poll(delta: float):
-		if q_finish or callb.call(data, delta):
+		if not callb.is_valid() or q_finish or callb.call(data, delta):
 			is_finished = true; finished.emit()
 	func _init(dt: Dictionary, cb : Callable):
 		data = dt; callb = cb
@@ -2076,6 +2089,14 @@ func tween_call(data: Dictionary, callb: Callable) -> bool:
 	tweens[obj] = true
 	await obj.finished
 	return true
+
+
+func tween_call_obj(data: Dictionary, callb: Callable) -> TweenCall:
+	var obj = TweenCall.new(data, callb)
+	if "write_into" in data:
+		data.write_into[0] = obj
+	tweens[obj] = true
+	return obj
 
 func join_ds_processing():
 	await join_ds_save()
@@ -2412,9 +2433,13 @@ func reset_mouse():
 
 var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
+var tree: SceneTree
+
+var lan_ip = null
 func _ready() -> void:
 	if Engine.is_editor_hint(): return
 	
+	tree = get_tree()
 	
 	set_remote_config({})
 	DisplayServer.window_set_min_size(Vector2(670,360))
@@ -2440,21 +2465,37 @@ func _ready() -> void:
 	_load_window_scenes = _window_scenes()
 	go_window("graph")
 	init_scene("")
+	if NET_MODE == NetMode.LAN:
+		lan_ip = load("res://scenes/lanpop.tscn").instantiate()
+		base_node.add_child(lan_ip)
+		var ip = await lan_ip.ip_entered
+		set_var("lan_ip", ip)
+		base_lan_ip = ip
+		web.api_url = get_root_http()
+		sockets.connection_prefix = get_root_ws()
 	
-	await try_auto_login()
+	if !DEBUG_RELOAD_LESSONS:
+		await try_auto_login()
 	#if _logged_in:
 
 	load_datasets()
-	await get_loaded_datasets()
+	if !DEBUG_RELOAD_LESSONS:
+		await get_loaded_datasets()
 	#(_load)
 	#(load_dataset("mnist"))
-	await open_last_project()
+	if !DEBUG_RELOAD_LESSONS:
+		await open_last_project()
 	#await wait(1)
 	#test_place()
 	ui.splash("ai_help", null, null, false, {"away": true})
-	
+	if DEBUG_RELOAD_LESSONS:
+		await get_tree().process_frame
+		learner.try_load_cached()
+		learner.dbg_load_lesson("C:/Users/Mike/Desktop/lesson_bundle")
+		learner.enter_lesson("test")
 	
 
+var scale_fg: CanvasLayer
 func disconnect_all(from_signal: Signal):
 	for i in from_signal.get_connections():
 		from_signal.disconnect(i.callable)
