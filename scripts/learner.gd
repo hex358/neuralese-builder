@@ -31,7 +31,6 @@ func try_load_cached():
 
 func dbg_load_lesson(path:String):
 	var compiled = YAMLComp.new().compile_bundle(path, false)
-	print(JSON.stringify(compiled, "\t"))
 	#print(compiled)
 	if compiled:
 		load_classroom_data(compiled)
@@ -58,6 +57,7 @@ func lesson_re_reg():
 
 
 func stop_lesson():
+	graphs.allow_deletion_all()
 	if lesson:
 		ui.quest.reset()
 		ui.recreate_quest()
@@ -66,6 +66,7 @@ func stop_lesson():
 		ui.lesson_bar.dissapear()
 		await get_tree().process_frame
 		lesson_re_reg()
+	graphs.set_fork_allow(false)
 
 
 func join_classroom(id: String) -> Dictionary:
@@ -130,14 +131,21 @@ class EndSignal:
 	signal end_signal
 
 func wait_unblock():
+	print("WAITING")
 	if glob.DEBUG_RELOAD_LESSONS:
+		print("TRU!!!!")
 		return true
+	if cookies.profile("teacher"):
+		var f = func(): return glob.space_just_pressed
+		while not f.call():
+			await glob.tree.process_frame
 	var h = classroom_stream()
 	var end = EndSignal.new()
 	var x = func(evt):
 		#print(JSON.stringify(evt, "\t"))
 		if evt.get("event", "") != "snapshot": return
 		evt = JSON.parse_string(evt.data)
+		print(evt)
 		if not evt.students.get(cookies.user(), {}).get("awaiting", false):
 			end.end_signal.emit()
 		#if evt["end"]: end.end_signal.emit()
@@ -159,6 +167,9 @@ func lesson_list():
 	
 	if not profile: return {}
 	var output = {}
+	if not profile.get("lesson_order"):
+		#cookies.set_profile("my_classroom", {})
+		return {}
 	for i in profile.lesson_order:
 		output[i] = {"name": profile.lessons[i].lesson_title}
 	return output
@@ -203,6 +214,8 @@ func enter_lesson(lesson_key):
 	lesson.start()
 	ui.lesson_bar.appear()
 	push_classroom_event({"on_lesson": get_classroom_frontend().lesson_order.find(lesson_key), "awaiting": false})
+	graphs.set_fork_allow(true)
+	
 	
 var current_code = {}
 
@@ -211,6 +224,8 @@ func push_classroom_event(event: Dictionary, target = null):
 	var resp = await web.JPOST("classroom/update_state", {"target": target if target != null else cookies.user(),
 	"user": cookies.user(), "pass": cookies.pwd(), "payload": event, "classroom_id": cookies.profile("my_classroom")})
 
+	
+	
 func upload_classroom_meta(meta: Dictionary):
 	load_classroom_data(meta)
 	var resp = await web.JPOST("classroom/update_meta", {
@@ -233,6 +248,8 @@ func mark_explanation_made(idx: int = -1):
 func _exit_tree() -> void:
 	LessonRouter.unregister_lesson(lesson)
 
+func on_graph_deleted(who: Graph):
+	pass
 
 func _on_step_started(idx: int, step: Dictionary) -> void:
 	#print(current_code.keys())

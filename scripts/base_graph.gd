@@ -128,7 +128,7 @@ func update_config(update: Dictionary):
 
 		_pending_undo_update.merge(update.duplicate(true), true)
 		_undo_timer = undo_delay
-		learner.notify_update()
+		learner.notify_update.call_deferred()
 		if right_away:
 
 			_undo_timer = 0
@@ -142,6 +142,8 @@ func update_config(update: Dictionary):
 	if input_cached:
 		#print("A")
 		input_cached.graph_updated()
+	
+	learner.notify_update.call_deferred()
 
 func has_config_subfield(query: String) -> bool:
 	var splt = query.split("/")
@@ -159,7 +161,7 @@ func update_config_subfield(update: Dictionary):
 					erasure[i][subfield] = true; continue
 				reversion[i][subfield] = cfg[i][subfield]
 		
-		learner.notify_update()
+		learner.notify_update.call_deferred()
 		glob.add_action(
 			(func(): 
 				for i in erasure:
@@ -176,6 +178,7 @@ func update_config_subfield(update: Dictionary):
 	check_valid(update)
 	if input_cached:
 		input_cached.graph_updated()
+	learner.notify_update.call_deferred()
 
 func get_named_ancestor(named: String) -> Graph:
 	for j in get_first_ancestors():
@@ -455,6 +458,7 @@ func _deattaching(other_conn: Connection, my_conn: Connection):
 func just_disconnected(who: Connection, from: Connection):
 	in_abstraction = true
 	from.parent_graph.just_deattached(who, from)
+	learner.notify_update()
 	_just_disconnected(who, from)
 
 	var a: Graph = who.parent_graph
@@ -896,6 +900,8 @@ func _ready() -> void:
 		enter_selection_mode()
 	#print(invoked_with.get_bound_arguments())
 	glob.add_action(delete, invoked_with)
+	#ui.show_arrow_conn(input_key_by_conn.keys()[0])
+	#ui.show_arrow_graph(self)
 	#glob.open_action(self, "create_graph")
 	#glob.push_action(self, invoked_with, delete)
 	#glob.close_action(self)
@@ -1271,6 +1277,8 @@ func _stopped_processing():
 		#	glob.un_occupy(i, "conn_active")
 
 func delete(disconn: bool = true):
+	if !deletion_allowed:
+		return
 	graphs.unselect(self)
 	_stopped_processing()
 	
@@ -1289,6 +1297,7 @@ func delete(disconn: bool = true):
 		#for i in dup:
 		#	conn.detatch_spline(i)
 		#	i.origin.end_spline(dup[i])
+	learner.on_graph_deleted(self)
 	await get_tree().process_frame
 	queue_free()
 
@@ -1433,6 +1442,8 @@ func get_outputs() -> Array[Spline]:
 	return res
 
 func delete_call():
+	if !deletion_allowed:
+		return
 	var res = []
 	var dup = graphs.selected_nodes.duplicate()
 	dup[self] = true
@@ -1498,6 +1509,8 @@ var hold_t: float = 0
 func _process(delta: float) -> void:
 #	print(group_dragging)
 	if Engine.is_editor_hint(): return
+	if glob.f2_pressed:
+		return
 	#if glob.space_just_pressed:
 	#	unblock()
 	

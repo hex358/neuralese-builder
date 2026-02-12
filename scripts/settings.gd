@@ -39,7 +39,7 @@ func open_lesson(idx: int):
 		if last_snapshot:
 			snapshot_receive(last_snapshot)
 		$ColorRect/classroomstatus/Control2/Label.text = str(idx+1) + ". " + curr_lesson.lesson_title
-		
+		$ColorRect/classroomstatus/Control2/Label.resize()
 			
 var curr_lesson = null
 
@@ -102,7 +102,7 @@ func update_single(who: BlockComponent, dict: Dictionary):
 	who.metadata["awaiting"] = waiting
 	
 	if dict.get("other", false):
-		var on = int(dict.data.on_lesson)
+		var on = int(dict.data.get("on_lesson", -1))
 		who.freeze_input()
 		footer = "[__] Not In Lesson" if on == -1 or on >= len(learner.lesson_list()) else "[--] In Lesson %s" % (on+1)
 		match glob.curr_lang:
@@ -118,8 +118,10 @@ func update_single(who: BlockComponent, dict: Dictionary):
 				footer = "(::) Салады" if !waiting else "[**] Күтеді"
 			"ru":
 				footer = "(::) Работает" if !waiting else "[**] Ожидает"
+		if int(dict.data.get("step", 0)):
+			footer = str(int(dict.data.get("step", 0))) + "-" + footer
 	var total_letters: int = (list_unroll.size.x - list_unroll.arrangement_padding.x * 2) / 12.7
-	who.text = user + " ".repeat(total_letters - len(user) - len(footer) - 1) + footer
+	who.text = user + " ".repeat(total_letters - len(user) - len(footer) - 3) + footer
 	if dict.get("other", false):
 		who.modulate = Color(0.9,0.9,0.9,0.6)
 	else:
@@ -175,7 +177,7 @@ func set_teacher_layout(base: bool = true):
 		unroll_do()
 		$ColorRect/buts.position = Vector2(345.0, 45)
 		$ColorRect/Account.hide()
-		if learner.classroom_data:
+		if learner.classroom_data.has("name"):
 			$ColorRect/classroomstatus/Control/name.text = learner.classroom_data["name"]
 			$ColorRect/classroomstatus/Control/name.resize()
 		stream = learner.classroom_stream()

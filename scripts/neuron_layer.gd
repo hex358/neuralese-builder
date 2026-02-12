@@ -112,10 +112,10 @@ func _apply_grouping() -> void:
 		for i in range(visible_units):
 			var count_in_group = gs if (i < full_groups) else remainder
 			if count_in_group == 0: count_in_group = gs
-			units[i].set_text(count_in_group)
+			units[i].set_text(1)
 	else:
 		for i in range(MAX_UNITS - 1):
-			units[i].set_text(gs)
+			units[i].set_text(1)
 		var covered = gs * (MAX_UNITS - 1)
 		var tail = max(0, _real_amount - covered)
 		units[MAX_UNITS - 1].set_text(tail, true)

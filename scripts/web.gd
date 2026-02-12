@@ -81,7 +81,7 @@ func GET_SSE(
 
 
 # Headers
-func get_headers() -> PackedStringArray:
+func get_headers(json=true) -> PackedStringArray:
 	var os_name = OS.get_name()
 	var os_version = OS.get_version()
 	var gvi = Engine.get_version_info()
@@ -96,7 +96,8 @@ func get_headers() -> PackedStringArray:
 
 	var headers = PackedStringArray()
 	headers.append(ua_string)
-	headers.append("Content-Type: application/json")
+	if json:
+		headers.append("Content-Type: application/json")
 	headers.append("Accept: */*")
 
 	var cookie_header = cookies.get_header()

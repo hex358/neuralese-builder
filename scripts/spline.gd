@@ -17,11 +17,17 @@ var baked: PackedVector2Array = [Vector2(), Vector2()]
 var space: PackedVector2Array = PackedVector2Array([Vector2(), Vector2()])
 var doomed := false
 
+var draw_fork: bool = graphs.fork_allowed
+
+var fork: SplineFork = null
 func _ready() -> void:
 	if line_2d and line_2d.gradient:
 		line_2d.gradient = line_2d.gradient.duplicate(true)
 	if !Engine.is_editor_hint():
 		$Marker2D.queue_free()
+	if draw_fork:
+		fork = ui.fork.instantiate()
+		add_child(fork)
 	_recolor_gradient()
 
 func _process(delta: float) -> void:
@@ -67,6 +73,8 @@ func other_default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_
 	var length = delta.length()
 	var mid_interval = clamp(length * 0.1, 2.0, 30.0)
 	baked = _bake_with_end_smoothing(mid_interval, end_smooth_range_px)
+
+var end_pos = Vector2()
 
 var mapping := {"weight": weight_points}
 
@@ -145,6 +153,15 @@ func update_points_fast(offset: Vector2):
 	for i in range(baked.size()):
 		baked[i] += offset
 	line_2d.points = baked
+	end_pos = baked[-1]
+	if draw_fork and fork and fork.visible:
+		if output_conned:
+			set_fork_output()
+		else:
+			fork.position = end_pos - edir *7
+		#	#fork.modulate =  _base_colors[1]
+			fork.plot_show()
+		fork.upd()
 
 
 
@@ -171,8 +188,36 @@ func default_points(start: Vector2, end: Vector2, start_dir: Vector2, end_dir = 
 	curve.add_point(end_second_point, -size * (end - end_second_point), Vector2())
 	curve.add_point(end, Vector2(), Vector2())
 
+	end_pos = end
+	edir = end_dir
+	if draw_fork and fork:
+		if output_conned:
+			set_fork_output()
+		else:
+			fork.position = end_pos - edir *7
+			fork.rotation = (-end_dir).angle()
+		#	#fork.modulate =  _base_colors[1]
+			fork.show()
+		fork.upd()
 	var mid_interval = clamp(length * 0.05, 2.0, 30.0)
 	baked = _bake_with_end_smoothing(mid_interval, end_smooth_range_px)
+
+var edir: Vector2 = Vector2()
+func set_fork_color(col: Color):
+	if fork:
+		fork.set_color(col)
+
+var output_conned: bool = false
+func set_fork_output():
+	if fork:
+		output_conned = true
+		#fork.position = end_pos + edir *6 + edir.rotated(-PI/2)
+		fork.hide()
+
+func set_fork_uncon():
+	if fork:
+		output_conned = false
+		pass
 
 # --- SMOOTH BAKING --------------------------------------------------------------
 

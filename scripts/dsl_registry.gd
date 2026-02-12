@@ -74,6 +74,15 @@ func _ready() -> void:
 			"compile": compile.compile_action_explain,
 			"runtime": runtime.run_action_explain,
 		},
+		"hide_arrows": {
+			"compile": compile.compile_action_hide_arrows,
+			"runtime": runtime.run_action_hide_arrows,
+		},
+		"arrow": {
+			"compile": compile.compile_action_arrow,
+			"runtime": runtime.run_action_arrow,
+		},
+
 		"require": {
 			"compile": compile.compile_action_require,
 			"runtime": runtime.run_action_require,

@@ -112,6 +112,51 @@ func _compile_goto_target(v) -> Dictionary:
 	push_error("YAML: invalid goto target format")
 	return {}
 
+func compile_action_arrow(v) -> Dictionary:
+	if typeof(v) != TYPE_DICTIONARY or v.is_empty():
+		push_error("YAML: arrow must be a non-empty mapping")
+		return {}
+
+	# --- Node arrow ---
+	if v.has("node"):
+		var node_ref = normalize_node_ref(v["node"])
+		return {
+			"type": "arrow",
+			"mode": "node",
+			"node": node_ref,
+		}
+
+	# --- Port arrow ---
+	if v.has("port"):
+		var p = v["port"]
+		if typeof(p) != TYPE_DICTIONARY:
+			push_error("YAML: arrow.port must be a mapping")
+			return {}
+
+		var out: Dictionary = { "type": "arrow", "mode": "port" }
+
+		if p.has("from"):
+			out["from"] = normalize_node_ref(p["from"])
+			out["out_port"] = int(p.get("out_port", -1))
+			return out
+
+		if p.has("to"):
+			out["to"] = normalize_node_ref(p["to"])
+			out["in_port"] = int(p.get("in_port", -1))
+			return out
+
+		push_error("YAML: arrow.port requires either 'from' or 'to'")
+		return {}
+
+	push_error("YAML: arrow requires 'node' or 'port'")
+	return {}
+
+func compile_action_hide_arrows(_v) -> Dictionary:
+	return {
+		"type": "hide_arrows"
+	}
+
+
 
 func step_apply_actions(out_step: Dictionary, actions_val) -> bool:
 	if typeof(actions_val) != TYPE_ARRAY:
@@ -177,6 +222,13 @@ func compile_action_explain_next(v) -> Dictionary:
 	return {
 		"type": "explain_next",
 		"exprs": {}
+	}
+
+func compile_action_set_dense_units(v) -> Dictionary:
+	return {
+		"type": "set_dense_units",
+		"per_unit": v.get("per_unit", 50),
+		"max_units": v.get("max_units", 20),
 	}
 
 
@@ -436,10 +488,17 @@ func compile_req_topology(v) -> Dictionary:
 
 	var edges_out: Array = []
 	for e in edges_in:
-		var pair = compile_edge(e)
-		if pair.is_empty():
+		var ed = compile_edge(e)
+		if ed.is_empty():
 			return {}
-		edges_out.append(pair)
+
+		# Compile-time sanity: edge endpoints must reference tpl node aliases
+		if not nodes_out.has(ed["from"]) or not nodes_out.has(ed["to"]):
+			push_error("YAML: topology edge references unknown node alias: '%s' -> '%s'" % [str(ed["from"]), str(ed["to"])])
+			return {}
+
+		edges_out.append(ed)
+
 
 	return {
 		"type": "topology_graph",
@@ -530,24 +589,95 @@ func compile_config_exprs(cfg_in: Dictionary) -> Dictionary:
 		out[key] = expr
 
 	return out
+func _parse_edge_endpoint(s: String) -> Dictionary:
+	s = s.strip_edges()
+	if s == "":
+		return {}
 
-func compile_edge(e) -> Array:
+	# Accept "name.0" or "name:0"
+	var name := s
+	var port := -1
+
+	# Try dot form
+	var dot_idx := s.rfind(".")
+	if dot_idx != -1 and dot_idx < s.length() - 1:
+		var rhs := s.substr(dot_idx + 1, s.length() - dot_idx - 1).strip_edges()
+		var lhs := s.substr(0, dot_idx).strip_edges()
+		if lhs != "" and rhs.is_valid_int():
+			name = lhs
+			port = int(rhs)
+			return { "name": name, "port": port }
+
+	# Try colon form
+	var col_idx := s.rfind(":")
+	if col_idx != -1 and col_idx < s.length() - 1:
+		var rhs2 := s.substr(col_idx + 1, s.length() - col_idx - 1).strip_edges()
+		var lhs2 := s.substr(0, col_idx).strip_edges()
+		if lhs2 != "" and rhs2.is_valid_int():
+			name = lhs2
+			port = int(rhs2)
+			return { "name": name, "port": port }
+
+	# Plain "name"
+	return { "name": name, "port": -1 }
+
+
+func compile_edge(e) -> Dictionary:
+	# Canonical output:
+	# { from: "a", to: "b", out_port: -1|int, in_port: -1|int }
+
+	# Array form:
+	# - ["a", "b"]
+	# - ["a.0", "b.1"]
+	# - ["a", 0, "b", 1]  (optional legacy-ish)
 	if typeof(e) == TYPE_ARRAY:
-		if e.size() != 2:
-			return []
-		return [str(e[0]).strip_edges(), str(e[1]).strip_edges()]
+		if e.size() == 2:
+			var a = _parse_edge_endpoint(str(e[0]))
+			var b = _parse_edge_endpoint(str(e[1]))
+			if a.is_empty() or b.is_empty():
+				return {}
+			return {
+				"from": str(a["name"]).strip_edges(),
+				"to": str(b["name"]).strip_edges(),
+				"out_port": int(a["port"]),
+				"in_port": int(b["port"]),
+			}
 
+		if e.size() == 4:
+			var a_name = str(e[0]).strip_edges()
+			var a_port = int(e[1])
+			var b_name = str(e[2]).strip_edges()
+			var b_port = int(e[3])
+			if a_name == "" or b_name == "":
+				return {}
+			return { "from": a_name, "to": b_name, "out_port": a_port, "in_port": b_port }
+
+		return {}
+
+	# String form: "a -> b" or "a.0 -> b.1"
 	if typeof(e) == TYPE_STRING:
 		var parts = str(e).split("->", false)
 		if parts.size() != 2:
-			return []
-		var a = parts[0].strip_edges()
-		var b = parts[1].strip_edges()
-		if a == "" or b == "":
-			return []
-		return [a, b]
+			return {}
 
-	return []
+		var a = _parse_edge_endpoint(parts[0])
+		var b = _parse_edge_endpoint(parts[1])
+		if a.is_empty() or b.is_empty():
+			return {}
+
+		var from_name := str(a["name"]).strip_edges()
+		var to_name := str(b["name"]).strip_edges()
+		if from_name == "" or to_name == "":
+			return {}
+
+		return {
+			"from": from_name,
+			"to": to_name,
+			"out_port": int(a["port"]),
+			"in_port": int(b["port"]),
+		}
+
+	return {}
 
 func normalize_node_ref(v):
 	if typeof(v) == TYPE_STRING:

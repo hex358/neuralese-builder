@@ -30,7 +30,7 @@ func _process(delta: float) -> void:
 	#print(graphs.conning())
 	if not visible:
 		ui.selecting_box = false
-	if not graphs.conning():
+	if not graphs.conning() or glob.f2_pressed:
 		q = true
 	else:
 		selecting = false
@@ -42,8 +42,9 @@ func _process(delta: float) -> void:
 		graphs.unselect_all()
 	#if glob.mouse_just_pressed:
 	#	print(ui.topr_inside)
-	if not ui.topr_inside and q and not ui.active_splashed() and glob.mouse_just_pressed and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
-	and not graphs.dragged and not graphs.conning() and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y \
+	if not ui.topr_inside and q and not ui.active_splashed() and glob.mouse_just_pressed \
+	and not glob.is_graph_inside() and not glob.is_occupied(self, "menu_inside") \
+	and ((not graphs.dragged and not graphs.conning()) or glob.f2_pressed) and not ui.get_focus() and get_global_mouse_position().y > glob.space_begin.y \
 	and not glob.is_occupied(self, "graph_buffer"):
 		select_origin = get_global_mouse_position()
 		select_origin_world = glob.canvas_to_world(select_origin)

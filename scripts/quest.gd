@@ -34,6 +34,8 @@ func _process(_delta: float) -> void:
 	if not visible:
 		topr_update(false)
 		return
+	#if glob.space_just_pressed:
+	#	hide_request()
 	
 	if is_waiting:
 		target_mod = 1.0 if should_be_visible.call() else 0.0
@@ -83,7 +85,7 @@ func reindex():
 @export var CHAR_PX           = 7.5    # average font char width
 
 @export var MIN_HEIGHT_PX     = 50.0
-@export var MAX_SCREEN_RATIO  = 0.55   # max % of screen height
+@export var MAX_HEIGHT_PX  = 300   # max % of screen height
 @export var V_PADDING         = 24.0
 
 
@@ -101,7 +103,7 @@ func load_bubble(data: Dictionary):
 
 func autosize_bubble():
 	var viewport = get_viewport_rect().size
-	var max_h = viewport.y * MAX_SCREEN_RATIO
+	var max_h = MAX_HEIGHT_PX
 	
 	# -------------------------------------------------
 	# 1. Estimate optimal width
@@ -138,7 +140,7 @@ func autosize_bubble():
 	#else:
 		#scroll_cont.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	
-	final_h = max(final_h, MIN_HEIGHT_PX)
+	final_h = min(max(final_h, MIN_HEIGHT_PX), max_h)
 	
 	# -------------------------------------------------
 	# 4. Apply
@@ -176,7 +178,7 @@ func layout_bubble(_data: Dictionary) -> Array:
 			result[index] = true
 		else:
 			result.erase(index)
-	pressed_once[0] = false
+	#pressed_once[0] = false
 	for i in data["elements"]:
 		var dup = types[i.type].duplicate()
 		dup.abstract = false
@@ -249,11 +251,19 @@ func finish_and_hide():
 	while visible:
 		await get_tree().process_frame
 
-func say(text_segments: Array, wait_press = false, add_next = true):
+
+
+func say(text_segments: Array, wait_press = false, add_next = true, col = null):
+	#text_segments = [text_segments[0].substr(0,1)]
+	pressed_once[0] = false
+	if col:
+		$ColorRect.color = col
+	else:
+		$ColorRect.color = Color(0.678, 1.0, 0.796)
 	if visible:
 		await hide_request()
 	if wait_press:
-		glob.wait(0).connect(func(): time_passed = true)
+		glob.wait(1.0).connect(func(): time_passed = true)
 	else:
 		if visible:
 			await hide_request()
@@ -308,6 +318,7 @@ func content():
 
 
 func ask(head: String, options: Array, correct: Array, show_correct: bool = false):
+	pressed_once[0] = false
 	show()
 	for i in len(correct):
 		correct[i] = int(correct[i])
@@ -344,22 +355,26 @@ func show_anim(data_: Dictionary):
 		if is_instance_valid(i) and i.unit_type in (i.check_dtypes if data.type == "check" else i.text_dtypes):
 			var div = 0.7; var t = 0.3
 			if i.unit_type == BubbleUnit.UnitType.Text:
-				t = learner.estimate_read_time(i.passed_data.text) * 0.6 + 0.1
+				t = max(1.5,learner.estimate_read_time(i.passed_data.text) * 0.6 + 0.1)
 				div = 0.5
 			glob.tween_call({"t": 0, "obj": i, "div": div}, lerp_call)
+			
 			await glob.wait(t)
 			
 
-
+var t: float = 0
 func hide_anim():
+	t = 0
 	await glob.tween_call({"t": 0},
 		func(data, delta): 
 			data.t += delta * 2
+			t = data.t
 			$ColorRect.position.x = glob.lerp_expo_in(0, 30, data.t)
 			$ColorRect.modulate.a = glob.lerp_expo_in(1.0, 0.0, data.t)
 			if data.t > 1.0:
 				return true
 			)
+	t = 0
 	hide()
 
 

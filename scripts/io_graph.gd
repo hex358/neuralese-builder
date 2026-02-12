@@ -83,6 +83,7 @@ func remove_unit(id: int):
 		if not glob.cull(units[i].global_position, units[i].size):
 			units[i].position.y = offset_units[units[i]]
 			offset_units.erase(units[i])
+	learner.notify_update.call_deferred()
 
 var target_y: float = 0.0
 func add_unit(kw: Dictionary = {}, instant=false):
@@ -129,6 +130,7 @@ func _add_q(kw: Dictionary):
 		appear_units.erase(new_unit)
 		#_unit_modulate_updated(new_unit)
 	_unit_just_added()
+	learner.notify_update.call_deferred()
 
 @export var lerp_size: bool = true
 @export var input_y_add: float = 0.0

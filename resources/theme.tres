@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=12 format=3 uid="uid://cxe1714v2p0a1"]
+[gd_resource type="Theme" format=3 uid="uid://cxe1714v2p0a1"]
 
 [ext_resource type="FontFile" uid="uid://d0xcffxoyd14k" path="res://game_assets/fonts/JetBrainsMono-VariableFont_wght.ttf" id="1_e1x85"]
 [ext_resource type="Texture2D" uid="uid://lfypr47ijmf8" path="res://game_assets/icons/check_on.png" id="1_owntx"]

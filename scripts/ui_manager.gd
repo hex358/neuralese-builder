@@ -10,7 +10,7 @@ func graph_shot(rect: Rect2, path: String) -> void:
 		i.set_screenshotting()
 	var bg = glob.bg_trect
 	bg.visible = false
-	bg.set_screenshotting()
+	#bg.set_screenshotting()
 	await get_tree().process_frame
 
 	var img := get_viewport().get_texture().get_image().get_region(rect)
@@ -20,12 +20,12 @@ func graph_shot(rect: Rect2, path: String) -> void:
 	#DisplayServer.clipboard_set(img)
 	for i in graphs._graphs.values():
 		i.set_not_screenshotting()
-	bg.set_not_screenshotting()
+	#bg.set_not_screenshotting()
 
 var mist: ColorRect
 var is_ai_building: bool = false
 func set_ai_building():
-	return
+	#return
 	# TODO: make it look good
 	
 	is_ai_building = true
@@ -38,7 +38,8 @@ func get_uni(who, what):
 	return who.material.get_shader_parameter(what)
 
 func stop_ai_building():
-	return
+	#return
+	
 	
 	is_ai_building = false
 	axon_donut.target_invisible()
@@ -172,9 +173,15 @@ func conf_screen():
 func a():
 	await confetti(get_global_mouse_position())
 
+var fork = load("res://resources/fork.tscn")
+
+func get_fork():
+	return fork.instantiate()
+
 func _process(delta: float):
-	if glob.space_just_pressed:
-		a()
+	#if glob.space_just_pressed:
+	#	set_ai_building()
+	#	set_dense_units(1, 16)
 	var ct: int = 0
 	for i in splashed.keys():
 		if not is_instance_valid(i): splashed.erase(i); continue
@@ -240,12 +247,91 @@ func hourglass_on():
 func hourglass_off():
 	hourglass.off()
 
+func show_lock():
+	await quest.hide_request()
+	quest.say(["✋ Подожди, пока другие ученики закончат. Скажи учителю что ты ожидаешь следующего шага."], false, false, Color.YELLOW)
+
+func hide_lock():
+	await quest.hide_request()
+
 var chosen = {}
 
+var arrows = {}
+func hide_arrows():
+	await glob.tween_call({}, func(data, delta):
+		for i in arrows.keys():
+			arrows[i] = false
+			i.modulate.a = lerpf(i.modulate.a, 0.0, delta * 20.0)
+			if i.modulate.a < 0.01:
+				i.queue_free()
+				arrows.erase(i)
+		if not arrows:
+			return true
+		)
+
+func show_arrow_conn(points_to: Connection):
+	show_arrow(points_to.dir_vector * 50 + points_to.get_origin(), 
+	points_to.dir_vector * 10 + points_to.get_origin(), func(): return points_to.get_origin() if is_instance_valid(points_to) else null)
+
+func prect(points_to):
+	var lx = Vector2(0.5,1)
+	var g = points_to.rect.get_global_rect()
+	return Vector2(lerp(g.position.x, g.end.x, lx.x), lerp(g.position.y, g.end.y, lx.y))
+
+func show_arrow_graph(points_to: Graph):
+	show_arrow(prect(points_to) + 100 * Vector2.DOWN, 
+	prect(points_to) + 40 * Vector2.DOWN, func(): return prect(points_to) if is_instance_valid(points_to) else null)
+
+
+func base(): return Vector2()
+
+func show_arrow(start: Vector2, end: Vector2, rel: Callable = base):
+	var arrow := Arrow2D.new()
+	add_child(arrow)
+
+	arrow.position = start
+	arrow.end = end - start
+	arrow.color = Color.CORAL
+	arrow.modulate.a = 0.0
+
+	var normal := start.direction_to(end)
+	var anchor = arrow.position - rel.call()
+
+	glob.tween_call({ t = 0.0 }, func(data, delta):
+		if not is_instance_valid(arrow):
+			return true
+			
+
+		data.t += delta
+
+		# Fade-in
+		if arrows.get(arrow, false):
+			arrow.modulate.a = lerpf(
+				arrow.modulate.a,
+				1.0,
+				delta * FADE_SPEED
+			)
+
+		# Damped oscillation
+		var amplitude := WOBBLE_AMPL * exp(-DAMPING * data.t)
+		var offset := normal * sin(data.t * WOBBLE_FREQ) * amplitude
+		
+		var c = rel.call()
+		if c is Vector2:
+			arrow.position = c + anchor + offset
+
+	)
+
+	arrows[arrow] = true
+
+
+const WOBBLE_FREQ := 8.0      # radians/sec
+const WOBBLE_AMPL := 50.0    # pixels
+const DAMPING := 1.5         # higher = faster settle
+const FADE_SPEED := 3
 
 
 func _ready():
-	
 	cl.layer = 128
 	add_child(cl)
 	blur.self_modulate.a = 0
@@ -317,6 +403,10 @@ func choose():
 	return lock_chosen()
 
 signal choosing_finished
+
+
+
+
 
 
 func emphasize_nodes(nodes):
@@ -423,6 +513,13 @@ func splash_and_get_result(menu: String, splashed_from = null, emitter_ = null, 
 	var a = await emitter.res
 	return a
 
+func set_dense_units(per_unit: int, max_units: int):
+	for i in graphs._graphs:
+		var g = graphs._graphs[i]
+		if graphs.is_layer(g, "Dense"):
+			g.group_size = per_unit
+			g.max_units = max_units
+			g.update_config({"neuron_count": g.cfg["neuron_count"]})
 
 var lesson_bar: ColorRect = null
 

@@ -158,7 +158,7 @@ func _input(event: InputEvent) -> void:
 				MOUSE_BUTTON_WHEEL_DOWN:
 					target_zoom = max(0.4, zoom.x - factor)
 				MOUSE_BUTTON_WHEEL_UP:
-					target_zoom = min(3, zoom.x + factor)
+					target_zoom = min(4, zoom.x + factor)
 
 			if target_zoom != prev_zoom:
 				move_intensity = 1.0
@@ -221,7 +221,7 @@ func emp_node(nodes) -> void:
 	var bbox = _bbox_of(nodes)
 	var center = bbox.position + bbox.size / 2.0
 	var span = max(bbox.size.x, bbox.size.y)
-	var z = clamp(800.0 / max(span, 100.0), 0.4, 2)
+	var z = clamp(800.0 / max(span, 100.0), 0.4, 4)
 	change_cam(z, center)
 
 

@@ -5,9 +5,9 @@ enum NetMode {Localhost, Remote, LAN}
 var NET_MODE = NetMode.Localhost
 const DUMMY_LOGIN: bool = 0
 const DUMMY_PROJECTS: bool = 0
-const WINDOW_DBG: bool = 1
+const WINDOW_DBG: bool = 0
 const DEBUG_RELOAD_LESSONS: bool = 0
-const IMPORT_LESSON_DIRS: bool = 1
+const IMPORT_LESSON_DIRS: bool = 1      
 const NO_TRANSCRIBER_WARMUP: bool = true
 
 var default_spline = preload("res://scenes/default_spline.tscn")
@@ -1345,6 +1345,7 @@ func get_my_message_state(chat_id: int, text_update: Callable = def) -> Array:
 
 
 func clear_all():
+	
 	undo_redo.clear_history()
 	last_summary_hash = -1
 	for i in ui.splashed:
@@ -1428,6 +1429,8 @@ func load_scene(from: String, clear_lesson: bool = false):
 	
 	close_action_batch()
 	return true
+
+
 
 
 
@@ -2063,6 +2066,8 @@ class TweenSimple:
 
 const eps: float = 0.008
 
+
+
 class TweenCall:
 	signal finished
 	var callb: Callable; var data: Dictionary
@@ -2435,6 +2440,37 @@ var space_begin: Vector2 = Vector2()
 var space_end: Vector2 = DisplayServer.window_get_size()
 var tree: SceneTree
 
+func download_update(url: String):
+	var exe_dir = OS.get_executable_path().get_base_dir()
+	var path = exe_dir.path_join("Neuralese_new.exe")
+
+	var offset := 0
+	if FileAccess.file_exists(path):
+		var f = FileAccess.open(path, FileAccess.READ)
+		if f:
+			offset = f.get_length()
+			f.close()
+
+	var headers = {}
+	if offset > 0:
+		headers["Range"] = "bytes=%d-" % offset
+
+	var handle = web.GET(url, {}, false)
+	handle.on_chunk.connect(func(chunk):
+		var f = FileAccess.open(path, FileAccess.WRITE_READ)
+		f.seek_end()
+		f.store_buffer(chunk)
+		f.close()
+	)
+
+	var result = await handle.completed
+	if not result.ok:
+		print("Update download failed")
+		return
+
+	print("Update downloaded")
+
+
 var lan_ip = null
 func _ready() -> void:
 	if Engine.is_editor_hint(): return
@@ -2473,6 +2509,9 @@ func _ready() -> void:
 		base_lan_ip = ip
 		web.api_url = get_root_http()
 		sockets.connection_prefix = get_root_ws()
+	var upd = UpdateManager.new()
+	add_child(upd)
+	upd.check_update()
 	
 	if !DEBUG_RELOAD_LESSONS:
 		await try_auto_login()
@@ -2492,7 +2531,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 		learner.try_load_cached()
 		learner.dbg_load_lesson("C:/Users/Mike/Desktop/lesson_bundle")
-		learner.enter_lesson("test")
+		learner.enter_lesson("neuro")
 	
 
 var scale_fg: CanvasLayer

@@ -101,7 +101,7 @@ func is_mouse_inside(padding:Vector4=-Vector4.ONE) -> bool:
 		return false
 	var pd = padding
 	if padding == -Vector4.ONE:
-		pd = Vector4.ONE * 20 * pow(glob.cam.zoom.x, -0.5)
+		pd = Vector4.ONE * 55 * pow(glob.cam.zoom.x, -0.5)
 	else:
 		pd = Vector4()
 	if glob.get_display_mouse_position().y < glob.space_begin.y\
@@ -167,6 +167,7 @@ func add_spline() -> int:
 	var spline = glob.get_spline(self)
 	spline.turn_into(keyword)
 	spline.origin = self
+	spline.set_fork_color(gradient_color)
 	key_by_spline[spline] = slot
 	outputs[slot] = spline
 	return slot
@@ -185,8 +186,29 @@ func start_spline(id: int):
 	graphs.conns_active[self] = true
 	active_outputs[id] = spline
 
+
+var allow_reverse: bool = false
+
+var is_fork: bool = false
+func set_fork_allowed(fork: bool):
+	is_fork = fork
+	allow_reverse = true if not fork else false
+	if !fork:
+		$plot.hide()
+		$plot3.hide()
+	else:
+		$plot.hide()
+		$plot3.hide()
+		if connection_type == OUTPUT:
+			$plot.show()
+		if connection_type == INPUT:
+			$plot3.show()
+
+
+
 func end_spline(id, hide: bool = true):
 	if hide:
+		show_forks()
 		var spline
 		if id is int:
 			if not id in outputs: return
@@ -206,6 +228,8 @@ func end_spline(id, hide: bool = true):
 			node.forget_spline(spline, self)
 		outputs.erase(id)
 	glob.deactivate_spline(active_outputs[id])
+	if id in active_outputs:
+		active_outputs[id].set_fork_output()
 	active_outputs.erase(id)
 	graphs.conns_active.erase(self)
 	parent_graph.hold_for_frame()
@@ -230,6 +254,7 @@ func attach_spline(id: int, target: Connection):
 	glob.hovered_connection = null
 	graphs.attach_edge(self, target)
 	parent_graph.just_connected(self, target)
+	target.get_node("plot3").color = Color.WHITE
 	target.parent_graph.just_attached(self, target)
 	end_spline(id, false)
 	spline._last_origin_pos = spline.origin.get_origin()
@@ -251,8 +276,9 @@ func _init() -> void:
 func detatch_spline(spline: Spline, manual: bool = false):
 	var other = spline.origin
 	other.parent_graph.disconnecting(other, self)
-	
+	spline.set_fork_uncon()
 	var idx = inputs[spline]
+	$plot3.color = gradient_color
 	if not other.outputs.has(idx):
 		return
 	other.conn_counts.get_or_add(conn_count_keyword, [1])[0] -= 1
@@ -269,10 +295,54 @@ func detatch_spline(spline: Spline, manual: bool = false):
 
 @export var auto_rename: bool = false
 
+func hide_forks():
+	$plot.hide()
+	$plot3.hide()
+func show_forks():
+	if !is_fork:
+		return
+	if outputs.size() == 1:
+		$plot.show()
+		if connection_type == INPUT:
+			$plot3.show()
+
+func align_plots():
+	if connection_type == OUTPUT:
+		$plot3.hide()
+		$plot.color = gradient_color.lerp(Color.WHITE, 0.5)
+		match dir_vector.normalized():
+			Vector2.RIGHT:
+				$plot.position.y = size.y/2-4
+				$plot.position.x = size.x-4
+			Vector2.DOWN:
+				$plot.position.y = size.y-3
+				$plot.position.x = size.x/2-4
+	else:
+		hide_forks()
+		$plot3.show()
+		match dir_vector.normalized():
+			Vector2.LEFT:
+				$plot3.position.y = size.y/2-6 + off
+				$plot3.color = gradient_color
+				$plot3.position.x = -1.5
+				$plot3.size.x = 18
+				$plot3.size.y = 35 - off
+			Vector2.UP:
+				$plot3.position.y = -1.5
+				$plot3.color = gradient_color
+				$plot3.position.x = size.x/2 - 6 + off
+				$plot3.size.x = 35 - off*3
+				$plot3.size.y = 18
+
+@export var off: float = 0
+
 var conn_counts: Dictionary = {&"": [0]}
 func _ready() -> void:
 	if auto_rename:
 		server_name += str(hint)
+	align_plots()
+	set_fork_allowed(graphs.fork_allowed)
+		
 	if !Engine.is_editor_hint() and !is_instance_valid(parent_graph):
 		parent_graph = get_parent()
 	if !Engine.is_editor_hint() and parent_graph:
@@ -363,6 +433,7 @@ func connect_to(target: Connection, force: bool = false) -> bool:
 			return false
 
 	var slot = add_spline()
+	hide_forks()
 	start_spline(slot)
 	attach_spline(slot, target)
 	#if parent_graph.server_typename == "TrainBegin":
@@ -406,15 +477,17 @@ func _stylize_spline(spline: Spline, hovered_suitable: bool, finalize: bool = fa
 		spline.turn_into(keyword, glob.hovered_connection.keyword)
 		spline.color_a = spline.origin.gradient_color
 	else:
-		spline.modulate = Color(0.8,0.8,0.8)
+		spline.modulate = Color(0.7,0.7,0.7)
 		spline.turn_into(keyword)
-		spline.color_a = Color.WHITE
+		spline.color_a = gradient_color
 	if hovered_suitable:
+		spline.set_fork_color(glob.hovered_connection.gradient_color)
 		spline.color_b = glob.hovered_connection.gradient_color
 	else:
-		spline.color_b = Color.WHITE
+		spline.set_fork_color(gradient_color)
+		spline.color_b = gradient_color
 	if finalize: spline.modulate.a = 1.0
-	else: spline.modulate.a = 0.7
+	else: spline.modulate.a = 1.0
 
 var hovered: bool = false
 var prog: float = 0.0
@@ -429,6 +502,8 @@ func _process(delta: float) -> void:
 	if not visible or not parent_graph.visible:
 		return
 
+	if glob.f2_pressed:
+		return
 	var inside = is_mouse_inside()
 
 	var active_out: Connection = null
@@ -480,9 +555,10 @@ func _process(delta: float) -> void:
 					if (multiple_splines or outputs.size() == 0):
 						if !graphs.conning():
 							var nspline = add_spline()
+							hide_forks()
 							start_spline(nspline)
 							glob.activate_spline(outputs[nspline])
-					elif is_instance_valid(cached_other_rev) and (!multiple_splines and outputs.size() == 1):
+					elif is_instance_valid(cached_other_rev) and (!multiple_splines and outputs.size() == 1) and allow_reverse:
 						pass
 						disconnect_from(cached_other_rev, false, false)
 						await get_tree().process_frame
@@ -493,7 +569,7 @@ func _process(delta: float) -> void:
 				glob.menus["detatch"].show_up(outputs, self)
 
 		elif base_cond:
-			if aux_cond and mouse_just_pressed and inputs.size() == 0 and not _rev_active():
+			if allow_reverse and aux_cond and mouse_just_pressed and inputs.size() == 0 and not _rev_active():
 				_rev_start()
 			elif glob.mouse_alt_just_pressed and unpadded:
 				#print("AA")
@@ -538,7 +614,10 @@ func _process(delta: float) -> void:
 
 	for id in active_outputs:
 		var spline = active_outputs[id]
-		spline.update_points(spline.origin.get_origin(), get_global_mouse_position(), dir_vector)
+		var add = spline.end_dir_vec*5
+		if !spline.draw_fork:
+			add = Vector2()
+		spline.update_points(spline.origin.get_origin(), get_global_mouse_position() + add, dir_vector)
 
 		if not mouse_pressed:
 			if suit and is_instance_valid(hover_target):
@@ -554,7 +633,7 @@ func _process(delta: float) -> void:
 	if _rev_active():
 		var hovered_ok = is_instance_valid(hover_target) and hover_target.connection_type == OUTPUT \
 			and is_suitable_callable_for_output_to_input(hover_target, self)
-		_rev_spline.update_points(get_origin() + Vector2.RIGHT, get_global_mouse_position(), dir_vector, -dir_vector)
+		_rev_spline.update_points(get_origin() + Vector2.RIGHT * 0.5, get_global_mouse_position(), dir_vector, -dir_vector)
 
 		if not mouse_pressed:
 			if hovered_ok:

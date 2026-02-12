@@ -658,7 +658,21 @@ func simple_reach(from_graph: Graph, configs: bool = false) -> Dictionary[Graph,
 	reach(from_graph, callable)
 	return gathered
 
+var fork_allowed: bool = false
 
+func allow_deletion_all():
+	for i in graphs._graphs.values():
+		var g: Graph = i
+		g.allow_deletion()
+
+func set_fork_allow(do: bool):
+	fork_allowed = do
+	for i in graphs._graphs.values():
+		var g: Graph = i
+		for conn in g.input_key_by_conn:
+			conn.set_fork_allowed(do) 
+		for conn in g.output_key_by_conn:
+			conn.set_fork_allowed(do) 
 
 func reach(from_graph: Graph, call: Callable = def_call):
 	reach_mode = true

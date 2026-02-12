@@ -87,7 +87,7 @@ offset_right = 523.00336
 offset_bottom = 238.90277
 scale = Vector2(0.9292482, 0.9292482)
 mouse_filter = 2
-color = Color(0.68, 1, 0.7973333, 1)
+color = Color(0.6784314, 1, 0.79607844, 1)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ColorRect"]
 clip_contents = false

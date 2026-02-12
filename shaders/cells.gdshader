@@ -1,6 +1,7 @@
 shader_type canvas_item;
 render_mode world_vertex_coords;
 
+uniform float mult = 0.5;
 uniform float width   = 2.0;   // dot diameter in world units
 uniform float spacing = 10.0;  // grid spacing in world units
 uniform vec4 grid_color : source_color;
@@ -25,6 +26,6 @@ void fragment() {
 	// Soft circle edge
 	float a = 1.0 - smoothstep(half_w - px_world, half_w + px_world, dist);
 
-	COLOR = mix(bg_color, grid_color, a);
-	COLOR.rgb *= 0.5;
+	COLOR = mix(bg_color, grid_color, a) ;
+	COLOR.rgb *= mult;
 }

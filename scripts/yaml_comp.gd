@@ -146,7 +146,7 @@ static func _compile_steps_array(src: Array, fallback_title: String) -> Array:
 	for item in src:
 		var step_def = _compile_flow_item(item)
 		if step_def.is_empty():
-			push_error("lesson '%s': step compilation failed" % fallback_title)
+			print("lesson '%s': step compilation failed" % fallback_title, item)
 			return []
 		out.append(step_def)
 

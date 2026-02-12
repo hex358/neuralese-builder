@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://by1briddb0hwg"]
+[gd_scene format=3 uid="uid://by1briddb0hwg"]
 
 [ext_resource type="Shader" uid="uid://cxl3lwrgb4nbm" path="res://shaders/bg.gdshader" id="1_5vsr6"]
 [ext_resource type="Script" uid="uid://07c2103mw3ts" path="res://scripts/bg.gd" id="1_bf1jy"]
@@ -15,17 +15,18 @@ viewport_path = NodePath("SubViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0m0f1"]
 shader = ExtResource("1_dpp0m")
+shader_parameter/mult = 0.5
 shader_parameter/width = 7.98
 shader_parameter/spacing = 110.0
 shader_parameter/grid_color = Color(0.38, 0.38, 0.38, 1)
 shader_parameter/bg_color = Color(0.25, 0.25, 0.25, 1)
 shader_parameter/aa_pixels = 1.0
 
-[node name="Node" type="CanvasLayer"]
+[node name="Node" type="CanvasLayer" unique_id=1626059463]
 layer = -127
 script = ExtResource("1_bf1jy")
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="TextureRect" type="TextureRect" parent="." unique_id=656795692]
 material = SubResource("ShaderMaterial_w68nc")
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,7 +40,7 @@ expand_mode = 1
 stretch_mode = 2
 script = ExtResource("1_qd2e1")
 
-[node name="SubViewport" type="SubViewport" parent="."]
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1016354271]
 disable_3d = true
 transparent_bg = true
 handle_input_locally = false
@@ -49,12 +50,12 @@ canvas_cull_mask = 4293918951
 size = Vector2i(1152, 658)
 script = ExtResource("3_w68nc")
 
-[node name="bg" type="CanvasLayer" parent="SubViewport"]
+[node name="bg" type="CanvasLayer" parent="SubViewport" unique_id=2135966352]
 layer = -128
 follow_viewport_enabled = true
 follow_viewport_scale = 0.7
 
-[node name="ColorRect" type="ColorRect" parent="SubViewport/bg" node_paths=PackedStringArray("rect")]
+[node name="ColorRect" type="ColorRect" parent="SubViewport/bg" unique_id=1764216740 node_paths=PackedStringArray("rect")]
 z_index = -4096
 material = SubResource("ShaderMaterial_0m0f1")
 offset_left = -550.0
@@ -66,9 +67,9 @@ script = ExtResource("2_qd2e1")
 rect = NodePath("../../../TextureRect")
 offset_mult = 2.0
 
-[node name="Camera2D" type="Camera2D" parent="SubViewport"]
+[node name="Camera2D" type="Camera2D" parent="SubViewport" unique_id=1691061135]
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1485138673]
 z_index = -90
 anchors_preset = 15
 anchor_right = 1.0

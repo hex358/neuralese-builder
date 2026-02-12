@@ -57,6 +57,7 @@ multiple_splines = true
 origin_offset = Vector2(0, -6)
 dir_vector = Vector2(0, -1)
 parent_graph = NodePath("..")
+off = 1.0
 conn_count_keyword = "activ"
 gradient_color = Color(0.298039, 0.670588, 0.901961, 1)
 

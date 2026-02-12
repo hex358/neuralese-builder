@@ -1,3 +1,4 @@
+
 class_name LessonCode
 extends Node
 
@@ -32,6 +33,12 @@ func stop() -> void:
 	node_bindings.clear()
 	pending_node_binds.clear()
 	active_invariants.clear()
+	bind_specs.clear()
+	bind_to_id.clear()
+	id_claims.clear()
+	bind_flags.clear()
+	_node_seq = 0
+
 
 	for step in steps:
 		step["_completed"] = false
@@ -74,7 +81,12 @@ func load_code(code: Dictionary) -> void:
 	node_bindings.clear()
 	pending_node_binds.clear()
 	active_invariants.clear()
-
+	bind_specs.clear()
+	bind_to_id.clear()
+	id_claims.clear()
+	bind_flags.clear()
+	_node_seq = 0
+	
 	_evaluating = false
 	_queued_eval = false
 
@@ -133,15 +145,20 @@ func get_main_step_index() -> int:
 	return current_step_index
 
 
+
+
 var main_flow_name: String = "flow"
 var main_flow_steps_count: int = 0
 
 func start() -> void:
+	node_bindings["lesson"] = self
 	await _advance_to_next_step()
 
 func on_graph_changed() -> void:
+	_refresh_binds()
 	_check_invariants()
 	_request_evaluate()
+
 
 func _request_evaluate() -> void:
 	# prevents multiple concurrent evals
@@ -151,15 +168,13 @@ func _request_evaluate() -> void:
 	await _evaluate_current_step()
 
 func on_node_created(node: Graph) -> void:
-	for bind_spec in pending_node_binds:
-		var bind_name = bind_spec["bind"]
-		if node_bindings.has(bind_name):
-			continue
-		if bind_spec["type"] == "anytype" or node.get_meta("created_with") == bind_spec["type"]:
-			node_bindings[bind_name] = node.graph_id
-			pending_node_binds.erase(bind_spec)
-			break
+	if node != null and not node.has_meta("_lesson_seq"):
+		node.set_meta("_lesson_seq", _node_seq)
+		_node_seq += 1
+
 	on_graph_changed()
+
+
 
 func _dbg(msg: String) -> void:
 	print("[LESSON][%s] %s" % [active_flow, msg])
@@ -186,12 +201,194 @@ func _advance_to_next_step() -> void:
 		[current_step_index, step.get("title", step.get("id", "?"))])
 
 	if step.has("bind_on_create"):
-		pending_node_binds.append(step["bind_on_create"])
+		var bocs = step["bind_on_create"]
+		if typeof(bocs) == TYPE_ARRAY:
+			for boc in bocs:
+				register_bind_spec(boc)
+
 
 	step_started.emit(current_step_index, step)
 	call_deferred("_request_evaluate")
 
 
+func register_bind_spec(spec_in: Dictionary) -> void:
+	if typeof(spec_in) != TYPE_DICTIONARY:
+		return
+
+	var bind_name = str(spec_in.get("bind", "")).strip_edges()
+	var want_type = str(spec_in.get("type", "")).strip_edges()
+	if bind_name == "" or want_type == "":
+		return
+
+	# Persist spec forever (role definition), do NOT delete it after first bind.
+	if not bind_specs.has(bind_name):
+		bind_specs[bind_name] = {
+			"type": want_type,
+			"introduced_step": get_main_step_index(),
+		}
+	else:
+		# Keep the original type to avoid chaos if YAML was inconsistent.
+		var cur_type = str(bind_specs[bind_name].get("type", ""))
+		if cur_type != want_type:
+			push_warning("Bind '%s' type mismatch: '%s' vs '%s' (keeping '%s')" % [
+				bind_name, cur_type, want_type, cur_type
+			])
+
+	_refresh_binds()
+
+
+func set_bind_prohibit(binds_in, on: bool) -> void:
+	var arr: Array = []
+	if binds_in is Array:
+		arr = binds_in
+	else:
+		arr = [binds_in]
+
+	for b in arr:
+		var bind_name = str(b).strip_edges()
+		if bind_name == "":
+			continue
+		var flags = bind_flags.get(bind_name, {})
+		flags["prohibit_deletion"] = on
+		bind_flags[bind_name] = flags
+		_apply_bind_flags(bind_name)
+
+
+func _refresh_binds() -> void:
+	_ensure_node_seq_meta()
+
+	# 1) Drop dead / invalid bindings
+	var to_unbind: Array = []
+	for bind_name in bind_to_id.keys():
+		var id = int(bind_to_id[bind_name])
+		if not graphs._graphs.has(id):
+			to_unbind.append(bind_name)
+			continue
+
+		# If we have a spec, enforce it
+		var spec = bind_specs.get(bind_name, {})
+		if not spec.is_empty():
+			var g = graphs._graphs.get(id)
+			if g == null or not _node_matches_spec(g, spec):
+				to_unbind.append(bind_name)
+
+	for b in to_unbind:
+		_unbind(b)
+
+	# 2) Ensure every known bind is satisfied if possible
+	for bind_name in bind_specs.keys():
+		_ensure_bind(bind_name)
+
+
+func _ensure_bind(bind_name: String) -> void:
+	# sticky: if already bound and node exists + matches spec, keep it
+	if bind_to_id.has(bind_name):
+		var id = int(bind_to_id[bind_name])
+		var g = graphs._graphs.get(id)
+		var spec = bind_specs.get(bind_name, {})
+		if g != null and (spec.is_empty() or _node_matches_spec(g, spec)):
+			return
+		_unbind(bind_name)
+
+	var spec2 = bind_specs.get(bind_name, {})
+	if spec2.is_empty():
+		return
+
+	var cand_id = _pick_candidate_for_bind(bind_name, spec2)
+	if cand_id != -1:
+		_claim(bind_name, cand_id)
+
+
+func _pick_candidate_for_bind(bind_name: String, spec: Dictionary) -> int:
+	var want_type = str(spec.get("type", "")).strip_edges()
+	if want_type == "":
+		return -1
+
+	var best_id = -1
+	var best_seq = -1
+
+	for g in graphs._graphs.values():
+		if g == null:
+			continue
+		if str(g.get_meta("created_with", "")) != want_type:
+			continue
+
+		var id = int(g.graph_id)
+
+		# avoid assigning same node to multiple binds
+		if id_claims.has(id) and str(id_claims[id]) != bind_name:
+			continue
+
+		var seq = int(g.get_meta("_lesson_seq", 0))
+		if seq > best_seq:
+			best_seq = seq
+			best_id = id
+
+	return best_id
+
+
+func _node_matches_spec(g, spec: Dictionary) -> bool:
+	var want_type = str(spec.get("type", "")).strip_edges()
+	if want_type == "":
+		return true
+	return str(g.get_meta("created_with", "")) == want_type
+
+
+func _claim(bind_name: String, id: int) -> void:
+	# release previous claim for this bind (if any)
+	if bind_to_id.has(bind_name):
+		var old_id = int(bind_to_id[bind_name])
+		id_claims.erase(old_id)
+
+	bind_to_id[bind_name] = id
+	id_claims[id] = bind_name
+	node_bindings[bind_name] = id
+
+	_apply_bind_flags(bind_name)
+
+
+func _unbind(bind_name: String) -> void:
+	if bind_to_id.has(bind_name):
+		var id = int(bind_to_id[bind_name])
+		id_claims.erase(id)
+		bind_to_id.erase(bind_name)
+
+	node_bindings.erase(bind_name)
+
+
+func _apply_bind_flags(bind_name: String) -> void:
+	if not bind_to_id.has(bind_name):
+		return
+
+	var id = int(bind_to_id[bind_name])
+	var g = graphs._graphs.get(id)
+	if g == null:
+		return
+
+	var flags = bind_flags.get(bind_name, {})
+	if bool(flags.get("prohibit_deletion", false)):
+		g.prohibit_deletion()
+	else:
+		# keep permissive unless explicitly prohibited
+		# (safe to call if your Graph implements it)
+		g.allow_deletion()
+
+
+func _ensure_node_seq_meta() -> void:
+	# If some nodes exist without our meta (loaded before lesson), tag them.
+	for g in graphs._graphs.values():
+		if g == null:
+			continue
+		if not g.has_meta("_lesson_seq"):
+			g.set_meta("_lesson_seq", _node_seq)
+			_node_seq += 1
+
+var bind_specs: Dictionary = {}		# bind -> { type: String, introduced_step: int }
+var bind_to_id: Dictionary = {}		# bind -> graph_id
+var id_claims: Dictionary = {}		# graph_id -> bind (avoid double-assign)
+var bind_flags: Dictionary = {}		# bind -> { prohibit_deletion: bool }
+
+var _node_seq: int = 0		
 
 
 func call_branch(flow_name: String) -> void:
@@ -309,7 +506,7 @@ func _run_actions(step: Dictionary) -> bool:
 func _run_action(step: Dictionary, act: Dictionary) -> bool:
 	var t = str(act.get("type", ""))
 	var fn = dsl_reg.action.get(t, {}).get("runtime", null)
-
+	print(act)
 	if fn == null:
 		push_error("Unknown action type: %s" % t)
 		return false

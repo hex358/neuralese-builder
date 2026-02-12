@@ -105,6 +105,13 @@ func _unit_just_added() -> void:
 		#update_config({"label_names": res})
 		#manually = false
 		#close_undo_redo()
+	for i in 3:
+		await get_tree().process_frame
+	var res = []
+	for i in units:
+		res.append(i.get_node("Label").text)
+	cfg["label_names"] = res
+	learner.notify_update()
 
 
 

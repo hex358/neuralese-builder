@@ -611,6 +611,8 @@ func _process(delta: float) -> void:
 		return
 	
 	mult = scaler.scale * parent.scale
+	if glob.f2_pressed:
+		return
 	match button_type:
 		ButtonType.CONTEXT_MENU:
 			_process_context_menu(delta)
