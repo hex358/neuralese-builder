@@ -4,6 +4,8 @@ Neuralese Frontend is the desktop client for building, training, and testing neu
 
 It is designed for learners who want to understand how models are assembled and iterated without starting from raw code.
 
+Neuralese Backend (API) repo link: https://github.com/hex358/neuralese-api/
+
 ---
 
 ## What this app does
